@@ -1,0 +1,17 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "org.amoverride.craftorio.mixin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "Craft_GuiMapMixin"
+  ],
+  "client": [
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  },
+  "overwrites": {
+    "requireAnnotations": true
+  }
+}
