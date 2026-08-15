@@ -4,9 +4,12 @@
   "package": "org.amoverride.craftorio.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "Craft_GuiMapMixin"
+    "Craft_EntityMixin",
+    "Craft_GuiMapMixin",
+    "CraftWorldMapSessionMixin"
   ],
   "client": [
+    "Craft_CollisionGetter"
   ],
   "injectors": {
     "defaultRequire": 1

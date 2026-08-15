@@ -15,6 +15,17 @@ repositories {
         url "https://chocolateminecraft.com/maven"
         name "Xaero's Maven"
     }
+
+    exclusiveContent {
+        forRepository {
+            maven {
+                url "https://cursemaven.com"
+            }
+        }
+        filter {
+            includeGroup "curse.maven"
+        }
+    }
 }
 
 base {
@@ -116,6 +127,7 @@ dependencies {
     // implementation files("libs/coolmod-${mc_version}-${coolmod_version}.jar")
 
     implementation "xaero.map:xaeroworldmap-neoforge-1.21.1:1.44.2"
+    runtimeOnly "curse.maven:open-parties-and-claims-636608:8507166"
     // Example project dependency using a sister or child project:
     // implementation project(":myproject")
 

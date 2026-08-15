@@ -4,6 +4,7 @@ import com.mojang.datafixers.util.Unit;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Codec;
 import net.minecraft.client.Minecraft;
+import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -38,8 +39,12 @@ public class Craftorio {
     // Create the DeferredRegister for attachment types
     private static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES = DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, MODID);
 
-    public static final Supplier<AttachmentType<Integer>> LAND_POINTS = ATTACHMENT_TYPES.register(
-            "land_points", () -> AttachmentType.builder(() -> 100).serialize(Codec.INT).build()
+    public static final Supplier<AttachmentType<Long>> LAND_POINTS = ATTACHMENT_TYPES.register(
+            "land_points", () -> AttachmentType.builder(() -> 100L).serialize(Codec.LONG).sync(ByteBufCodecs.VAR_LONG).build()
+    );
+
+    public static final Supplier<AttachmentType<Integer>> AMOUNT_OF_LAND = ATTACHMENT_TYPES.register(
+            "amount_of_land", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).sync(ByteBufCodecs.INT).build()
     );
 
     public static final Supplier<AttachmentType<Unit>> OWNED = ATTACHMENT_TYPES.register(

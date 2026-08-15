@@ -18,7 +18,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.amoverride.craftorio.Craftorio.OWNED;
+import static org.amoverride.craftorio.Craftorio.*;
 
 public class Craft_Misc {
 
@@ -38,23 +38,27 @@ public class Craft_Misc {
                 chunks.add(new ChunkPos(x,y));
             }
         }
-
-        System.out.println(chunks);
         return chunks;
     }
 
     public static void ownLand(ChunkPos chunkPos,Level level, boolean claiming){
-
-
-
         if (level == null) return;
+        int claimed_amount = level.getData(AMOUNT_OF_LAND);
         ChunkAccess chunk = level.getChunk(chunkPos.x,chunkPos.z);
-        if (claiming){
-            chunk.setBlockState(new BlockPos(0,0,0),level.getBlockState(new BlockPos(0,-62,0)),true);
+        if (claiming && !chunk.hasData(OWNED)){
             chunk.setData(OWNED, Unit.INSTANCE);
-        } else {
-            chunk.removeData(OWNED);
+            level.setData(AMOUNT_OF_LAND,++claimed_amount);
         }
+        if (!claiming && chunk.hasData(OWNED)) {
+            chunk.removeData(OWNED);
+            level.setData(AMOUNT_OF_LAND,--claimed_amount);
+        }
+
+    }
+
+    public static long calculateLandCost(int claimAmount,Level level){
+        int currentLand = level.getData(AMOUNT_OF_LAND);
+        return (currentLand + claimAmount) > 1 ? ((currentLand + claimAmount) * 10L) : 10L;
     }
 
 }
