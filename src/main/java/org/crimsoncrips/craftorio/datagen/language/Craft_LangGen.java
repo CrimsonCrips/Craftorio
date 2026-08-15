@@ -1,7 +1,7 @@
-package org.amoverride.craftorio.datagen.language;
+package org.crimsoncrips.craftorio.datagen.language;
 
 import net.minecraft.data.PackOutput;
-import org.amoverride.craftorio.Craftorio;
+import org.crimsoncrips.craftorio.Craftorio;
 
 public class Craft_LangGen extends Craft_LangProvider {
 

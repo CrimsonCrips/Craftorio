@@ -1,4 +1,4 @@
-package org.amoverride.craftorio.datagen.language;
+package org.crimsoncrips.craftorio.datagen.language;
 
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.common.data.LanguageProvider;

@@ -1,10 +1,10 @@
-package org.amoverride.craftorio.server.events;
+package org.crimsoncrips.craftorio.server.events;
 
 
 import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
-import org.amoverride.craftorio.Craftorio;
-import org.amoverride.craftorio.networking.OwnLandPacket;
+import org.crimsoncrips.craftorio.Craftorio;
+import org.crimsoncrips.craftorio.networking.OwnLandPacket;
 
 public class RegistrationEvents {
 

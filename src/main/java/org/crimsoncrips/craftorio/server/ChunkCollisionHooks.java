@@ -1,13 +1,13 @@
-package org.amoverride.craftorio.server;
+package org.crimsoncrips.craftorio.server;
 
 import net.minecraft.core.SectionPos;
-import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
+import org.crimsoncrips.craftorio.Craftorio;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
@@ -17,7 +17,6 @@ public class ChunkCollisionHooks {
     //Created By Drullkus
 
     public static boolean levelHasUnlockableChunks(Level level) {
-        System.out.println("test");
         return level.dimensionType().bedWorks();
     }
 
@@ -59,6 +58,6 @@ public class ChunkCollisionHooks {
     }
 
     private static boolean isChunkUnlocked(Level level, Entity entity, int chunkX, int chunkZ) {
-        return Mth.abs(chunkX) < 2 && Mth.abs(chunkZ) < 2;
+        return level.getChunk(chunkX,chunkZ).hasData(Craftorio.OWNED);
     }
 }

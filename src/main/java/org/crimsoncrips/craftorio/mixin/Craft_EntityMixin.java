@@ -1,15 +1,14 @@
-package org.amoverride.craftorio.mixin;
+package org.crimsoncrips.craftorio.mixin;
 
 import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
 import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.common.util.ConcatenatedListView;
-import org.amoverride.craftorio.server.ChunkCollisionHooks;
+import org.crimsoncrips.craftorio.server.ChunkCollisionHooks;
 import org.spongepowered.asm.mixin.Mixin;
 
 import javax.annotation.Nullable;

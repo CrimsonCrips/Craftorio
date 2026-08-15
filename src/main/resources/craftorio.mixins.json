@@ -1,15 +1,15 @@
 {
   "required": true,
   "minVersion": "0.8",
-  "package": "org.amoverride.craftorio.mixin",
+  "package": "org.crimsoncrips.craftorio.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
+    "Craft_CollisionGetter",
     "Craft_EntityMixin",
     "Craft_GuiMapMixin",
     "CraftWorldMapSessionMixin"
   ],
   "client": [
-    "Craft_CollisionGetter"
   ],
   "injectors": {
     "defaultRequire": 1

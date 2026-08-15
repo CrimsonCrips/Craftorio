@@ -1,4 +1,4 @@
-package org.amoverride.craftorio.mixin;
+package org.crimsoncrips.craftorio.mixin;
 
 
 
@@ -10,8 +10,8 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.amoverride.craftorio.Craft_Misc;
-import org.amoverride.craftorio.networking.OwnLandPacket;
+import org.crimsoncrips.craftorio.Craft_Misc;
+import org.crimsoncrips.craftorio.networking.OwnLandPacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.injection.At;
@@ -20,7 +20,6 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 import xaero.map.gui.GuiMap;
 import xaero.map.gui.MapTileSelection;
 import xaero.map.gui.dropdown.rightclick.RightClickOption;
-import xaero.map.region.MapTileChunk;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -59,8 +58,8 @@ public abstract class Craft_GuiMapMixin {
 
     }
 
-    @WrapWithCondition(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;drawCenteredString(Lnet/minecraft/client/gui/Font;Ljava/lang/String;III)V",ordinal = 1))
-    private boolean test(GuiGraphics instance, Font font, String text, int x, int y, int color) {
-        return false;
-    }
+//    @WrapWithCondition(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;drawCenteredString(Lnet/minecraft/client/gui/Font;Ljava/lang/String;III)V",ordinal = 1))
+//    private boolean test(GuiGraphics instance, Font font, String text, int x, int y, int color) {
+//        return false;
+//    }
 }

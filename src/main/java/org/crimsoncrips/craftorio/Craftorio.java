@@ -1,10 +1,11 @@
-package org.amoverride.craftorio;
+package org.crimsoncrips.craftorio;
 
 import com.mojang.datafixers.util.Unit;
 import com.mojang.logging.LogUtils;
 import com.mojang.serialization.Codec;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.IEventBus;
@@ -18,9 +19,10 @@ import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.neoforged.neoforge.registries.*;
-import org.amoverride.craftorio.datagen.CraftorioDatagen;
-import org.amoverride.craftorio.server.events.CommandEvents;
-import org.amoverride.craftorio.server.events.RegistrationEvents;
+import org.crimsoncrips.craftorio.datagen.CraftorioDatagen;
+import org.crimsoncrips.craftorio.server.events.CommandEvents;
+import org.crimsoncrips.craftorio.server.events.RegistrationEvents;
+import org.crimsoncrips.craftorio.server.events.ServerEvents;
 import org.slf4j.Logger;
 
 import java.util.Locale;
@@ -48,7 +50,7 @@ public class Craftorio {
     );
 
     public static final Supplier<AttachmentType<Unit>> OWNED = ATTACHMENT_TYPES.register(
-            "owned", () -> AttachmentType.builder(() -> Unit.INSTANCE).build()
+            "owned", () -> AttachmentType.builder(() -> Unit.INSTANCE).sync(StreamCodec.unit(Unit.INSTANCE)).build()
     );
 
     public Craftorio(IEventBus modEventBus, ModContainer modContainer) {
@@ -58,6 +60,7 @@ public class Craftorio {
         modEventBus.addListener(CraftorioDatagen::generateData);
 
         NeoForge.EVENT_BUS.register(new CommandEvents());
+        NeoForge.EVENT_BUS.register(new ServerEvents());
         modEventBus.addListener(new RegistrationEvents()::setupPackets);
 
 

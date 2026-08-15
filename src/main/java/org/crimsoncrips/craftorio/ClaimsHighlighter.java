@@ -1,4 +1,4 @@
-package org.amoverride.craftorio;
+package org.crimsoncrips.craftorio;
 
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
@@ -18,7 +18,7 @@ public class ClaimsHighlighter extends ChunkHighlighter {
 
     @Override
     public int calculateRegionHash(ResourceKey<Level> resourceKey, int i, int i1) {
-        return 1;
+        return 0;
     }
 
     @Override

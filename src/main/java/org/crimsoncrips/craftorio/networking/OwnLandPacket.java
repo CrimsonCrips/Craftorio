@@ -1,6 +1,5 @@
-package org.amoverride.craftorio.networking;
+package org.crimsoncrips.craftorio.networking;
 
-import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -8,8 +7,8 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.neoforge.network.codec.NeoForgeStreamCodecs;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
-import org.amoverride.craftorio.Craft_Misc;
-import org.amoverride.craftorio.Craftorio;
+import org.crimsoncrips.craftorio.Craft_Misc;
+import org.crimsoncrips.craftorio.Craftorio;
 
 import java.util.List;
 
@@ -30,7 +29,7 @@ public record OwnLandPacket(List<ChunkPos> chunks, boolean claiming) implements 
     public static void handle(OwnLandPacket message, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             for (ChunkPos chunkSelected : message.chunks) {
-                Craft_Misc.ownLand(chunkSelected,ctx.player().level(), message.claiming);
+                Craft_Misc.ownLand(chunkSelected,ctx.player().level(), message.claiming,false);
             }
         });
     }
