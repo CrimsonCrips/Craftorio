@@ -1,0 +1,25 @@
+{
+  "values": {
+    "minecraft:bad_omen": 60,
+    "minecraft:fire_resistance": 160,
+    "minecraft:infested": 90,
+    "minecraft:instant_damage": 80,
+    "minecraft:instant_health": 110,
+    "minecraft:invisibility": 120,
+    "minecraft:jump_boost": 130,
+    "minecraft:luck": 300,
+    "minecraft:night_vision": 110,
+    "minecraft:oozing": 90,
+    "minecraft:poison": 130,
+    "minecraft:regeneration": 150,
+    "minecraft:resistance": 210,
+    "minecraft:slow_falling": 140,
+    "minecraft:slowness": 120,
+    "minecraft:speed": 170,
+    "minecraft:strength": 170,
+    "minecraft:water_breathing": 120,
+    "minecraft:weakness": 90,
+    "minecraft:weaving": 90,
+    "minecraft:wind_charged": 90
+  }
+}

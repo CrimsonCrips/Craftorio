@@ -7,6 +7,7 @@
     "Craft_CollisionGetter",
     "Craft_EntityMixin",
     "Craft_GuiMapMixin",
+    "Craft_ItemMixin",
     "CraftWorldMapSessionMixin"
   ],
   "client": [

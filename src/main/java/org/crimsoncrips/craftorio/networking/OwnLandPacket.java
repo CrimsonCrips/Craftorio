@@ -14,6 +14,8 @@ import java.util.List;
 
 public record OwnLandPacket(List<ChunkPos> chunks, boolean claiming) implements CustomPacketPayload {
 
+
+    //Thank you Drullkus
     public static final Type<OwnLandPacket> TYPE = new Type<>(Craftorio.prefix("own_land_packet"));
     public static final StreamCodec<RegistryFriendlyByteBuf, OwnLandPacket> STREAM_CODEC = StreamCodec.composite(
             NeoForgeStreamCodecs.CHUNK_POS.apply(ByteBufCodecs.list()), p -> p.chunks,
@@ -29,7 +31,7 @@ public record OwnLandPacket(List<ChunkPos> chunks, boolean claiming) implements 
     public static void handle(OwnLandPacket message, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             for (ChunkPos chunkSelected : message.chunks) {
-                Craft_Misc.ownLand(chunkSelected,ctx.player().level(), message.claiming,false);
+                Craft_Misc.ownLand(chunkSelected,ctx.player().level(), message.claiming);
             }
         });
     }

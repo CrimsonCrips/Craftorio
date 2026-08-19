@@ -4,6 +4,7 @@ import net.minecraft.core.SectionPos;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
@@ -58,6 +59,7 @@ public class ChunkCollisionHooks {
     }
 
     private static boolean isChunkUnlocked(Level level, Entity entity, int chunkX, int chunkZ) {
-        return level.getChunk(chunkX,chunkZ).hasData(Craftorio.OWNED);
+        ChunkAccess chunk = level.getChunk(chunkX,chunkZ);
+        return chunk.hasData(Craftorio.OWNED) || chunk.getPos().equals(new ChunkPos(0,0));
     }
 }
