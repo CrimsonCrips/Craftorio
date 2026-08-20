@@ -19,8 +19,11 @@ import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.neoforged.neoforge.registries.*;
+import org.crimsoncrips.craftorio.block.CraftorioBlocks;
+import org.crimsoncrips.craftorio.client.ClientRegistrationEvents;
 import org.crimsoncrips.craftorio.datagen.CraftorioDatagen;
 import org.crimsoncrips.craftorio.datagen.maps.ModDataMaps;
+import org.crimsoncrips.craftorio.item.CraftorioItems;
 import org.crimsoncrips.craftorio.server.events.CommandEvents;
 import org.crimsoncrips.craftorio.server.events.RegistrationEvents;
 import org.crimsoncrips.craftorio.server.events.ServerEvents;
@@ -36,7 +39,7 @@ public class Craftorio {
     // Define mod id in a common place for everything to reference
     public static final String MODID = "craftorio";
     // Directly reference a slf4j logger
-    private static final Logger LOGGER = LogUtils.getLogger();
+    public static final Logger LOGGER = LogUtils.getLogger();
     // Create a Deferred Register to hold Blocks which will all be registered under the "craftorio" namespace
 
     // Create the DeferredRegister for attachment types
@@ -62,10 +65,15 @@ public class Craftorio {
 
         NeoForge.EVENT_BUS.register(new CommandEvents());
         NeoForge.EVENT_BUS.register(new ServerEvents());
+
         modEventBus.addListener(new RegistrationEvents()::setupPackets);
         modEventBus.addListener(ModDataMaps::registerDataMaps);
+        modEventBus.addListener(new ClientRegistrationEvents()::registerScreens);
 
 
+        CraftorioBlocks.BLOCKS.register(modEventBus);
+        CraftorioBlockEntities.BLOCK_ENTITIES.register(modEventBus);
+        CraftorioItems.ITEMS.register(modEventBus);
     }
 
     private void commonSetup(final FMLCommonSetupEvent event) {
@@ -79,6 +87,11 @@ public class Craftorio {
     public void onServerStarting(ServerStartingEvent event) {
         // Do something when the server starts
         LOGGER.info("HELLO from server starting");
+    }
+    private static final String GUI_DIR = "textures/gui/";
+
+    public static ResourceLocation getGuiTexture(String name) {
+        return ResourceLocation.fromNamespaceAndPath(MODID, GUI_DIR + name);
     }
 
     public static ResourceLocation prefix(String name) {

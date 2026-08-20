@@ -957,15 +957,17 @@ public class Craft_PointMap extends DataMapProvider {
     }
 
 
+    //(Work multiplier refers to how many hops it takes in terms of crafting to get to the result item)
+
     //Items
-    private void addItemValue(Builder<Integer, Item> pointValue, TagKey<Item> item, int value,int addition) {
-        int multiplier = addition > 1 ? addition - 1 : 0;
+    private void addItemValue(Builder<Integer, Item> pointValue, TagKey<Item> item, int value,int workMultiplier) {
+        int multiplier = workMultiplier > 1 ? workMultiplier - 1 : 0;
 
         pointValue.add(item, (int) (value * (1 + (multiplier * 0.10))),false);
     }
 
-    public void addItemValue(Builder<Integer, Item> pointValue, Holder<Item> object, int value,int addition){
-        int multiplier = addition > 1 ? addition - 1 : 0;
+    public void addItemValue(Builder<Integer, Item> pointValue, Holder<Item> object, int value,int workMultiplier){
+        int multiplier = workMultiplier > 1 ? workMultiplier - 1 : 0;
         pointValue.add(object, (int) (value * (1 + (multiplier * 0.10))),false);
     }
 
