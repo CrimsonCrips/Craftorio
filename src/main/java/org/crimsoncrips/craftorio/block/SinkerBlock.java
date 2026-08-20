@@ -1,14 +1,18 @@
 package org.crimsoncrips.craftorio.block;
 
 import com.mojang.serialization.MapCodec;
+import net.minecraft.client.gui.screens.inventory.BeaconScreen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
+import net.minecraft.network.chat.CommonComponents;
+import net.minecraft.network.protocol.game.ServerboundSetBeaconPacket;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.monster.piglin.PiglinAi;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.BeaconMenu;
 import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
@@ -20,9 +24,12 @@ import net.minecraft.world.level.block.state.properties.BlockStateProperties;
 import net.minecraft.world.level.block.state.properties.BooleanProperty;
 import net.minecraft.world.level.block.state.properties.Property;
 import net.minecraft.world.phys.BlockHitResult;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import org.crimsoncrips.craftorio.block.entity.SinkerBlockEntity;
 
 import javax.annotation.Nullable;
+import java.util.Optional;
 
 public class SinkerBlock extends BaseEntityBlock {
     public static final MapCodec<SinkerBlock> CODEC = simpleCodec(SinkerBlock::new);
@@ -65,5 +72,6 @@ public class SinkerBlock extends BaseEntityBlock {
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new SinkerBlockEntity(pos, state);
     }
+
 
 }

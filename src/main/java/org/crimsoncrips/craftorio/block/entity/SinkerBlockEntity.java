@@ -29,7 +29,7 @@ public class SinkerBlockEntity extends RandomizableContainerBlockEntity {
 
     public SinkerBlockEntity(BlockPos pos, BlockState blockState) {
         super(CraftorioBlockEntityTypes.SINKER.get(), pos, blockState);
-        this.items = NonNullList.withSize(27, ItemStack.EMPTY);
+        this.items = NonNullList.withSize(getContainerSize(), ItemStack.EMPTY);
         this.openersCounter = new ContainerOpenersCounter() {
             protected void onOpen(Level p_155062_, BlockPos p_155063_, BlockState p_155064_) {
 
