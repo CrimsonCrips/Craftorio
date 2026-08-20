@@ -72,7 +72,7 @@ public class Craftorio {
 
 
         CraftorioBlocks.BLOCKS.register(modEventBus);
-        CraftorioBlockEntities.BLOCK_ENTITIES.register(modEventBus);
+        CraftorioBlockEntityTypes.BLOCK_ENTITIES.register(modEventBus);
         CraftorioItems.ITEMS.register(modEventBus);
         CraftorioMenuTypes.CONTAINERS.register(modEventBus);
     }

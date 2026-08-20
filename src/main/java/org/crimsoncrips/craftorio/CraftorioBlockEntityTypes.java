@@ -8,7 +8,7 @@ import org.crimsoncrips.craftorio.block.CraftorioBlocks;
 import org.crimsoncrips.craftorio.block.entity.SinkerBlockEntity;
 
 
-public class CraftorioBlockEntities {
+public class CraftorioBlockEntityTypes {
 
 	public static final DeferredRegister<BlockEntityType<?>> BLOCK_ENTITIES = DeferredRegister.create(Registries.BLOCK_ENTITY_TYPE, Craftorio.MODID);
 

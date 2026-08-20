@@ -17,6 +17,6 @@ public class CraftorioMenuTypes {
 	public static final DeferredRegister<MenuType<?>> CONTAINERS = DeferredRegister.create(Registries.MENU, Craftorio.MODID);
 
 	public static final DeferredHolder<MenuType<?>, MenuType<SinkerMenu>> SINKER = CONTAINERS.register("sinker_menu",
-		() -> new MenuType<>(SinkerMenu::sinkMenu, FeatureFlags.REGISTRY.allFlags()));
+		() -> new MenuType<>(SinkerMenu::sinkerMenu, FeatureFlags.REGISTRY.allFlags()));
 
 }

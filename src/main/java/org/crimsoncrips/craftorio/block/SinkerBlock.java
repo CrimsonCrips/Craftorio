@@ -9,6 +9,7 @@ import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.monster.piglin.PiglinAi;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.context.BlockPlaceContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.*;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -25,7 +26,6 @@ import javax.annotation.Nullable;
 
 public class SinkerBlock extends BaseEntityBlock {
     public static final MapCodec<SinkerBlock> CODEC = simpleCodec(SinkerBlock::new);
-    public static final BooleanProperty OPEN;
 
 
     public MapCodec<SinkerBlock> codec() {
@@ -34,7 +34,7 @@ public class SinkerBlock extends BaseEntityBlock {
 
     public SinkerBlock(BlockBehaviour.Properties properties) {
         super(properties);
-        this.registerDefaultState(this.stateDefinition.any().setValue(OPEN, false));
+        this.registerDefaultState(this.stateDefinition.any());
 
     }
 
@@ -51,12 +51,9 @@ public class SinkerBlock extends BaseEntityBlock {
         }
     }
 
-    protected void tick(BlockState state, ServerLevel level, BlockPos pos, RandomSource random) {
-        BlockEntity blockentity = level.getBlockEntity(pos);
-        if (blockentity instanceof SinkerBlockEntity) {
-            ((SinkerBlockEntity)blockentity).recheckOpen();
-        }
-
+    @Override
+    public BlockState getStateForPlacement(BlockPlaceContext context) {
+        return this.defaultBlockState();
     }
 
     protected void onRemove(BlockState p_49076_, Level p_49077_, BlockPos p_49078_, BlockState p_49079_, boolean p_49080_) {
@@ -64,16 +61,9 @@ public class SinkerBlock extends BaseEntityBlock {
         super.onRemove(p_49076_, p_49077_, p_49078_, p_49079_, p_49080_);
     }
 
-    protected void createBlockStateDefinition(StateDefinition.Builder<Block, BlockState> builder) {
-        builder.add(new Property[]{OPEN});
-    }
-
     @Nullable
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
         return new SinkerBlockEntity(pos, state);
     }
 
-    static {
-        OPEN = BlockStateProperties.OPEN;
-    }
 }

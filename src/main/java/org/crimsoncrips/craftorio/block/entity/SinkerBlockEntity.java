@@ -18,7 +18,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BarrelBlock;
 import net.minecraft.world.level.block.entity.*;
 import net.minecraft.world.level.block.state.BlockState;
-import org.crimsoncrips.craftorio.CraftorioBlockEntities;
+import org.crimsoncrips.craftorio.CraftorioBlockEntityTypes;
 import org.crimsoncrips.craftorio.block.SinkerBlock;
 import org.crimsoncrips.craftorio.inventory.SinkerMenu;
 
@@ -28,15 +28,15 @@ public class SinkerBlockEntity extends RandomizableContainerBlockEntity {
 
 
     public SinkerBlockEntity(BlockPos pos, BlockState blockState) {
-        super(CraftorioBlockEntities.SINKER.get(), pos, blockState);
+        super(CraftorioBlockEntityTypes.SINKER.get(), pos, blockState);
         this.items = NonNullList.withSize(27, ItemStack.EMPTY);
         this.openersCounter = new ContainerOpenersCounter() {
             protected void onOpen(Level p_155062_, BlockPos p_155063_, BlockState p_155064_) {
-                updateBlockState(p_155064_, true);
+
             }
 
             protected void onClose(Level p_155072_, BlockPos p_155073_, BlockState p_155074_) {
-                updateBlockState(p_155074_, false);
+
             }
 
             protected void openerCountChanged(Level p_155066_, BlockPos p_155067_, BlockState p_155068_, int p_155069_, int p_155070_) {
@@ -53,31 +53,19 @@ public class SinkerBlockEntity extends RandomizableContainerBlockEntity {
         };
     }
 
-    void updateBlockState(BlockState state, boolean open) {
-        this.level.setBlock(this.getBlockPos(), state.setValue(SinkerBlock.OPEN, open), 3);
-    }
-
     protected void saveAdditional(CompoundTag p_187459_, HolderLookup.Provider p_323686_) {
         super.saveAdditional(p_187459_, p_323686_);
-        System.out.println("IT WORKS ");
         ContainerHelper.saveAllItems(p_187459_, this.items, p_323686_);
 
     }
 
     protected void loadAdditional(CompoundTag p_155055_, HolderLookup.Provider p_324230_) {
         super.loadAdditional(p_155055_, p_324230_);
-        System.out.println("IT WORKS 2");
         this.items = NonNullList.withSize(this.getContainerSize(), ItemStack.EMPTY);
         ContainerHelper.loadAllItems(p_155055_, this.items, p_324230_);
 
     }
 
-    public void recheckOpen() {
-        if (!this.remove) {
-            this.openersCounter.recheckOpeners(this.getLevel(), this.getBlockPos(), this.getBlockState());
-        }
-
-    }
 
     public int getContainerSize() {
         return 9 * 4;
@@ -96,7 +84,7 @@ public class SinkerBlockEntity extends RandomizableContainerBlockEntity {
     }
 
     protected AbstractContainerMenu createMenu(int id, Inventory player) {
-        return SinkerMenu.sinkMenu(id, player);
+        return SinkerMenu.sinkMenu(id, player,this);
     }
 
     public void startOpen(Player player) {

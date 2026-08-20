@@ -18,13 +18,17 @@ public class SinkerMenu extends AbstractContainerMenu {
 	private final Container container;
 	private final int containerRows;
 
-	public static SinkerMenu sinkMenu(int containerId, Inventory playerInventory) {
-		return new SinkerMenu(CraftorioMenuTypes.SINKER.get(), containerId, playerInventory, 4);
-	}
-
 
 	private SinkerMenu(MenuType<?> type, int containerId, Inventory playerInventory, int rows) {
 		this(type, containerId, playerInventory, new SimpleContainer(9 * rows), rows);
+	}
+
+	public static SinkerMenu sinkerMenu(int containerId, Inventory playerInventory) {
+		return new SinkerMenu(CraftorioMenuTypes.SINKER.get(), containerId, playerInventory, 4);
+	}
+
+	public static SinkerMenu sinkMenu(int containerId, Inventory playerInventory,Container container) {
+		return new SinkerMenu(CraftorioMenuTypes.SINKER.get(), containerId, playerInventory, container,4);
 	}
 
 	public SinkerMenu(MenuType<?> type, int containerId, Inventory playerInventory, Container container, int rows) {
