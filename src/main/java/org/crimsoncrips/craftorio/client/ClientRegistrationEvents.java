@@ -8,8 +8,6 @@ import org.crimsoncrips.craftorio.CraftorioMenuTypes;
 
 public class ClientRegistrationEvents {
 
-
-
 	@SubscribeEvent
 	public void registerScreens(RegisterMenuScreensEvent event) {
 		event.register(CraftorioMenuTypes.SINKER.get(), SinkScreen::new);

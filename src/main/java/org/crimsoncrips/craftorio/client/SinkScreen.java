@@ -58,6 +58,8 @@ public class SinkScreen extends AbstractContainerScreen<SinkerMenu>{
 		guiGraphics.blit(SINK_SCREEN, i, j + this.containerRows * 9 + 13, 0, 86, this.imageWidth, 136);
 	}
 
-
-
+	@Override
+	protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
+		guiGraphics.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY - 10, 4210752, false);
+	}
 }
