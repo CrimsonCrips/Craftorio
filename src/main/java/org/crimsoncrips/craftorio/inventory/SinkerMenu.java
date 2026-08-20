@@ -19,7 +19,7 @@ public class SinkerMenu extends AbstractContainerMenu {
 	private final int containerRows;
 
 	public static SinkerMenu fromNetwork(int id, Inventory inventory) {
-		return new SinkerMenu(CraftorioMenuTypes.SINKER.get(),id, inventory, 3);
+		return new SinkerMenu(CraftorioMenuTypes.SINKER.get(),id, inventory, 4);
 	}
 
 	public SinkerMenu(MenuType<?> type, int containerId, Inventory playerInventory, int rows) {

@@ -36,17 +36,15 @@ import java.util.Optional;
 public class SinkScreen extends AbstractContainerScreen<SinkerMenu>{
 	private static final ResourceLocation SINK_SCREEN = Craftorio.getGuiTexture("sinker_screen.png");
 
-	private static final ResourceLocation CONTAINER_BACKGROUND = ResourceLocation.withDefaultNamespace("textures/gui/container/generic_54.png");
 	private final int containerRows;
 
 	public SinkScreen(SinkerMenu menu, Inventory playerInventory, Component title) {
 		super(menu, playerInventory, title);
-		int i = 222;
-		int j = 114;
 		this.containerRows = menu.getRowCount();
-		this.imageHeight = 114 + this.containerRows * 18;
+		this.imageHeight = 124 + this.containerRows * 18;
 		this.inventoryLabelY = this.imageHeight - 94;
 	}
+
 
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
 		super.render(guiGraphics, mouseX, mouseY, partialTick);
@@ -56,8 +54,10 @@ public class SinkScreen extends AbstractContainerScreen<SinkerMenu>{
 	protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
 		int i = (this.width - this.imageWidth) / 2;
 		int j = (this.height - this.imageHeight) / 2;
-		guiGraphics.blit(CONTAINER_BACKGROUND, i, j, 0, 0, this.imageWidth, this.containerRows * 18 + 17);
-		guiGraphics.blit(CONTAINER_BACKGROUND, i, j + this.containerRows * 18 + 17, 0, 126, this.imageWidth, 96);
+		guiGraphics.blit(SINK_SCREEN, i, j - 36, 0, 0, this.imageWidth, this.containerRows * 28 + 17);
+		guiGraphics.blit(SINK_SCREEN, i, j + this.containerRows * 9 + 13, 0, 86, this.imageWidth, 136);
 	}
+
+
 
 }
