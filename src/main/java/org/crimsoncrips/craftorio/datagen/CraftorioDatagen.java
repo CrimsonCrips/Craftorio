@@ -7,10 +7,10 @@ import net.neoforged.fml.common.Mod;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import org.crimsoncrips.craftorio.Craftorio;
-import org.crimsoncrips.craftorio.datagen.language.Craft_LangGen;
-import org.crimsoncrips.craftorio.datagen.maps.Craft_PointMap;
-import org.crimsoncrips.craftorio.datagen.tags.Craft_BlockTagGenerator;
-import org.crimsoncrips.craftorio.datagen.tags.Craft_ItemTagGenerator;
+import org.crimsoncrips.craftorio.datagen.language.CraftLangGen;
+import org.crimsoncrips.craftorio.datagen.maps.CraftPointMap;
+import org.crimsoncrips.craftorio.datagen.tags.CraftBlockTagGen;
+import org.crimsoncrips.craftorio.datagen.tags.CraftItemTagGen;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -23,12 +23,12 @@ public class CraftorioDatagen {
         PackOutput output = generator.getPackOutput();
         CompletableFuture<HolderLookup.Provider> provider = event.getLookupProvider();
         ExistingFileHelper helper = event.getExistingFileHelper();
-        generator.addProvider(event.includeClient(), new Craft_LangGen(output));
-        Craft_BlockTagGenerator blocktags = new Craft_BlockTagGenerator(output, provider, helper);
+        generator.addProvider(event.includeClient(), new CraftLangGen(output));
+        CraftBlockTagGen blocktags = new CraftBlockTagGen(output, provider, helper);
         generator.addProvider(event.includeServer(), blocktags);
-        generator.addProvider(event.includeServer(), new Craft_ItemTagGenerator(output, provider, blocktags.contentsGetter(), helper));
+        generator.addProvider(event.includeServer(), new CraftItemTagGen(output, provider, blocktags.contentsGetter(), helper));
 
-        generator.addProvider(event.includeServer(), new Craft_PointMap(output, provider));
+        generator.addProvider(event.includeServer(), new CraftPointMap(output, provider));
     }
 
 }

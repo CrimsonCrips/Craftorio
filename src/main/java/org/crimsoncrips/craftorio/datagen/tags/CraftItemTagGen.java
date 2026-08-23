@@ -4,22 +4,18 @@ package org.crimsoncrips.craftorio.datagen.tags;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.data.tags.ItemTagsProvider;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.BlockTags;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
-import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.crimsoncrips.craftorio.Craftorio;
 
 
 import java.util.concurrent.CompletableFuture;
 
-public class Craft_ItemTagGenerator extends ItemTagsProvider {
+public class CraftItemTagGen extends ItemTagsProvider {
 	public static final TagKey<Item> COPPER  = create("copper");
 	public static final TagKey<Item> CHISELED_COPPER = create("chiseled_copper");
 	public static final TagKey<Item> COPPER_GRATE = create("copper_grate");
@@ -37,7 +33,7 @@ public class Craft_ItemTagGenerator extends ItemTagsProvider {
 	public static final TagKey<Item> FROGLIGHT = create("froglight");
 
 
-	public Craft_ItemTagGenerator(PackOutput output, CompletableFuture<HolderLookup.Provider> future, CompletableFuture<TagLookup<Block>> provider, ExistingFileHelper helper) {
+	public CraftItemTagGen(PackOutput output, CompletableFuture<HolderLookup.Provider> future, CompletableFuture<TagLookup<Block>> provider, ExistingFileHelper helper) {
         super(output, future, provider, Craftorio.MODID, helper);
     }
 

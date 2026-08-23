@@ -8,10 +8,12 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
-import org.crimsoncrips.craftorio.Craftorio;
+import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
+
+import static org.crimsoncrips.craftorio.server.CraftorioDataAttachments.OWNED;
 
 public class ChunkCollisionHooks {
 
@@ -60,6 +62,10 @@ public class ChunkCollisionHooks {
 
     private static boolean isChunkUnlocked(Level level, Entity entity, int chunkX, int chunkZ) {
         ChunkAccess chunk = level.getChunk(chunkX,chunkZ);
-        return chunk.hasData(Craftorio.OWNED) || chunk.getPos().equals(new ChunkPos(0,0));
+        if (CraftorioMisc.chunkBased(level)) {
+            return chunk.hasData(OWNED) || CraftorioMisc.startingLocations().contains(chunk.getPos());
+        } else {
+            return true;
+        }
     }
 }

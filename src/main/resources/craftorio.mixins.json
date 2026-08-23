@@ -4,11 +4,9 @@
   "package": "org.crimsoncrips.craftorio.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "Craft_CollisionGetter",
-    "Craft_EntityMixin",
-    "Craft_GuiMapMixin",
-    "Craft_ItemMixin",
-    "CraftWorldMapSessionMixin"
+    "CraftCollisionGetter",
+    "CraftEntityMixin",
+    "CraftGuiMapMixin"
   ],
   "client": [
   ],

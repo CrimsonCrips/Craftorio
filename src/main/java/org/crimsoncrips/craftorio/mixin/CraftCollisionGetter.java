@@ -16,7 +16,7 @@ import javax.annotation.Nullable;
 
 
 @Mixin(CollisionGetter.class)
-public interface Craft_CollisionGetter {
+public interface CraftCollisionGetter {
 
     @WrapMethod(method = "borderCollision")
     default VoxelShape gatedBorderCollision(Entity entity, AABB box, Operation<VoxelShape> original) {

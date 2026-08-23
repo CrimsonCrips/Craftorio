@@ -1,11 +1,11 @@
-package org.crimsoncrips.craftorio;
+package org.crimsoncrips.craftorio.block.entity;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
+import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.block.CraftorioBlocks;
-import org.crimsoncrips.craftorio.block.entity.SinkerBlockEntity;
 
 
 public class CraftorioBlockEntityTypes {

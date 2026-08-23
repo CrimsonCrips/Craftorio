@@ -15,17 +15,17 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.DataMapProvider;
-import org.crimsoncrips.craftorio.datagen.tags.Craft_ItemTagGenerator;
+import org.crimsoncrips.craftorio.datagen.tags.CraftItemTagGen;
 
 import java.util.concurrent.CompletableFuture;
 
 import static java.lang.Math.round;
 
 @SuppressWarnings("Deprecated")
-public class Craft_PointMap extends DataMapProvider {
+public class CraftPointMap extends DataMapProvider {
 
     //From Androsa (Gaia Dimension)
-    public Craft_PointMap(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> lookupProvider) {
+    public CraftPointMap(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> lookupProvider) {
         super(packOutput, lookupProvider);
     }
 
@@ -443,15 +443,15 @@ public class Craft_PointMap extends DataMapProvider {
         addItemValue(point_value,Items.AMETHYST_BLOCK.builtInRegistryHolder(),(amethyst * 4),1);
 
         int copper_block = (15 * 9);
-        addItemValue(point_value,Craft_ItemTagGenerator.COPPER,copper_block,1);
-        addItemValue(point_value,Craft_ItemTagGenerator.CHISELED_COPPER,chiseledAndPillared(copper_block),4);
-        addItemValue(point_value,Craft_ItemTagGenerator.COPPER_GRATE, multiValCal(multiValCal(copper_block,9,1),4,4),8);
-        addItemValue(point_value,Craft_ItemTagGenerator.CUT_COPPER, multiValCal(copper_block,4,4),2);
-        addItemValue(point_value,Craft_ItemTagGenerator.CUT_COPPER_STAIRS, multiValCal(multiValCal(copper_block,4,4),6,4),4);
-        addItemValue(point_value,Craft_ItemTagGenerator.CUT_COPPER_SLAB, multiValCal(multiValCal(copper_block,4,4),3,6),4);
-        addItemValue(point_value,Craft_ItemTagGenerator.COPPER_DOOR, multiValCal(copper_ingot,6,3),4);
-        addItemValue(point_value,Craft_ItemTagGenerator.COPPER_TRAPDOOR, multiValCal(copper_ingot,6,2),4);
-        addItemValue(point_value,Craft_ItemTagGenerator.COPPER_BULB, multiValCal(copper_block,3,4),6);
+        addItemValue(point_value, CraftItemTagGen.COPPER,copper_block,1);
+        addItemValue(point_value, CraftItemTagGen.CHISELED_COPPER,chiseledAndPillared(copper_block),4);
+        addItemValue(point_value, CraftItemTagGen.COPPER_GRATE, multiValCal(multiValCal(copper_block,9,1),4,4),8);
+        addItemValue(point_value, CraftItemTagGen.CUT_COPPER, multiValCal(copper_block,4,4),2);
+        addItemValue(point_value, CraftItemTagGen.CUT_COPPER_STAIRS, multiValCal(multiValCal(copper_block,4,4),6,4),4);
+        addItemValue(point_value, CraftItemTagGen.CUT_COPPER_SLAB, multiValCal(multiValCal(copper_block,4,4),3,6),4);
+        addItemValue(point_value, CraftItemTagGen.COPPER_DOOR, multiValCal(copper_ingot,6,3),4);
+        addItemValue(point_value, CraftItemTagGen.COPPER_TRAPDOOR, multiValCal(copper_ingot,6,2),4);
+        addItemValue(point_value, CraftItemTagGen.COPPER_BULB, multiValCal(copper_block,3,4),6);
 
         int string = 6;
         int wool = string * 4;
@@ -581,10 +581,10 @@ public class Craft_PointMap extends DataMapProvider {
         addItemValue(point_value,Items.DEAD_BUSH.builtInRegistryHolder(),4,0);
 
 
-        addItemValue(point_value,Craft_ItemTagGenerator.CORAL_BLOCKS,4,0);
-        addItemValue(point_value,Craft_ItemTagGenerator.CORAL,3,0);
-        addItemValue(point_value,Craft_ItemTagGenerator.DEAD_CORAL_BLOCKS,2,0);
-        addItemValue(point_value,Craft_ItemTagGenerator.DEAD_CORAL,1,0);
+        addItemValue(point_value, CraftItemTagGen.CORAL_BLOCKS,4,0);
+        addItemValue(point_value, CraftItemTagGen.CORAL,3,0);
+        addItemValue(point_value, CraftItemTagGen.DEAD_CORAL_BLOCKS,2,0);
+        addItemValue(point_value, CraftItemTagGen.DEAD_CORAL,1,0);
 
         addItemValue(point_value,Items.SPONGE.builtInRegistryHolder(),20,0);
         addItemValue(point_value,Items.WET_SPONGE.builtInRegistryHolder(),20,1);
@@ -610,7 +610,7 @@ public class Craft_PointMap extends DataMapProvider {
 
         addItemValue(point_value,Items.HONEY_BOTTLE.builtInRegistryHolder(),12,0);
         addItemValue(point_value,Items.HONEY_BLOCK.builtInRegistryHolder(), (12 * 4),1);
-        addItemValue(point_value,Craft_ItemTagGenerator.FROGLIGHT,35,0);
+        addItemValue(point_value, CraftItemTagGen.FROGLIGHT,35,0);
 
         addItemValue(point_value,Items.SCULK.builtInRegistryHolder(),3,0);
         addItemValue(point_value,Items.SCULK_VEIN.builtInRegistryHolder(),3,0);

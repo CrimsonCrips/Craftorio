@@ -16,7 +16,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 @Mixin(Entity.class)
-public class Craft_EntityMixin {
+public class CraftEntityMixin {
 
     @WrapMethod(method = "collectColliders")
     private static List<VoxelShape> addChunkColliders(@Nullable Entity entity, Level level, List<VoxelShape> collisions, AABB boundingBox, Operation<List<VoxelShape>> operation) {

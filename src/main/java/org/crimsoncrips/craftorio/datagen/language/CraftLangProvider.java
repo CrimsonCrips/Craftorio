@@ -3,9 +3,9 @@ package org.crimsoncrips.craftorio.datagen.language;
 import net.minecraft.data.PackOutput;
 import net.neoforged.neoforge.common.data.LanguageProvider;
 
-public abstract class Craft_LangProvider extends LanguageProvider {
+public abstract class CraftLangProvider extends LanguageProvider {
 
-	public Craft_LangProvider(PackOutput output, String id, String locale) {
+	public CraftLangProvider(PackOutput output, String id, String locale) {
 		super(output, id, locale);
 	}
 

@@ -5,18 +5,21 @@
 
 package org.crimsoncrips.craftorio.inventory;
 
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
+import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.CraftorioMenuTypes;
 
 public class SinkerMenu extends AbstractContainerMenu {
 	private static final int SLOTS_PER_ROW = 9;
 	private final Container container;
 	private final int containerRows;
+	private final Player player;
 
 
 	private SinkerMenu(MenuType<?> type, int containerId, Inventory playerInventory, int rows) {
@@ -35,6 +38,7 @@ public class SinkerMenu extends AbstractContainerMenu {
 		super(type, containerId);
 		checkContainerSize(container, rows * 9);
 		this.container = container;
+		this.player = playerInventory.player;
 		this.containerRows = rows;
 		container.startOpen(playerInventory.player);
 		int i = (this.containerRows - 4) * 18;
@@ -90,6 +94,23 @@ public class SinkerMenu extends AbstractContainerMenu {
 	public void removed(Player player) {
 		super.removed(player);
 		this.container.stopOpen(player);
+	}
+
+	public void sinkPoints(){
+		for(int j = 0; j < this.containerRows; ++j) {
+			for(int k = 0; k < 9; ++k) {
+				this.addSlot(new Slot(container, k + j * 9, 8 + k * 18, 18 + j * 18));
+				Slot slot = this.getSlot(k + j * 9);
+				ItemStack item = slot.getItem();
+				ServerLevel serverLevel = (ServerLevel) player.level();
+
+				if (!item.isEmpty() && !serverLevel.isClientSide()){
+					long points = CraftorioMisc.checkValue(item);
+					CraftorioMisc.addPoints(serverLevel,points);
+					slot.set(ItemStack.EMPTY);
+				}
+			}
+		}
 	}
 
 	public Container getContainer() {

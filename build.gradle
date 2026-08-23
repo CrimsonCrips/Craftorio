@@ -128,7 +128,6 @@ dependencies {
     // implementation files("libs/coolmod-${mc_version}-${coolmod_version}.jar")
 
     implementation "xaero.map:xaeroworldmap-neoforge-1.21.1:1.44.2"
-    runtimeOnly "curse.maven:open-parties-and-claims-636608:8507166"
     runtimeOnly "curse.maven:jade-324717:8591319"
     runtimeOnly "curse.maven:jei-238222:8622758"
 

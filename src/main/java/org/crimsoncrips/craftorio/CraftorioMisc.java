@@ -4,16 +4,10 @@ import com.mojang.datafixers.util.Unit;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.world.effect.MobEffect;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffectInstance;
-import net.minecraft.world.inventory.AnvilMenu;
-import net.minecraft.world.item.EnchantedBookItem;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.item.PotionItem;
-import net.minecraft.world.item.alchemy.Potion;
 import net.minecraft.world.item.alchemy.PotionContents;
-import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
@@ -25,9 +19,9 @@ import org.crimsoncrips.craftorio.datagen.maps.ModDataMaps;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.crimsoncrips.craftorio.Craftorio.*;
+import static org.crimsoncrips.craftorio.server.CraftorioDataAttachments.*;
 
-public class Craft_Misc {
+public class CraftorioMisc {
 
     public static List<ChunkPos> generateSelectionChunks(int startX,int startZ, int endX, int endZ) {
 
@@ -49,8 +43,9 @@ public class Craft_Misc {
     }
 
     public static List<ChunkPos> startingLocations(){
-        ChunkPos startPos = new ChunkPos(-1,-1);
-        ChunkPos endPos = new ChunkPos(1,1);
+        int sizePicked = Craftorio.COMMON_CONFIG.STARTING_LAND_SIZE.getAsInt();
+        ChunkPos startPos = new ChunkPos(-sizePicked,-sizePicked);
+        ChunkPos endPos = new ChunkPos(sizePicked,sizePicked);
 
         List<ChunkPos> chunkCoords = new ArrayList<>();
         int minX = Math.min(startPos.x, endPos.x);
@@ -66,23 +61,36 @@ public class Craft_Misc {
         }
         return chunkCoords;
     }
-    public static void ownLand(ChunkPos chunkPos,Level level, boolean claiming){
+    public static void ownLand(List<ChunkPos> chunkPos,Level level, boolean claiming){
         if (level == null) return;
-        int claimed_amount = level.getData(AMOUNT_OF_LAND);
-        ChunkAccess chunk = level.getChunk(chunkPos.x,chunkPos.z);
+        long amountToClaim = CraftorioMisc.calculateLandCost(chunkPos.size(),level);
+        long heldPoints = level.getData(POINTS);
+        if (heldPoints >= amountToClaim){
+            for (ChunkPos chunkSelected : chunkPos) {
+                int claimed_amount = level.getData(AMOUNT_OF_LAND);
+                ChunkAccess chunk = level.getChunk(chunkSelected.x, chunkSelected.z);
 
-        if((!startingLocations().contains(chunkPos))){
-            if (claiming && (!chunk.hasData(OWNED))) {
-                chunk.setData(OWNED, Unit.INSTANCE);
-                int amountSet = claimed_amount + 1;
-                level.setData(AMOUNT_OF_LAND, amountSet);
-            } else if ((!claiming) && chunk.hasData(OWNED)) {
-                chunk.removeData(OWNED);
-                int amountSet = claimed_amount - 1;
-                level.setData(AMOUNT_OF_LAND,amountSet);
+                if ((!startingLocations().contains(chunkSelected))) {
+                    if (claiming && (!chunk.hasData(OWNED))) {
+                        chunk.setData(OWNED, Unit.INSTANCE);
+                        int amountSet = claimed_amount + 1;
+                        level.setData(AMOUNT_OF_LAND, amountSet);
+                    } else if ((!claiming) && chunk.hasData(OWNED)) {
+                        chunk.removeData(OWNED);
+                        int amountSet = claimed_amount - 1;
+                        level.setData(AMOUNT_OF_LAND, amountSet);
+                    }
+                }
             }
+            level.setData(POINTS,heldPoints - amountToClaim);
         }
     }
+
+    public static boolean chunkBased(Level level){
+        return level.getData(CHUNK_BASED);
+    }
+
+
 
     public static int checkValue(ItemStack itemStack){
         var value = itemStack.getItem().builtInRegistryHolder().getData(ModDataMaps.POINT_VALUE);
@@ -126,6 +134,11 @@ public class Craft_Misc {
         }
 
         return value;
+    }
+
+    public static void addPoints(ServerLevel serverLevel,long points){
+        long initialPoints = serverLevel.getData(POINTS);
+        serverLevel.setData(POINTS, points + initialPoints);
     }
 
     public static long calculateLandCost(int claimAmount,Level level){

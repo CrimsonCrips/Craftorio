@@ -1,35 +1,25 @@
 package org.crimsoncrips.craftorio.client;
 
 import com.google.common.collect.Lists;
-import com.mojang.blaze3d.systems.RenderSystem;
-import net.minecraft.ChatFormatting;
-import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.*;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.BeaconScreen;
-import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.language.I18n;
-import net.minecraft.core.Holder;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.protocol.game.ServerboundSetBeaconPacket;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.*;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
-import net.minecraft.world.level.block.entity.BeaconBlockEntity;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.inventory.SinkerMenu;
+import org.crimsoncrips.craftorio.networking.OwnLandPacket;
+import org.crimsoncrips.craftorio.networking.SinkItemsPacket;
 
-import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Optional;
 
@@ -61,5 +51,34 @@ public class SinkScreen extends AbstractContainerScreen<SinkerMenu>{
 	@Override
 	protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
 		guiGraphics.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY - 10, 4210752, false);
+	}
+
+	private final List<BeaconConfirmButton> beaconButtons = Lists.newArrayList();
+	@OnlyIn(Dist.CLIENT)
+    class BeaconConfirmButton extends AbstractButton  {
+		public BeaconConfirmButton(int x, int y) {
+			super(x, y, 22, 22, CommonComponents.EMPTY);
+		}
+
+		public void onPress() {
+			PacketDistributor.sendToServer(new SinkItemsPacket(true));
+			minecraft.player.closeContainer();
+
+		}
+
+		public void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
+			this.defaultButtonNarrationText(narrationElementOutput);
+		}
+	}
+
+	private void addBeaconButton(BeaconConfirmButton beaconButton) {
+		this.addRenderableWidget(beaconButton);
+		this.beaconButtons.add(beaconButton);
+	}
+
+	protected void init() {
+		super.init();
+		this.beaconButtons.clear();
+		this.addBeaconButton(new BeaconConfirmButton(this.leftPos + 164, this.topPos + 107));
 	}
 }
