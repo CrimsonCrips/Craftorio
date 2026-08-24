@@ -63,11 +63,11 @@ public class CraftorioMisc {
     }
     public static void ownLand(List<ChunkPos> chunkPos,Level level, boolean claiming){
         if (level == null) return;
-        long amountToClaim = CraftorioMisc.calculateLandCost(chunkPos.size(),level);
+        int claimed_amount = level.getData(AMOUNT_OF_LAND);
+        long amountToClaim = CraftorioMisc.calculateLandCost(chunkPos.size(),claimed_amount);
         long heldPoints = level.getData(POINTS);
         if (heldPoints >= amountToClaim){
             for (ChunkPos chunkSelected : chunkPos) {
-                int claimed_amount = level.getData(AMOUNT_OF_LAND);
                 ChunkAccess chunk = level.getChunk(chunkSelected.x, chunkSelected.z);
 
                 if ((!startingLocations().contains(chunkSelected))) {
@@ -141,8 +141,7 @@ public class CraftorioMisc {
         serverLevel.setData(POINTS, points + initialPoints);
     }
 
-    public static long calculateLandCost(int claimAmount,Level level){
-        int currentLand = level.getData(AMOUNT_OF_LAND);
+    public static long calculateLandCost(int claimAmount,int currentLand){
         return (currentLand + claimAmount) > 1 ? ((currentLand + claimAmount) * 10L) : 10L;
     }
 

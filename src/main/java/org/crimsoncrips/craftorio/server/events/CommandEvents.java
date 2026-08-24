@@ -4,24 +4,18 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.context.CommandContext;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.SimpleMenuProvider;
-import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.CraftorioMisc;
-import org.crimsoncrips.craftorio.client.ChunkExpansionScreen;
-import org.crimsoncrips.craftorio.networking.ChunkClaimPacket;
-import org.crimsoncrips.craftorio.networking.SinkItemsPacket;
+import org.crimsoncrips.craftorio.networking.ExpandScreenPacket;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -58,7 +52,7 @@ public class CommandEvents {
     private static int runBorderExpand(CommandContext<CommandSourceStack> context) {
         ServerPlayer serverPlayer = context.getSource().getPlayer();
         if (serverPlayer != null) {
-            PacketDistributor.sendToPlayer(serverPlayer, new ChunkClaimPacket(true));
+            PacketDistributor.sendToPlayer(serverPlayer, new ExpandScreenPacket(true));
         }
         return 1;
     }

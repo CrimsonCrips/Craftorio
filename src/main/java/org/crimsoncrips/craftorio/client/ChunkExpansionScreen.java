@@ -12,7 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.crimsoncrips.craftorio.Craftorio;
-import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
+import org.crimsoncrips.craftorio.CraftorioMisc;
 
 import java.util.List;
 
@@ -23,7 +23,7 @@ import static org.crimsoncrips.craftorio.server.CraftorioDataAttachments.POINTS;
 public class ChunkExpansionScreen extends Screen {
 	private static final ResourceLocation SINK_SCREEN = Craftorio.getGuiTexture("sinker_screen.png");
 
-	int amountToClaim = 0;
+	int amountClaiming = 0;
 	ChunkExpansionScreen chunkExpansionScreen;
 
 	public ChunkExpansionScreen() {
@@ -38,15 +38,25 @@ public class ChunkExpansionScreen extends Screen {
 		int i = (this.width) / 2;
 		int j = (this.height) / 2 - 40;
 
-		this.addButton(new ChunkExpansionButton(i + 30, j, 22, 22));
-		this.addButton(new ChunkExpansionButton(i - 30, j, 22, 22));
-		this.addButton(new ChunkExpansionButton(i + 60, j, 22, 22));
-		this.addButton(new ChunkExpansionButton(i - 60, j, 22, 22));
-		this.addButton(new ClaimChunk(i - 60, j, 22, 22));
+		this.addButton(new ChunkAmountDeterminer(i + 30, j, 22, 22,false,true));
+		this.addButton(new ChunkAmountDeterminer(i - 30, j, 22, 22,false,false));
+		this.addButton(new ChunkAmountDeterminer(i + 60, j, 22, 22,true, true));
+		this.addButton(new ChunkAmountDeterminer(i - 60, j, 22, 22,false,false));
+		this.addButton(new ClaimChunk(i, j - 100, 22, 22));
 
-		guiGraphics.drawString(this.font, Component.literal(String.valueOf(amountToClaim)), i, j, 4210752, false);
+		int currentLand = Minecraft.getInstance().level.getData(AMOUNT_OF_LAND);
 
 
+		guiGraphics.drawString(this.font, Component.literal(String.valueOf(amountClaiming)), i, j, 4210752, false);
+		guiGraphics.drawString(this.font, Component.literal("Points Required"), i - 25, j - 40, 4210752, false);
+		guiGraphics.drawString(this.font, Component.literal(String.valueOf(CraftorioMisc.calculateLandCost(amountClaiming,currentLand))), i, j - 30, 4210752, false);
+
+
+	}
+
+	@Override
+	public boolean isPauseScreen() {
+		return false;
 	}
 
 	protected void init() {
@@ -70,11 +80,6 @@ public class ChunkExpansionScreen extends Screen {
 
 		@Override
 		public void onPress() {
-			long points = Minecraft.getInstance().level.getData(POINTS);
-			int currentLand = Minecraft.getInstance().level.getData(AMOUNT_OF_LAND);
-
-			amountToClaim = Math.toIntExact(points / (currentLand * 10L));
-			minecraft.setScreen(chunkExpansionScreen);
 		}
 	}
 
@@ -102,10 +107,13 @@ public class ChunkExpansionScreen extends Screen {
 
 		@Override
 		public void onPress() {
+			long points = Minecraft.getInstance().level.getData(POINTS);
+			int currentLand = Minecraft.getInstance().level.getData(AMOUNT_OF_LAND);
+			long amountToClaim = CraftorioMisc.calculateLandCost(amountClaiming,currentLand);
 			if (maxer){
-
+				amountClaiming = positive ? Math.toIntExact(points / (currentLand * 10L)) : 0;
 			} else {
-
+				amountClaiming = positive ? (points >= amountToClaim ? amountClaiming + 1 : amountClaiming) : (amountClaiming > 0 ? amountClaiming - 1 : amountClaiming);
 			}
 		}
 	}

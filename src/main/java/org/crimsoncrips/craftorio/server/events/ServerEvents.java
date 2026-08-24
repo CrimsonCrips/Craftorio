@@ -17,6 +17,8 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
+import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.block.CraftorioBlocks;
@@ -39,6 +41,12 @@ public class ServerEvents {
             level.setData(AMOUNT_OF_LAND, sizePicked);
         }
         level.setData(FINALIZED,true);
+    }
+
+    @SubscribeEvent
+    public void tickEvent(PlayerTickEvent.Post serverTickEvent){
+        long points = serverTickEvent.getEntity().level().getData(POINTS);
+        serverTickEvent.getEntity().level().setData(POINTS,points + 0);
     }
 
     @SubscribeEvent

@@ -5,20 +5,18 @@ import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
-import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.client.ChunkExpansionScreen;
-import org.crimsoncrips.craftorio.inventory.SinkerMenu;
 
-public record ChunkClaimPacket(boolean boolVal) implements CustomPacketPayload {
+public record ChunkExpandPacket(int amountToExpand) implements CustomPacketPayload {
 
 
     //Thank you Drullkus
-    public static final Type<ChunkClaimPacket> TYPE = new Type<>(Craftorio.prefix("chunk_claim_packet"));
-    public static final StreamCodec<RegistryFriendlyByteBuf, ChunkClaimPacket> STREAM_CODEC = StreamCodec.composite(
-            ByteBufCodecs.BOOL, p -> p.boolVal,
-            ChunkClaimPacket::new
+    public static final Type<ChunkExpandPacket> TYPE = new Type<>(Craftorio.prefix("chunk_expand_packet"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, ChunkExpandPacket> STREAM_CODEC = StreamCodec.composite(
+            ByteBufCodecs.INT, p -> p.amountToExpand,
+            ChunkExpandPacket::new
     );
 
     @Override
@@ -26,7 +24,7 @@ public record ChunkClaimPacket(boolean boolVal) implements CustomPacketPayload {
         return TYPE;
     }
 
-    public static void handle(ChunkClaimPacket message, IPayloadContext ctx) {
+    public static void handle(ChunkExpandPacket message, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
             Minecraft.getInstance().setScreen(new ChunkExpansionScreen());
         });
