@@ -57,7 +57,6 @@ public class CraftPointMap extends DataMapProvider {
         addEffectValue(point_value, MobEffects.WEAVING,90);
         addEffectValue(point_value, MobEffects.OOZING,90);
         addEffectValue(point_value, MobEffects.INFESTED,90);
-
         addEffectValue(point_value, MobEffects.BAD_OMEN,60);
 
     }
@@ -240,14 +239,14 @@ public class CraftPointMap extends DataMapProvider {
         addItemValue(point_value,Items.BRICK_STAIRS.builtInRegistryHolder(), multiValCal(brickblock,6,4),3);
         addItemValue(point_value,Items.BRICK_SLAB.builtInRegistryHolder(), multiValCal(brickblock,3,6),3);
         addItemValue(point_value,Items.BRICK_WALL.builtInRegistryHolder(), multiValCal(brickblock,6,6),3);
-        int wheat = 9;
+        int wheat = 6;
         int mud = 2 + wheat;
-        int carrot = 13;
-        int beetroot = 10;
+        int carrot = 7;
+        int beetroot = 5;
         addItemValue(point_value,Items.COCOA_BEANS.builtInRegistryHolder(),11,0);
         addItemValue(point_value,Items.BEETROOT.builtInRegistryHolder(),beetroot,0);
         addItemValue(point_value,Items.CARROT.builtInRegistryHolder(),carrot,0);
-        addItemValue(point_value,Items.POTATO.builtInRegistryHolder(),13,0);
+        addItemValue(point_value,Items.POTATO.builtInRegistryHolder(),7,0);
         addItemValue(point_value,Items.WHEAT.builtInRegistryHolder(),wheat,0);
         addItemValue(point_value,Items.HAY_BLOCK.builtInRegistryHolder(), (wheat * 9),2);
         addItemValue(point_value,Items.PACKED_MUD.builtInRegistryHolder(),mud,1);
@@ -559,19 +558,19 @@ public class CraftPointMap extends DataMapProvider {
         addItemValue(point_value,Items.BIG_DRIPLEAF.builtInRegistryHolder(),4,0);
         addItemValue(point_value,Items.SMALL_DRIPLEAF.builtInRegistryHolder(),4,0);
 
-        int sugar_cane = 8;
+        int sugar_cane = 7;
         addItemValue(point_value,Items.SUGAR_CANE.builtInRegistryHolder(),sugar_cane,0);
         addItemValue(point_value,Items.CACTUS.builtInRegistryHolder(),4,0);
         addItemValue(point_value,Items.CHORUS_PLANT.builtInRegistryHolder(),chorusFruit,0);
-        addItemValue(point_value,Items.CHORUS_FLOWER.builtInRegistryHolder(),16,0);
+        addItemValue(point_value,Items.CHORUS_FLOWER.builtInRegistryHolder(),13,0);
         addItemValue(point_value,Items.GLOW_LICHEN.builtInRegistryHolder(),6,0);
         addItemValue(point_value,Items.HANGING_ROOTS.builtInRegistryHolder(),6,0);
         addItemValue(point_value,Items.FROGSPAWN.builtInRegistryHolder(),16,0);
         addItemValue(point_value,Items.TURTLE_EGG.builtInRegistryHolder(),14,0);
         addItemValue(point_value,Items.SNIFFER_EGG.builtInRegistryHolder(),22,0);
         addItemValue(point_value,Tags.Items.SEEDS,2,0);
-        addItemValue(point_value,Items.GLOW_BERRIES.builtInRegistryHolder(),3,0);
-        addItemValue(point_value,Items.SWEET_BERRIES.builtInRegistryHolder(),2,0);
+        addItemValue(point_value,Items.GLOW_BERRIES.builtInRegistryHolder(),6,0);
+        addItemValue(point_value,Items.SWEET_BERRIES.builtInRegistryHolder(),4,0);
         addItemValue(point_value,Items.LILY_PAD.builtInRegistryHolder(),3,0);
         addItemValue(point_value,Items.SEAGRASS.builtInRegistryHolder(),3,0);
         addItemValue(point_value,Items.KELP.builtInRegistryHolder(),2,0);
@@ -592,7 +591,7 @@ public class CraftPointMap extends DataMapProvider {
 
 
 
-        int melonslice = 10;
+        int melonslice = 5;
         addItemValue(point_value,Items.MELON_SLICE.builtInRegistryHolder(),melonslice,0);
         addItemValue(point_value,Items.MELON.builtInRegistryHolder(), (melonslice * 9),1);
 
@@ -602,7 +601,7 @@ public class CraftPointMap extends DataMapProvider {
         addItemValue(point_value,Items.SOUL_TORCH.builtInRegistryHolder(), torch + 2,3);
         addItemValue(point_value,Items.REDSTONE_TORCH.builtInRegistryHolder(),redstone_torch,3);
 
-        int pumpkin = 16;
+        int pumpkin = 10;
         addItemValue(point_value,Items.PUMPKIN.builtInRegistryHolder(),pumpkin,0);
         addItemValue(point_value,Items.CARVED_PUMPKIN.builtInRegistryHolder(),pumpkin,1);
         addItemValue(point_value,Items.JACK_O_LANTERN.builtInRegistryHolder(),pumpkin + torch,3);

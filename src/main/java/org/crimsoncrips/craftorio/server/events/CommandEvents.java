@@ -1,17 +1,31 @@
 package org.crimsoncrips.craftorio.server.events;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.SimpleMenuProvider;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.client.ChunkExpansionScreen;
+import org.crimsoncrips.craftorio.networking.ChunkClaimPacket;
+import org.crimsoncrips.craftorio.networking.SinkItemsPacket;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 import static org.crimsoncrips.craftorio.server.CraftorioDataAttachments.AMOUNT_OF_LAND;
 import static org.crimsoncrips.craftorio.server.CraftorioDataAttachments.POINTS;
@@ -25,17 +39,49 @@ public class CommandEvents {
 
         dispatcher.register(Commands.literal("craftorio").then(
                         Commands.literal("points")
-                                .then(Commands.literal("valueless_items").executes(CommandEvents::runValueless))
-                                .then(Commands.literal("add").then(Commands.argument("amount",LongArgumentType.longArg()).executes(CommandEvents::runAddPoints)))
-                                .then(Commands.literal("set").then(Commands.argument("amount",LongArgumentType.longArg()).executes(CommandEvents::runSetPoints)))
-                                .then(Commands.literal("subtract").then(Commands.argument("amount",LongArgumentType.longArg()).executes(CommandEvents::runSubtractPoints)))
-                                .then(Commands.literal("check_amount").executes(CommandEvents::runShowPoints))).then(
+                                .then(Commands.literal("valueless_items").requires(cs -> cs.hasPermission(2)).executes(CommandEvents::runValueless))
+                                .then(Commands.literal("add").requires(cs -> cs.hasPermission(3)).then(Commands.argument("amount",LongArgumentType.longArg()).executes(CommandEvents::runAddPoints)))
+                                .then(Commands.literal("set").requires(cs -> cs.hasPermission(3)).then(Commands.argument("amount",LongArgumentType.longArg()).executes(CommandEvents::runSetPoints)))
+                                .then(Commands.literal("subtract").requires(cs -> cs.hasPermission(3)).then(Commands.argument("amount",LongArgumentType.longArg()).executes(CommandEvents::runSubtractPoints)))).then(
                         Commands.literal("land")
-                                .then(Commands.literal("check_amount").executes(CommandEvents::runShowLandAmount))
+                                .then(Commands.literal("check_amount").requires(cs -> cs.hasPermission(2)).executes(CommandEvents::runShowLandAmount))
+                                .then(Commands.literal("chunk_claim").executes(CommandEvents::runBorderExpand))).then(
 
+                        Commands.literal("point_value")
+                                .then(Commands.literal("highest_value").then(Commands.argument("list_no", IntegerArgumentType.integer()).executes(CommandEvents::runHighestValue)))
                 )
         );
 
+
+    }
+
+    private static int runBorderExpand(CommandContext<CommandSourceStack> context) {
+        ServerPlayer serverPlayer = context.getSource().getPlayer();
+        if (serverPlayer != null) {
+            PacketDistributor.sendToPlayer(serverPlayer, new ChunkClaimPacket(true));
+        }
+        return 1;
+    }
+
+    private static int runHighestValue(CommandContext<CommandSourceStack> context) {
+        List<ItemStack> listOfItems = new ArrayList<>();
+        BuiltInRegistries.ITEM.forEach(item -> {
+            listOfItems.add(item.getDefaultInstance());
+        });
+        int limit = IntegerArgumentType.getInteger(context,"list_no");
+
+        List<ItemStack> highestValueItems = listOfItems.stream()
+                .sorted(Comparator.comparingLong(CraftorioMisc::checkValue).reversed())
+                .limit(limit)
+                .toList();
+
+        for (ItemStack itemStack : highestValueItems){
+            long pointsValue = CraftorioMisc.checkValue(itemStack);
+            String string = itemStack.getDisplayName().getString() + " " + pointsValue;
+            context.getSource().sendSuccess(() -> Component.literal(string), true);
+
+        }
+        return 1;
     }
 
     private static int runValueless(CommandContext<CommandSourceStack> context) {

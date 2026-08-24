@@ -5,23 +5,18 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.*;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
-import net.minecraft.client.gui.screens.inventory.BeaconScreen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.protocol.game.ServerboundSetBeaconPacket;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.*;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.inventory.SinkerMenu;
-import org.crimsoncrips.craftorio.networking.OwnLandPacket;
 import org.crimsoncrips.craftorio.networking.SinkItemsPacket;
 
 import java.util.List;
-import java.util.Optional;
 
 public class SinkScreen extends AbstractContainerScreen<SinkerMenu>{
 	private static final ResourceLocation SINK_SCREEN = Craftorio.getGuiTexture("sinker_screen.png");
@@ -53,10 +48,10 @@ public class SinkScreen extends AbstractContainerScreen<SinkerMenu>{
 		guiGraphics.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY - 10, 4210752, false);
 	}
 
-	private final List<BeaconConfirmButton> beaconButtons = Lists.newArrayList();
+	private final List<SinkButton> sinkButtons = Lists.newArrayList();
 	@OnlyIn(Dist.CLIENT)
-    class BeaconConfirmButton extends AbstractButton  {
-		public BeaconConfirmButton(int x, int y) {
+    class SinkButton extends AbstractButton  {
+		public SinkButton(int x, int y) {
 			super(x, y, 22, 22, CommonComponents.EMPTY);
 		}
 
@@ -71,14 +66,14 @@ public class SinkScreen extends AbstractContainerScreen<SinkerMenu>{
 		}
 	}
 
-	private void addBeaconButton(BeaconConfirmButton beaconButton) {
+	private void addButton(SinkButton beaconButton) {
 		this.addRenderableWidget(beaconButton);
-		this.beaconButtons.add(beaconButton);
+		this.sinkButtons.add(beaconButton);
 	}
 
 	protected void init() {
 		super.init();
-		this.beaconButtons.clear();
-		this.addBeaconButton(new BeaconConfirmButton(this.leftPos + 164, this.topPos + 107));
+		this.sinkButtons.clear();
+		this.addButton(new SinkButton(this.leftPos + 164, this.topPos + 107));
 	}
 }

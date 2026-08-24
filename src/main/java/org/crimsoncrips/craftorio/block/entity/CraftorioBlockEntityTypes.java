@@ -1,6 +1,7 @@
 package org.crimsoncrips.craftorio.block.entity;
 
 import net.minecraft.core.registries.Registries;
+import net.minecraft.world.item.WrittenBookItem;
 import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;

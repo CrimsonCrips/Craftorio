@@ -1,11 +1,13 @@
 package org.crimsoncrips.craftorio.server.events;
 
 import com.mojang.datafixers.util.Unit;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -32,7 +34,9 @@ public class ServerEvents {
         int sizePicked = Craftorio.COMMON_CONFIG.STARTING_LAND_SIZE.getAsInt();
 
         if (!CraftorioMisc.chunkBased(level) && !level.getData(FINALIZED)){
-            level.getWorldBorder().setSize(sizePicked);
+            level.getWorldBorder().setSize(sizePicked * 10);
+            level.getWorldBorder().setCenter(0,0);
+            level.setData(AMOUNT_OF_LAND, sizePicked);
         }
         level.setData(FINALIZED,true);
     }
