@@ -56,7 +56,7 @@ public class ServerEvents {
         if (!CraftorioMisc.chunkBased(level)) return;
         ChunkPos pos = level.getChunkAt(blockEvent.getPos()).getPos();
         
-        if (!level.getChunk(pos.x,pos.z).hasData(OWNED)){
+        if (!CraftorioMisc.isOwned(level.getChunk(pos.x,pos.z))){
             blockEvent.setCanceled(true);
         }
 
@@ -68,7 +68,7 @@ public class ServerEvents {
         ChunkPos pos = level.getChunkAt(blockEvent.getPos()).getPos();
         if (!CraftorioMisc.chunkBased(level)) return;
 
-        if (!level.getChunk(pos.x,pos.z).hasData(OWNED)){
+        if (!CraftorioMisc.isOwned(level.getChunk(pos.x,pos.z))){
             blockEvent.setCanceled(true);
         }
 

@@ -63,7 +63,7 @@ public class ChunkCollisionHooks {
     private static boolean isChunkUnlocked(Level level, Entity entity, int chunkX, int chunkZ) {
         ChunkAccess chunk = level.getChunk(chunkX,chunkZ);
         if (CraftorioMisc.chunkBased(level)) {
-            return chunk.hasData(OWNED) || CraftorioMisc.startingLocations().contains(chunk.getPos());
+            return CraftorioMisc.isOwned(chunk) || CraftorioMisc.startingLocations().contains(chunk.getPos());
         } else {
             return true;
         }

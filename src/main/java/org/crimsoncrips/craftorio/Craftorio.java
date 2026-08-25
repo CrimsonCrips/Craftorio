@@ -19,7 +19,7 @@ import org.crimsoncrips.craftorio.block.CraftorioBlocks;
 import org.crimsoncrips.craftorio.block.entity.CraftorioBlockEntityTypes;
 import org.crimsoncrips.craftorio.client.ClientEvents;
 import org.crimsoncrips.craftorio.datagen.CraftorioDatagen;
-import org.crimsoncrips.craftorio.datagen.maps.ModDataMaps;
+import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
 import org.crimsoncrips.craftorio.item.CraftorioItems;
 import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
 import org.crimsoncrips.craftorio.server.events.CommandEvents;
@@ -60,7 +60,7 @@ public class Craftorio {
         NeoForge.EVENT_BUS.register(new ServerEvents());
 
         modEventBus.addListener(new RegistrationEvents()::setupPackets);
-        modEventBus.addListener(ModDataMaps::registerDataMaps);
+        modEventBus.addListener(CraftorioDataMaps::registerDataMaps);
         modEventBus.addListener(new ClientEvents()::registerScreens);
         modEventBus.addListener(ClientEvents::showPoints);
 

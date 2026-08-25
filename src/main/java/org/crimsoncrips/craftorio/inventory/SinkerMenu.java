@@ -106,7 +106,7 @@ public class SinkerMenu extends AbstractContainerMenu {
 
 				if (!item.isEmpty() && !serverLevel.isClientSide()){
 					long points = CraftorioMisc.checkValue(item);
-					CraftorioMisc.addPoints(serverLevel,points);
+					CraftorioMisc.setPoints(serverLevel,points);
 					slot.set(ItemStack.EMPTY);
 				}
 			}

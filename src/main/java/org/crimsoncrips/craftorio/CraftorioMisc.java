@@ -14,7 +14,7 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
-import org.crimsoncrips.craftorio.datagen.maps.ModDataMaps;
+import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,26 +63,24 @@ public class CraftorioMisc {
     }
     public static void ownLand(List<ChunkPos> chunkPos,Level level, boolean claiming){
         if (level == null) return;
-        int claimed_amount = level.getData(AMOUNT_OF_LAND);
-        long amountToClaim = CraftorioMisc.calculateLandCost(chunkPos.size(),claimed_amount);
-        long heldPoints = level.getData(POINTS);
-        if (heldPoints >= amountToClaim){
+        int claimed_amount = getLandAmount(level);
+        long points = getPoints(level);
+        long amountToClaim = CraftorioMisc.pointsToClaimLand(chunkPos.size(),claimed_amount);
+        if (points >= amountToClaim){
             for (ChunkPos chunkSelected : chunkPos) {
                 ChunkAccess chunk = level.getChunk(chunkSelected.x, chunkSelected.z);
 
                 if ((!startingLocations().contains(chunkSelected))) {
-                    if (claiming && (!chunk.hasData(OWNED))) {
-                        chunk.setData(OWNED, Unit.INSTANCE);
-                        int amountSet = claimed_amount + 1;
-                        level.setData(AMOUNT_OF_LAND, amountSet);
+                    if (claiming && (!isOwned(chunk))) {
+                        setOwned(chunk,true);
+                        setLandAmount(level,claimed_amount + 1);
                     } else if ((!claiming) && chunk.hasData(OWNED)) {
-                        chunk.removeData(OWNED);
-                        int amountSet = claimed_amount - 1;
-                        level.setData(AMOUNT_OF_LAND, amountSet);
+                        setOwned(chunk,false);
+                        setLandAmount(level,claimed_amount - 1);
                     }
                 }
             }
-            level.setData(POINTS,heldPoints - amountToClaim);
+            level.setData(POINTS,points - amountToClaim);
         }
     }
 
@@ -93,14 +91,14 @@ public class CraftorioMisc {
 
 
     public static int checkValue(ItemStack itemStack){
-        var value = itemStack.getItem().builtInRegistryHolder().getData(ModDataMaps.POINT_VALUE);
+        var value = itemStack.getItem().builtInRegistryHolder().getData(CraftorioDataMaps.POINT_VALUE);
         value = value != null ? value * itemStack.getCount() : 0;
 
         //MobEffect Check
         var effect = itemStack.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY);
 
         for (MobEffectInstance mobEffect : effect.getAllEffects()) {
-            var effectValue = mobEffect.getEffect().getData(ModDataMaps.EFFECT_POINT_VALUE);
+            var effectValue = mobEffect.getEffect().getData(CraftorioDataMaps.EFFECT_POINT_VALUE);
             if (effectValue != null) {
                 int multiplier = mobEffect.getAmplifier() > 1 ? mobEffect.getAmplifier() - 1 : 0;
                 value = value + Math.toIntExact((long) (effectValue * (1 + (multiplier * 0.45))));
@@ -113,7 +111,7 @@ public class CraftorioMisc {
         for (Object2IntMap.Entry<Holder<Enchantment>> pickedEnchant : storedEnchant.entrySet()){
             int level = storedEnchant.getLevel(pickedEnchant.getKey());
 
-            var enchant = pickedEnchant.getKey().getData(ModDataMaps.ENCHANTMENT_POINT_VALUE);
+            var enchant = pickedEnchant.getKey().getData(CraftorioDataMaps.ENCHANTMENT_POINT_VALUE);
             if (enchant != null) {
                 int multiplier = level > 1 ? level - 1 : 0;
                 value = value + Math.toIntExact((long) (enchant * (1 + (multiplier * 0.45))));
@@ -126,7 +124,7 @@ public class CraftorioMisc {
             int level = EnchantmentHelper.getItemEnchantmentLevel(pickedEnchant.getKey(),itemStack);
 
 
-            var enchant = pickedEnchant.getKey().getData(ModDataMaps.ENCHANTMENT_POINT_VALUE);
+            var enchant = pickedEnchant.getKey().getData(CraftorioDataMaps.ENCHANTMENT_POINT_VALUE);
             if (enchant != null) {
                 int multiplier = level > 1 ? level - 1 : 0;
                 value = value + Math.toIntExact((long) (enchant * (1 + (multiplier * 0.45))));
@@ -136,14 +134,79 @@ public class CraftorioMisc {
         return value;
     }
 
-    public static void addPoints(ServerLevel serverLevel,long points){
-        long initialPoints = serverLevel.getData(POINTS);
-        serverLevel.setData(POINTS, points + initialPoints);
+    public static long pointsToClaimLand(int amount,int claimedLand) {
+        if (amount <= 0) return 0L;
+
+        double total = 0.0;
+        for (int i = 0; i < amount; i++) {
+            total += landBaseCost() * Math.pow(landCostIncreaser(), claimedLand + i);
+        }
+        return (long) Math.ceil(total);
     }
 
-    public static long calculateLandCost(int claimAmount,int currentLand){
-        return (currentLand + claimAmount) > 1 ? ((currentLand + claimAmount) * 10L) : 10L;
+    public static int landClaimableWithPoints(long points,int claimedLand) {
+        long remaining = points;
+        int claimable = 0;
+        int currentLand = claimedLand;
+
+        while (true) {
+            long cost = (long) Math.ceil(landBaseCost() * Math.pow(landCostIncreaser(), currentLand));
+            if (cost > remaining) break;
+            remaining -= cost;
+            claimable++;
+            currentLand++;
+        }
+
+        return claimable;
     }
+
+
+    public static float landCostIncreaser() {
+        return 1.2F;
+    }
+
+    public static long landBaseCost() {
+        return 10L;
+    }
+
+
+    //Points
+    public static long getPoints(Level level){
+        return level.getData(POINTS);
+    }
+    
+    public static void setPoints(Level level,long points){
+        level.setData(POINTS,points);
+    }
+
+    public static void addPoints(Level level,long addition){
+        level.setData(POINTS,getPoints(level) + addition);
+    }
+
+    //Owned
+    public static boolean isOwned(ChunkAccess chunkAccess){
+        return chunkAccess.hasData(OWNED);
+    }
+
+    public static void setOwned(ChunkAccess chunkAccess,boolean own){
+        if (own){
+            chunkAccess.setData(OWNED,Unit.INSTANCE);
+        } else {
+            chunkAccess.removeData(OWNED);
+        }
+    }
+
+    
+    //Land
+    public static int getLandAmount(Level level){
+        return level.getData(AMOUNT_OF_LAND);
+    }
+    
+    public static void setLandAmount(Level level,int amount){
+        level.setData(AMOUNT_OF_LAND,amount);
+    }
+
+
 
 
 

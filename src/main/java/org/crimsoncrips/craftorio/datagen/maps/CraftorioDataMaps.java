@@ -11,7 +11,7 @@ import net.neoforged.neoforge.registries.datamaps.DataMapType;
 import net.neoforged.neoforge.registries.datamaps.RegisterDataMapTypesEvent;
 import org.crimsoncrips.craftorio.Craftorio;
 
-public class ModDataMaps {
+public class CraftorioDataMaps {
 
     //From Androsa (Gaia Dimension)
     public static final DataMapType<Item, Integer> POINT_VALUE = DataMapType.builder(

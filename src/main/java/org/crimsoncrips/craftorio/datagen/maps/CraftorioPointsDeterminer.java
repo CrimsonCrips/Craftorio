@@ -22,10 +22,10 @@ import java.util.concurrent.CompletableFuture;
 import static java.lang.Math.round;
 
 @SuppressWarnings("Deprecated")
-public class CraftPointMap extends DataMapProvider {
+public class CraftorioPointsDeterminer extends DataMapProvider {
 
     //From Androsa (Gaia Dimension)
-    public CraftPointMap(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> lookupProvider) {
+    public CraftorioPointsDeterminer(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> lookupProvider) {
         super(packOutput, lookupProvider);
     }
 
@@ -36,7 +36,7 @@ public class CraftPointMap extends DataMapProvider {
         enchantMap();
     }
     protected void effectMap() {
-        Builder<Integer, MobEffect> point_value = this.builder(ModDataMaps.EFFECT_POINT_VALUE);
+        Builder<Integer, MobEffect> point_value = this.builder(CraftorioDataMaps.EFFECT_POINT_VALUE);
         addEffectValue(point_value, MobEffects.NIGHT_VISION,110);
         addEffectValue(point_value, MobEffects.INVISIBILITY,120);
         addEffectValue(point_value, MobEffects.JUMP,130);
@@ -62,7 +62,7 @@ public class CraftPointMap extends DataMapProvider {
     }
 
     protected void enchantMap() {
-        Builder<Integer, Enchantment> point_value = this.builder(ModDataMaps.ENCHANTMENT_POINT_VALUE);
+        Builder<Integer, Enchantment> point_value = this.builder(CraftorioDataMaps.ENCHANTMENT_POINT_VALUE);
         addEnchantValue(point_value, Enchantments.AQUA_AFFINITY,130);
         addEnchantValue(point_value, Enchantments.BANE_OF_ARTHROPODS,110);
         addEnchantValue(point_value, Enchantments.BINDING_CURSE,80);
@@ -109,7 +109,7 @@ public class CraftPointMap extends DataMapProvider {
     }
 
     protected void itemMap() {
-        Builder<Integer, Item> point_value = this.builder(ModDataMaps.POINT_VALUE);
+        Builder<Integer, Item> point_value = this.builder(CraftorioDataMaps.POINT_VALUE);
         addItemValue(point_value,ItemTags.LOGS, 2,0);
         int planks = 1;
         addItemValue(point_value,ItemTags.PLANKS, planks,1);
