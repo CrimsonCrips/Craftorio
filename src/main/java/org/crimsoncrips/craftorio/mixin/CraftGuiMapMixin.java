@@ -26,36 +26,36 @@ import java.util.List;
 
 public abstract class CraftGuiMapMixin {
 
-    @Shadow
-    private MapTileSelection mapTileSelection;
-
-    @Inject(method = "getRightClickOptions", at = @At("TAIL"), remap = false)
-    private void Craft_getRightClickOptions(CallbackInfoReturnable<ArrayList<RightClickOption>> cir, @Local ArrayList<RightClickOption> options) {
-
-        if (mapTileSelection != null) {
-
-
-            GuiMap guiMap = (GuiMap)(Object)this;
-            List<ChunkPos> chunks = CraftorioMisc.generateSelectionChunks(mapTileSelection.getStartX(),mapTileSelection.getStartZ(),mapTileSelection.getEndX(), mapTileSelection.getEndZ());
-            if (guiMap.getMinecraft().level == null) return;
-            long claimed_amount = CraftorioMisc.getLandAmount(guiMap.getMinecraft().level);
-            BigInteger amountToClaim = CraftorioMisc.pointsToExpand(chunks.size(),claimed_amount);
-
-            String string = Component.translatable("misc.craftorio.claim_land").getString();
-
-            options.add(new RightClickOption(string + " : " + amountToClaim, options.size(), guiMap) {
-                public void onAction(Screen screen) {
-                    PacketDistributor.sendToServer(new OwnLandPacket(chunks,true));
-                }
-            });
-            options.add(new RightClickOption("misc.craftorio.unclaim_land", options.size(), guiMap) {
-                public void onAction(Screen screen) {
-                    PacketDistributor.sendToServer(new OwnLandPacket(chunks,false));
-                }
-            });
-        }
-
-    }
+//    @Shadow
+//    private MapTileSelection mapTileSelection;
+//
+//    @Inject(method = "getRightClickOptions", at = @At("TAIL"), remap = false)
+//    private void Craft_getRightClickOptions(CallbackInfoReturnable<ArrayList<RightClickOption>> cir, @Local ArrayList<RightClickOption> options) {
+//
+//        if (mapTileSelection != null) {
+//
+//
+//            GuiMap guiMap = (GuiMap)(Object)this;
+//            List<ChunkPos> chunks = CraftorioMisc.generateSelectionChunks(mapTileSelection.getStartX(),mapTileSelection.getStartZ(),mapTileSelection.getEndX(), mapTileSelection.getEndZ());
+//            if (guiMap.getMinecraft().level == null) return;
+//            long claimed_amount = CraftorioMisc.getLandAmount(guiMap.getMinecraft().level);
+//            BigInteger amountToClaim = CraftorioMisc.pointsToExpand(chunks.size(),claimed_amount);
+//
+//            String string = Component.translatable("misc.craftorio.claim_land").getString();
+//
+//            options.add(new RightClickOption(string + " : " + amountToClaim, options.size(), guiMap) {
+//                public void onAction(Screen screen) {
+//                    PacketDistributor.sendToServer(new OwnLandPacket(chunks,true));
+//                }
+//            });
+//            options.add(new RightClickOption("misc.craftorio.unclaim_land", options.size(), guiMap) {
+//                public void onAction(Screen screen) {
+//                    PacketDistributor.sendToServer(new OwnLandPacket(chunks,false));
+//                }
+//            });
+//        }
+//
+//    }
 
 //    @WrapWithCondition(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;drawCenteredString(Lnet/minecraft/client/gui/Font;Ljava/lang/String;III)V",ordinal = 1))
 //    private boolean test(GuiGraphics instance, Font font, String text, int x, int y, int color) {

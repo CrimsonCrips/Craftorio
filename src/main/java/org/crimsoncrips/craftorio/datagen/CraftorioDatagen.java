@@ -28,6 +28,7 @@ public class CraftorioDatagen {
         generator.addProvider(event.includeServer(), blocktags);
         generator.addProvider(event.includeServer(), new CraftItemTagGen(output, provider, blocktags.contentsGetter(), helper));
 
+//        generator.addProvider(event.includeServer(), new CraftorioRecipeGenerator(output, provider));
         generator.addProvider(event.includeServer(), new CraftorioPointsDeterminer(output, provider));
     }
 
