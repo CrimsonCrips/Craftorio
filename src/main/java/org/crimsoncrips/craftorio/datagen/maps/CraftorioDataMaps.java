@@ -14,25 +14,25 @@ import org.crimsoncrips.craftorio.Craftorio;
 public class CraftorioDataMaps {
 
     //From Androsa (Gaia Dimension)
-    public static final DataMapType<Item, Integer> POINT_VALUE = DataMapType.builder(
+    public static final DataMapType<Item, String> POINT_VALUE = DataMapType.builder(
                     ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "point_value"),
                     Registries.ITEM,
-                    ExtraCodecs.POSITIVE_INT)
-            .synced(ExtraCodecs.POSITIVE_INT, false)
+                    ExtraCodecs.NON_EMPTY_STRING)
+            .synced(ExtraCodecs.NON_EMPTY_STRING, false)
             .build();
 
-    public static final DataMapType<MobEffect, Integer> EFFECT_POINT_VALUE = DataMapType.builder(
+    public static final DataMapType<MobEffect, String> EFFECT_POINT_VALUE = DataMapType.builder(
                     ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "effect_point_value"),
                     Registries.MOB_EFFECT,
-                    ExtraCodecs.POSITIVE_INT)
-            .synced(ExtraCodecs.POSITIVE_INT, false)
+                    ExtraCodecs.NON_EMPTY_STRING)
+            .synced(ExtraCodecs.NON_EMPTY_STRING, false)
             .build();
 
-    public static final DataMapType<Enchantment, Integer> ENCHANTMENT_POINT_VALUE = DataMapType.builder(
+    public static final DataMapType<Enchantment, String> ENCHANTMENT_POINT_VALUE = DataMapType.builder(
                     ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "enchantment_point_value"),
                     Registries.ENCHANTMENT,
-                    ExtraCodecs.POSITIVE_INT)
-            .synced(ExtraCodecs.POSITIVE_INT, false)
+                    ExtraCodecs.NON_EMPTY_STRING)
+            .synced(ExtraCodecs.NON_EMPTY_STRING, false)
             .build();
 
 

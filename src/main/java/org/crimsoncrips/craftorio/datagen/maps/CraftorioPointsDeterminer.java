@@ -17,6 +17,7 @@ import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.DataMapProvider;
 import org.crimsoncrips.craftorio.datagen.tags.CraftItemTagGen;
 
+import java.math.BigInteger;
 import java.util.concurrent.CompletableFuture;
 
 import static java.lang.Math.round;
@@ -36,7 +37,7 @@ public class CraftorioPointsDeterminer extends DataMapProvider {
         enchantMap();
     }
     protected void effectMap() {
-        Builder<Integer, MobEffect> point_value = this.builder(CraftorioDataMaps.EFFECT_POINT_VALUE);
+        Builder<String, MobEffect> point_value = this.builder(CraftorioDataMaps.EFFECT_POINT_VALUE);
         addEffectValue(point_value, MobEffects.NIGHT_VISION,110);
         addEffectValue(point_value, MobEffects.INVISIBILITY,120);
         addEffectValue(point_value, MobEffects.JUMP,130);
@@ -62,7 +63,7 @@ public class CraftorioPointsDeterminer extends DataMapProvider {
     }
 
     protected void enchantMap() {
-        Builder<Integer, Enchantment> point_value = this.builder(CraftorioDataMaps.ENCHANTMENT_POINT_VALUE);
+        Builder<String, Enchantment> point_value = this.builder(CraftorioDataMaps.ENCHANTMENT_POINT_VALUE);
         addEnchantValue(point_value, Enchantments.AQUA_AFFINITY,130);
         addEnchantValue(point_value, Enchantments.BANE_OF_ARTHROPODS,110);
         addEnchantValue(point_value, Enchantments.BINDING_CURSE,80);
@@ -109,7 +110,7 @@ public class CraftorioPointsDeterminer extends DataMapProvider {
     }
 
     protected void itemMap() {
-        Builder<Integer, Item> point_value = this.builder(CraftorioDataMaps.POINT_VALUE);
+        Builder<String, Item> point_value = this.builder(CraftorioDataMaps.POINT_VALUE);
         addItemValue(point_value,ItemTags.LOGS, 2,0);
         int planks = 1;
         addItemValue(point_value,ItemTags.PLANKS, planks,1);
@@ -444,7 +445,7 @@ public class CraftorioPointsDeterminer extends DataMapProvider {
         int copper_block = (15 * 9);
         addItemValue(point_value, CraftItemTagGen.COPPER,copper_block,1);
         addItemValue(point_value, CraftItemTagGen.CHISELED_COPPER,chiseledAndPillared(copper_block),4);
-        addItemValue(point_value, CraftItemTagGen.COPPER_GRATE, multiValCal(multiValCal(copper_block,9,1),4,4),8);
+        addItemValue(point_value, CraftItemTagGen.COPPER_GRATE, multiValCal(copper_block,4,4),4);
         addItemValue(point_value, CraftItemTagGen.CUT_COPPER, multiValCal(copper_block,4,4),2);
         addItemValue(point_value, CraftItemTagGen.CUT_COPPER_STAIRS, multiValCal(multiValCal(copper_block,4,4),6,4),4);
         addItemValue(point_value, CraftItemTagGen.CUT_COPPER_SLAB, multiValCal(multiValCal(copper_block,4,4),3,6),4);
@@ -664,7 +665,7 @@ public class CraftorioPointsDeterminer extends DataMapProvider {
         addItemValue(point_value,Items.END_CRYSTAL.builtInRegistryHolder(), (glass * 7) + ghast_tear + blaze_powder,2);
         addItemValue(point_value,Items.BREWING_STAND.builtInRegistryHolder(), (cobblestone * 3) + blaze_rod,1);
         addItemValue(point_value,Items.CAULDRON.builtInRegistryHolder(), (iron * 7),1);
-        addItemValue(point_value,Items.BELL.builtInRegistryHolder(), (emerald * 26),0);
+        addItemValue(point_value,Items.BELL.builtInRegistryHolder(), (emerald * 10),0);
         addItemValue(point_value,Items.NETHER_STAR.builtInRegistryHolder(), 400,0);
         addItemValue(point_value,Items.BEACON.builtInRegistryHolder(), 400 + (glass * 5) + (obsidian * 3),2);
         addItemValue(point_value,Items.NAUTILUS_SHELL.builtInRegistryHolder(), 96,0);
@@ -959,25 +960,24 @@ public class CraftorioPointsDeterminer extends DataMapProvider {
     //(Work multiplier refers to how many hops it takes in terms of crafting to get to the result item)
 
     //Items
-    private void addItemValue(Builder<Integer, Item> pointValue, TagKey<Item> item, int value,int workMultiplier) {
+    private void addItemValue(Builder<String, Item> pointValue, TagKey<Item> item, int value,int workMultiplier) {
         int multiplier = workMultiplier > 1 ? workMultiplier - 1 : 0;
-
-        pointValue.add(item, (int) (value * (1 + (multiplier * 0.10))),false);
+        pointValue.add(item, String.valueOf((int) (value * (1 + (multiplier * 0.10)))),false);
     }
 
-    public void addItemValue(Builder<Integer, Item> pointValue, Holder<Item> object, int value,int workMultiplier){
+    public void addItemValue(Builder<String, Item> pointValue, Holder<Item> object, int value,int workMultiplier){
         int multiplier = workMultiplier > 1 ? workMultiplier - 1 : 0;
-        pointValue.add(object, (int) (value * (1 + (multiplier * 0.10))),false);
+        pointValue.add(object, String.valueOf((int) (value * (1 + (multiplier * 0.10)))),false);
     }
 
     //Mob Effects
-    private void addEffectValue(Builder<Integer, MobEffect> pointValue, Holder<MobEffect> mobEffect, int value) {
-        pointValue.add(mobEffect, value,false);
+    private void addEffectValue(Builder<String, MobEffect> pointValue, Holder<MobEffect> mobEffect, int value) {
+        pointValue.add(mobEffect, String.valueOf(value),false);
     }
 
     //Enchantment
-    private void addEnchantValue(Builder<Integer, Enchantment> pointValue, ResourceKey<Enchantment> mobEffect, int value) {
-        pointValue.add(mobEffect, value,false);
+    private void addEnchantValue(Builder<String, Enchantment> pointValue, ResourceKey<Enchantment> mobEffect, int value) {
+        pointValue.add(mobEffect, String.valueOf(value),false);
     }
 
     public int multiValCal(int baseValue, int itemsNeeded, int outputNo){

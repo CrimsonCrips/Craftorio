@@ -1,34 +1,29 @@
 package org.crimsoncrips.craftorio;
 
-import com.mojang.datafixers.util.Unit;
 import com.mojang.logging.LogUtils;
-import com.mojang.serialization.Codec;
-import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
-import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.common.NeoForge;
-import net.neoforged.neoforge.registries.*;
 import org.apache.commons.lang3.tuple.Pair;
 import org.crimsoncrips.craftorio.block.CraftorioBlocks;
 import org.crimsoncrips.craftorio.block.entity.CraftorioBlockEntityTypes;
 import org.crimsoncrips.craftorio.client.ClientEvents;
+import org.crimsoncrips.craftorio.client.CraftorioClientConfig;
 import org.crimsoncrips.craftorio.datagen.CraftorioDatagen;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
 import org.crimsoncrips.craftorio.item.CraftorioItems;
 import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
+import org.crimsoncrips.craftorio.server.CraftorioServerConfig;
 import org.crimsoncrips.craftorio.server.events.CommandEvents;
 import org.crimsoncrips.craftorio.server.events.RegistrationEvents;
 import org.crimsoncrips.craftorio.server.events.ServerEvents;
 import org.slf4j.Logger;
 
 import java.util.Locale;
-import java.util.function.Supplier;
 
 @SuppressWarnings("Deprecated")
 // The value here should match an entry in the META-INF/neoforge.mods.toml file
@@ -42,13 +37,20 @@ public class Craftorio {
 
     // Create the DeferredRegister for attachment types
 
-    public static final CraftorioConfig COMMON_CONFIG;
-    private static final ModConfigSpec COMMON_CONFIG_SPEC;
+    public static final CraftorioServerConfig SERVER_CONFIG;
+    private static final ModConfigSpec SERVER_CONFIG_SPEC;
+
+    public static final CraftorioClientConfig CLIENT_CONFIG;
+    private static final ModConfigSpec CLIENT_CONFIG_SPEC;
 
     static {
-        final Pair<CraftorioConfig, ModConfigSpec> serverPair = new ModConfigSpec.Builder().configure(CraftorioConfig::new);
-        COMMON_CONFIG = serverPair.getLeft();
-        COMMON_CONFIG_SPEC = serverPair.getRight();
+        final Pair<CraftorioServerConfig, ModConfigSpec> serverPair = new ModConfigSpec.Builder().configure(CraftorioServerConfig::new);
+        SERVER_CONFIG = serverPair.getLeft();
+        SERVER_CONFIG_SPEC = serverPair.getRight();
+
+        final Pair<CraftorioClientConfig, ModConfigSpec> clientPair = new ModConfigSpec.Builder().configure(CraftorioClientConfig::new);
+        CLIENT_CONFIG = clientPair.getLeft();
+        CLIENT_CONFIG_SPEC = clientPair.getRight();
     }
 
     public Craftorio(IEventBus modEventBus, ModContainer modContainer) {
@@ -71,7 +73,8 @@ public class Craftorio {
 
 
         //Config
-        modContainer.registerConfig(ModConfig.Type.COMMON, COMMON_CONFIG_SPEC, "craftorio-general.toml");
+        modContainer.registerConfig(ModConfig.Type.COMMON, SERVER_CONFIG_SPEC, "craftorio-general.toml");
+        modContainer.registerConfig(ModConfig.Type.CLIENT, CLIENT_CONFIG_SPEC, "craftorio-client.toml");
     }
 
     private static final String GUI_DIR = "textures/gui/";

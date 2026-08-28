@@ -6,13 +6,17 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMenuTypes;
 
+import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
+
+import java.math.BigInteger;
 
 public class ClientEvents {
 
@@ -28,17 +32,21 @@ public class ClientEvents {
 	public static void displayPoints(GuiGraphics graphics) {
 		if (Minecraft.getInstance().gui.getDebugOverlay().showDebugScreen())
 			return;
+		if (Minecraft.getInstance().level == null)
+			return;
+
 		graphics.pose().pushPose();
 		Font font = Minecraft.getInstance().font;
-		long points = Minecraft.getInstance().level.getData(CraftorioDataAttachments.POINTS);
-		MutableComponent txt = Component.translatable(String.valueOf(points)).withStyle();
+        BigInteger points = CraftorioMisc.getPoints(Minecraft.getInstance().level);
+		String pointsString = CraftorioMisc.bigIntFormat(points,Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
+		MutableComponent txt = Component.translatable(pointsString).withStyle();
 		float scale = 1;
 		graphics.pose().scale(scale, scale, scale);
 		int width = font.width(txt);
 		int x;
 		int y = 5;
 		x = Minecraft.getInstance().getWindow().getGuiScaledWidth() - 7 - width - 5;
-		graphics.drawString(font, Component.translatable(String.valueOf(points)), x + 4, y + 5, 16759552, true);
+		graphics.drawString(font, pointsString, x + 4, y + 5, 16759552, true);
 		graphics.pose().popPose();
 	}
 

@@ -52,7 +52,7 @@ public class SinkScreen extends AbstractContainerScreen<SinkerMenu>{
 	@OnlyIn(Dist.CLIENT)
     class SinkButton extends AbstractButton  {
 		public SinkButton(int x, int y) {
-			super(x, y, 22, 22, CommonComponents.EMPTY);
+			super(x, y, 16, 16, CommonComponents.EMPTY);
 		}
 
 		public void onPress() {
@@ -74,6 +74,10 @@ public class SinkScreen extends AbstractContainerScreen<SinkerMenu>{
 	protected void init() {
 		super.init();
 		this.sinkButtons.clear();
-		this.addButton(new SinkButton(this.leftPos + 164, this.topPos + 107));
+		int i = (this.width) / 2;
+		int j = (this.height) / 2 - 40;
+		this.addButton(new SinkButton(i - 8, j - 58));
 	}
+
+
 }

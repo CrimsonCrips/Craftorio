@@ -15,6 +15,8 @@ import net.minecraft.world.item.ItemStack;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.CraftorioMenuTypes;
 
+import java.math.BigInteger;
+
 public class SinkerMenu extends AbstractContainerMenu {
 	private static final int SLOTS_PER_ROW = 9;
 	private final Container container;
@@ -97,20 +99,21 @@ public class SinkerMenu extends AbstractContainerMenu {
 	}
 
 	public void sinkPoints(){
+		BigInteger pointsToGive = BigInteger.ZERO;
+		ServerLevel serverLevel = (ServerLevel) player.level();
 		for(int j = 0; j < this.containerRows; ++j) {
 			for(int k = 0; k < 9; ++k) {
 				this.addSlot(new Slot(container, k + j * 9, 8 + k * 18, 18 + j * 18));
 				Slot slot = this.getSlot(k + j * 9);
 				ItemStack item = slot.getItem();
-				ServerLevel serverLevel = (ServerLevel) player.level();
 
 				if (!item.isEmpty() && !serverLevel.isClientSide()){
-					long points = CraftorioMisc.checkValue(item);
-					CraftorioMisc.setPoints(serverLevel,points);
+					pointsToGive = pointsToGive.add(CraftorioMisc.checkValue(item));
 					slot.set(ItemStack.EMPTY);
 				}
 			}
 		}
+		CraftorioMisc.addPoints(serverLevel, pointsToGive);
 	}
 
 	public Container getContainer() {

@@ -5,6 +5,7 @@
 
 package org.crimsoncrips.craftorio.block.entity;
 
+import com.simibubi.create.content.logistics.chute.ChuteBlock;
 import net.minecraft.core.*;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -29,7 +30,6 @@ public class SinkerBlockEntity extends RandomizableContainerBlockEntity {
         this.items = NonNullList.withSize(getContainerSize(), ItemStack.EMPTY);
         this.openersCounter = new ContainerOpenersCounter() {
             protected void onOpen(Level p_155062_, BlockPos p_155063_, BlockState p_155064_) {
-
             }
 
             protected void onClose(Level p_155072_, BlockPos p_155073_, BlockState p_155074_) {
@@ -90,6 +90,7 @@ public class SinkerBlockEntity extends RandomizableContainerBlockEntity {
         }
 
     }
+
 
     public void stopOpen(Player player) {
         if (!this.remove && !player.isSpectator()) {

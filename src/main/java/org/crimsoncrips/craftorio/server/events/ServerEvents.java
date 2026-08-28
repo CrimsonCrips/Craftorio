@@ -16,6 +16,7 @@ import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.neoforged.neoforge.event.tick.LevelTickEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -28,25 +29,28 @@ import static org.crimsoncrips.craftorio.server.CraftorioDataAttachments.*;
 public class ServerEvents {
 
     @SubscribeEvent
-    public void serverEvents(ServerStartedEvent event) {
+    public void serverStarted(ServerStartedEvent event) {
         ServerLevel level = event.getServer().getLevel(event.getServer().overworld().dimension());
         if (level == null) return;
-        BlockPos blockPos = new BlockPos(0, level.getSharedSpawnPos().getY(), 0);
-        level.setDefaultSpawnPos(blockPos, 0);
-        int sizePicked = Craftorio.COMMON_CONFIG.STARTING_LAND_SIZE.getAsInt();
+        BlockPos blockPos = new BlockPos(9, level.getSharedSpawnPos().getY(), 9);
+        int sizePicked = Craftorio.SERVER_CONFIG.STARTING_LAND_SIZE.getAsInt();
 
         if (!CraftorioMisc.chunkBased(level) && !level.getData(FINALIZED)){
             level.getWorldBorder().setSize(sizePicked * 10);
-            level.getWorldBorder().setCenter(0,0);
-            level.setData(AMOUNT_OF_LAND, sizePicked);
+            level.getWorldBorder().setCenter(blockPos.getX(),blockPos.getZ());
+            CraftorioMisc.setLandAmount(level,sizePicked);
+
         }
+
         level.setData(FINALIZED,true);
     }
 
     @SubscribeEvent
-    public void tickEvent(PlayerTickEvent.Post serverTickEvent){
-        long points = serverTickEvent.getEntity().level().getData(POINTS);
-        serverTickEvent.getEntity().level().setData(POINTS,points + 0);
+    public void serverStarting(ServerStartingEvent event) {
+        ServerLevel level = event.getServer().getLevel(event.getServer().overworld().dimension());
+        if (level == null) return;
+        BlockPos blockPos = new BlockPos(9, level.getSharedSpawnPos().getY(), 9);
+        level.setDefaultSpawnPos(blockPos, 0);
     }
 
     @SubscribeEvent
@@ -76,7 +80,9 @@ public class ServerEvents {
 
     @SubscribeEvent
     public void itemTooltip(ItemTooltipEvent itemTooltipEvent){
-        itemTooltipEvent.getToolTip().add(1,Component.literal("Points : " + CraftorioMisc.checkValue(itemTooltipEvent.getItemStack())).withColor(16759552));
+        String pointValue = CraftorioMisc.bigIntFormat(CraftorioMisc.checkValue(itemTooltipEvent.getItemStack()),Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
+
+        itemTooltipEvent.getToolTip().add(1,Component.literal("Points : " + pointValue).withColor(16759552));
     }
 
 

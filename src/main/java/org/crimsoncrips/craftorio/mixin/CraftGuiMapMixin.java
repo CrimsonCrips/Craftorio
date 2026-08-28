@@ -18,10 +18,9 @@ import xaero.map.gui.GuiMap;
 import xaero.map.gui.MapTileSelection;
 import xaero.map.gui.dropdown.rightclick.RightClickOption;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.crimsoncrips.craftorio.server.CraftorioDataAttachments.AMOUNT_OF_LAND;
 
 @Mixin(GuiMap.class)
 
@@ -39,8 +38,8 @@ public abstract class CraftGuiMapMixin {
             GuiMap guiMap = (GuiMap)(Object)this;
             List<ChunkPos> chunks = CraftorioMisc.generateSelectionChunks(mapTileSelection.getStartX(),mapTileSelection.getStartZ(),mapTileSelection.getEndX(), mapTileSelection.getEndZ());
             if (guiMap.getMinecraft().level == null) return;
-            int claimed_amount = CraftorioMisc.getLandAmount(guiMap.getMinecraft().level);
-            long amountToClaim = CraftorioMisc.pointsToClaimLand(chunks.size(),claimed_amount);
+            long claimed_amount = CraftorioMisc.getLandAmount(guiMap.getMinecraft().level);
+            BigInteger amountToClaim = CraftorioMisc.pointsToExpand(chunks.size(),claimed_amount);
 
             String string = Component.translatable("misc.craftorio.claim_land").getString();
 

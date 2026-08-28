@@ -7,7 +7,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.crimsoncrips.craftorio.Craftorio;
-import org.crimsoncrips.craftorio.client.ChunkExpansionScreen;
+import org.crimsoncrips.craftorio.client.BorderExpandScreen;
 
 public record ExpandScreenPacket(boolean boolVal) implements CustomPacketPayload {
 
@@ -26,7 +26,7 @@ public record ExpandScreenPacket(boolean boolVal) implements CustomPacketPayload
 
     public static void handle(ExpandScreenPacket message, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
-            Minecraft.getInstance().setScreen(new ChunkExpansionScreen());
+            Minecraft.getInstance().setScreen(new BorderExpandScreen());
         });
     }
 }

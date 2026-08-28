@@ -1,16 +1,25 @@
-package org.crimsoncrips.craftorio;
+package org.crimsoncrips.craftorio.server;
 
 import net.neoforged.neoforge.common.ModConfigSpec;
 
-public class CraftorioConfig {
+public class CraftorioServerConfig {
 
 //    public final ModConfigSpec.BooleanValue CHUNK_BASED_EXPANSION;
     public final ModConfigSpec.IntValue STARTING_LAND_SIZE;
-    public CraftorioConfig(final ModConfigSpec.Builder builder) {
+    public final ModConfigSpec.DoubleValue COST_MULTIPLIER;
+    public final ModConfigSpec.IntValue COST_BASE;
+    public final ModConfigSpec.IntValue EXPANSION_AMOUNT;
+
+    public CraftorioServerConfig(final ModConfigSpec.Builder builder) {
 
         builder.push("General");
 //        this.CHUNK_BASED_EXPANSION = buildBoolean(builder, "CHUNK_BASED_EXPANSION", true, "Mode of expansion is through chunks");
         this.STARTING_LAND_SIZE = buildInt(builder, "STARTING_LAND_SIZE", 5,1,Integer.MAX_VALUE, "Starting size for claimed land");
+        this.COST_MULTIPLIER = buildDouble(builder, "COST_MULTIPLIER", 0.05F,0,Double.MAX_VALUE, "Cost Multiplier (ex. 0.05F = 5%)");
+        this.COST_BASE = buildInt(builder, "COST_BASE", 10,1,Integer.MAX_VALUE, "Base Cost of Land");
+
+        builder.push("Border Based");
+        this.EXPANSION_AMOUNT = buildInt(builder, "EXPANSION_AMOUNT", 1,1,Integer.MAX_VALUE, "Amount of expansion per purchase");
 
         builder.pop();
 

@@ -9,21 +9,23 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.crimsoncrips.craftorio.Craftorio;
 
+import java.math.BigInteger;
 import java.util.function.Supplier;
 
 public class CraftorioDataAttachments {
     public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES = DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, Craftorio.MODID);
 
-    public static final Supplier<AttachmentType<Long>> POINTS = ATTACHMENT_TYPES.register(
-            "points", () -> AttachmentType.builder(() -> 100L).serialize(Codec.LONG).sync(ByteBufCodecs.VAR_LONG).build()
-    );
 
-    public static final Supplier<AttachmentType<Integer>> AMOUNT_OF_LAND = ATTACHMENT_TYPES.register(
-            "amount_of_land", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).sync(ByteBufCodecs.INT).build()
+    public static final Supplier<AttachmentType<Long>> AMOUNT_OF_LAND = ATTACHMENT_TYPES.register(
+            "amount_of_land", () -> AttachmentType.builder(() -> 0L).serialize(Codec.LONG).sync(ByteBufCodecs.VAR_LONG).build()
     );
 
     public static final Supplier<AttachmentType<Unit>> OWNED = ATTACHMENT_TYPES.register(
             "owned", () -> AttachmentType.builder(() -> Unit.INSTANCE).sync(StreamCodec.unit(Unit.INSTANCE)).build()
+    );
+
+    public static final Supplier<AttachmentType<BigInteger>> POINTS = ATTACHMENT_TYPES.register(
+            "points", () -> AttachmentType.builder(() -> BigInteger.valueOf(100)).serialize(Codec.STRING.xmap(BigInteger::new, BigInteger::toString)).sync(ByteBufCodecs.fromCodec(Codec.STRING.xmap(BigInteger::new, BigInteger::toString))).build()
     );
 
     public static final Supplier<AttachmentType<Boolean>> CHUNK_BASED = ATTACHMENT_TYPES.register(
