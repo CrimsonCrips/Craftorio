@@ -16,6 +16,7 @@ import org.crimsoncrips.craftorio.CraftorioMenuTypes;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
 
+import java.awt.*;
 import java.math.BigInteger;
 
 public class ClientEvents {
@@ -37,18 +38,25 @@ public class ClientEvents {
 
 		graphics.pose().pushPose();
 		Font font = Minecraft.getInstance().font;
-        BigInteger points = CraftorioMisc.getPoints(Minecraft.getInstance().level);
-		String pointsString = CraftorioMisc.bigIntFormat(points,Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
-		MutableComponent txt = Component.translatable(pointsString).withStyle();
+		BigInteger points = CraftorioMisc.getPoints(Minecraft.getInstance().level);
+		String pointsString = CraftorioMisc.bigIntFormat(points, Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
+
+		String SPECIAL_TEXT = CraftorioMisc.bigIntFormat(CraftorioMisc.pointThreshold(),Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
 		float scale = 1;
-		graphics.pose().scale(scale, scale, scale);
-		int width = font.width(txt);
-		int x;
+		int width = font.width(pointsString);
+		int x = Minecraft.getInstance().getWindow().getGuiScaledWidth() - 7 - width - 5;
 		int y = 5;
-		x = Minecraft.getInstance().getWindow().getGuiScaledWidth() - 7 - width - 5;
-		graphics.drawString(font, pointsString, x + 4, y + 5, 16759552, true);
+
+		graphics.pose().scale(scale, scale, scale);
+		if (pointsString.equals(SPECIAL_TEXT)) {
+			CraftorioMisc.CraftorioTextEffects.drawFancy(graphics, font, pointsString, x + 4, y + 5,true);
+		} else {
+			graphics.drawString(font, pointsString, x + 4, y + 5, 16759552, true);
+		}
+
 		graphics.pose().popPose();
 	}
+
 
 	public static void showPoints(RegisterGuiLayersEvent e) {
 		e.registerBelow(VanillaGuiLayers.EXPERIENCE_BAR, pointBar,

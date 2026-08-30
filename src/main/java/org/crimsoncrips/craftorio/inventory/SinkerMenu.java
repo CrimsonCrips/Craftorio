@@ -36,6 +36,10 @@ public class SinkerMenu extends AbstractContainerMenu {
 		return new SinkerMenu(CraftorioMenuTypes.SINKER.get(), containerId, playerInventory, container,4);
 	}
 
+	public Player getPlayer() {
+		return player;
+	}
+
 	public SinkerMenu(MenuType<?> type, int containerId, Inventory playerInventory, Container container, int rows) {
 		super(type, containerId);
 		checkContainerSize(container, rows * 9);
@@ -113,7 +117,7 @@ public class SinkerMenu extends AbstractContainerMenu {
 				}
 			}
 		}
-		CraftorioMisc.addPoints(serverLevel, pointsToGive);
+		CraftorioMisc.setPoints(serverLevel,CraftorioMisc.getPoints(serverLevel).add(pointsToGive));
 	}
 
 	public Container getContainer() {

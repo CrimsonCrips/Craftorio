@@ -2,6 +2,8 @@ package org.crimsoncrips.craftorio;
 
 import com.mojang.datafixers.util.Unit;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -15,6 +17,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
 
+import java.awt.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
@@ -96,11 +99,11 @@ public class CraftorioMisc {
             System.out.println(expandAmount);
             double borderSize = level.getWorldBorder().getSize();
             if (expand){
-                level.getWorldBorder().lerpSizeBetween(borderSize,borderSize + expandAmount,1000);
+                level.getWorldBorder().lerpSizeBetween(borderSize,borderSize + expandAmount,3000);
                 setPoints(level, points.subtract(amountToClaim));
                 setLandAmount(level,getLandAmount(level) + expandAmount);
             } else {
-                level.getWorldBorder().lerpSizeBetween(borderSize,borderSize - expandAmount,1000);
+                level.getWorldBorder().lerpSizeBetween(borderSize,borderSize - expandAmount,3000);
             }
         }
     }
@@ -173,9 +176,22 @@ public class CraftorioMisc {
         long claimable = 0;
         long currentLand = claimedLand;
 
+        BigInteger cap = pointThreshold();
+
         while (true) {
-            BigDecimal costDecimal = baseCost.multiply(BigDecimal.valueOf(Math.pow(landCostIncreaser(), currentLand)));
-            BigInteger cost = costDecimal.setScale(0, RoundingMode.CEILING).toBigInteger();
+            double multiplier = Math.pow(landCostIncreaser(), currentLand);
+
+            BigInteger cost;
+            if (Double.isInfinite(multiplier) || Double.isNaN(multiplier)) {
+                cost = cap;
+            } else {
+                BigDecimal costDecimal = baseCost.multiply(BigDecimal.valueOf(multiplier));
+                cost = costDecimal.setScale(0, RoundingMode.CEILING).toBigInteger();
+
+                if (cost.compareTo(cap) > 0) {
+                    cost = cap;
+                }
+            }
 
             if (cost.compareTo(remaining) > 0) break;
 
@@ -211,9 +227,17 @@ public class CraftorioMisc {
             throw new IllegalArgumentException("Invalid input: " + input, e);
         }
 
-        return decimal.setScale(0, RoundingMode.HALF_UP).toBigInteger();
+        BigInteger returnBigInt = decimal.setScale(0, RoundingMode.HALF_UP).toBigInteger();
+        if (returnBigInt.compareTo(pointThreshold()) > 0) {
+            return pointThreshold();
+        } else {
+            return returnBigInt;
+        }
     }
 
+    public static BigInteger pointThreshold(){
+        return new BigDecimal("1e309").toBigInteger();
+    }
 
     //Points
     public static BigInteger getPoints(Level level){
@@ -221,15 +245,25 @@ public class CraftorioMisc {
     }
     
     public static void setPoints(Level level,BigInteger points){
-        level.setData(POINTS,points);
+        if (points.compareTo(pointThreshold()) > 0) {
+            level.setData(POINTS,pointThreshold());
+        } else {
+            level.setData(POINTS,points);
+        }
     }
 
-    public static void addPoints(Level level,BigInteger addition){
-        setPoints(level,addition.add(getPoints(level)));
+    //Temporary Points
+
+    public static BigInteger getTempPoints(Level level){
+        return level.getData(POINTS);
     }
 
-    public static void subtractPoints(Level level,BigInteger addition){
-        setPoints(level,addition.subtract(getPoints(level)));
+    public static void setTempPoints(Level level,BigInteger points){
+        if (points.compareTo(pointThreshold()) > 0) {
+            level.setData(POINTS,pointThreshold());
+        } else {
+            level.setData(POINTS,points);
+        }
     }
 
     //Owned
@@ -266,7 +300,7 @@ public class CraftorioMisc {
             "SPTGNTL","USPTGNTL","DSPTGNTL","TSPTGNTL","QTSPTGNTL","QNSPTGNTL","SXSPTGNTL","SPSPTGNTL","OSPTGNTL","NVSPTGNTL",
             "OTGNTL","UOTGNTL","DOTGNTL","TOTGNTL","QTOTGNTL","QNOTGNTL","SXOTGNTL","SPOTGNTL","OTOTGNTL","NVOTGNTL",
             "NONGNTL","UNONGNTL","DNONGNTL","TNONGNTL","QTNONGNTL","QNNONGNTL","SXNONGNTL","SPNONGNTL","OTNONGNTL","NONONGNTL",
-            "CENT","UNCENT"
+            "CENT","UNCENT","∞"
     };
 
     private static final String[] NAMES = {
@@ -280,7 +314,7 @@ public class CraftorioMisc {
             "Septuagintillion","Unseptuagintillion","Duoseptuagintillion","Treseptuagintillion","Quattuorseptuagintillion","Quinseptuagintillion","Seseptuagintillion","Septenseptuagintillion","Octoseptuagintillion","Novemseptuagintillion",
             "Octogintillion","Unoctogintillion","Duooctogintillion","Treoctogintillion","Quattuoroctogintillion","Quinoctogintillion","Sexoctogintillion","Septemoctogintillion","Octooctogintillion","Novemoctogintillion",
             "Nonagintillion","Unnonagintillion","Duononagintillion","Trenonagintillion","Quattuornonagintillion","Quinnonagintillion","Senonagintillion","Septenonagintillion","Octononagintillion","Novemnonagintillion",
-            "Centillion","Uncentillion"
+            "Centillion","Uncentillion","∞ Infinity ∞"
     };
 
 
@@ -334,14 +368,53 @@ public class CraftorioMisc {
         BigDecimal scaled = new BigDecimal(absValue)
                 .divide(divisor, 2, RoundingMode.DOWN)
                 .stripTrailingZeros();
+
+        String suffix;
         if (!worded){
-            String suffix = SUFFIXES[suffixIndex - 1];
-            return scaled.toPlainString() + suffix;
+            suffix = scaled.toPlainString() + SUFFIXES[suffixIndex - 1];
         } else {
-            String suffix = NAMES[suffixIndex - 1];
-            return scaled.toPlainString() + " " + suffix;
+            suffix = scaled.toPlainString() + " " + NAMES[suffixIndex - 1];
         }
 
+        if (suffixIndex > 102){
+            suffix = worded ? NAMES[suffixIndex - 1] : SUFFIXES[suffixIndex - 1];
+        }
+        return suffix;
+
+    }
+
+
+    public static class CraftorioTextEffects{
+
+        public static int drawFancy(GuiGraphics graphics, Font font, String text,int x, int y, boolean dropShadow){
+            return drawRainbowWave(graphics, font, text, x, y, dropShadow);
+        }
+
+        public static int drawRainbowWave(GuiGraphics graphics, Font font, String text,int x, int y, boolean dropShadow)
+        {
+            double time = System.nanoTime() / 1_000_000_000.0;
+
+            float floatX = (float) (Math.sin(time * 0.9) * 2.0);
+            float floatY = (float) (Math.cos(time * 1.3) * 1.5);
+
+            int cursorX = x + Math.round(floatX);
+            int baseY = y + Math.round(floatY);
+
+            for (int i = 0; i < text.length(); i++) {
+                String ch = String.valueOf(text.charAt(i));
+
+                float hue = (float) ((time * 0.25) + (i * 0.08));
+                hue -= Math.floor(hue);
+                int color = Color.HSBtoRGB(hue, 0.8f, 1.0f) & 0xFFFFFF;
+
+                int charY = baseY + Math.round((float) Math.sin(time * 2.0 + i * 0.6));
+
+                graphics.drawString(font, ch, cursorX, charY, color, dropShadow);
+                cursorX += font.width(ch);
+            }
+
+            return cursorX;
+        }
     }
 
 

@@ -81,7 +81,7 @@ side="BOTH"
 
 [[dependencies.${mod_id}]]
 modId="xaeroworldmap"
-type="required"
+type="optional"
 versionRange="[1.44.2]"
 ordering="NONE"
 side="BOTH"

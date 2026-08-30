@@ -16,6 +16,10 @@ public class CraftLangGen extends CraftLangProvider {
 		this.addMisc("claim_land", "Claim Land");
 		this.addMisc("unclaim_land", "Unclaim Land");
 
+		this.addMisc("sinker_button", "Sink Points");
+		this.addMisc("points_required", "Points Required");
+		this.addMisc("expand_border", "Expand Border");
 
+		this.addMisc("too_much_value", "Value exceeds Infinity!");
 	}
 }

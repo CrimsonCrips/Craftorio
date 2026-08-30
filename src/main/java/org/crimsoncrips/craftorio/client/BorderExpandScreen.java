@@ -42,12 +42,17 @@ public class BorderExpandScreen extends Screen {
 		int j = (this.height) / 2 - 10;
 		long landAmount = CraftorioMisc.getLandAmount(Minecraft.getInstance().level);
 		String pointsToExpand = CraftorioMisc.bigIntFormat(CraftorioMisc.pointsToExpand(amountClaiming,landAmount),Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
-		int centralizer = pointsToExpand.length() * 2;
-		int centralizer1 = String.valueOf(amountClaiming).length() * 2;
-		guiGraphics.drawString(this.font, Component.literal(String.valueOf(amountClaiming)), i + 7 + (-centralizer1), j + 5, 4210752, false);
-		guiGraphics.drawString(this.font, Component.literal("Points Required"), i - 25, j - 40, 4210752, false);
+		String string = Component.translatable("misc.craftorio.points_required").getString();
 
-		guiGraphics.drawString(this.font, Component.literal(pointsToExpand), i + 9 + (-centralizer), j - 30, 4210752, false);
+		String SPECIAL_TEXT = CraftorioMisc.bigIntFormat(CraftorioMisc.pointThreshold(),Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
+
+		guiGraphics.drawString(this.font, Component.literal(string), i - 25, j - 40 + (-string.length() * 2), 4210752, false);
+		if (pointsToExpand.equals(SPECIAL_TEXT)) {
+			CraftorioMisc.CraftorioTextEffects.drawFancy(guiGraphics, font, pointsToExpand, i + 9 + (-pointsToExpand.length() * 2), j - 30,false);
+		} else {
+			guiGraphics.drawString(this.font, Component.literal(pointsToExpand), i + 9 + (-pointsToExpand.length() * 2), j - 30, 4210752, false);
+		}
+		guiGraphics.drawString(this.font, Component.literal(String.valueOf(amountClaiming)), i + 7 + (-String.valueOf(amountClaiming).length() * 2), j + 5, 4210752, false);
 
 
 	}
@@ -102,8 +107,8 @@ public class BorderExpandScreen extends Screen {
 	class ExpandBorder extends ExpansionButtons {
 		public ExpandBorder(int x, int y, int width, int height){
 			super(x,y,width,height);
-
-			Tooltip tooltip = Tooltip.create(Component.literal("Expand Border"));
+			String string = Component.translatable("misc.craftorio.expand_border").getString();
+			Tooltip tooltip = Tooltip.create(Component.literal(string));
 			this.setTooltip(tooltip);
 		}
 
@@ -143,12 +148,17 @@ public class BorderExpandScreen extends Screen {
 			Level level = minecraft.level;
 			BigInteger points = CraftorioMisc.getPoints(level);
 			long land = CraftorioMisc.getLandAmount(level);
+			long cap = CraftorioMisc.expandCapabilityWithPoints(points,land);
+
 			if (maxer){
 				if (positive){
-					amountClaiming = CraftorioMisc.expandCapabilityWithPoints(points,land);
+					amountClaiming = cap;
 				} else amountClaiming = 0;
 			} else {
-				amountClaiming = positive ? (amountClaiming + 1) : (amountClaiming > 0 ? amountClaiming - 1 : 0);
+				long capCheck = positive ? (amountClaiming + 1) : (amountClaiming > 0 ? amountClaiming - 1 : 0);
+				if (capCheck <= cap){
+					amountClaiming = capCheck;
+				}
 			}
 		}
 	}

@@ -30,7 +30,7 @@ public abstract class CraftGuiMapMixin {
 //    private MapTileSelection mapTileSelection;
 //
 //    @Inject(method = "getRightClickOptions", at = @At("TAIL"), remap = false)
-//    private void Craft_getRightClickOptions(CallbackInfoReturnable<ArrayList<RightClickOption>> cir, @Local ArrayList<RightClickOption> options) {
+//    private void craftorio$getRightClickOptions(CallbackInfoReturnable<ArrayList<RightClickOption>> cir, @Local ArrayList<RightClickOption> options) {
 //
 //        if (mapTileSelection != null) {
 //

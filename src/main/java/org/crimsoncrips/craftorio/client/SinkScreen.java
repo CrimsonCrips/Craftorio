@@ -8,14 +8,19 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
+import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.inventory.SinkerMenu;
 import org.crimsoncrips.craftorio.networking.SinkItemsPacket;
 
+import java.math.BigInteger;
 import java.util.List;
 
 public class SinkScreen extends AbstractContainerScreen<SinkerMenu>{
@@ -53,6 +58,9 @@ public class SinkScreen extends AbstractContainerScreen<SinkerMenu>{
     class SinkButton extends AbstractButton  {
 		public SinkButton(int x, int y) {
 			super(x, y, 16, 16, CommonComponents.EMPTY);
+			String string = Component.translatable("misc.craftorio.sinker_button").getString();
+			Tooltip tooltip = Tooltip.create(Component.literal(string));
+			this.setTooltip(tooltip);
 		}
 
 		public void onPress() {

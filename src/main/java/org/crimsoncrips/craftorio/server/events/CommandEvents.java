@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import static org.crimsoncrips.craftorio.CraftorioMisc.pointThreshold;
 import static org.crimsoncrips.craftorio.server.CraftorioDataAttachments.AMOUNT_OF_LAND;
 import static org.crimsoncrips.craftorio.server.CraftorioDataAttachments.POINTS;
 
@@ -83,8 +84,6 @@ public class CommandEvents {
     }
 
     private static int runValueless(CommandContext<CommandSourceStack> context) {
-        ServerLevel serverLevel = context.getSource().getLevel();
-
         BuiltInRegistries.ITEM.forEach(item -> {
             BigInteger points = CraftorioMisc.checkValue(new ItemStack(item));
             if (points.compareTo(BigInteger.ZERO) <= 0){
@@ -94,30 +93,41 @@ public class CommandEvents {
         return 1;
     }
 
-    private static int runAddPoints(CommandContext<CommandSourceStack> context) {
+    private static int runSetPoints(CommandContext<CommandSourceStack> context) {
         ServerLevel serverLevel = context.getSource().getLevel();
-        BigInteger points = BigInteger.ZERO;
+        BigInteger points = CraftorioMisc.toBigInteger(StringArgumentType.getString(context,"amount"));
 
-        points = CraftorioMisc.toBigInteger(StringArgumentType.getString(context,"amount"));
-        CraftorioMisc.addPoints(serverLevel,points);
+        if (points.compareTo(pointThreshold()) >= 0) {
+            String string = Component.translatable("misc.craftorio.too_much_value").getString();
+            context.getSource().sendSuccess(() -> Component.literal(string), true);
+        }
+        CraftorioMisc.setPoints(serverLevel,points);
         return 1;
     }
 
-    private static int runSetPoints(CommandContext<CommandSourceStack> context) {
+    private static int runAddPoints(CommandContext<CommandSourceStack> context) {
         ServerLevel serverLevel = context.getSource().getLevel();
-        BigInteger points = BigInteger.ZERO;
-        points = CraftorioMisc.toBigInteger(StringArgumentType.getString(context,"amount"));
+        BigInteger points = CraftorioMisc.toBigInteger(StringArgumentType.getString(context,"amount"));
+        points = points.add(CraftorioMisc.getPoints(serverLevel));
 
+        if (points.compareTo(pointThreshold()) >= 0) {
+            String string = Component.translatable("misc.craftorio.too_much_value").getString();
+            context.getSource().sendSuccess(() -> Component.literal(string), true);
+        }
         CraftorioMisc.setPoints(serverLevel,points);
         return 1;
     }
 
     private static int runSubtractPoints(CommandContext<CommandSourceStack> context) {
         ServerLevel serverLevel = context.getSource().getLevel();
-        BigInteger points = BigInteger.ZERO;
-        points = CraftorioMisc.toBigInteger(StringArgumentType.getString(context,"amount"));
+        BigInteger points = CraftorioMisc.toBigInteger(StringArgumentType.getString(context,"amount"));
+        points = points.subtract(CraftorioMisc.getPoints(serverLevel));
 
-        CraftorioMisc.subtractPoints(serverLevel,points);
+        if (points.compareTo(pointThreshold()) >= 0) {
+            String string = Component.translatable("misc.craftorio.too_much_value").getString();
+            context.getSource().sendSuccess(() -> Component.literal(string), true);
+        }
+        CraftorioMisc.setPoints(serverLevel,points);
         return 1;
     }
 

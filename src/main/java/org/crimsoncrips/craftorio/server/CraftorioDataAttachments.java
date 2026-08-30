@@ -28,6 +28,10 @@ public class CraftorioDataAttachments {
             "points", () -> AttachmentType.builder(() -> BigInteger.valueOf(100)).serialize(Codec.STRING.xmap(BigInteger::new, BigInteger::toString)).sync(ByteBufCodecs.fromCodec(Codec.STRING.xmap(BigInteger::new, BigInteger::toString))).build()
     );
 
+    public static final Supplier<AttachmentType<BigInteger>> TEMP_POINTS = ATTACHMENT_TYPES.register(
+            "temp_points", () -> AttachmentType.builder(() -> BigInteger.valueOf(100)).serialize(Codec.STRING.xmap(BigInteger::new, BigInteger::toString)).sync(ByteBufCodecs.fromCodec(Codec.STRING.xmap(BigInteger::new, BigInteger::toString))).build()
+    );
+
     public static final Supplier<AttachmentType<Boolean>> CHUNK_BASED = ATTACHMENT_TYPES.register(
             "chunk_based", () -> AttachmentType.builder(() -> false).serialize(Codec.BOOL).sync(ByteBufCodecs.BOOL).build()
     );
