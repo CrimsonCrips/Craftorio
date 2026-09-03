@@ -26,7 +26,7 @@ public record BorderExpandPacket(long amountToExpand, boolean claiming) implemen
 
     public static void handle(BorderExpandPacket message, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
-            CraftorioMisc.expandBorder(message.amountToExpand,ctx.player().level(), message.claiming);
+            CraftorioMisc.expandBorder(message.amountToExpand,ctx.player().level(), message.claiming,ctx.player());
         });
     }
 }

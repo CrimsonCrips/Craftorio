@@ -1,6 +1,7 @@
 package org.crimsoncrips.craftorio.server.events;
 
 import com.mojang.datafixers.util.Unit;
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
@@ -35,11 +36,15 @@ public class ServerEvents {
         BlockPos blockPos = new BlockPos(9, level.getSharedSpawnPos().getY(), 9);
         int sizePicked = Craftorio.SERVER_CONFIG.STARTING_LAND_SIZE.getAsInt();
 
-        if (!CraftorioMisc.chunkBased(level) && !level.getData(FINALIZED)){
-            level.getWorldBorder().setSize(sizePicked * 10);
-            level.getWorldBorder().setCenter(blockPos.getX(),blockPos.getZ());
-            CraftorioMisc.setLandAmount(level,sizePicked);
 
+        if (!level.getData(FINALIZED)){
+            level.setData(CHUNK_BASED,Craftorio.SERVER_CONFIG.CHUNK_BASED_EXPANSION.getAsBoolean());
+            level.setData(UNIVERSAL_BASED,Craftorio.SERVER_CONFIG.UNIVERSAL_BASED_POINTS.getAsBoolean());
+            if (!CraftorioMisc.chunkBased(level)){
+                level.getWorldBorder().setSize(sizePicked * 10);
+                level.getWorldBorder().setCenter(blockPos.getX(),blockPos.getZ());
+                CraftorioMisc.setLandAmount(level,sizePicked);
+            }
         }
 
         level.setData(FINALIZED,true);
@@ -92,9 +97,10 @@ public class ServerEvents {
         CompoundTag playerData = event.getEntity().getPersistentData();
         CompoundTag data = playerData.getCompound(Player.PERSISTED_NBT_TAG);
 
-        if (!data.getBoolean("sinker_given")) {
+        if (!data.getBoolean("start")) {
             player.addItem(CraftorioBlocks.SINKER.get().asItem().getDefaultInstance());
-            data.putBoolean("sinker_given", true);
+            CraftorioMisc.setPoints(event.getEntity().level(), CraftorioMisc.startingValue(),player);
+            data.putBoolean("start", true);
             playerData.put(Player.PERSISTED_NBT_TAG, data);
         }
     }

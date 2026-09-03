@@ -44,13 +44,16 @@ public class BorderExpandScreen extends Screen {
 		String pointsToExpand = CraftorioMisc.bigIntFormat(CraftorioMisc.pointsToExpand(amountClaiming,landAmount),Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
 		String string = Component.translatable("misc.craftorio.points_required").getString();
 
-		String SPECIAL_TEXT = CraftorioMisc.bigIntFormat(CraftorioMisc.pointThreshold(),Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
+		String INFINITY_TEXT = CraftorioMisc.bigIntFormat(CraftorioMisc.pointThreshold(), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
+		String NEG_INFINITY_TEXT = "-" + CraftorioMisc.bigIntFormat(CraftorioMisc.pointThreshold(), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
 
 		guiGraphics.drawString(this.font, Component.literal(string), i - 25, j - 40 + (-string.length() * 2), 4210752, false);
-		if (pointsToExpand.equals(SPECIAL_TEXT)) {
-			CraftorioMisc.CraftorioTextEffects.drawFancy(guiGraphics, font, pointsToExpand, i + 9 + (-pointsToExpand.length() * 2), j - 30,false);
+		if (pointsToExpand.equals(INFINITY_TEXT)) {
+			CraftorioMisc.CraftorioTextEffects.drawFancy(guiGraphics, font, pointsToExpand, i + 9 + (-pointsToExpand.length() * 2), j - 30, true,0);
+		} else if (pointsToExpand.equals(NEG_INFINITY_TEXT)) {
+			CraftorioMisc.CraftorioTextEffects.drawFancy(guiGraphics, font, pointsToExpand, i + 9 + (-pointsToExpand.length() * 2), j - 30, true,1);
 		} else {
-			guiGraphics.drawString(this.font, Component.literal(pointsToExpand), i + 9 + (-pointsToExpand.length() * 2), j - 30, 4210752, false);
+			guiGraphics.drawString(font, pointsToExpand, i + 9 + (-pointsToExpand.length() * 2), j - 30, 16759552, true);
 		}
 		guiGraphics.drawString(this.font, Component.literal(String.valueOf(amountClaiming)), i + 7 + (-String.valueOf(amountClaiming).length() * 2), j + 5, 4210752, false);
 
@@ -146,7 +149,7 @@ public class BorderExpandScreen extends Screen {
 		@Override
 		public void onPress() {
 			Level level = minecraft.level;
-			BigInteger points = CraftorioMisc.getPoints(level);
+			BigInteger points = CraftorioMisc.getPoints(level, getMinecraft().player);
 			long land = CraftorioMisc.getLandAmount(level);
 			long cap = CraftorioMisc.expandCapabilityWithPoints(points,land);
 

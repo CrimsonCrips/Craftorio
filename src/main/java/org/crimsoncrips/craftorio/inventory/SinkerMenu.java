@@ -117,7 +117,7 @@ public class SinkerMenu extends AbstractContainerMenu {
 				}
 			}
 		}
-		CraftorioMisc.setPoints(serverLevel,CraftorioMisc.getPoints(serverLevel).add(pointsToGive));
+		CraftorioMisc.setPoints(serverLevel,CraftorioMisc.getPoints(serverLevel,player).add(pointsToGive),player);
 	}
 
 	public Container getContainer() {

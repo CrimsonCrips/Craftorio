@@ -6,7 +6,9 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -23,6 +25,7 @@ import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import static org.crimsoncrips.craftorio.server.CraftorioDataAttachments.*;
 
@@ -66,10 +69,10 @@ public class CraftorioMisc {
         }
         return chunkCoords;
     }
-    public static void ownChunk(List<ChunkPos> chunkPos, Level level, boolean claiming){
+    public static void ownChunk(List<ChunkPos> chunkPos, Level level, boolean claiming, Player player){
         if (level == null) return;
         long claimed_amount = getLandAmount(level);
-        BigInteger points = getPoints(level);
+        BigInteger points = getPoints(level,player);
         BigInteger amountToClaim = CraftorioMisc.pointsToExpand(chunkPos.size(),claimed_amount);
         if (points.compareTo(amountToClaim) >= 0){
             for (ChunkPos chunkSelected : chunkPos) {
@@ -79,7 +82,7 @@ public class CraftorioMisc {
                     if (claiming && (!isOwned(chunk))) {
                         setOwned(chunk,true);
                         setLandAmount(level,claimed_amount + 1);
-                        setPoints(level,points.subtract(amountToClaim));
+                        setPoints(level,points.subtract(amountToClaim),player);
                     } else if ((!claiming) && CraftorioMisc.isOwned(chunk)) {
                         setOwned(chunk,false);
                         setLandAmount(level,claimed_amount - 1);
@@ -89,10 +92,10 @@ public class CraftorioMisc {
         }
     }
 
-    public static void expandBorder(long expandAmount, Level level, boolean expand){
+    public static void expandBorder(long expandAmount, Level level, boolean expand,Player player){
         if (level == null) return;
         long claimed_amount = getLandAmount(level);
-        BigInteger points = getPoints(level);
+        BigInteger points = getPoints(level,player);
         BigInteger amountToClaim = CraftorioMisc.pointsToExpand(expandAmount,claimed_amount);
         expandAmount *= Craftorio.SERVER_CONFIG.EXPANSION_AMOUNT.getAsInt();
         if (points.compareTo(amountToClaim) >= 0){
@@ -100,7 +103,7 @@ public class CraftorioMisc {
             double borderSize = level.getWorldBorder().getSize();
             if (expand){
                 level.getWorldBorder().lerpSizeBetween(borderSize,borderSize + expandAmount,3000);
-                setPoints(level, points.subtract(amountToClaim));
+                setPoints(level, points.subtract(amountToClaim),player);
                 setLandAmount(level,getLandAmount(level) + expandAmount);
             } else {
                 level.getWorldBorder().lerpSizeBetween(borderSize,borderSize - expandAmount,3000);
@@ -110,6 +113,10 @@ public class CraftorioMisc {
 
     public static boolean chunkBased(Level level){
         return level.getData(CHUNK_BASED);
+    }
+
+    public static boolean universalBased(Level level){
+        return level.getData(UNIVERSAL_BASED);
     }
 
 
@@ -240,32 +247,53 @@ public class CraftorioMisc {
     }
 
     //Points
-    public static BigInteger getPoints(Level level){
-        return level.getData(POINTS);
+    public static BigInteger getPoints(Level level,Player player){
+        if (universalBased(level)){
+            return level.getData(POINTS);
+        } else {
+            return player.getData(POINTS);
+        }
     }
     
-    public static void setPoints(Level level,BigInteger points){
-        if (points.compareTo(pointThreshold()) > 0) {
-            level.setData(POINTS,pointThreshold());
+    public static void setPoints(Level level,BigInteger points,Player player){
+        setTempPoints(level,getPoints(level,player),player);
+        BigInteger assigningPoints = points.compareTo(pointThreshold()) > 0 ? pointThreshold() : points;
+        if (universalBased(level)) {
+            level.setData(POINTS,assigningPoints);
         } else {
-            level.setData(POINTS,points);
+            player.setData(POINTS,assigningPoints);
         }
+
     }
 
     //Temporary Points
-
-    public static BigInteger getTempPoints(Level level){
-        return level.getData(POINTS);
-    }
-
-    public static void setTempPoints(Level level,BigInteger points){
-        if (points.compareTo(pointThreshold()) > 0) {
-            level.setData(POINTS,pointThreshold());
+    public static BigInteger getTempPoints(Level level,Player player){
+        if (universalBased(level)){
+            return level.getData(TEMP_POINTS);
         } else {
-            level.setData(POINTS,points);
+            return player.getData(TEMP_POINTS);
         }
     }
 
+
+    public static void setTempPoints(Level level,BigInteger points,Player player){
+        if (universalBased(level)) {
+            level.setData(TEMP_POINTS,points);
+        } else {
+            player.setData(TEMP_POINTS,points);
+        }
+    }
+
+
+
+    public static BigInteger startingValue(){
+        try {
+            return new BigDecimal(Craftorio.SERVER_CONFIG.STARTING_POINTS.get()).toBigInteger();
+        } catch (Exception e){
+            Craftorio.LOGGER.debug("INCORRECT INPUT FOR STARTING_POINTS IN Craftorio Server Config");
+            return BigInteger.valueOf(100L);
+        }
+    }
     //Owned
     public static boolean isOwned(ChunkAccess chunkAccess){
         return chunkAccess.hasData(OWNED);
@@ -386,12 +414,16 @@ public class CraftorioMisc {
 
     public static class CraftorioTextEffects{
 
-        public static int drawFancy(GuiGraphics graphics, Font font, String text,int x, int y, boolean dropShadow){
-            return drawRainbowWave(graphics, font, text, x, y, dropShadow);
+        public static void drawFancy(GuiGraphics graphics, Font font, String text,int x, int y, boolean dropShadow, int mode){
+            switch (mode) {
+                case 0 -> drawRainbowWave(graphics, font, text, x, y, dropShadow);
+                case 1 -> drawStaticNoise(graphics, font, text, x, y, dropShadow);
+                default -> throw new IllegalArgumentException(
+                        "Invalid formatType");
+            };
         }
 
-        public static int drawRainbowWave(GuiGraphics graphics, Font font, String text,int x, int y, boolean dropShadow)
-        {
+        public static int drawRainbowWave(GuiGraphics graphics, Font font, String text,int x, int y, boolean dropShadow) {
             double time = System.nanoTime() / 1_000_000_000.0;
 
             float floatX = (float) (Math.sin(time * 0.9) * 2.0);
@@ -415,6 +447,41 @@ public class CraftorioMisc {
 
             return cursorX;
         }
+    }
+
+    private static final char[] GLITCH_CHARS = {
+            '#', '%', '&', '$', '@', '*', '?', '!', '/', '\\', '|', '~', '^', '0', '1'
+    };
+
+    public static int drawStaticNoise(GuiGraphics graphics, Font font, String text, int x, int y, boolean dropShadow) {
+        long now = System.currentTimeMillis();
+        long frameSeed = now / Math.max(1L, 80L);
+
+        int cursorX = x;
+
+        for (int i = 0; i < text.length(); i++) {
+            char original = text.charAt(i);
+
+            long charSeed = frameSeed * 31L + i;
+            Random rnd = new Random(charSeed);
+
+            char displayChar = original;
+            if (Character.isLetter(original) && rnd.nextFloat() < 0.35f) {
+                displayChar = GLITCH_CHARS[rnd.nextInt(GLITCH_CHARS.length)];
+            }
+
+            int gray = 140 + rnd.nextInt(116);
+            int color = (gray << 16) | (gray << 8) | gray;
+
+            int jitterX = rnd.nextInt(3) - 1;
+            int jitterY = rnd.nextInt(3) - 1;
+
+            graphics.drawString(font, String.valueOf(displayChar), cursorX + jitterX, y + jitterY, color, dropShadow);
+            cursorX += font.width(String.valueOf(original));
+        }
+
+        return cursorX;
+
     }
 
 

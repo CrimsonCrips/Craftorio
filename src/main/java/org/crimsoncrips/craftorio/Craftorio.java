@@ -19,7 +19,7 @@ import org.crimsoncrips.craftorio.item.CraftorioItems;
 import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
 import org.crimsoncrips.craftorio.server.CraftorioServerConfig;
 import org.crimsoncrips.craftorio.server.events.CommandEvents;
-import org.crimsoncrips.craftorio.server.events.RegistrationEvents;
+import org.crimsoncrips.craftorio.networking.RegistrationEvents;
 import org.crimsoncrips.craftorio.server.events.ServerEvents;
 import org.slf4j.Logger;
 

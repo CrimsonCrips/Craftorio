@@ -9,7 +9,6 @@
     "CraftGuiMapMixin"
   ],
   "client": [
-    "CraftGuiGraphics"
   ],
   "injectors": {
     "defaultRequire": 1
