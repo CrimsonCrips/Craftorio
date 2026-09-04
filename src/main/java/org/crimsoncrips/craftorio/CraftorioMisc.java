@@ -6,7 +6,6 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -17,6 +16,9 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
+import org.crimsoncrips.craftorio.effects.points.CraftorioPointEffect;
+import org.crimsoncrips.craftorio.effects.points.GeneralMultiplierEffect;
+import org.crimsoncrips.craftorio.effects.points.TagMultiplierEffect;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
 
 import java.awt.*;
@@ -121,14 +123,16 @@ public class CraftorioMisc {
 
 
 
-    public static BigInteger checkValue(ItemStack itemStack){
+    public static BigInteger checkValue(ItemStack itemStack,Player player,boolean forToolip){
         var valueString = itemStack.getItem().builtInRegistryHolder().getData(CraftorioDataMaps.POINT_VALUE);
         BigDecimal determinedValue;
         determinedValue = valueString != null ? (new BigDecimal(valueString).multiply(BigDecimal.valueOf(itemStack.getCount()))) : BigDecimal.valueOf(0);
         BigInteger value = determinedValue.toBigInteger();
+
+
+
         //MobEffect Check
         var effect = itemStack.getOrDefault(DataComponents.POTION_CONTENTS, PotionContents.EMPTY);
-
         for (MobEffectInstance mobEffect : effect.getAllEffects()) {
             var effectValue = mobEffect.getEffect().getData(CraftorioDataMaps.EFFECT_POINT_VALUE);
             if (effectValue != null) {
@@ -163,7 +167,26 @@ public class CraftorioMisc {
             }
         }
 
+        //Buff Multiplier Addition
+        if (!forToolip){
+            BigDecimal result = new BigDecimal(value).multiply(BigDecimal.valueOf(itemMultiplierValue(player,itemStack)));
+            value = value.add(result.toBigInteger());
+        }
+
+
         return value;
+    }
+
+    public static float itemMultiplierValue(Player player, ItemStack itemStack){
+        float multiplier = 0;
+        for (CraftorioPointEffect craftorioEffect : getCraftorioPointEffects(player)) {
+            if (craftorioEffect instanceof TagMultiplierEffect multiplierEffect) {
+                multiplier += multiplierEffect.getTagMultiplier(itemStack);
+            } else {
+                multiplier += craftorioEffect.getMultiplier();
+            }
+        }
+        return multiplier;
     }
 
     public static BigInteger pointsToExpand(long amount, long claimedLand) {
@@ -216,7 +239,7 @@ public class CraftorioMisc {
     }
 
     public static long landBaseCost() {
-        return Craftorio.SERVER_CONFIG.COST_BASE.getAsInt();
+        return Craftorio.SERVER_CONFIG.BASE_COST.getAsInt();
     }
 
     public static BigInteger toBigInteger(String input) {
@@ -316,6 +339,8 @@ public class CraftorioMisc {
     public static void setLandAmount(Level level,long amount){
         level.setData(AMOUNT_OF_LAND,amount);
     }
+
+
 
     private static final String[] SUFFIXES = {
             "k","M","B","T","qd","Qn","sx","Sp","O","N",
@@ -423,7 +448,7 @@ public class CraftorioMisc {
             };
         }
 
-        public static int drawRainbowWave(GuiGraphics graphics, Font font, String text,int x, int y, boolean dropShadow) {
+        public static void drawRainbowWave(GuiGraphics graphics, Font font, String text, int x, int y, boolean dropShadow) {
             double time = System.nanoTime() / 1_000_000_000.0;
 
             float floatX = (float) (Math.sin(time * 0.9) * 2.0);
@@ -445,44 +470,61 @@ public class CraftorioMisc {
                 cursorX += font.width(ch);
             }
 
-            return cursorX;
         }
-    }
 
-    private static final char[] GLITCH_CHARS = {
-            '#', '%', '&', '$', '@', '*', '?', '!', '/', '\\', '|', '~', '^', '0', '1'
-    };
+        public static void drawStaticNoise(GuiGraphics graphics, Font font, String text, int x, int y, boolean dropShadow) {
+            long now = System.currentTimeMillis();
+            long frameSeed = now / Math.max(1L, 80L);
 
-    public static int drawStaticNoise(GuiGraphics graphics, Font font, String text, int x, int y, boolean dropShadow) {
-        long now = System.currentTimeMillis();
-        long frameSeed = now / Math.max(1L, 80L);
+            char[] GLITCH_CHARS = {
+                    '#', '%', '&', '$', '@', '*', '?', '!', '/', '\\', '|', '~', '^', '0', '1'
+            };
 
-        int cursorX = x;
+            int cursorX = x;
 
-        for (int i = 0; i < text.length(); i++) {
-            char original = text.charAt(i);
+            for (int i = 0; i < text.length(); i++) {
+                char original = text.charAt(i);
 
-            long charSeed = frameSeed * 31L + i;
-            Random rnd = new Random(charSeed);
+                long charSeed = frameSeed * 31L + i;
+                Random rnd = new Random(charSeed);
 
-            char displayChar = original;
-            if (Character.isLetter(original) && rnd.nextFloat() < 0.35f) {
-                displayChar = GLITCH_CHARS[rnd.nextInt(GLITCH_CHARS.length)];
+                char displayChar = original;
+                if (Character.isLetter(original) && rnd.nextFloat() < 0.35f) {
+                    displayChar = GLITCH_CHARS[rnd.nextInt(GLITCH_CHARS.length)];
+                }
+
+                int gray = 140 + rnd.nextInt(116);
+                int color = (gray << 16) | (gray << 8) | gray;
+
+                int jitterX = rnd.nextInt(3) - 1;
+                int jitterY = rnd.nextInt(3) - 1;
+
+                graphics.drawString(font, String.valueOf(displayChar), cursorX + jitterX, y + jitterY, color, dropShadow);
+                cursorX += font.width(String.valueOf(original));
             }
 
-            int gray = 140 + rnd.nextInt(116);
-            int color = (gray << 16) | (gray << 8) | gray;
-
-            int jitterX = rnd.nextInt(3) - 1;
-            int jitterY = rnd.nextInt(3) - 1;
-
-            graphics.drawString(font, String.valueOf(displayChar), cursorX + jitterX, y + jitterY, color, dropShadow);
-            cursorX += font.width(String.valueOf(original));
         }
-
-        return cursorX;
-
     }
+
+
+    //Effect checks
+    public static List<CraftorioPointEffect> getCraftorioPointEffects(Player player){
+        List<CraftorioPointEffect> newList = new ArrayList<>();
+        newList.addAll(getTagEffects(player));
+        newList.addAll(getGeneralEffects(player));
+        return newList;
+    }
+
+    public static List<TagMultiplierEffect> getTagEffects(Player player){
+        return player.getData(TAG_MULTIPLIER_EFFECTS);
+    }
+
+    public static List<GeneralMultiplierEffect> getGeneralEffects(Player player){
+        return player.getData(GENERAL_MULTIPLIER_EFFECTS);
+    }
+
+
+
 
 
 }

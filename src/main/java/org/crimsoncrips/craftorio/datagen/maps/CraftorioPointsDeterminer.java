@@ -15,9 +15,9 @@ import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.Enchantments;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.DataMapProvider;
-import org.crimsoncrips.craftorio.datagen.tags.CraftItemTagGen;
+import org.crimsoncrips.craftorio.datagen.tags.CraftorioItemTagGen;
+import org.crimsoncrips.craftorio.effects.points.GeneralMultiplierEffect;
 
-import java.math.BigInteger;
 import java.util.concurrent.CompletableFuture;
 
 import static java.lang.Math.round;
@@ -35,7 +35,16 @@ public class CraftorioPointsDeterminer extends DataMapProvider {
         itemMap();
         effectMap();
         enchantMap();
+        craftorioEffectMap();
     }
+
+    protected void craftorioEffectMap() {
+        builder(CraftorioDataMaps.ITEM_EFFECTS)
+                .add(Items.DIAMOND.builtInRegistryHolder(),
+                        new GeneralMultiplierEffect(1.5F, "shiny", 200), false);
+
+    }
+
     protected void effectMap() {
         Builder<String, MobEffect> point_value = this.builder(CraftorioDataMaps.EFFECT_POINT_VALUE);
         addEffectValue(point_value, MobEffects.NIGHT_VISION,110);
@@ -443,15 +452,15 @@ public class CraftorioPointsDeterminer extends DataMapProvider {
         addItemValue(point_value,Items.AMETHYST_BLOCK.builtInRegistryHolder(),(amethyst * 4),1);
 
         int copper_block = (15 * 9);
-        addItemValue(point_value, CraftItemTagGen.COPPER,copper_block,1);
-        addItemValue(point_value, CraftItemTagGen.CHISELED_COPPER,chiseledAndPillared(copper_block),4);
-        addItemValue(point_value, CraftItemTagGen.COPPER_GRATE, multiValCal(copper_block,4,4),4);
-        addItemValue(point_value, CraftItemTagGen.CUT_COPPER, multiValCal(copper_block,4,4),2);
-        addItemValue(point_value, CraftItemTagGen.CUT_COPPER_STAIRS, multiValCal(multiValCal(copper_block,4,4),6,4),4);
-        addItemValue(point_value, CraftItemTagGen.CUT_COPPER_SLAB, multiValCal(multiValCal(copper_block,4,4),3,6),4);
-        addItemValue(point_value, CraftItemTagGen.COPPER_DOOR, multiValCal(copper_ingot,6,3),4);
-        addItemValue(point_value, CraftItemTagGen.COPPER_TRAPDOOR, multiValCal(copper_ingot,6,2),4);
-        addItemValue(point_value, CraftItemTagGen.COPPER_BULB, multiValCal(copper_block,3,4),6);
+        addItemValue(point_value, CraftorioItemTagGen.COPPER,copper_block,1);
+        addItemValue(point_value, CraftorioItemTagGen.CHISELED_COPPER,chiseledAndPillared(copper_block),4);
+        addItemValue(point_value, CraftorioItemTagGen.COPPER_GRATE, multiValCal(copper_block,4,4),4);
+        addItemValue(point_value, CraftorioItemTagGen.CUT_COPPER, multiValCal(copper_block,4,4),2);
+        addItemValue(point_value, CraftorioItemTagGen.CUT_COPPER_STAIRS, multiValCal(multiValCal(copper_block,4,4),6,4),4);
+        addItemValue(point_value, CraftorioItemTagGen.CUT_COPPER_SLAB, multiValCal(multiValCal(copper_block,4,4),3,6),4);
+        addItemValue(point_value, CraftorioItemTagGen.COPPER_DOOR, multiValCal(copper_ingot,6,3),4);
+        addItemValue(point_value, CraftorioItemTagGen.COPPER_TRAPDOOR, multiValCal(copper_ingot,6,2),4);
+        addItemValue(point_value, CraftorioItemTagGen.COPPER_BULB, multiValCal(copper_block,3,4),6);
 
         int string = 6;
         int wool = string * 4;
@@ -581,10 +590,10 @@ public class CraftorioPointsDeterminer extends DataMapProvider {
         addItemValue(point_value,Items.DEAD_BUSH.builtInRegistryHolder(),4,0);
 
 
-        addItemValue(point_value, CraftItemTagGen.CORAL_BLOCKS,4,0);
-        addItemValue(point_value, CraftItemTagGen.CORAL,3,0);
-        addItemValue(point_value, CraftItemTagGen.DEAD_CORAL_BLOCKS,2,0);
-        addItemValue(point_value, CraftItemTagGen.DEAD_CORAL,1,0);
+        addItemValue(point_value, CraftorioItemTagGen.CORAL_BLOCKS,4,0);
+        addItemValue(point_value, CraftorioItemTagGen.CORAL,3,0);
+        addItemValue(point_value, CraftorioItemTagGen.DEAD_CORAL_BLOCKS,2,0);
+        addItemValue(point_value, CraftorioItemTagGen.DEAD_CORAL,1,0);
 
         addItemValue(point_value,Items.SPONGE.builtInRegistryHolder(),20,0);
         addItemValue(point_value,Items.WET_SPONGE.builtInRegistryHolder(),20,1);
@@ -610,7 +619,7 @@ public class CraftorioPointsDeterminer extends DataMapProvider {
 
         addItemValue(point_value,Items.HONEY_BOTTLE.builtInRegistryHolder(),12,0);
         addItemValue(point_value,Items.HONEY_BLOCK.builtInRegistryHolder(), (12 * 4),1);
-        addItemValue(point_value, CraftItemTagGen.FROGLIGHT,35,0);
+        addItemValue(point_value, CraftorioItemTagGen.FROGLIGHT,35,0);
 
         addItemValue(point_value,Items.SCULK.builtInRegistryHolder(),3,0);
         addItemValue(point_value,Items.SCULK_VEIN.builtInRegistryHolder(),3,0);

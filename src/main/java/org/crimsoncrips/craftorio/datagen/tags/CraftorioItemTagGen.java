@@ -15,7 +15,7 @@ import org.crimsoncrips.craftorio.Craftorio;
 
 import java.util.concurrent.CompletableFuture;
 
-public class CraftItemTagGen extends ItemTagsProvider {
+public class CraftorioItemTagGen extends ItemTagsProvider {
 	public static final TagKey<Item> COPPER  = create("copper");
 	public static final TagKey<Item> CHISELED_COPPER = create("chiseled_copper");
 	public static final TagKey<Item> COPPER_GRATE = create("copper_grate");
@@ -32,14 +32,15 @@ public class CraftItemTagGen extends ItemTagsProvider {
 	public static final TagKey<Item> DEAD_CORAL = create("dead_coral");
 	public static final TagKey<Item> FROGLIGHT = create("froglight");
 
-
-	public CraftItemTagGen(PackOutput output, CompletableFuture<HolderLookup.Provider> future, CompletableFuture<TagLookup<Block>> provider, ExistingFileHelper helper) {
+	public CraftorioItemTagGen(PackOutput output, CompletableFuture<HolderLookup.Provider> future, CompletableFuture<TagLookup<Block>> provider, ExistingFileHelper helper) {
         super(output, future, provider, Craftorio.MODID, helper);
+
     }
 
 	@SuppressWarnings("unchecked")
     @Override
 	protected void addTags(HolderLookup.Provider provider) {
+
 		tag(FROGLIGHT).add(
 				Blocks.OCHRE_FROGLIGHT.asItem(),
 				Blocks.PEARLESCENT_FROGLIGHT.asItem(),

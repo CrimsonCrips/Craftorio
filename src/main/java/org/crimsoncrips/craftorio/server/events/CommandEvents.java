@@ -63,6 +63,8 @@ public class CommandEvents {
     }
 
     private static int runHighestValue(CommandContext<CommandSourceStack> context) {
+        ServerPlayer player = context.getSource().getPlayer();
+
         List<ItemStack> listOfItems = new ArrayList<>();
         BuiltInRegistries.ITEM.forEach(item -> {
             listOfItems.add(item.getDefaultInstance());
@@ -70,22 +72,21 @@ public class CommandEvents {
         int limit = IntegerArgumentType.getInteger(context,"list_no");
 
         List<ItemStack> highestValueItems = listOfItems.stream()
-                .sorted(Comparator.comparing(CraftorioMisc::checkValue).reversed())
+                .sorted(Comparator.comparing((ItemStack stack) -> CraftorioMisc.checkValue(stack, player,false)).reversed())
                 .limit(limit)
                 .toList();
 
         for (ItemStack itemStack : highestValueItems){
-            BigInteger pointsValue = CraftorioMisc.checkValue(itemStack);
+            BigInteger pointsValue = CraftorioMisc.checkValue(itemStack, player,false);
             String string = itemStack.getDisplayName().getString() + " " + pointsValue;
             context.getSource().sendSuccess(() -> Component.literal(string), true);
-
         }
         return 1;
     }
 
     private static int runValueless(CommandContext<CommandSourceStack> context) {
         BuiltInRegistries.ITEM.forEach(item -> {
-            BigInteger points = CraftorioMisc.checkValue(new ItemStack(item));
+            BigInteger points = CraftorioMisc.checkValue(new ItemStack(item),context.getSource().getPlayer(),false);
             if (points.compareTo(BigInteger.ZERO) <= 0){
                 context.getSource().sendSuccess(() -> Component.literal(item.getDefaultInstance().getDisplayName().getString() + " " + points), true);
             }

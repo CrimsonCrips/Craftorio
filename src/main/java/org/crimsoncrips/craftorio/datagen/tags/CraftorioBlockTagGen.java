@@ -13,12 +13,10 @@ import org.crimsoncrips.craftorio.Craftorio;
 
 import java.util.concurrent.CompletableFuture;
 
-public class CraftBlockTagGen extends IntrinsicHolderTagsProvider<Block> {
-
-	public static final TagKey<Block> COPPER = BlockTags.create(Craftorio.prefix("coral"));
+public class CraftorioBlockTagGen extends IntrinsicHolderTagsProvider<Block> {
 
 
-	public CraftBlockTagGen(PackOutput output, CompletableFuture<HolderLookup.Provider> future, ExistingFileHelper helper) {
+	public CraftorioBlockTagGen(PackOutput output, CompletableFuture<HolderLookup.Provider> future, ExistingFileHelper helper) {
 		super(output, Registries.BLOCK, future, block -> block.builtInRegistryHolder().key(), Craftorio.MODID, helper);
 	}
 

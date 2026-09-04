@@ -9,8 +9,8 @@ import net.neoforged.neoforge.data.event.GatherDataEvent;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.datagen.language.CraftLangGen;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioPointsDeterminer;
-import org.crimsoncrips.craftorio.datagen.tags.CraftBlockTagGen;
-import org.crimsoncrips.craftorio.datagen.tags.CraftItemTagGen;
+import org.crimsoncrips.craftorio.datagen.tags.CraftorioBlockTagGen;
+import org.crimsoncrips.craftorio.datagen.tags.CraftorioItemTagGen;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -24,9 +24,9 @@ public class CraftorioDatagen {
         CompletableFuture<HolderLookup.Provider> provider = event.getLookupProvider();
         ExistingFileHelper helper = event.getExistingFileHelper();
         generator.addProvider(event.includeClient(), new CraftLangGen(output));
-        CraftBlockTagGen blocktags = new CraftBlockTagGen(output, provider, helper);
+        CraftorioBlockTagGen blocktags = new CraftorioBlockTagGen(output, provider, helper);
         generator.addProvider(event.includeServer(), blocktags);
-        generator.addProvider(event.includeServer(), new CraftItemTagGen(output, provider, blocktags.contentsGetter(), helper));
+        generator.addProvider(event.includeServer(), new CraftorioItemTagGen(output, provider, blocktags.contentsGetter(), helper));
 
 //        generator.addProvider(event.includeServer(), new CraftorioRecipeGenerator(output, provider));
         generator.addProvider(event.includeServer(), new CraftorioPointsDeterminer(output, provider));

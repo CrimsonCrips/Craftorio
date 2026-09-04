@@ -9,14 +9,17 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.effects.points.GeneralMultiplierEffect;
+import org.crimsoncrips.craftorio.effects.points.TagMultiplierEffect;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Supplier;
+
 
 public class CraftorioDataAttachments {
     public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES = DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, Craftorio.MODID);
-
 
     public static final Supplier<AttachmentType<Long>> AMOUNT_OF_LAND = ATTACHMENT_TYPES.register(
             "amount_of_land", () -> AttachmentType.builder(() -> 0L).serialize(Codec.LONG).sync(ByteBufCodecs.VAR_LONG).build()
@@ -49,5 +52,17 @@ public class CraftorioDataAttachments {
     public static final Supplier<AttachmentType<Boolean>> GIVEN = ATTACHMENT_TYPES.register(
             "given", () -> AttachmentType.builder(() -> false).serialize(Codec.BOOL).sync(ByteBufCodecs.BOOL).build()
     );
+
+    public static final Supplier<AttachmentType<List<TagMultiplierEffect>>> TAG_MULTIPLIER_EFFECTS = ATTACHMENT_TYPES.register(
+            "tag_multiplier_effects", () -> AttachmentType.<List<TagMultiplierEffect>>builder((holder) -> new ArrayList<>())
+                            .serialize(Codec.list(TagMultiplierEffect.CODEC))
+                            .sync(TagMultiplierEffect.CODEC_STREAM.apply(ByteBufCodecs.list()))
+                            .build());
+
+    public static final Supplier<AttachmentType<List<GeneralMultiplierEffect>>> GENERAL_MULTIPLIER_EFFECTS = ATTACHMENT_TYPES.register(
+            "general_multiplier_effects", () -> AttachmentType.<List<GeneralMultiplierEffect>>builder((holder) -> new ArrayList<>())
+                    .serialize(Codec.list(GeneralMultiplierEffect.CODEC))
+                    .sync(GeneralMultiplierEffect.CODEC_STREAM.apply(ByteBufCodecs.list()))
+                    .build());
 
 }

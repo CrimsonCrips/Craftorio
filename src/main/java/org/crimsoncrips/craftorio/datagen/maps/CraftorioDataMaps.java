@@ -13,6 +13,8 @@ import net.minecraft.world.level.gameevent.GameEvent;
 import net.neoforged.neoforge.registries.datamaps.DataMapType;
 import net.neoforged.neoforge.registries.datamaps.RegisterDataMapTypesEvent;
 import org.crimsoncrips.craftorio.Craftorio;
+import org.crimsoncrips.craftorio.effects.points.CraftorioPointEffect;
+import org.crimsoncrips.craftorio.effects.points.GeneralMultiplierEffect;
 
 import java.util.function.Function;
 
@@ -44,6 +46,7 @@ public class CraftorioDataMaps {
                     ExtraCodecs.NON_EMPTY_STRING)
             .synced(ExtraCodecs.NON_EMPTY_STRING, false)
             .build();
+
 
 
     public static void registerDataMaps(RegisterDataMapTypesEvent event) {
