@@ -35,15 +35,8 @@ public class CraftorioPointsDeterminer extends DataMapProvider {
         itemMap();
         effectMap();
         enchantMap();
-        craftorioEffectMap();
     }
 
-    protected void craftorioEffectMap() {
-        builder(CraftorioDataMaps.ITEM_EFFECTS)
-                .add(Items.DIAMOND.builtInRegistryHolder(),
-                        new GeneralMultiplierEffect(1.5F, "shiny", 200), false);
-
-    }
 
     protected void effectMap() {
         Builder<String, MobEffect> point_value = this.builder(CraftorioDataMaps.EFFECT_POINT_VALUE);

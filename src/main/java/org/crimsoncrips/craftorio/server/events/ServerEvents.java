@@ -3,6 +3,7 @@ package org.crimsoncrips.craftorio.server.events;
 import com.google.common.collect.ImmutableList;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
@@ -105,14 +106,11 @@ public class ServerEvents {
 
         if (!player.getData(GIVEN)) {
             player.addItem(CraftorioBlocks.SINKER.get().asItem().getDefaultInstance());
-            CraftorioMisc.setPoints(event.getEntity().level(), CraftorioMisc.startingValue(),player);
+            CraftorioMisc.setPoints(event.getEntity().level(), CraftorioMisc.startingValue(), player);
 
-            TagMultiplierEffect newEffect = new TagMultiplierEffect(100F,"Test", CraftorioItemTagGen.COPPER, 500);
-            List<TagMultiplierEffect> test = CraftorioMisc.getTagEffects(player);
-            test.add(newEffect);
-            player.setData(TAG_MULTIPLIER_EFFECTS,test);
+            CraftorioMisc.grantEffect(player, ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "copper_boost"));
 
-            player.setData(GIVEN,true);
+            player.setData(GIVEN, true);
         }
     }
 

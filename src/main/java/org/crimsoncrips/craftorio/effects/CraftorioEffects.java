@@ -14,7 +14,10 @@ public abstract class CraftorioEffects {
     private int time;
 
     public static final ResourceKey<Registry<MapCodec<? extends CraftorioEffects>>> TYPE_REGISTRY_KEY =
-            ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "craftorio_effects"));
+            ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "craftorio_effect_type"));
+
+    public static final ResourceKey<Registry<CraftorioEffects>> REGISTRY_KEY =
+            ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "effect"));
 
     private static Codec<CraftorioEffects> codecInstance;
 
