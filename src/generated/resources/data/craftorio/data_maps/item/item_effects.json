@@ -1,0 +1,10 @@
+{
+  "values": {
+    "minecraft:diamond": {
+      "type": "craftorio:general_multiplier",
+      "multiplier": 1.5,
+      "name": "shiny",
+      "time": 200
+    }
+  }
+}

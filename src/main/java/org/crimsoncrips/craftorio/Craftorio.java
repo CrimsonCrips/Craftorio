@@ -15,6 +15,7 @@ import org.crimsoncrips.craftorio.client.ClientEvents;
 import org.crimsoncrips.craftorio.client.CraftorioClientConfig;
 import org.crimsoncrips.craftorio.datagen.CraftorioDatagen;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
+import org.crimsoncrips.craftorio.effects.CraftorioPointEffectTypes;
 import org.crimsoncrips.craftorio.item.CraftorioItems;
 import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
 import org.crimsoncrips.craftorio.server.CraftorioServerConfig;
@@ -66,6 +67,7 @@ public class Craftorio {
         modEventBus.addListener(new ClientEvents()::registerScreens);
         modEventBus.addListener(ClientEvents::showPoints);
 
+        CraftorioPointEffectTypes.TYPES.register(modEventBus);
         CraftorioBlocks.BLOCKS.register(modEventBus);
         CraftorioBlockEntityTypes.BLOCK_ENTITIES.register(modEventBus);
         CraftorioItems.ITEMS.register(modEventBus);

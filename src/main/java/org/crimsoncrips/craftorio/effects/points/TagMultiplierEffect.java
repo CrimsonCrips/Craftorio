@@ -1,6 +1,7 @@
 package org.crimsoncrips.craftorio.effects.points;
 
 import com.mojang.serialization.Codec;
+import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.registries.Registries;
@@ -9,6 +10,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import org.crimsoncrips.craftorio.effects.CraftorioPointEffectTypes;
+import org.crimsoncrips.craftorio.effects.CraftorioEffects;
 
 public class TagMultiplierEffect extends CraftorioPointEffect {
 
@@ -26,16 +29,15 @@ public class TagMultiplierEffect extends CraftorioPointEffect {
     public static final StreamCodec<ByteBuf, TagMultiplierEffect> CODEC_STREAM = StreamCodec.composite(
             ByteBufCodecs.FLOAT, TagMultiplierEffect::getMultiplier,
             ByteBufCodecs.STRING_UTF8, TagMultiplierEffect::getName,
-            ByteBufCodecs.fromCodec(TagKey.hashedCodec(Registries.ITEM)),TagMultiplierEffect::getItemTag,
+            ByteBufCodecs.fromCodec(TagKey.hashedCodec(Registries.ITEM)), TagMultiplierEffect::getItemTag,
             ByteBufCodecs.INT, TagMultiplierEffect::getTime,
             TagMultiplierEffect::new
     );
 
-    public TagMultiplierEffect(float multiplier, String name,TagKey<Item> itemTag,int time){
+    public TagMultiplierEffect(float multiplier, String name, TagKey<Item> itemTag, int time){
         super(multiplier,name,time);
         this.itemTag = itemTag;
     }
-
 
     public float getTagMultiplier(ItemStack item) {
         return item.is(itemTag) ? getMultiplier() : 0F;
@@ -43,5 +45,10 @@ public class TagMultiplierEffect extends CraftorioPointEffect {
 
     public TagKey<Item> getItemTag() {
         return itemTag;
+    }
+
+    @Override
+    public MapCodec<? extends CraftorioEffects> codec() {
+        return CraftorioPointEffectTypes.TAG_MULTIPLIER.get();
     }
 }
