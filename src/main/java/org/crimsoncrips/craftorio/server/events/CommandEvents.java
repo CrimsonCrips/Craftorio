@@ -48,10 +48,23 @@ public class CommandEvents {
 
                         Commands.literal("point_value")
                                 .then(Commands.literal("highest_value").then(Commands.argument("list_no", IntegerArgumentType.integer()).executes(CommandEvents::runHighestValue)))
-                )
+
+                ).then(Commands.literal("check_values").requires(cs -> cs.hasPermission(2)).executes(CommandEvents::runPropertiesCheck))
+
         );
 
 
+    }
+
+    private static int runPropertiesCheck(CommandContext<CommandSourceStack> context) {
+        ServerPlayer serverPlayer = context.getSource().getPlayer();
+        if (serverPlayer != null) {
+            context.getSource().sendSuccess(() -> Component.literal("Cooperative:" + CraftorioMisc.isNoBorders(serverPlayer.level())), true);
+            context.getSource().sendSuccess(() -> Component.literal("Universal:" + CraftorioMisc.universalBased(serverPlayer.level())), true);
+            context.getSource().sendSuccess(() -> Component.literal("ChunkBased:" + CraftorioMisc.chunkBased(serverPlayer.level())), true);
+
+        }
+        return 1;
     }
 
     private static int runBorderExpand(CommandContext<CommandSourceStack> context) {
@@ -135,7 +148,7 @@ public class CommandEvents {
     private static int runShowLandAmount(CommandContext<CommandSourceStack> context) {
         ServerLevel serverLevel = context.getSource().getLevel();
 
-        long land = CraftorioMisc.getLandAmount(serverLevel);
+        long land = CraftorioMisc.getLandAmount(serverLevel,context.getSource().getPlayer());
         context.getSource().sendSuccess(() -> Component.literal(String.valueOf(land)), true);
         return 1;
     }

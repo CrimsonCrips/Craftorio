@@ -9,13 +9,9 @@ import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.enchantment.Enchantment;
-import net.minecraft.world.level.gameevent.GameEvent;
 import net.neoforged.neoforge.registries.datamaps.DataMapType;
 import net.neoforged.neoforge.registries.datamaps.RegisterDataMapTypesEvent;
 import org.crimsoncrips.craftorio.Craftorio;
-import org.crimsoncrips.craftorio.effects.CraftorioEffects;
-import org.crimsoncrips.craftorio.effects.points.CraftorioPointEffect;
-import org.crimsoncrips.craftorio.effects.points.GeneralMultiplierEffect;
 
 import java.util.function.Function;
 

@@ -2,5 +2,5 @@
   "type": "craftorio:general_multiplier",
   "multiplier": 1.5,
   "name": "50% addition",
-  "time": 200
+  "time": 500
 }

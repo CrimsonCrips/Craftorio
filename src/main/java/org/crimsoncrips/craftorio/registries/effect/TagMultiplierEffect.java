@@ -1,4 +1,4 @@
-package org.crimsoncrips.craftorio.effects.points;
+package org.crimsoncrips.craftorio.registries.effect;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -10,8 +10,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
-import org.crimsoncrips.craftorio.effects.CraftorioPointEffectTypes;
-import org.crimsoncrips.craftorio.effects.CraftorioEffects;
+import org.crimsoncrips.craftorio.registries.effect.CraftorioPointEffectTypes;
+import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 
 public class TagMultiplierEffect extends CraftorioPointEffect {
 

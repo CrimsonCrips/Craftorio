@@ -2,6 +2,7 @@ package org.crimsoncrips.craftorio.server;
 
 import net.minecraft.core.SectionPos;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -12,8 +13,6 @@ import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
-
-import static org.crimsoncrips.craftorio.server.CraftorioDataAttachments.OWNED;
 
 public class ChunkCollisionHooks {
 
@@ -62,8 +61,8 @@ public class ChunkCollisionHooks {
 
     private static boolean isChunkUnlocked(Level level, Entity entity, int chunkX, int chunkZ) {
         ChunkAccess chunk = level.getChunk(chunkX,chunkZ);
-        if (CraftorioMisc.chunkBased(level)) {
-            return CraftorioMisc.isOwned(chunk) || CraftorioMisc.startingLocations().contains(chunk.getPos());
+        if (CraftorioMisc.chunkBased(level) && entity instanceof Player player) {
+            return CraftorioMisc.isOwnedBy(chunk,player);
         } else {
             return true;
         }

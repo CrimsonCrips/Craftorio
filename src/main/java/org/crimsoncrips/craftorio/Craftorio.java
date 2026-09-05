@@ -6,6 +6,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
+import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.common.NeoForge;
 import org.apache.commons.lang3.tuple.Pair;
@@ -15,7 +16,7 @@ import org.crimsoncrips.craftorio.client.ClientEvents;
 import org.crimsoncrips.craftorio.client.CraftorioClientConfig;
 import org.crimsoncrips.craftorio.datagen.CraftorioDatagen;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
-import org.crimsoncrips.craftorio.effects.CraftorioPointEffectTypes;
+import org.crimsoncrips.craftorio.registries.effect.CraftorioPointEffectTypes;
 import org.crimsoncrips.craftorio.item.CraftorioItems;
 import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
 import org.crimsoncrips.craftorio.server.CraftorioServerConfig;
@@ -64,8 +65,10 @@ public class Craftorio {
 
         modEventBus.addListener(new RegistrationEvents()::setupPackets);
         modEventBus.addListener(CraftorioDataMaps::registerDataMaps);
-        modEventBus.addListener(new ClientEvents()::registerScreens);
-        modEventBus.addListener(ClientEvents::showPoints);
+        if (FMLEnvironment.dist.isClient()) {
+            modEventBus.addListener(new ClientEvents()::registerScreens);
+            modEventBus.addListener(ClientEvents::showPoints);
+        }
 
         CraftorioPointEffectTypes.TYPES.register(modEventBus);
         CraftorioBlocks.BLOCKS.register(modEventBus);

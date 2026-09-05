@@ -40,7 +40,7 @@ public class BorderExpandScreen extends Screen {
 
 		int i = (this.width) / 2;
 		int j = (this.height) / 2 - 10;
-		long landAmount = CraftorioMisc.getLandAmount(Minecraft.getInstance().level);
+		long landAmount = CraftorioMisc.getLandAmount(Minecraft.getInstance().level,Minecraft.getInstance().player);
 		String pointsToExpand = CraftorioMisc.bigIntFormat(CraftorioMisc.pointsToExpand(amountClaiming,landAmount),Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
 		String string = Component.translatable("misc.craftorio.points_required").getString();
 
@@ -150,7 +150,7 @@ public class BorderExpandScreen extends Screen {
 		public void onPress() {
 			Level level = minecraft.level;
 			BigInteger points = CraftorioMisc.getPoints(level, getMinecraft().player);
-			long land = CraftorioMisc.getLandAmount(level);
+			long land = CraftorioMisc.getLandAmount(level,Minecraft.getInstance().player);
 			long cap = CraftorioMisc.expandCapabilityWithPoints(points,land);
 
 			if (maxer){

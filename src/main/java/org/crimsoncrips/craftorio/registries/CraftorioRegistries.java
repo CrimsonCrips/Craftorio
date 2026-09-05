@@ -1,4 +1,4 @@
-package org.crimsoncrips.craftorio;
+package org.crimsoncrips.craftorio.registries;
 
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.Registry;
@@ -7,7 +7,8 @@ import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 import net.neoforged.neoforge.registries.NewRegistryEvent;
 import net.neoforged.neoforge.registries.RegistryBuilder;
-import org.crimsoncrips.craftorio.effects.CraftorioEffects;
+import org.crimsoncrips.craftorio.Craftorio;
+import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 
 @EventBusSubscriber(modid = Craftorio.MODID, bus = EventBusSubscriber.Bus.MOD)
 public class CraftorioRegistries {

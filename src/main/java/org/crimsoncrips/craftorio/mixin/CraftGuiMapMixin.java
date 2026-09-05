@@ -2,9 +2,14 @@ package org.crimsoncrips.craftorio.mixin;
 
 
 
+import com.llamalad7.mixinextras.injector.v2.WrapWithCondition;
 import com.llamalad7.mixinextras.sugar.Local;
+import net.minecraft.client.gui.Font;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.CraftorioMisc;
@@ -26,39 +31,43 @@ import java.util.List;
 
 public abstract class CraftGuiMapMixin {
 
-//    @Shadow
-//    private MapTileSelection mapTileSelection;
-//
-//    @Inject(method = "getRightClickOptions", at = @At("TAIL"), remap = false)
-//    private void craftorio$getRightClickOptions(CallbackInfoReturnable<ArrayList<RightClickOption>> cir, @Local ArrayList<RightClickOption> options) {
-//
-//        if (mapTileSelection != null) {
-//
-//
-//            GuiMap guiMap = (GuiMap)(Object)this;
-//            List<ChunkPos> chunks = CraftorioMisc.generateSelectionChunks(mapTileSelection.getStartX(),mapTileSelection.getStartZ(),mapTileSelection.getEndX(), mapTileSelection.getEndZ());
-//            if (guiMap.getMinecraft().level == null) return;
-//            long claimed_amount = CraftorioMisc.getLandAmount(guiMap.getMinecraft().level);
-//            BigInteger amountToClaim = CraftorioMisc.pointsToExpand(chunks.size(),claimed_amount);
-//
-//            String string = Component.translatable("misc.craftorio.claim_land").getString();
-//
-//            options.add(new RightClickOption(string + " : " + amountToClaim, options.size(), guiMap) {
-//                public void onAction(Screen screen) {
-//                    PacketDistributor.sendToServer(new OwnLandPacket(chunks,true));
-//                }
-//            });
-//            options.add(new RightClickOption("misc.craftorio.unclaim_land", options.size(), guiMap) {
-//                public void onAction(Screen screen) {
-//                    PacketDistributor.sendToServer(new OwnLandPacket(chunks,false));
-//                }
-//            });
-//        }
-//
-//    }
+    @Shadow
+    private MapTileSelection mapTileSelection;
 
-//    @WrapWithCondition(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;drawCenteredString(Lnet/minecraft/client/gui/Font;Ljava/lang/String;III)V",ordinal = 1))
-//    private boolean test(GuiGraphics instance, Font font, String text, int x, int y, int color) {
-//        return false;
-//    }
+
+    @Shadow
+    private Entity player;
+
+    @Inject(method = "getRightClickOptions", at = @At("TAIL"), remap = false)
+    private void craftorio$getRightClickOptions(CallbackInfoReturnable<ArrayList<RightClickOption>> cir, @Local ArrayList<RightClickOption> options) {
+
+        if (mapTileSelection != null && player instanceof Player player1) {
+
+
+            GuiMap guiMap = (GuiMap)(Object)this;
+            List<ChunkPos> chunks = CraftorioMisc.generateSelectionChunks(mapTileSelection.getStartX(),mapTileSelection.getStartZ(),mapTileSelection.getEndX(), mapTileSelection.getEndZ());
+            if (guiMap.getMinecraft().level == null) return;
+            long claimed_amount = CraftorioMisc.getLandAmount(guiMap.getMinecraft().level,player1);
+            BigInteger amountToClaim = CraftorioMisc.pointsToExpand(chunks.size(),claimed_amount);
+
+            String string = Component.translatable("misc.craftorio.claim_land").getString();
+
+            options.add(new RightClickOption(string + " : " + amountToClaim, options.size(), guiMap) {
+                public void onAction(Screen screen) {
+                    PacketDistributor.sendToServer(new OwnLandPacket(chunks,true));
+                }
+            });
+            options.add(new RightClickOption("misc.craftorio.unclaim_land", options.size(), guiMap) {
+                public void onAction(Screen screen) {
+                    PacketDistributor.sendToServer(new OwnLandPacket(chunks,false));
+                }
+            });
+        }
+
+    }
+
+    @WrapWithCondition(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;drawCenteredString(Lnet/minecraft/client/gui/Font;Ljava/lang/String;III)V",ordinal = 1))
+    private boolean test(GuiGraphics instance, Font font, String text, int x, int y, int color) {
+        return false;
+    }
 }

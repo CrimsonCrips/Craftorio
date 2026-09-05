@@ -4,10 +4,13 @@ import com.mojang.datafixers.util.Unit;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
+import net.minecraft.core.*;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.PlayerRespawnLogic;
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -18,11 +21,15 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
-import org.crimsoncrips.craftorio.effects.CraftorioEffects;
-import org.crimsoncrips.craftorio.effects.points.CraftorioPointEffect;
-import org.crimsoncrips.craftorio.effects.points.GeneralMultiplierEffect;
-import org.crimsoncrips.craftorio.effects.points.TagMultiplierEffect;
+import net.minecraft.world.level.levelgen.Heightmap;
+import net.minecraft.world.phys.Vec3;
+import org.crimsoncrips.craftorio.registries.contracts.CraftorioContract;
+import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
+import org.crimsoncrips.craftorio.registries.effect.CraftorioPointEffect;
+import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
+import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
+import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
 
 import java.awt.*;
 import java.math.BigDecimal;
@@ -56,10 +63,10 @@ public class CraftorioMisc {
         return chunks;
     }
 
-    public static List<ChunkPos> startingLocations(){
-        int sizePicked = Craftorio.SERVER_CONFIG.STARTING_LAND_SIZE.getAsInt();
-        ChunkPos startPos = new ChunkPos(-sizePicked,-sizePicked);
-        ChunkPos endPos = new ChunkPos(sizePicked,sizePicked);
+    public static List<ChunkPos> startingLocations(int xStart,int zStart){
+        int sizePicked = startingLand();
+        ChunkPos startPos = new ChunkPos(-sizePicked + -xStart,-sizePicked + -zStart);
+        ChunkPos endPos = new ChunkPos(sizePicked + xStart,sizePicked + zStart);
 
         List<ChunkPos> chunkCoords = new ArrayList<>();
         int minX = Math.min(startPos.x, endPos.x);
@@ -77,30 +84,33 @@ public class CraftorioMisc {
     }
     public static void ownChunk(List<ChunkPos> chunkPos, Level level, boolean claiming, Player player){
         if (level == null) return;
-        long claimed_amount = getLandAmount(level);
+        long claimed_amount = getLandAmount(level,player);
         BigInteger points = getPoints(level,player);
         BigInteger amountToClaim = CraftorioMisc.pointsToExpand(chunkPos.size(),claimed_amount);
-        if (points.compareTo(amountToClaim) >= 0){
-            for (ChunkPos chunkSelected : chunkPos) {
-                ChunkAccess chunk = level.getChunk(chunkSelected.x, chunkSelected.z);
+        if (!(points.compareTo(amountToClaim) >= 0))
+            return;
 
-                if ((!startingLocations().contains(chunkSelected))) {
-                    if (claiming && (!isOwned(chunk))) {
-                        setOwned(chunk,true);
-                        setLandAmount(level,claimed_amount + 1);
-                        setPoints(level,points.subtract(amountToClaim),player);
-                    } else if ((!claiming) && CraftorioMisc.isOwned(chunk)) {
-                        setOwned(chunk,false);
-                        setLandAmount(level,claimed_amount - 1);
-                    }
-                }
+        for (ChunkPos chunkSelected : chunkPos) {
+            ChunkAccess chunk = level.getChunk(chunkSelected.x, chunkSelected.z);
+            if (startingLocations(getPlayerOrigin(player).getX(),getPlayerOrigin(player).getZ()).contains(chunkSelected))
+                return;
+
+            if (claiming && !isOwnedBy(chunk,player)){
+                setOwnedBy(chunk,player,true);
+                setLandAmount(level,claimed_amount + 1,player);
+                setPoints(level,points.subtract(amountToClaim),player);
+            } else if (!claiming && isOwnedBy(chunk,player)){
+                setOwnedBy(chunk,player,false);
+                setLandAmount(level,claimed_amount - 1,player);
             }
+
+
         }
     }
 
     public static void expandBorder(long expandAmount, Level level, boolean expand,Player player){
         if (level == null) return;
-        long claimed_amount = getLandAmount(level);
+        long claimed_amount = getLandAmount(level,player);
         BigInteger points = getPoints(level,player);
         BigInteger amountToClaim = CraftorioMisc.pointsToExpand(expandAmount,claimed_amount);
         expandAmount *= Craftorio.SERVER_CONFIG.EXPANSION_AMOUNT.getAsInt();
@@ -110,7 +120,7 @@ public class CraftorioMisc {
             if (expand){
                 level.getWorldBorder().lerpSizeBetween(borderSize,borderSize + expandAmount,3000);
                 setPoints(level, points.subtract(amountToClaim),player);
-                setLandAmount(level,getLandAmount(level) + expandAmount);
+                setLandAmount(level,getLandAmount(level,player) + expandAmount,player);
             } else {
                 level.getWorldBorder().lerpSizeBetween(borderSize,borderSize - expandAmount,3000);
             }
@@ -290,7 +300,6 @@ public class CraftorioMisc {
         } else {
             player.setData(POINTS,assigningPoints);
         }
-
     }
 
     //Temporary Points
@@ -321,29 +330,61 @@ public class CraftorioMisc {
             return BigInteger.valueOf(100L);
         }
     }
+
+    public static int startingLand(){
+        return Craftorio.SERVER_CONFIG.STARTING_LAND_SIZE.getAsInt();
+    }
     //Owned
-    public static boolean isOwned(ChunkAccess chunkAccess){
-        return chunkAccess.hasData(OWNED);
+    public static boolean isOwnedBy(ChunkAccess chunkAccess,Player player){
+        Level level = player.level();
+        if (isNoBorders(level)) {
+            return chunkAccess.hasData(OWNED_BY);
+        } else {
+            return chunkAccess.getData(OWNED_BY).contains(player.getStringUUID());
+        }
     }
 
-    public static void setOwned(ChunkAccess chunkAccess,boolean own){
+    public static void setOwnedBy(ChunkAccess chunkAccess,Player player,boolean own){
+        List<String> ownedBy = chunkAccess.getData(OWNED_BY);
+        String uuid = player.getStringUUID();
+
         if (own){
-            chunkAccess.setData(OWNED,Unit.INSTANCE);
+            if (!isOwnedBy(chunkAccess, player)){
+                ownedBy.add(uuid);
+                chunkAccess.setData(OWNED_BY,ownedBy);
+            } else {
+                player.sendSystemMessage(Component.literal("Land already owned"));
+            }
         } else {
-            chunkAccess.removeData(OWNED);
+            if (isOwnedBy(chunkAccess,player)){
+                chunkAccess.getData(OWNED_BY).remove(uuid);
+            } else {
+                player.sendSystemMessage(Component.literal("Land is not owned"));
+            }
         }
+    }
+
+    public static boolean isNoBorders(Level level){
+        return level.getData(NO_BORDERS);
     }
 
     
     //Land
-    public static long getLandAmount(Level level){
-        return level.getData(AMOUNT_OF_LAND);
+    public static long getLandAmount(Level level,Player player){
+        if (universalBased(level)){
+            return level.getData(AMOUNT_OF_LAND);
+        } else {
+            return player.getData(AMOUNT_OF_LAND);
+        }
     }
     
-    public static void setLandAmount(Level level,long amount){
-        level.setData(AMOUNT_OF_LAND,amount);
+    public static void setLandAmount(Level level,long amount,Player player){
+        if (universalBased(level)) {
+            level.setData(AMOUNT_OF_LAND,amount);
+        } else {
+            player.setData(AMOUNT_OF_LAND,amount);
+        }
     }
-
 
 
     private static final String[] SUFFIXES = {
@@ -452,7 +493,7 @@ public class CraftorioMisc {
             };
         }
 
-        public static void drawRainbowWave(GuiGraphics graphics, Font font, String text, int x, int y, boolean dropShadow) {
+        private static void drawRainbowWave(GuiGraphics graphics, Font font, String text, int x, int y, boolean dropShadow) {
             double time = System.nanoTime() / 1_000_000_000.0;
 
             float floatX = (float) (Math.sin(time * 0.9) * 2.0);
@@ -476,7 +517,7 @@ public class CraftorioMisc {
 
         }
 
-        public static void drawStaticNoise(GuiGraphics graphics, Font font, String text, int x, int y, boolean dropShadow) {
+        private static void drawStaticNoise(GuiGraphics graphics, Font font, String text, int x, int y, boolean dropShadow) {
             long now = System.currentTimeMillis();
             long frameSeed = now / Math.max(1L, 80L);
 
@@ -544,6 +585,73 @@ public class CraftorioMisc {
                 player.setData(GENERAL_MULTIPLIER_EFFECTS, list);
             }
         });
+    }
+
+    public static BlockPos findDispersedSpawnPos(ServerLevel level, double minDistance, double maxDistance) {
+        List<Vec3> otherPositions = new ArrayList<>();
+
+        for (ServerPlayer other : level.getServer().getPlayerList().getPlayers()) {
+            otherPositions.add(other.position());
+        }
+
+        for (ServerPlayer known : level.getServer().getPlayerList().getPlayers()) {
+            GlobalPos origin = known.getData(CraftorioDataAttachments.SPAWN_ORIGIN.get());
+            otherPositions.add(new Vec3(origin.pos().getX(), 0, origin.pos().getZ()));
+        }
+
+        Random random = new Random();
+        int maxAttempts = 200;
+
+        for (int attempt = 0; attempt < maxAttempts; attempt++) {
+            double angle = random.nextDouble() * Math.PI * 2;
+            double radius = minDistance + random.nextDouble() * (maxDistance - minDistance);
+
+            int x = (int) Math.round(Math.cos(angle) * radius);
+            int z = (int) Math.round(Math.sin(angle) * radius);
+
+            boolean farEnough = true;
+            for (Vec3 otherPos : otherPositions) {
+                double dx = x - otherPos.x;
+                double dz = z - otherPos.z;
+                double distSq = dx * dx + dz * dz;
+                if (distSq < minDistance * minDistance) {
+                    farEnough = false;
+                    break;
+                }
+            }
+
+            if (!farEnough) continue;
+
+            ChunkPos chunkPos = new ChunkPos(new BlockPos(x, 0, z));
+            BlockPos candidate = PlayerRespawnLogic.getSpawnPosInChunk(level, chunkPos);
+            if (candidate != null) {
+                return candidate;
+            }
+        }
+
+        double fallbackAngle = random.nextDouble() * Math.PI * 2;
+        int fallbackX = (int) Math.round(Math.cos(fallbackAngle) * maxDistance);
+        int fallbackZ = (int) Math.round(Math.sin(fallbackAngle) * maxDistance);
+
+        BlockPos fallback = PlayerRespawnLogic.getSpawnPosInChunk(level, new ChunkPos(new BlockPos(fallbackX, 0, fallbackZ)));
+        if (fallback != null) {
+            return fallback;
+        }
+
+        return level.getSharedSpawnPos();
+    }
+
+    public static BlockPos getPlayerOrigin(Player player){
+        return player.getData(SPAWN_ORIGIN).pos();
+    }
+
+    //Contract Checks
+    public static List<CraftorioContract> getCraftorioContracts(Level level,Player player){
+        return player.getData(CONTRACTS);
+    }
+
+    public static void addCraftorioContracts(){
+
     }
 
 

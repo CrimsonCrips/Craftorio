@@ -16,7 +16,6 @@ import net.minecraft.world.item.enchantment.Enchantments;
 import net.neoforged.neoforge.common.Tags;
 import net.neoforged.neoforge.common.data.DataMapProvider;
 import org.crimsoncrips.craftorio.datagen.tags.CraftorioItemTagGen;
-import org.crimsoncrips.craftorio.effects.points.GeneralMultiplierEffect;
 
 import java.util.concurrent.CompletableFuture;
 

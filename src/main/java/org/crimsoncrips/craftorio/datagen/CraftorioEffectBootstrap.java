@@ -5,9 +5,9 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.datagen.tags.CraftorioItemTagGen;
-import org.crimsoncrips.craftorio.effects.CraftorioEffects;
-import org.crimsoncrips.craftorio.effects.points.GeneralMultiplierEffect;
-import org.crimsoncrips.craftorio.effects.points.TagMultiplierEffect;
+import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
+import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
+import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
 
 public class CraftorioEffectBootstrap {
 

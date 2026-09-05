@@ -1,4 +1,4 @@
-package org.crimsoncrips.craftorio.effects.points;
+package org.crimsoncrips.craftorio.registries.effect;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -6,7 +6,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import org.crimsoncrips.craftorio.effects.CraftorioPointEffectTypes;
+import org.crimsoncrips.craftorio.registries.effect.CraftorioPointEffectTypes;
 
 public class GeneralMultiplierEffect extends CraftorioPointEffect {
 

@@ -2,9 +2,11 @@ package org.crimsoncrips.craftorio.server.events;
 
 import com.google.common.collect.ImmutableList;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -18,13 +20,16 @@ import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.block.CraftorioBlocks;
-import org.crimsoncrips.craftorio.effects.points.CraftorioPointEffect;
-import org.crimsoncrips.craftorio.effects.points.GeneralMultiplierEffect;
-import org.crimsoncrips.craftorio.effects.points.TagMultiplierEffect;
-import org.crimsoncrips.craftorio.datagen.tags.CraftorioItemTagGen;
+import org.crimsoncrips.craftorio.registries.effect.CraftorioPointEffect;
+import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
+import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
+import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
+
 
 import java.util.List;
+import java.util.Set;
 
+import static org.crimsoncrips.craftorio.CraftorioMisc.getPlayerOrigin;
 import static org.crimsoncrips.craftorio.server.CraftorioDataAttachments.*;
 
 public class ServerEvents {
@@ -33,52 +38,46 @@ public class ServerEvents {
     public void serverStarted(ServerStartedEvent event) {
         ServerLevel level = event.getServer().getLevel(event.getServer().overworld().dimension());
         if (level == null) return;
-        BlockPos blockPos = new BlockPos(9, level.getSharedSpawnPos().getY(), 9);
-        int sizePicked = Craftorio.SERVER_CONFIG.STARTING_LAND_SIZE.getAsInt();
 
 
         if (!level.getData(FINALIZED)){
             level.setData(CHUNK_BASED,Craftorio.SERVER_CONFIG.CHUNK_BASED_EXPANSION.getAsBoolean());
-            level.setData(UNIVERSAL_BASED,Craftorio.SERVER_CONFIG.UNIVERSAL_BASED_POINTS.getAsBoolean());
-            if (!CraftorioMisc.chunkBased(level)){
-                level.getWorldBorder().setSize(sizePicked * 10);
-                level.getWorldBorder().setCenter(blockPos.getX(),blockPos.getZ());
-                CraftorioMisc.setLandAmount(level,sizePicked);
+            level.setData(UNIVERSAL_BASED,Craftorio.SERVER_CONFIG.UNIVERSAL_PROGRESSION.getAsBoolean());
+            if (CraftorioMisc.universalBased(level)){
+                level.setData(NO_BORDERS,true);
+            } else {
+                level.setData(NO_BORDERS,Craftorio.SERVER_CONFIG.NO_BORDERS.getAsBoolean());
             }
         }
 
         level.setData(FINALIZED,true);
     }
 
-    @SubscribeEvent
-    public void serverStarting(ServerStartingEvent event) {
-        ServerLevel level = event.getServer().getLevel(event.getServer().overworld().dimension());
-        if (level == null) return;
-        BlockPos blockPos = new BlockPos(9, level.getSharedSpawnPos().getY(), 9);
-        level.setDefaultSpawnPos(blockPos, 0);
-    }
 
     @SubscribeEvent
     public void blockPlace(BlockEvent.EntityPlaceEvent blockEvent){
-        if (blockEvent.getEntity() == null)return;
-        Level level = blockEvent.getEntity().level();
-        if (!CraftorioMisc.chunkBased(level)) return;
-        ChunkPos pos = level.getChunkAt(blockEvent.getPos()).getPos();
+        if (blockEvent.getEntity() instanceof Player player){
+            Level level = blockEvent.getEntity().level();
+            if (!CraftorioMisc.chunkBased(level)) return;
+            ChunkPos pos = level.getChunkAt(blockEvent.getPos()).getPos();
 
-        if (!CraftorioMisc.isOwned(level.getChunk(pos.x,pos.z))){
-            blockEvent.setCanceled(true);
+            if (!CraftorioMisc.isOwnedBy(level.getChunk(pos.x,pos.z),player)){
+                blockEvent.setCanceled(true);
+            }
         }
 
     }
 
     @SubscribeEvent
     public void blockBreak(BlockEvent.BreakEvent blockEvent){
-        Level level = blockEvent.getPlayer().level();
-        ChunkPos pos = level.getChunkAt(blockEvent.getPos()).getPos();
-        if (!CraftorioMisc.chunkBased(level)) return;
+        if (blockEvent.getPlayer() instanceof Player player){
+            Level level = blockEvent.getPlayer().level();
+            ChunkPos pos = level.getChunkAt(blockEvent.getPos()).getPos();
+            if (!CraftorioMisc.chunkBased(level)) return;
 
-        if (!CraftorioMisc.isOwned(level.getChunk(pos.x,pos.z))){
-            blockEvent.setCanceled(true);
+            if (!CraftorioMisc.isOwnedBy(level.getChunk(pos.x,pos.z),player)){
+                blockEvent.setCanceled(true);
+            }
         }
 
     }
@@ -103,12 +102,41 @@ public class ServerEvents {
     @SubscribeEvent
     public void playerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         Player player = event.getEntity();
+        Level level = player.level();
 
         if (!player.getData(GIVEN)) {
             player.addItem(CraftorioBlocks.SINKER.get().asItem().getDefaultInstance());
-            CraftorioMisc.setPoints(event.getEntity().level(), CraftorioMisc.startingValue(), player);
+            CraftorioMisc.setPoints(level, CraftorioMisc.startingValue(), player);
+            CraftorioMisc.grantEffect(player, ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "general/50_percent_addition"));
+            CraftorioMisc.grantEffect(player, ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "tag/copper_block_buff"));
 
-            CraftorioMisc.grantEffect(player, ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "copper_boost"));
+            //Handles player dispersion
+            if (player instanceof ServerPlayer serverPlayer && !CraftorioMisc.universalBased(level)) {
+                ServerLevel serverLevel = (ServerLevel) serverPlayer.level();
+                BlockPos spawnPos = CraftorioMisc.findDispersedSpawnPos(serverLevel,
+                        Craftorio.SERVER_CONFIG.MIN_SPAWN_DISTANCE.get(),
+                        Craftorio.SERVER_CONFIG.MAX_SPAWN_DISTANCE.get()
+                );
+
+                GlobalPos origin = GlobalPos.of(serverLevel.dimension(), spawnPos);
+                serverPlayer.setData(CraftorioDataAttachments.SPAWN_ORIGIN.get(), origin);
+
+                serverPlayer.teleportTo(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5);
+                serverPlayer.setRespawnPosition(serverLevel.dimension(), spawnPos, 0F, true, false);
+            }
+
+            CraftorioMisc.ownChunk(CraftorioMisc.startingLocations(getPlayerOrigin(player).getX(),getPlayerOrigin(player).getZ()),level,true,player);
+
+
+            if (CraftorioMisc.getLandAmount(level,player) <= 0 && CraftorioMisc.isNoBorders(level)){
+                CraftorioMisc.setLandAmount(level, CraftorioMisc.startingLand(), player);
+            } else if (!CraftorioMisc.isNoBorders(level)){
+                CraftorioMisc.setLandAmount(level, CraftorioMisc.startingLand(), player);
+            }
+
+
+            player.setData(CONTRACTS,CraftorioMisc.getCraftorioContracts(level,player));
+
 
             player.setData(GIVEN, true);
         }
@@ -117,8 +145,6 @@ public class ServerEvents {
     @SubscribeEvent
     public void playerTIck(PlayerTickEvent.Post event) {
         Player player = event.getEntity();
-
-
         if (!CraftorioMisc.getCraftorioPointEffects(player).isEmpty()){
             for (CraftorioPointEffect effect : ImmutableList.copyOf(CraftorioMisc.getCraftorioPointEffects(player))) {
                 if (effect.shouldEnd()) {

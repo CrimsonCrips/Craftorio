@@ -1,4 +1,4 @@
-package org.crimsoncrips.craftorio.effects;
+package org.crimsoncrips.craftorio.registries.effect;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
@@ -6,7 +6,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import org.crimsoncrips.craftorio.Craftorio;
-import org.crimsoncrips.craftorio.CraftorioRegistries;
+import org.crimsoncrips.craftorio.registries.CraftorioRegistries;
 
 public abstract class CraftorioEffects {
 
