@@ -1,0 +1,14 @@
+{
+  "itemBounty": [
+    {
+      "amountRequired": 32,
+      "contract_item": "minecraft:copper_ingot"
+    },
+    {
+      "amountRequired": 16,
+      "contract_item": "minecraft:iron_ingot"
+    }
+  ],
+  "name": "Starter Contract",
+  "time": 500
+}
