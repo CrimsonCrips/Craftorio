@@ -1,48 +1,49 @@
-package org.crimsoncrips.craftorio.registries.contracts;
+package org.crimsoncrips.craftorio.registries.contracts.shipment;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.world.item.Item;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
-public class CraftorioContract {
+public class CraftorioShipmentContract {
 
 
     List<CraftorioContractItem> itemBounty;
 
-    public static final Codec<CraftorioContract> CODEC = RecordCodecBuilder.create(instance ->
+    public static final Codec<CraftorioShipmentContract> CODEC = RecordCodecBuilder.create(instance ->
             instance.group(
-                    Codec.list(CraftorioContractItem.CODEC).fieldOf("itemBounty").forGetter(CraftorioContract::getItemBounty)
-            ).apply(instance, CraftorioContract::new)
+                    Codec.list(CraftorioContractItem.CODEC).fieldOf("itemBounty").forGetter(CraftorioShipmentContract::getItemBounty)
+            ).apply(instance, CraftorioShipmentContract::new)
     );
 
-    public static final StreamCodec<ByteBuf, CraftorioContract> CODEC_STREAM = StreamCodec.composite(
-            CraftorioContractItem.CODEC_STREAM.apply(ByteBufCodecs.list()), CraftorioContract::getItemBounty,
-            CraftorioContract::new
+    public static final StreamCodec<ByteBuf, CraftorioShipmentContract> CODEC_STREAM = StreamCodec.composite(
+            CraftorioContractItem.CODEC_STREAM.apply(ByteBufCodecs.list()), CraftorioShipmentContract::getItemBounty,
+            CraftorioShipmentContract::new
     );
 
-    public CraftorioContract(List<CraftorioContractItem> itemBounty){
+    public CraftorioShipmentContract(List<CraftorioContractItem> itemBounty){
         this.itemBounty = itemBounty;
     }
 
-    public boolean isComplete(){
+    public boolean isComplete(Player player){
         boolean finished = true;
         for (CraftorioContractItem contractItem : itemBounty){
             if (!contractItem.isComplete()){
                 finished = false;
             }
         }
+        if (finished){
+            System.out.println("COMPLETE");
+        }
         return finished;
     }
 
-    public void addSinkedListValue(List<ItemStack> itemsSinked){
+    public void addSinkedListValue(List<ItemStack> itemsSinked, Player player){
         for (ItemStack itemStack : itemsSinked){
             for (CraftorioContractItem contractItem : getItemBounty()){
                 if (contractItem.getItemNeeded().equals(itemStack.getItem()) && !contractItem.isComplete()){
@@ -50,6 +51,7 @@ public class CraftorioContract {
                 }
             }
         }
+        isComplete(player);
     }
 
     public void setItemBounty(List<CraftorioContractItem> itemBounty) {

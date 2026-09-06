@@ -7,6 +7,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.registries.CraftorioRegistries;
+import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentContract;
 import org.jetbrains.annotations.Contract;
 
 import java.util.HashMap;
@@ -16,7 +17,7 @@ public abstract class CraftorioContractQuests {
 
     private String name;
     private int time;
-    private CraftorioContract contract;
+    private CraftorioShipmentContract contract;
 
     public static final ResourceKey<Registry<MapCodec<? extends CraftorioContractQuests>>> TYPE_REGISTRY_KEY =
             ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "craftorio_contracts"));
@@ -36,7 +37,7 @@ public abstract class CraftorioContractQuests {
 
     public abstract MapCodec<? extends CraftorioContractQuests> codec();
 
-    public CraftorioContractQuests(String name, int time, CraftorioContract contract){
+    public CraftorioContractQuests(String name, int time, CraftorioShipmentContract contract){
         this.name = name;
         this.time = time;
         this.contract = contract;
@@ -65,10 +66,7 @@ public abstract class CraftorioContractQuests {
     public boolean isCompleted(){
        return contract.isComplete();
     }
-
-    public void setContractItems(CraftorioContract contract) {
-        this.contract = contract;
-    }
+    
 
     public boolean shouldEnd(){
         return getTime() <= 0 || isCompleted();

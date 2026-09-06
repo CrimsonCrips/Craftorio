@@ -1,12 +1,10 @@
 package org.crimsoncrips.craftorio;
 
-import com.mojang.datafixers.util.Unit;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.*;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.PlayerRespawnLogic;
 import net.minecraft.server.level.ServerLevel;
@@ -21,9 +19,9 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
-import net.minecraft.world.level.levelgen.Heightmap;
 import net.minecraft.world.phys.Vec3;
-import org.crimsoncrips.craftorio.registries.contracts.CraftorioContract;
+import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentContract;
+import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioContractItem;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioPointEffect;
@@ -95,8 +93,8 @@ public class CraftorioMisc {
                 }
             }
         } else {
-            long claimed_amount = getLandAmount(level,player);
-            BigInteger points = getPoints(level,player);
+            long claimed_amount = getLandAmount(player);
+            BigInteger points = getPoints(player);
             BigInteger amountToClaim = CraftorioMisc.pointsToExpand(chunkPos.size(),claimed_amount);
             if (!(points.compareTo(amountToClaim) >= 0))
                 return;
@@ -107,11 +105,11 @@ public class CraftorioMisc {
                     return;
                 if (claiming && !isOwnedBy(chunk, player)) {
                     setOwnedBy(chunk, player, true);
-                    setLandAmount(level, claimed_amount + 1, player);
-                    setPoints(level, points.subtract(amountToClaim), player);
+                    setLandAmount(claimed_amount + 1, player);
+                    setPoints(points.subtract(amountToClaim), player);
                 } else if (!claiming && isOwnedBy(chunk, player)) {
                     setOwnedBy(chunk, player, false);
-                    setLandAmount(level, claimed_amount - 1, player);
+                    setLandAmount(claimed_amount - 1, player);
                 }
             }
         }
@@ -119,8 +117,8 @@ public class CraftorioMisc {
 
     public static void expandBorder(long expandAmount, Level level, boolean expand,Player player){
         if (level == null) return;
-        long claimed_amount = getLandAmount(level,player);
-        BigInteger points = getPoints(level,player);
+        long claimed_amount = getLandAmount(player);
+        BigInteger points = getPoints(player);
         BigInteger amountToClaim = CraftorioMisc.pointsToExpand(expandAmount,claimed_amount);
         expandAmount *= Craftorio.SERVER_CONFIG.EXPANSION_AMOUNT.getAsInt();
         if (points.compareTo(amountToClaim) >= 0){
@@ -128,8 +126,8 @@ public class CraftorioMisc {
             double borderSize = level.getWorldBorder().getSize();
             if (expand){
                 level.getWorldBorder().lerpSizeBetween(borderSize,borderSize + expandAmount,3000);
-                setPoints(level, points.subtract(amountToClaim),player);
-                setLandAmount(level,getLandAmount(level,player) + expandAmount,player);
+                setPoints(points.subtract(amountToClaim),player);
+                setLandAmount(getLandAmount(player) + expandAmount,player);
             } else {
                 level.getWorldBorder().lerpSizeBetween(borderSize,borderSize - expandAmount,3000);
             }
@@ -293,7 +291,8 @@ public class CraftorioMisc {
     }
 
     //Points
-    public static BigInteger getPoints(Level level,Player player){
+    public static BigInteger getPoints(Player player){
+        Level level = player.level();
         if (universalBased(level)){
             return level.getData(POINTS);
         } else {
@@ -301,8 +300,9 @@ public class CraftorioMisc {
         }
     }
     
-    public static void setPoints(Level level,BigInteger points,Player player){
-        setTempPoints(level,getPoints(level,player),player);
+    public static void setPoints(BigInteger points,Player player){
+        Level level = player.level();
+        setTempPoints(getPoints(player),player);
         BigInteger assigningPoints = points.compareTo(pointThreshold()) > 0 ? pointThreshold() : points;
         if (universalBased(level)) {
             level.setData(POINTS,assigningPoints);
@@ -312,7 +312,8 @@ public class CraftorioMisc {
     }
 
     //Temporary Points
-    public static BigInteger getTempPoints(Level level,Player player){
+    public static BigInteger getTempPoints(Player player){
+        Level level = player.level();
         if (universalBased(level)){
             return level.getData(TEMP_POINTS);
         } else {
@@ -321,7 +322,8 @@ public class CraftorioMisc {
     }
 
 
-    public static void setTempPoints(Level level,BigInteger points,Player player){
+    public static void setTempPoints(BigInteger points,Player player){
+        Level level = player.level();
         if (universalBased(level)) {
             level.setData(TEMP_POINTS,points);
         } else {
@@ -375,7 +377,8 @@ public class CraftorioMisc {
 
     
     //Land
-    public static long getLandAmount(Level level,Player player){
+    public static long getLandAmount(Player player){
+        Level level = player.level();
         if (universalBased(level)){
             return level.getData(AMOUNT_OF_LAND);
         } else {
@@ -383,7 +386,8 @@ public class CraftorioMisc {
         }
     }
     
-    public static void setLandAmount(Level level,long amount,Player player){
+    public static void setLandAmount(long amount,Player player){
+        Level level = player.level();
         if (universalBased(level)) {
             level.setData(AMOUNT_OF_LAND,amount);
         } else {
@@ -560,12 +564,13 @@ public class CraftorioMisc {
     //Effect checks
     public static List<CraftorioPointEffect> getCraftorioPointEffects(Player player){
         List<CraftorioPointEffect> newList = new ArrayList<>();
-        newList.addAll(getTagEffects(player.level(), player));
-        newList.addAll(getGeneralEffects(player.level(), player));
+        newList.addAll(getTagEffects(player));
+        newList.addAll(getGeneralEffects(player));
         return newList;
     }
 
-    public static List<TagMultiplierEffect> getTagEffects(Level level,Player player){
+    public static List<TagMultiplierEffect> getTagEffects(Player player){
+        Level level = player.level();
         if (universalBased(level)){
             return level.getData(TAG_MULTIPLIER_EFFECTS);
         } else {
@@ -573,7 +578,8 @@ public class CraftorioMisc {
         }
     }
 
-    public static List<GeneralMultiplierEffect> getGeneralEffects(Level level,Player player){
+    public static List<GeneralMultiplierEffect> getGeneralEffects(Player player){
+        Level level = player.level();
         if (universalBased(level)){
             return level.getData(GENERAL_MULTIPLIER_EFFECTS);
         } else {
@@ -587,15 +593,25 @@ public class CraftorioMisc {
     }
 
     public static void grantEffect(Player player, ResourceLocation id) {
-        getEffect(player.level(), id).ifPresent(effect -> {
+        Level level = player.level();
+        boolean universal = universalBased(level);
+        getEffect(level, id).ifPresent(effect -> {
             if (effect instanceof TagMultiplierEffect tagEffect) {
-                List<TagMultiplierEffect> list = getTagEffects(player.level(),player);
+                List<TagMultiplierEffect> list = getTagEffects(player);
                 list.add(tagEffect);
-                player.setData(TAG_MULTIPLIER_EFFECTS, list);
+                if (universal){
+                    level.setData(TAG_MULTIPLIER_EFFECTS, list);
+                } else {
+                    player.setData(TAG_MULTIPLIER_EFFECTS, list);
+                }
             } else if (effect instanceof GeneralMultiplierEffect generalEffect) {
-                List<GeneralMultiplierEffect> list = getGeneralEffects(player.level(),player);
+                List<GeneralMultiplierEffect> list = getGeneralEffects(player);
                 list.add(generalEffect);
-                player.setData(GENERAL_MULTIPLIER_EFFECTS, list);
+                if (universal){
+                    level.setData(GENERAL_MULTIPLIER_EFFECTS, list);
+                } else {
+                    player.setData(GENERAL_MULTIPLIER_EFFECTS, list);
+                }
             }
         });
     }
@@ -659,7 +675,8 @@ public class CraftorioMisc {
     }
 
     //Contract Checks
-    public static List<CraftorioContract> getCraftorioContracts(Level level,Player player){
+    public static List<CraftorioShipmentContract> getCraftorioContracts(Player player){
+        Level level = player.level();
         if (universalBased(level)){
             return level.getData(CONTRACTS);
         } else {
@@ -667,8 +684,17 @@ public class CraftorioMisc {
         }
     }
 
-    public static void addCraftorioContracts(){
+    public static void setCraftorioContracts(Player player,List<CraftorioShipmentContract> contracts){
+        Level level = player.level();
+        if (universalBased(level)){
+            level.setData(CONTRACTS,contracts);
+        } else {
+            player.setData(CONTRACTS,contracts);
+        }
+    }
 
+    public static CraftorioShipmentContract makeCraftorioContract(List<CraftorioContractItem> contractItems){
+        return new CraftorioShipmentContract(contractItems);
     }
 
 

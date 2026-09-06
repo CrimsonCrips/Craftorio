@@ -10,6 +10,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -40,7 +41,11 @@ public class BorderExpandScreen extends Screen {
 
 		int i = (this.width) / 2;
 		int j = (this.height) / 2 - 10;
-		long landAmount = CraftorioMisc.getLandAmount(Minecraft.getInstance().level,Minecraft.getInstance().player);
+		Player player = Minecraft.getInstance().player;
+		if (player == null)
+			return;
+
+		long landAmount = CraftorioMisc.getLandAmount(player);
 		String pointsToExpand = CraftorioMisc.bigIntFormat(CraftorioMisc.pointsToExpand(amountClaiming,landAmount),Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
 		String string = Component.translatable("misc.craftorio.points_required").getString();
 
@@ -148,9 +153,13 @@ public class BorderExpandScreen extends Screen {
 
 		@Override
 		public void onPress() {
-			Level level = minecraft.level;
-			BigInteger points = CraftorioMisc.getPoints(level, getMinecraft().player);
-			long land = CraftorioMisc.getLandAmount(level,Minecraft.getInstance().player);
+
+			if (getMinecraft().player == null)
+				return;
+
+
+			BigInteger points = CraftorioMisc.getPoints(getMinecraft().player);
+			long land = CraftorioMisc.getLandAmount(getMinecraft().player);
 			long cap = CraftorioMisc.expandCapabilityWithPoints(points,land);
 
 			if (maxer){

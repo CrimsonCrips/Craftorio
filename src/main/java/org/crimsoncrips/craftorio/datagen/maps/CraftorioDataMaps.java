@@ -3,6 +3,7 @@ package org.crimsoncrips.craftorio.datagen.maps;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.DataResult;
+import net.minecraft.advancements.Advancement;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.ExtraCodecs;
@@ -40,6 +41,13 @@ public class CraftorioDataMaps {
     public static final DataMapType<Enchantment, String> ENCHANTMENT_POINT_VALUE = DataMapType.builder(
                     ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "enchantment_point_value"),
                     Registries.ENCHANTMENT,
+                    ExtraCodecs.NON_EMPTY_STRING)
+            .synced(ExtraCodecs.NON_EMPTY_STRING, false)
+            .build();
+
+    public static final DataMapType<Advancement, String> ADVANCEMENT_POINT_VALUE = DataMapType.builder(
+                    ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "advancement_point_value"),
+                    Registries.ADVANCEMENT,
                     ExtraCodecs.NON_EMPTY_STRING)
             .synced(ExtraCodecs.NON_EMPTY_STRING, false)
             .build();

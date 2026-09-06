@@ -1,6 +1,7 @@
 package org.crimsoncrips.craftorio.server.events;
 
 import com.google.common.collect.ImmutableList;
+import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
@@ -8,28 +9,32 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.player.AdvancementEvent;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
-import net.neoforged.neoforge.event.server.ServerStartingEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.block.CraftorioBlocks;
+import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentContract;
+import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioContractItem;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioPointEffect;
 import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
+import org.crimsoncrips.craftorio.server.CraftorioAdvancementPoints;
 import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
 
 
+import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
-import static org.crimsoncrips.craftorio.CraftorioMisc.getPlayerOrigin;
 import static org.crimsoncrips.craftorio.server.CraftorioDataAttachments.*;
 
 public class ServerEvents {
@@ -106,11 +111,25 @@ public class ServerEvents {
 
         if (!player.getData(GIVEN)) {
             player.addItem(CraftorioBlocks.SINKER.get().asItem().getDefaultInstance());
-            CraftorioMisc.setPoints(level, CraftorioMisc.startingValue(), player);
+            CraftorioMisc.setPoints(CraftorioMisc.startingValue(), player);
+
+            //testing purposes
             CraftorioMisc.grantEffect(player, ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "general/50_percent_addition"));
             CraftorioMisc.grantEffect(player, ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "tag/copper_block_buff"));
 
-            //Handles player dispersion
+
+            CraftorioContractItem contractItem = new CraftorioContractItem(10, Items.OBSIDIAN);
+            List<CraftorioContractItem> contractItems = new ArrayList<>();
+            contractItems.add(contractItem);
+
+
+
+
+            List<CraftorioShipmentContract> contracts = new ArrayList<>();
+            contracts.add(CraftorioMisc.makeCraftorioContract(contractItems));
+            CraftorioMisc.setCraftorioContracts(player,contracts);
+
+
             if (player instanceof ServerPlayer serverPlayer) {
                 ServerLevel serverLevel = (ServerLevel) serverPlayer.level();
                 BlockPos spawnPos = CraftorioMisc.findDispersedSpawnPos(serverLevel,
@@ -118,8 +137,8 @@ public class ServerEvents {
                         Craftorio.SERVER_CONFIG.MAX_SPAWN_DISTANCE.get()
                 );
 
-                if (!CraftorioMisc.universalBased(level)){
-                   spawnPos = serverPlayer.getRespawnPosition();
+                if (CraftorioMisc.universalBased(level)){
+                   spawnPos = serverLevel.getSharedSpawnPos();
                 }
 
                 GlobalPos origin = GlobalPos.of(serverLevel.dimension(), spawnPos);
@@ -133,14 +152,11 @@ public class ServerEvents {
 
 
 
-            if (CraftorioMisc.getLandAmount(level,player) <= 0 && CraftorioMisc.isNoBorders(level)){
-                CraftorioMisc.setLandAmount(level, CraftorioMisc.startingLand(), player);
+            if (CraftorioMisc.getLandAmount(player) <= 0 && CraftorioMisc.isNoBorders(level)){
+                CraftorioMisc.setLandAmount(CraftorioMisc.startingLand(), player);
             } else if (!CraftorioMisc.isNoBorders(level)){
-                CraftorioMisc.setLandAmount(level, CraftorioMisc.startingLand(), player);
+                CraftorioMisc.setLandAmount(CraftorioMisc.startingLand(), player);
             }
-
-
-            player.setData(CONTRACTS,CraftorioMisc.getCraftorioContracts(level,player));
 
 
             player.setData(GIVEN, true);
@@ -154,20 +170,34 @@ public class ServerEvents {
             for (CraftorioPointEffect effect : ImmutableList.copyOf(CraftorioMisc.getCraftorioPointEffects(player))) {
                 if (effect.shouldEnd()) {
                     if (effect instanceof TagMultiplierEffect){
-                        List<TagMultiplierEffect> effects = CraftorioMisc.getTagEffects(player.level(), player);
+                        List<TagMultiplierEffect> effects = CraftorioMisc.getTagEffects(player);
                         effects.remove(effect);
                         player.setData(TAG_MULTIPLIER_EFFECTS, effects);
                     }
                     if (effect instanceof GeneralMultiplierEffect){
-                        List<GeneralMultiplierEffect> effects = CraftorioMisc.getGeneralEffects(player.level(), player);
+                        List<GeneralMultiplierEffect> effects = CraftorioMisc.getGeneralEffects(player);
                         effects.remove(effect);
-                        player.setData(GENERAL_MULTIPLIER_EFFECTS, CraftorioMisc.getGeneralEffects(player.level(), player));
+                        player.setData(GENERAL_MULTIPLIER_EFFECTS, CraftorioMisc.getGeneralEffects(player));
                     }
                 } else {
                     effect.tick();
                 }
             }
         }
+    }
+
+    @SubscribeEvent
+    public void advancementObtained(AdvancementEvent.AdvancementEarnEvent advancementEvent){
+        Player player = advancementEvent.getEntity();
+        AdvancementHolder advancement = advancementEvent.getAdvancement();
+        Level level = player.level();
+
+        ResourceLocation id = advancement.id();
+        BigInteger value = CraftorioAdvancementPoints.getPoints(id.toString());
+
+        BigInteger pointsOwned = CraftorioMisc.getPoints(player);
+
+        CraftorioMisc.setPoints(pointsOwned.add(value),player);
     }
 
 

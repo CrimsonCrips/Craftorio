@@ -1,25 +1,22 @@
 package org.crimsoncrips.craftorio.server;
 
-import com.mojang.datafixers.util.Unit;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.network.codec.ByteBufCodecs;
-import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
-import org.crimsoncrips.craftorio.registries.contracts.CraftorioContract;
+import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentContract;
 import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 import java.util.function.Supplier;
 
 
@@ -76,10 +73,10 @@ public class CraftorioDataAttachments {
                     .sync(GeneralMultiplierEffect.CODEC_STREAM.apply(ByteBufCodecs.list()))
                     .build());
 
-    public static final Supplier<AttachmentType<List<CraftorioContract>>> CONTRACTS = ATTACHMENT_TYPES.register(
-            "contracts", () -> AttachmentType.<List<CraftorioContract>>builder((holder) -> new ArrayList<>())
-                    .serialize(Codec.list(CraftorioContract.CODEC))
-                    .sync(CraftorioContract.CODEC_STREAM.apply(ByteBufCodecs.list()))
+    public static final Supplier<AttachmentType<List<CraftorioShipmentContract>>> CONTRACTS = ATTACHMENT_TYPES.register(
+            "contracts", () -> AttachmentType.<List<CraftorioShipmentContract>>builder((holder) -> new ArrayList<>())
+                    .serialize(Codec.list(CraftorioShipmentContract.CODEC))
+                    .sync(CraftorioShipmentContract.CODEC_STREAM.apply(ByteBufCodecs.list()))
                     .build());
 
     public static final Supplier<AttachmentType<GlobalPos>> SPAWN_ORIGIN = ATTACHMENT_TYPES.register(

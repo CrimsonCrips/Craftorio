@@ -1,4 +1,4 @@
-package org.crimsoncrips.craftorio.registries.contracts;
+package org.crimsoncrips.craftorio.registries.contracts.shipment;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -6,32 +6,28 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
-import net.minecraft.util.ExtraCodecs;
 import net.minecraft.world.item.Item;
 
 public class CraftorioContractItem {
 
-    int itemsGiven;
+    int itemsGiven = 0;
     int amountRequired;
     Item itemNeeded;
 
     public static final Codec<CraftorioContractItem> CODEC = RecordCodecBuilder.create(instance ->
             instance.group(
-                    Codec.INT.fieldOf("itemsGiven").forGetter(CraftorioContractItem::getItemsGiven),
                     Codec.INT.fieldOf("amountRequired").forGetter(CraftorioContractItem::getAmountRequired),
                     BuiltInRegistries.ITEM.byNameCodec().fieldOf("contract_item").forGetter(CraftorioContractItem::getItemNeeded)
                     ).apply(instance, CraftorioContractItem::new)
     );
 
     public static final StreamCodec<ByteBuf, CraftorioContractItem> CODEC_STREAM = StreamCodec.composite(
-            ByteBufCodecs.INT, CraftorioContractItem::getItemsGiven,
             ByteBufCodecs.INT, CraftorioContractItem::getAmountRequired,
             ByteBufCodecs.fromCodec(BuiltInRegistries.ITEM.byNameCodec()), CraftorioContractItem::getItemNeeded,
             CraftorioContractItem::new
     );
 
-    public CraftorioContractItem(int itemsGiven,int amountRequired,Item itemNeeded){
-        this.itemsGiven = itemsGiven;
+    public CraftorioContractItem(int amountRequired,Item itemNeeded){
         this.amountRequired = amountRequired;
         this.itemNeeded = itemNeeded;
     }

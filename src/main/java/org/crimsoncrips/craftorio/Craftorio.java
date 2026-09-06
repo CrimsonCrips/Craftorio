@@ -9,6 +9,7 @@ import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import net.neoforged.neoforge.common.NeoForge;
+import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.crimsoncrips.craftorio.block.CraftorioBlocks;
 import org.crimsoncrips.craftorio.block.entity.CraftorioBlockEntityTypes;
@@ -18,6 +19,7 @@ import org.crimsoncrips.craftorio.datagen.CraftorioDatagen;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioPointEffectTypes;
 import org.crimsoncrips.craftorio.item.CraftorioItems;
+import org.crimsoncrips.craftorio.server.CraftorioAdvancementPoints;
 import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
 import org.crimsoncrips.craftorio.server.CraftorioServerConfig;
 import org.crimsoncrips.craftorio.server.events.CommandEvents;
@@ -59,6 +61,8 @@ public class Craftorio {
         // Register the commonSetup method for modloading
         CraftorioDataAttachments.ATTACHMENT_TYPES.register(modEventBus);
         modEventBus.addListener(CraftorioDatagen::generateData);
+
+        NeoForge.EVENT_BUS.addListener((AddReloadListenerEvent event) -> event.addListener(new CraftorioAdvancementPoints()));
 
         NeoForge.EVENT_BUS.register(new CommandEvents());
         NeoForge.EVENT_BUS.register(new ServerEvents());

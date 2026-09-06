@@ -14,8 +14,12 @@ import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.CraftorioMenuTypes;
+import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentContract;
+import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 
 public class SinkerMenu extends AbstractContainerMenu {
 	private static final int SLOTS_PER_ROW = 9;
@@ -105,6 +109,8 @@ public class SinkerMenu extends AbstractContainerMenu {
 	public void sinkPoints(){
 		BigInteger pointsToGive = BigInteger.ZERO;
 		ServerLevel serverLevel = (ServerLevel) player.level();
+
+        List<ItemStack> sinkedItems = new ArrayList<>();
 		for(int j = 0; j < this.containerRows; ++j) {
 			for(int k = 0; k < 9; ++k) {
 				this.addSlot(new Slot(container, k + j * 9, 8 + k * 18, 18 + j * 18));
@@ -112,12 +118,24 @@ public class SinkerMenu extends AbstractContainerMenu {
 				ItemStack item = slot.getItem();
 
 				if (!item.isEmpty() && !serverLevel.isClientSide()){
+					sinkedItems.add(item);
+
 					pointsToGive = pointsToGive.add(CraftorioMisc.checkValue(item,player,false));
 					slot.set(ItemStack.EMPTY);
 				}
 			}
 		}
-		CraftorioMisc.setPoints(serverLevel,CraftorioMisc.getPoints(serverLevel,player).add(pointsToGive),player);
+		CraftorioMisc.setPoints(CraftorioMisc.getPoints(player).add(pointsToGive),player);
+
+		if (CraftorioMisc.universalBased(serverLevel)){
+			for (CraftorioShipmentContract contract : serverLevel.getData(CraftorioDataAttachments.CONTRACTS)){
+				contract.addSinkedListValue(sinkedItems);
+			}
+		} else {
+			for (CraftorioShipmentContract contract : player.getData(CraftorioDataAttachments.CONTRACTS)){
+				contract.addSinkedListValue(sinkedItems);
+			}
+		}
 	}
 
 	public Container getContainer() {

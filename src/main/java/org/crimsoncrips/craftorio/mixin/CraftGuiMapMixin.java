@@ -47,7 +47,7 @@ public abstract class CraftGuiMapMixin {
             GuiMap guiMap = (GuiMap)(Object)this;
             List<ChunkPos> chunks = CraftorioMisc.generateSelectionChunks(mapTileSelection.getStartX(),mapTileSelection.getStartZ(),mapTileSelection.getEndX(), mapTileSelection.getEndZ());
             if (guiMap.getMinecraft().level == null) return;
-            long claimed_amount = CraftorioMisc.getLandAmount(guiMap.getMinecraft().level,player1);
+            long claimed_amount = CraftorioMisc.getLandAmount(player1);
             BigInteger amountToClaim = CraftorioMisc.pointsToExpand(chunks.size(),claimed_amount);
 
             String string = Component.translatable("misc.craftorio.claim_land").getString();

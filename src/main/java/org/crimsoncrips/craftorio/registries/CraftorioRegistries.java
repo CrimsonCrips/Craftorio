@@ -8,18 +8,19 @@ import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 import net.neoforged.neoforge.registries.NewRegistryEvent;
 import net.neoforged.neoforge.registries.RegistryBuilder;
 import org.crimsoncrips.craftorio.Craftorio;
+import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentContract;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 
 @EventBusSubscriber(modid = Craftorio.MODID, bus = EventBusSubscriber.Bus.MOD)
 public class CraftorioRegistries {
 
-    public static Registry<MapCodec<? extends CraftorioEffects>> TYPE_REGISTRY;
+    public static Registry<MapCodec<? extends CraftorioEffects>> EFFECT_REGISTRY_KEY;
+    public static Registry<MapCodec<? extends CraftorioShipmentContract>> CONTRACT_REGISTRY_KEY;
 
     @SubscribeEvent
     static void newRegistry(NewRegistryEvent event) {
-        RegistryBuilder<MapCodec<? extends CraftorioEffects>> builder =
-                new RegistryBuilder<MapCodec<? extends CraftorioEffects>>(CraftorioEffects.TYPE_REGISTRY_KEY);
-        TYPE_REGISTRY = event.create(builder);
+        EFFECT_REGISTRY_KEY = event.create(new RegistryBuilder<>(CraftorioEffects.EFFECT_REGISTRY_KEY));
+        CONTRACT_REGISTRY_KEY = event.create(new RegistryBuilder<>(CraftorioShipmentContract.CONTRACT_REGISTRY_KEY));
     }
 
     @SubscribeEvent

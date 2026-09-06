@@ -115,40 +115,39 @@ public class CommandEvents {
             String string = Component.translatable("misc.craftorio.too_much_value").getString();
             context.getSource().sendSuccess(() -> Component.literal(string), true);
         }
-        CraftorioMisc.setPoints(serverLevel,points,context.getSource().getPlayer());
+        CraftorioMisc.setPoints(points,context.getSource().getPlayer());
         return 1;
     }
 
     private static int runAddPoints(CommandContext<CommandSourceStack> context) {
         ServerLevel serverLevel = context.getSource().getLevel();
         BigInteger points = CraftorioMisc.toBigInteger(StringArgumentType.getString(context,"amount"));
-        points = points.add(CraftorioMisc.getPoints(serverLevel,context.getSource().getPlayer()));
+        points = points.add(CraftorioMisc.getPoints(context.getSource().getPlayer()));
 
         if (points.compareTo(pointThreshold()) >= 0) {
             String string = Component.translatable("misc.craftorio.too_much_value").getString();
             context.getSource().sendSuccess(() -> Component.literal(string), true);
         }
-        CraftorioMisc.setPoints(serverLevel,points,context.getSource().getPlayer());
+        CraftorioMisc.setPoints(points,context.getSource().getPlayer());
         return 1;
     }
 
     private static int runSubtractPoints(CommandContext<CommandSourceStack> context) {
-        ServerLevel serverLevel = context.getSource().getLevel();
         BigInteger points = CraftorioMisc.toBigInteger(StringArgumentType.getString(context,"amount"));
-        points = points.subtract(CraftorioMisc.getPoints(serverLevel,context.getSource().getPlayer()));
+        points = points.subtract(CraftorioMisc.getPoints(context.getSource().getPlayer()));
 
         if (points.compareTo(pointThreshold()) >= 0) {
             String string = Component.translatable("misc.craftorio.too_much_value").getString();
             context.getSource().sendSuccess(() -> Component.literal(string), true);
         }
-        CraftorioMisc.setPoints(serverLevel,points,context.getSource().getPlayer());
+        CraftorioMisc.setPoints(points,context.getSource().getPlayer());
         return 1;
     }
 
     private static int runShowLandAmount(CommandContext<CommandSourceStack> context) {
         ServerLevel serverLevel = context.getSource().getLevel();
 
-        long land = CraftorioMisc.getLandAmount(serverLevel,context.getSource().getPlayer());
+        long land = CraftorioMisc.getLandAmount(context.getSource().getPlayer());
         context.getSource().sendSuccess(() -> Component.literal(String.valueOf(land)), true);
         return 1;
     }

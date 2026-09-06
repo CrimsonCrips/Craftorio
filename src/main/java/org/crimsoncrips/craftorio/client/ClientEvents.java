@@ -30,13 +30,13 @@ public class ClientEvents {
 
 		if (minecraft.gui.getDebugOverlay().showDebugScreen())
 			return;
-		if (minecraft.level == null)
+		if (minecraft.player == null)
 			return;
 
 
 		Font font = minecraft.font;
-		BigInteger actualPoints = CraftorioMisc.getPoints(minecraft.level,minecraft.player);
-		BigInteger tempPoints = CraftorioMisc.getTempPoints(minecraft.level,minecraft.player);
+		BigInteger actualPoints = CraftorioMisc.getPoints(minecraft.player);
+		BigInteger tempPoints = CraftorioMisc.getTempPoints(minecraft.player);
 
 		PointsAnimation.tick(actualPoints, tempPoints);
 

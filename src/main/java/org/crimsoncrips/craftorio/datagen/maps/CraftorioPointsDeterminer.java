@@ -1,10 +1,13 @@
 package org.crimsoncrips.craftorio.datagen.maps;
 
 
+import net.minecraft.advancements.Advancement;
 import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.data.PackOutput;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.PlayerAdvancements;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.effect.MobEffect;
@@ -34,8 +37,93 @@ public class CraftorioPointsDeterminer extends DataMapProvider {
         itemMap();
         effectMap();
         enchantMap();
+        advancementMap();
     }
 
+    protected void advancementMap() {
+        Builder<String, Advancement> point_value = this.builder(CraftorioDataMaps.ADVANCEMENT_POINT_VALUE);
+
+        addAdvancementValue(point_value, "adventure/adventuring_time", 1);
+        addAdvancementValue(point_value, "adventure/arbalistic", 1);
+        addAdvancementValue(point_value, "adventure/bullseye", 1);
+        addAdvancementValue(point_value, "adventure/hero_of_the_village", 1);
+        addAdvancementValue(point_value, "adventure/honey_block_slide", 1);
+        addAdvancementValue(point_value, "adventure/kill_all_mobs", 1);
+        addAdvancementValue(point_value, "adventure/kill_a_mob", 1);
+        addAdvancementValue(point_value, "adventure/ol_betsy", 1);
+        addAdvancementValue(point_value, "adventure/root", 1);
+        addAdvancementValue(point_value, "adventure/shoot_arrow", 1);
+        addAdvancementValue(point_value, "adventure/sleep_in_bed", 1);
+        addAdvancementValue(point_value, "adventure/sniper_duel", 1);
+        addAdvancementValue(point_value, "adventure/summon_iron_golem", 1);
+        addAdvancementValue(point_value, "adventure/throw_trident", 1);
+        addAdvancementValue(point_value, "adventure/totem_of_undying", 1);
+        addAdvancementValue(point_value, "adventure/trade", 1);
+        addAdvancementValue(point_value, "adventure/two_birds_one_arrow", 1);
+        addAdvancementValue(point_value, "adventure/very_very_frightening", 1);
+        addAdvancementValue(point_value, "adventure/voluntary_exile", 1);
+        addAdvancementValue(point_value, "adventure/whos_the_pillager_now", 1);
+        addAdvancementValue(point_value, "end/dragon_breath", 1);
+        addAdvancementValue(point_value, "end/dragon_egg", 1);
+        addAdvancementValue(point_value, "end/elytra", 1);
+        addAdvancementValue(point_value, "end/enter_end_gateway", 1);
+        addAdvancementValue(point_value, "end/find_end_city", 1);
+        addAdvancementValue(point_value, "end/kill_dragon", 1);
+        addAdvancementValue(point_value, "end/levitate", 1);
+        addAdvancementValue(point_value, "end/respawn_dragon", 1);
+        addAdvancementValue(point_value, "end/root", 1);
+        addAdvancementValue(point_value, "husbandry/balanced_diet", 1);
+        addAdvancementValue(point_value, "husbandry/bred_all_animals", 1);
+        addAdvancementValue(point_value, "husbandry/breed_an_animal", 1);
+        addAdvancementValue(point_value, "husbandry/complete_catalogue", 1);
+        addAdvancementValue(point_value, "husbandry/fishy_business", 1);
+        addAdvancementValue(point_value, "husbandry/obtain_netherite_hoe", 1);
+        addAdvancementValue(point_value, "husbandry/plant_seed", 1);
+        addAdvancementValue(point_value, "husbandry/root", 1);
+        addAdvancementValue(point_value, "husbandry/safely_harvest_honey", 1);
+        addAdvancementValue(point_value, "husbandry/silk_touch_nest", 1);
+        addAdvancementValue(point_value, "husbandry/tactical_fishing", 1);
+        addAdvancementValue(point_value, "husbandry/tame_an_animal", 1);
+        addAdvancementValue(point_value, "nether/all_effects", 1);
+        addAdvancementValue(point_value, "nether/all_potions", 1);
+        addAdvancementValue(point_value, "nether/brew_potion", 1);
+        addAdvancementValue(point_value, "nether/charge_respawn_anchor", 1);
+        addAdvancementValue(point_value, "nether/create_beacon", 1);
+        addAdvancementValue(point_value, "nether/create_full_beacon", 1);
+        addAdvancementValue(point_value, "nether/distract_piglin", 1);
+        addAdvancementValue(point_value, "nether/explore_nether", 1);
+        addAdvancementValue(point_value, "nether/fast_travel", 1);
+        addAdvancementValue(point_value, "nether/find_bastion", 1);
+        addAdvancementValue(point_value, "nether/find_fortress", 1);
+        addAdvancementValue(point_value, "nether/get_wither_skull", 1);
+        addAdvancementValue(point_value, "nether/loot_bastion", 1);
+        addAdvancementValue(point_value, "nether/netherite_armor", 1);
+        addAdvancementValue(point_value, "nether/obtain_ancient_debris", 1);
+        addAdvancementValue(point_value, "nether/obtain_blaze_rod", 1);
+        addAdvancementValue(point_value, "nether/obtain_crying_obsidian", 1);
+        addAdvancementValue(point_value, "nether/return_to_sender", 1);
+        addAdvancementValue(point_value, "nether/ride_strider", 1);
+        addAdvancementValue(point_value, "nether/root", 1);
+        addAdvancementValue(point_value, "nether/summon_wither", 1);
+        addAdvancementValue(point_value, "nether/uneasy_alliance", 1);
+        addAdvancementValue(point_value, "nether/use_lodestone", 1);
+        addAdvancementValue(point_value, "story/cure_zombie_villager", 1);
+        addAdvancementValue(point_value, "story/deflect_arrow", 1);
+        addAdvancementValue(point_value, "story/enchant_item", 1);
+        addAdvancementValue(point_value, "story/enter_the_end", 1);
+        addAdvancementValue(point_value, "story/enter_the_nether", 1);
+        addAdvancementValue(point_value, "story/follow_ender_eye", 1);
+        addAdvancementValue(point_value, "story/form_obsidian", 1);
+        addAdvancementValue(point_value, "story/iron_tools", 1);
+        addAdvancementValue(point_value, "story/lava_bucket", 1);
+        addAdvancementValue(point_value, "story/mine_diamond", 1);
+        addAdvancementValue(point_value, "story/mine_stone", 1);
+        addAdvancementValue(point_value, "story/obtain_armor", 1);
+        addAdvancementValue(point_value, "story/root", 1);
+        addAdvancementValue(point_value, "story/shiny_gear", 1);
+        addAdvancementValue(point_value, "story/smelt_iron", 1);
+        addAdvancementValue(point_value, "story/upgrade_tools", 1);
+    }
 
     protected void effectMap() {
         Builder<String, MobEffect> point_value = this.builder(CraftorioDataMaps.EFFECT_POINT_VALUE);
@@ -974,6 +1062,11 @@ public class CraftorioPointsDeterminer extends DataMapProvider {
     //Mob Effects
     private void addEffectValue(Builder<String, MobEffect> pointValue, Holder<MobEffect> mobEffect, int value) {
         pointValue.add(mobEffect, String.valueOf(value),false);
+    }
+
+    private void addAdvancementValue(Builder<String, Advancement> pointValue, String resourceLocation, int value) {
+        ResourceLocation advancementLocation = ResourceLocation.withDefaultNamespace(resourceLocation);
+        pointValue.add(advancementLocation, String.valueOf(value),false);
     }
 
     //Enchantment
