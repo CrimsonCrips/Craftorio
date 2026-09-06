@@ -21,5 +21,7 @@ public class CraftLangGen extends CraftLangProvider {
 		this.addMisc("expand_border", "Expand Border");
 
 		this.addMisc("too_much_value", "Value exceeds Infinity!");
+
+		this.addMisc("advancement_value", "Points given for advancement : ");
 	}
 }

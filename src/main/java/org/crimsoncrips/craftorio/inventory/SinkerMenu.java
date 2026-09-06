@@ -128,7 +128,7 @@ public class SinkerMenu extends AbstractContainerMenu {
 		}
 		CraftorioMisc.setPoints(CraftorioMisc.getPoints(player).add(pointsToGive),player);
 
-		for (CraftorioShipmentContract contract : CraftorioMisc.getCraftorioContracts(player)){
+		for (CraftorioShipmentContract contract : new ArrayList<>(CraftorioMisc.getCraftorioContracts(player))){
 			contract.addSinkedListValue(sinkedItems,player);
 		}
 	}

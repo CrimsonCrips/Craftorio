@@ -51,24 +51,26 @@ public class CraftorioShipmentContract {
         this.time = time;
     }
 
-    public boolean isComplete(Player player){
+    public boolean isComplete(){
         boolean finished = true;
         for (CraftorioShipmentItem contractItem : itemBounty){
             if (!contractItem.isComplete()){
                 finished = false;
             }
         }
-        if (finished){
-            List<CraftorioShipmentContract> newContract = CraftorioMisc.getCraftorioContracts(player);
-            newContract.remove(this);
-            CraftorioMisc.setCraftorioContracts(player,newContract);
-        }
         return finished;
     }
 
     public CraftorioShipmentContract copy() {
-        List<CraftorioShipmentItem> copiedItems = new ArrayList<>(itemBounty);
-        return new CraftorioShipmentContract(copiedItems,getName(),getTime());
+        List<CraftorioShipmentItem> copiedItems = new ArrayList<>();
+        for (CraftorioShipmentItem item : itemBounty) {
+            copiedItems.add(item.copy());
+        }
+        return new CraftorioShipmentContract(copiedItems, getName(), getTime());
+    }
+
+    public boolean shouldEnd(){
+        return isComplete() || time <= 0;
     }
 
     public void addSinkedListValue(List<ItemStack> itemsSinked, Player player){
@@ -79,7 +81,6 @@ public class CraftorioShipmentContract {
                 }
             }
         }
-        isComplete(player);
     }
 
     public void setItemBounty(List<CraftorioShipmentItem> itemBounty) {
@@ -106,7 +107,12 @@ public class CraftorioShipmentContract {
         this.time = time;
     }
 
-    public void tick(){
+    public void tick(Player player){
+        if (shouldEnd()){
+            List<CraftorioShipmentContract> newContract = CraftorioMisc.getCraftorioContracts(player);
+            newContract.remove(this);
+            CraftorioMisc.setCraftorioContracts(player,newContract);
+        }
         setTime(time - 1);
     }
 }
