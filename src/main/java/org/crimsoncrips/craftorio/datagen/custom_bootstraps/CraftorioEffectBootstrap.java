@@ -1,4 +1,4 @@
-package org.crimsoncrips.craftorio.datagen;
+package org.crimsoncrips.craftorio.datagen.custom_bootstraps;
 
 import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.resources.ResourceKey;

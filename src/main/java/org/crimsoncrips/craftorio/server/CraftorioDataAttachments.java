@@ -73,8 +73,8 @@ public class CraftorioDataAttachments {
                     .sync(GeneralMultiplierEffect.CODEC_STREAM.apply(ByteBufCodecs.list()))
                     .build());
 
-    public static final Supplier<AttachmentType<List<CraftorioShipmentContract>>> CONTRACTS = ATTACHMENT_TYPES.register(
-            "contracts", () -> AttachmentType.<List<CraftorioShipmentContract>>builder((holder) -> new ArrayList<>())
+    public static final Supplier<AttachmentType<List<CraftorioShipmentContract>>> SHIPMENT_CONTRACTS = ATTACHMENT_TYPES.register(
+            "shipment_contracts", () -> AttachmentType.<List<CraftorioShipmentContract>>builder((holder) -> new ArrayList<>())
                     .serialize(Codec.list(CraftorioShipmentContract.CODEC))
                     .sync(CraftorioShipmentContract.CODEC_STREAM.apply(ByteBufCodecs.list()))
                     .build());

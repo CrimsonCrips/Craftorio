@@ -23,7 +23,7 @@ import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.block.CraftorioBlocks;
 import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentContract;
-import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioContractItem;
+import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentItem;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioPointEffect;
 import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
@@ -118,16 +118,18 @@ public class ServerEvents {
             CraftorioMisc.grantEffect(player, ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "tag/copper_block_buff"));
 
 
-            CraftorioContractItem contractItem = new CraftorioContractItem(10, Items.OBSIDIAN);
-            List<CraftorioContractItem> contractItems = new ArrayList<>();
+            CraftorioShipmentItem contractItem = new CraftorioShipmentItem(10, Items.OBSIDIAN);
+            List<CraftorioShipmentItem> contractItems = new ArrayList<>();
             contractItems.add(contractItem);
 
-
-
-
             List<CraftorioShipmentContract> contracts = new ArrayList<>();
-            contracts.add(CraftorioMisc.makeCraftorioContract(contractItems));
+            contracts.add(CraftorioMisc.makeCraftorioContract(contractItems,"OBSIDIAN",500));
             CraftorioMisc.setCraftorioContracts(player,contracts);
+
+            CraftorioMisc.grantContract(player,ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "starter_contract"));
+
+
+
 
 
             if (player instanceof ServerPlayer serverPlayer) {

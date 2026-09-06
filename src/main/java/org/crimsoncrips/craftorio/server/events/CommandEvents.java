@@ -19,6 +19,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.networking.ExpandScreenPacket;
+import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentContract;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -45,15 +46,25 @@ public class CommandEvents {
                         Commands.literal("land")
                                 .then(Commands.literal("check_amount").requires(cs -> cs.hasPermission(2)).executes(CommandEvents::runShowLandAmount))
                                 .then(Commands.literal("border_expand").executes(CommandEvents::runBorderExpand))).then(
-
                         Commands.literal("point_value")
                                 .then(Commands.literal("highest_value").then(Commands.argument("list_no", IntegerArgumentType.integer()).executes(CommandEvents::runHighestValue)))
-
-                ).then(Commands.literal("check_values").requires(cs -> cs.hasPermission(2)).executes(CommandEvents::runPropertiesCheck))
+                        )
+                .then(Commands.literal("check_values").requires(cs -> cs.hasPermission(2)).executes(CommandEvents::runPropertiesCheck))
+                .then(Commands.literal("check_contracts").executes(CommandEvents::runCheckContracts))
 
         );
 
 
+    }
+
+    private static int runCheckContracts(CommandContext<CommandSourceStack> context) {
+        ServerPlayer serverPlayer = context.getSource().getPlayer();
+        if (serverPlayer != null) {
+            for (CraftorioShipmentContract shipmentContract : CraftorioMisc.getCraftorioContracts(serverPlayer)){
+                context.getSource().sendSuccess(() -> Component.literal("Name:" + shipmentContract.getName() + "  Time:" + shipmentContract.getTime()), true);
+            }
+        }
+        return 1;
     }
 
     private static int runPropertiesCheck(CommandContext<CommandSourceStack> context) {

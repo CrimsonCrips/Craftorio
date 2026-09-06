@@ -8,26 +8,26 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.world.item.Item;
 
-public class CraftorioContractItem {
+public class CraftorioShipmentItem {
 
     int itemsGiven = 0;
     int amountRequired;
     Item itemNeeded;
 
-    public static final Codec<CraftorioContractItem> CODEC = RecordCodecBuilder.create(instance ->
+    public static final Codec<CraftorioShipmentItem> CODEC = RecordCodecBuilder.create(instance ->
             instance.group(
-                    Codec.INT.fieldOf("amountRequired").forGetter(CraftorioContractItem::getAmountRequired),
-                    BuiltInRegistries.ITEM.byNameCodec().fieldOf("contract_item").forGetter(CraftorioContractItem::getItemNeeded)
-                    ).apply(instance, CraftorioContractItem::new)
+                    Codec.INT.fieldOf("amountRequired").forGetter(CraftorioShipmentItem::getAmountRequired),
+                    BuiltInRegistries.ITEM.byNameCodec().fieldOf("contract_item").forGetter(CraftorioShipmentItem::getItemNeeded)
+                    ).apply(instance, CraftorioShipmentItem::new)
     );
 
-    public static final StreamCodec<ByteBuf, CraftorioContractItem> CODEC_STREAM = StreamCodec.composite(
-            ByteBufCodecs.INT, CraftorioContractItem::getAmountRequired,
-            ByteBufCodecs.fromCodec(BuiltInRegistries.ITEM.byNameCodec()), CraftorioContractItem::getItemNeeded,
-            CraftorioContractItem::new
+    public static final StreamCodec<ByteBuf, CraftorioShipmentItem> CODEC_STREAM = StreamCodec.composite(
+            ByteBufCodecs.INT, CraftorioShipmentItem::getAmountRequired,
+            ByteBufCodecs.fromCodec(BuiltInRegistries.ITEM.byNameCodec()), CraftorioShipmentItem::getItemNeeded,
+            CraftorioShipmentItem::new
     );
 
-    public CraftorioContractItem(int amountRequired,Item itemNeeded){
+    public CraftorioShipmentItem(int amountRequired, Item itemNeeded){
         this.amountRequired = amountRequired;
         this.itemNeeded = itemNeeded;
     }
@@ -55,5 +55,9 @@ public class CraftorioContractItem {
 
     public boolean isComplete(){
         return getItemsGiven() >= getAmountRequired();
+    }
+
+    public CraftorioShipmentItem copy() {
+        return new CraftorioShipmentItem(amountRequired, itemNeeded);
     }
 }

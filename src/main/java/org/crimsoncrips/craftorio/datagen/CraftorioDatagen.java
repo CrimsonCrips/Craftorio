@@ -9,10 +9,13 @@ import net.neoforged.neoforge.common.data.DatapackBuiltinEntriesProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import org.crimsoncrips.craftorio.Craftorio;
+import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioEffectBootstrap;
+import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioShipmentBootstrap;
 import org.crimsoncrips.craftorio.datagen.language.CraftLangGen;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioPointsDeterminer;
 import org.crimsoncrips.craftorio.datagen.tags.CraftorioBlockTagGen;
 import org.crimsoncrips.craftorio.datagen.tags.CraftorioItemTagGen;
+import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentContract;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 
 import java.util.Set;
@@ -33,9 +36,12 @@ public class CraftorioDatagen {
         generator.addProvider(event.includeServer(), new CraftorioItemTagGen(output, provider, blocktags.contentsGetter(), helper));
         generator.addProvider(event.includeServer(), new CraftorioPointsDeterminer(output, provider));
 
-        RegistrySetBuilder effectRegistryBuilder = new RegistrySetBuilder()
-                .add(CraftorioEffects.REGISTRY_KEY, CraftorioEffectBootstrap::bootstrap);
+        RegistrySetBuilder registryBuilder = new RegistrySetBuilder()
+                .add(CraftorioEffects.REGISTRY_KEY, CraftorioEffectBootstrap::bootstrap)
+                .add(CraftorioShipmentContract.REGISTRY_KEY, CraftorioShipmentBootstrap::bootstrap);
 
-        generator.addProvider(event.includeServer(), new DatapackBuiltinEntriesProvider(output, provider, effectRegistryBuilder, Set.of(Craftorio.MODID)));
+        generator.addProvider(event.includeServer(),
+                new DatapackBuiltinEntriesProvider(output, provider, registryBuilder, Set.of(Craftorio.MODID)));
+
     }
 }

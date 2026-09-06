@@ -21,7 +21,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.phys.Vec3;
 import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentContract;
-import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioContractItem;
+import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentItem;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioPointEffect;
@@ -587,15 +587,25 @@ public class CraftorioMisc {
         }
     }
 
-    public static Optional<CraftorioEffects> getEffect(Level level, ResourceLocation id) {
-        Registry<CraftorioEffects> registry = level.registryAccess().registryOrThrow(CraftorioEffects.REGISTRY_KEY);
+    public static Optional<CraftorioShipmentContract> getContractTemplate(Level level, ResourceLocation id) {
+        Registry<CraftorioShipmentContract> registry = level.registryAccess().registryOrThrow(CraftorioShipmentContract.REGISTRY_KEY);
         return registry.getOptional(id);
+    }
+
+    public static void grantContract(Player player, ResourceLocation id) {
+        getContractTemplate(player.level(), id).ifPresent(template -> {
+            List<CraftorioShipmentContract> playerContract = getCraftorioContracts(player);
+            playerContract.add(template.copy());
+            setCraftorioContracts(player,playerContract);
+        });
     }
 
     public static void grantEffect(Player player, ResourceLocation id) {
         Level level = player.level();
         boolean universal = universalBased(level);
-        getEffect(level, id).ifPresent(effect -> {
+        Registry<CraftorioEffects> registry = level.registryAccess().registryOrThrow(CraftorioEffects.REGISTRY_KEY);
+
+        registry.getOptional(id).ifPresent(effect -> {
             if (effect instanceof TagMultiplierEffect tagEffect) {
                 List<TagMultiplierEffect> list = getTagEffects(player);
                 list.add(tagEffect);
@@ -678,23 +688,23 @@ public class CraftorioMisc {
     public static List<CraftorioShipmentContract> getCraftorioContracts(Player player){
         Level level = player.level();
         if (universalBased(level)){
-            return level.getData(CONTRACTS);
+            return level.getData(SHIPMENT_CONTRACTS);
         } else {
-            return player.getData(CONTRACTS);
+            return player.getData(SHIPMENT_CONTRACTS);
         }
     }
 
     public static void setCraftorioContracts(Player player,List<CraftorioShipmentContract> contracts){
         Level level = player.level();
         if (universalBased(level)){
-            level.setData(CONTRACTS,contracts);
+            level.setData(SHIPMENT_CONTRACTS,contracts);
         } else {
-            player.setData(CONTRACTS,contracts);
+            player.setData(SHIPMENT_CONTRACTS,contracts);
         }
     }
 
-    public static CraftorioShipmentContract makeCraftorioContract(List<CraftorioContractItem> contractItems){
-        return new CraftorioShipmentContract(contractItems);
+    public static CraftorioShipmentContract makeCraftorioContract(List<CraftorioShipmentItem> contractItems,String name,int time){
+        return new CraftorioShipmentContract(contractItems,name,time);
     }
 
 

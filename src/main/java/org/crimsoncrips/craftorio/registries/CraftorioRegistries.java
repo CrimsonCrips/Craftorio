@@ -14,17 +14,18 @@ import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 @EventBusSubscriber(modid = Craftorio.MODID, bus = EventBusSubscriber.Bus.MOD)
 public class CraftorioRegistries {
 
-    public static Registry<MapCodec<? extends CraftorioEffects>> EFFECT_REGISTRY_KEY;
-    public static Registry<MapCodec<? extends CraftorioShipmentContract>> CONTRACT_REGISTRY_KEY;
+    public static Registry<MapCodec<? extends CraftorioEffects>> TYPE_REGISTRY;
 
     @SubscribeEvent
     static void newRegistry(NewRegistryEvent event) {
-        EFFECT_REGISTRY_KEY = event.create(new RegistryBuilder<>(CraftorioEffects.EFFECT_REGISTRY_KEY));
-        CONTRACT_REGISTRY_KEY = event.create(new RegistryBuilder<>(CraftorioShipmentContract.CONTRACT_REGISTRY_KEY));
+        RegistryBuilder<MapCodec<? extends CraftorioEffects>> builder =
+                new RegistryBuilder<>(CraftorioEffects.TYPE_REGISTRY_KEY);
+        TYPE_REGISTRY = event.create(builder);
     }
 
     @SubscribeEvent
     static void newDataPackRegistry(DataPackRegistryEvent.NewRegistry event) {
         event.dataPackRegistry(CraftorioEffects.REGISTRY_KEY, CraftorioEffects.dispatchCodec());
+        event.dataPackRegistry(CraftorioShipmentContract.REGISTRY_KEY, CraftorioShipmentContract.CODEC);
     }
 }
