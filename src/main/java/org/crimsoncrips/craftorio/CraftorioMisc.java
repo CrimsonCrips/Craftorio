@@ -63,10 +63,10 @@ public class CraftorioMisc {
         return chunks;
     }
 
-    public static List<ChunkPos> startingLocations(int xStart,int zStart){
+    public static List<ChunkPos> startingLocations(ChunkPos chunkPos){
         int sizePicked = startingLand();
-        ChunkPos startPos = new ChunkPos(-sizePicked + -xStart,-sizePicked + -zStart);
-        ChunkPos endPos = new ChunkPos(sizePicked + xStart,sizePicked + zStart);
+        ChunkPos startPos = new ChunkPos(chunkPos.x - sizePicked,chunkPos.z - sizePicked);
+        ChunkPos endPos = new ChunkPos(chunkPos.x + sizePicked,chunkPos.z + sizePicked);
 
         List<ChunkPos> chunkCoords = new ArrayList<>();
         int minX = Math.min(startPos.x, endPos.x);
@@ -82,29 +82,38 @@ public class CraftorioMisc {
         }
         return chunkCoords;
     }
-    public static void ownChunk(List<ChunkPos> chunkPos, Level level, boolean claiming, Player player){
+    public static void ownChunk(List<ChunkPos> chunkPos, Level level, boolean claiming, Player player,boolean starting){
         if (level == null) return;
-        long claimed_amount = getLandAmount(level,player);
-        BigInteger points = getPoints(level,player);
-        BigInteger amountToClaim = CraftorioMisc.pointsToExpand(chunkPos.size(),claimed_amount);
-        if (!(points.compareTo(amountToClaim) >= 0))
-            return;
 
-        for (ChunkPos chunkSelected : chunkPos) {
-            ChunkAccess chunk = level.getChunk(chunkSelected.x, chunkSelected.z);
-            if (startingLocations(getPlayerOrigin(player).getX(),getPlayerOrigin(player).getZ()).contains(chunkSelected))
+        if (starting) {
+            for (ChunkPos chunkSelected : chunkPos) {
+                ChunkAccess chunk = level.getChunk(chunkSelected.x, chunkSelected.z);
+                if (claiming && !isOwnedBy(chunk, player)) {
+                    setOwnedBy(chunk, player, true);
+                } else if (!claiming && isOwnedBy(chunk, player)) {
+                    setOwnedBy(chunk, player, false);
+                }
+            }
+        } else {
+            long claimed_amount = getLandAmount(level,player);
+            BigInteger points = getPoints(level,player);
+            BigInteger amountToClaim = CraftorioMisc.pointsToExpand(chunkPos.size(),claimed_amount);
+            if (!(points.compareTo(amountToClaim) >= 0))
                 return;
 
-            if (claiming && !isOwnedBy(chunk,player)){
-                setOwnedBy(chunk,player,true);
-                setLandAmount(level,claimed_amount + 1,player);
-                setPoints(level,points.subtract(amountToClaim),player);
-            } else if (!claiming && isOwnedBy(chunk,player)){
-                setOwnedBy(chunk,player,false);
-                setLandAmount(level,claimed_amount - 1,player);
+            for (ChunkPos chunkSelected : chunkPos) {
+                ChunkAccess chunk = level.getChunk(chunkSelected.x, chunkSelected.z);
+                if (startingLocations(level.getChunk(CraftorioMisc.getPlayerOrigin(player)).getPos()).contains(chunkSelected))
+                    return;
+                if (claiming && !isOwnedBy(chunk, player)) {
+                    setOwnedBy(chunk, player, true);
+                    setLandAmount(level, claimed_amount + 1, player);
+                    setPoints(level, points.subtract(amountToClaim), player);
+                } else if (!claiming && isOwnedBy(chunk, player)) {
+                    setOwnedBy(chunk, player, false);
+                    setLandAmount(level, claimed_amount - 1, player);
+                }
             }
-
-
         }
     }
 
@@ -352,14 +361,10 @@ public class CraftorioMisc {
             if (!isOwnedBy(chunkAccess, player)){
                 ownedBy.add(uuid);
                 chunkAccess.setData(OWNED_BY,ownedBy);
-            } else {
-                player.sendSystemMessage(Component.literal("Land already owned"));
             }
         } else {
             if (isOwnedBy(chunkAccess,player)){
                 chunkAccess.getData(OWNED_BY).remove(uuid);
-            } else {
-                player.sendSystemMessage(Component.literal("Land is not owned"));
             }
         }
     }
@@ -555,17 +560,25 @@ public class CraftorioMisc {
     //Effect checks
     public static List<CraftorioPointEffect> getCraftorioPointEffects(Player player){
         List<CraftorioPointEffect> newList = new ArrayList<>();
-        newList.addAll(getTagEffects(player));
-        newList.addAll(getGeneralEffects(player));
+        newList.addAll(getTagEffects(player.level(), player));
+        newList.addAll(getGeneralEffects(player.level(), player));
         return newList;
     }
 
-    public static List<TagMultiplierEffect> getTagEffects(Player player){
-        return player.getData(TAG_MULTIPLIER_EFFECTS);
+    public static List<TagMultiplierEffect> getTagEffects(Level level,Player player){
+        if (universalBased(level)){
+            return level.getData(TAG_MULTIPLIER_EFFECTS);
+        } else {
+            return player.getData(TAG_MULTIPLIER_EFFECTS);
+        }
     }
 
-    public static List<GeneralMultiplierEffect> getGeneralEffects(Player player){
-        return player.getData(GENERAL_MULTIPLIER_EFFECTS);
+    public static List<GeneralMultiplierEffect> getGeneralEffects(Level level,Player player){
+        if (universalBased(level)){
+            return level.getData(GENERAL_MULTIPLIER_EFFECTS);
+        } else {
+            return player.getData(GENERAL_MULTIPLIER_EFFECTS);
+        }
     }
 
     public static Optional<CraftorioEffects> getEffect(Level level, ResourceLocation id) {
@@ -576,11 +589,11 @@ public class CraftorioMisc {
     public static void grantEffect(Player player, ResourceLocation id) {
         getEffect(player.level(), id).ifPresent(effect -> {
             if (effect instanceof TagMultiplierEffect tagEffect) {
-                List<TagMultiplierEffect> list = getTagEffects(player);
+                List<TagMultiplierEffect> list = getTagEffects(player.level(),player);
                 list.add(tagEffect);
                 player.setData(TAG_MULTIPLIER_EFFECTS, list);
             } else if (effect instanceof GeneralMultiplierEffect generalEffect) {
-                List<GeneralMultiplierEffect> list = getGeneralEffects(player);
+                List<GeneralMultiplierEffect> list = getGeneralEffects(player.level(),player);
                 list.add(generalEffect);
                 player.setData(GENERAL_MULTIPLIER_EFFECTS, list);
             }
@@ -647,7 +660,11 @@ public class CraftorioMisc {
 
     //Contract Checks
     public static List<CraftorioContract> getCraftorioContracts(Level level,Player player){
-        return player.getData(CONTRACTS);
+        if (universalBased(level)){
+            return level.getData(CONTRACTS);
+        } else {
+            return player.getData(CONTRACTS);
+        }
     }
 
     public static void addCraftorioContracts(){

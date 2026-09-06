@@ -111,21 +111,26 @@ public class ServerEvents {
             CraftorioMisc.grantEffect(player, ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "tag/copper_block_buff"));
 
             //Handles player dispersion
-            if (player instanceof ServerPlayer serverPlayer && !CraftorioMisc.universalBased(level)) {
+            if (player instanceof ServerPlayer serverPlayer) {
                 ServerLevel serverLevel = (ServerLevel) serverPlayer.level();
                 BlockPos spawnPos = CraftorioMisc.findDispersedSpawnPos(serverLevel,
                         Craftorio.SERVER_CONFIG.MIN_SPAWN_DISTANCE.get(),
                         Craftorio.SERVER_CONFIG.MAX_SPAWN_DISTANCE.get()
                 );
 
+                if (!CraftorioMisc.universalBased(level)){
+                   spawnPos = serverPlayer.getRespawnPosition();
+                }
+
                 GlobalPos origin = GlobalPos.of(serverLevel.dimension(), spawnPos);
                 serverPlayer.setData(CraftorioDataAttachments.SPAWN_ORIGIN.get(), origin);
 
                 serverPlayer.teleportTo(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5);
                 serverPlayer.setRespawnPosition(serverLevel.dimension(), spawnPos, 0F, true, false);
+
+                CraftorioMisc.ownChunk(CraftorioMisc.startingLocations(level.getChunk(spawnPos).getPos()),level,true,player,true);
             }
 
-            CraftorioMisc.ownChunk(CraftorioMisc.startingLocations(getPlayerOrigin(player).getX(),getPlayerOrigin(player).getZ()),level,true,player);
 
 
             if (CraftorioMisc.getLandAmount(level,player) <= 0 && CraftorioMisc.isNoBorders(level)){
@@ -149,14 +154,14 @@ public class ServerEvents {
             for (CraftorioPointEffect effect : ImmutableList.copyOf(CraftorioMisc.getCraftorioPointEffects(player))) {
                 if (effect.shouldEnd()) {
                     if (effect instanceof TagMultiplierEffect){
-                        List<TagMultiplierEffect> effects = CraftorioMisc.getTagEffects(player);
+                        List<TagMultiplierEffect> effects = CraftorioMisc.getTagEffects(player.level(), player);
                         effects.remove(effect);
                         player.setData(TAG_MULTIPLIER_EFFECTS, effects);
                     }
                     if (effect instanceof GeneralMultiplierEffect){
-                        List<GeneralMultiplierEffect> effects = CraftorioMisc.getGeneralEffects(player);
+                        List<GeneralMultiplierEffect> effects = CraftorioMisc.getGeneralEffects(player.level(), player);
                         effects.remove(effect);
-                        player.setData(GENERAL_MULTIPLIER_EFFECTS, CraftorioMisc.getGeneralEffects(player));
+                        player.setData(GENERAL_MULTIPLIER_EFFECTS, CraftorioMisc.getGeneralEffects(player.level(), player));
                     }
                 } else {
                     effect.tick();

@@ -30,7 +30,7 @@ public record OwnLandPacket(List<ChunkPos> chunks, boolean claiming) implements 
 
     public static void handle(OwnLandPacket message, IPayloadContext ctx) {
         ctx.enqueueWork(() -> {
-            CraftorioMisc.ownChunk(message.chunks,ctx.player().level(), message.claiming,ctx.player());
+            CraftorioMisc.ownChunk(message.chunks,ctx.player().level(), message.claiming,ctx.player(),false);
         });
     }
 }

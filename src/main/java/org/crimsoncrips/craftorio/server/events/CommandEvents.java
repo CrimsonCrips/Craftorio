@@ -59,7 +59,7 @@ public class CommandEvents {
     private static int runPropertiesCheck(CommandContext<CommandSourceStack> context) {
         ServerPlayer serverPlayer = context.getSource().getPlayer();
         if (serverPlayer != null) {
-            context.getSource().sendSuccess(() -> Component.literal("Cooperative:" + CraftorioMisc.isNoBorders(serverPlayer.level())), true);
+            context.getSource().sendSuccess(() -> Component.literal("No Borders:" + CraftorioMisc.isNoBorders(serverPlayer.level())), true);
             context.getSource().sendSuccess(() -> Component.literal("Universal:" + CraftorioMisc.universalBased(serverPlayer.level())), true);
             context.getSource().sendSuccess(() -> Component.literal("ChunkBased:" + CraftorioMisc.chunkBased(serverPlayer.level())), true);
 
