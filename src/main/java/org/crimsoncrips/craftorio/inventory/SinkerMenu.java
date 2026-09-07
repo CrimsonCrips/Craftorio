@@ -5,7 +5,6 @@
 
 package org.crimsoncrips.craftorio.inventory;
 
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -15,8 +14,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.CraftorioMenuTypes;
-import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentContract;
-import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
+import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
 
 import java.math.BigInteger;
 import java.util.ArrayList;

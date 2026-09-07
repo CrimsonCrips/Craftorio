@@ -11,8 +11,10 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.PlayerRespawnLogic;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.enchantment.Enchantment;
@@ -22,7 +24,9 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.phys.Vec3;
-import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentContract;
+import org.crimsoncrips.craftorio.data_components.CraftorioDataComponents;
+import org.crimsoncrips.craftorio.item.CraftorioItems;
+import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioPointEffect;
@@ -35,10 +39,8 @@ import java.awt.*;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.math.RoundingMode;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Optional;
-import java.util.Random;
 
 import static org.crimsoncrips.craftorio.server.CraftorioDataAttachments.*;
 
@@ -123,14 +125,17 @@ public class CraftorioMisc {
         BigInteger points = getPoints(player);
         BigInteger amountToClaim = CraftorioMisc.pointsToExpand(expandAmount,claimed_amount);
         expandAmount *= Craftorio.SERVER_CONFIG.EXPANSION_AMOUNT.getAsInt();
+        CraftorioBorder border = getCraftorioBorder(player,player.level().dimension());
+        if (border == null)
+            return;
         if (points.compareTo(amountToClaim) >= 0){
-            double borderSize = level.getWorldBorder().getSize();
+            double borderSize = border.getSize();
             if (expand){
-                level.getWorldBorder().lerpSizeBetween(borderSize,borderSize + expandAmount,3000);
+                border.lerpSizeBetween(borderSize + expandAmount,3000);
                 setPoints(points.subtract(amountToClaim),player);
                 setLandAmount(getLandAmount(player) + expandAmount,player);
             } else {
-                level.getWorldBorder().lerpSizeBetween(borderSize,borderSize - expandAmount,3000);
+                border.lerpSizeBetween(borderSize - expandAmount,3000);
             }
         }
     }
@@ -408,7 +413,7 @@ public class CraftorioMisc {
             "SPTGNTL","USPTGNTL","DSPTGNTL","TSPTGNTL","QTSPTGNTL","QNSPTGNTL","SXSPTGNTL","SPSPTGNTL","OSPTGNTL","NVSPTGNTL",
             "OTGNTL","UOTGNTL","DOTGNTL","TOTGNTL","QTOTGNTL","QNOTGNTL","SXOTGNTL","SPOTGNTL","OTOTGNTL","NVOTGNTL",
             "NONGNTL","UNONGNTL","DNONGNTL","TNONGNTL","QTNONGNTL","QNNONGNTL","SXNONGNTL","SPNONGNTL","OTNONGNTL","NONONGNTL",
-            "CENT","UNCENT","∞"
+            "CENT","UNCENT","inf∞"
     };
 
     private static final String[] NAMES = {
@@ -544,7 +549,7 @@ public class CraftorioMisc {
                 Random rnd = new Random(charSeed);
 
                 char displayChar = original;
-                if (Character.isLetter(original) && rnd.nextFloat() < 0.35f) {
+                if (Character.isLetter(original) && rnd.nextFloat() < 0.25f) {
                     displayChar = GLITCH_CHARS[rnd.nextInt(GLITCH_CHARS.length)];
                 }
 
@@ -588,6 +593,33 @@ public class CraftorioMisc {
         }
     }
 
+    public static void setTagEffects(Player player,List<TagMultiplierEffect> effects){
+        Level level = player.level();
+        if (universalBased(level)){
+            level.setData(TAG_MULTIPLIER_EFFECTS,effects);
+        } else {
+            player.setData(TAG_MULTIPLIER_EFFECTS,effects);
+        }
+    }
+
+    public static void setGeneralEffects(Player player,List<GeneralMultiplierEffect> effects){
+        Level level = player.level();
+        if (universalBased(level)){
+            level.setData(GENERAL_MULTIPLIER_EFFECTS,effects);
+        } else {
+            player.setData(GENERAL_MULTIPLIER_EFFECTS,effects);
+        }
+    }
+
+    public static void giveEffectItem(Item item, ServerPlayer player, List<CraftorioEffects> craftorioEffects) {
+        ItemStack stack = new ItemStack(item);
+        stack.set(CraftorioDataComponents.EFFECTS_STORED.get(),craftorioEffects);
+
+        player.getInventory().add(stack);
+    }
+
+
+
     public static Optional<CraftorioShipmentContract> getContractTemplate(Level level, ResourceLocation id) {
         Registry<CraftorioShipmentContract> registry = level.registryAccess().registryOrThrow(CraftorioShipmentContract.REGISTRY_KEY);
         return registry.getOptional(id);
@@ -625,6 +657,17 @@ public class CraftorioMisc {
                 }
             }
         });
+    }
+
+    public static String ticksToTimeString(int ticks) {
+        int totalSeconds = Math.max(ticks, 0) / 20;
+        int hours = totalSeconds / 3600;
+        int minutes = (totalSeconds % 3600) / 60;
+        int seconds = totalSeconds % 60;
+
+        return hours > 0
+                ? String.format("%d:%02d:%02d", hours, minutes, seconds)
+                : String.format("%02d:%02d", minutes, seconds);
     }
 
     public static BlockPos findDispersedSpawnPos(ServerLevel level, double minDistance, double maxDistance) {
@@ -735,6 +778,33 @@ public class CraftorioMisc {
         }
         return null;
     }
+
+    public static Collection<Holder.Reference<CraftorioEffects>> getAllEffects(RegistryAccess registryAccess) {
+        return registryAccess.registryOrThrow(CraftorioEffects.REGISTRY_KEY).holders().toList();
+    }
+
+    public static Collection<Holder.Reference<CraftorioShipmentContract>> getAllShipments(RegistryAccess registryAccess) {
+        return registryAccess.registryOrThrow(CraftorioShipmentContract.REGISTRY_KEY).holders().toList();
+    }
+
+
+    public static CraftorioEffects getRandomEffect(RegistryAccess registryAccess, RandomSource random) {
+        Registry<CraftorioEffects> registry = registryAccess.registryOrThrow(CraftorioEffects.REGISTRY_KEY);
+
+        return registry.getRandom(random)
+                .map(holder -> holder.value().copy())
+                .orElseThrow(() -> new IllegalStateException("No effects are registered"));
+    }
+
+    public static CraftorioShipmentContract getRandomShipment(RegistryAccess registryAccess, RandomSource random) {
+        Registry<CraftorioShipmentContract> registry = registryAccess.registryOrThrow(CraftorioShipmentContract.REGISTRY_KEY);
+
+        return registry.getRandom(random)
+                .map(holder -> holder.value().copy())
+                .orElseThrow(() -> new IllegalStateException("No shipment contracts are registered"));
+    }
+
+
 
 
 

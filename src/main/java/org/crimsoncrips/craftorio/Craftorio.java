@@ -15,6 +15,7 @@ import org.crimsoncrips.craftorio.block.CraftorioBlocks;
 import org.crimsoncrips.craftorio.block.entity.CraftorioBlockEntityTypes;
 import org.crimsoncrips.craftorio.client.ClientEvents;
 import org.crimsoncrips.craftorio.client.CraftorioClientConfig;
+import org.crimsoncrips.craftorio.data_components.CraftorioDataComponents;
 import org.crimsoncrips.craftorio.datagen.CraftorioDatagen;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioPointEffectTypes;
@@ -80,7 +81,7 @@ public class Craftorio {
         CraftorioBlockEntityTypes.BLOCK_ENTITIES.register(modEventBus);
         CraftorioItems.ITEMS.register(modEventBus);
         CraftorioMenuTypes.CONTAINERS.register(modEventBus);
-
+        CraftorioDataComponents.COMPONENTS.register(modEventBus);
 
         //Config
         modContainer.registerConfig(ModConfig.Type.COMMON, SERVER_CONFIG_SPEC, "craftorio-general.toml");

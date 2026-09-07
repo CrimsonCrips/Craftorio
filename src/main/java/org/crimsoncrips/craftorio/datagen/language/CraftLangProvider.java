@@ -13,5 +13,9 @@ public abstract class CraftLangProvider extends LanguageProvider {
 		this.add("misc.craftorio." + subtitleKey,text);
 	}
 
+	public void addRegistryName(String subtitleKey,String text) {
+		this.add("registry." + subtitleKey,text);
+	}
+
 
 }

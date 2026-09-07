@@ -1,4 +1,4 @@
-package org.crimsoncrips.craftorio.registries.contracts.shipment;
+package org.crimsoncrips.craftorio.registries.shipment;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
@@ -10,11 +10,8 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.level.Level;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
-import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
-import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
 
 
 import java.math.BigInteger;

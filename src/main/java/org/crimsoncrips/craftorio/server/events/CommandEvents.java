@@ -1,9 +1,7 @@
 package org.crimsoncrips.craftorio.server.events;
 
 import com.mojang.brigadier.CommandDispatcher;
-import com.mojang.brigadier.arguments.ArgumentType;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
-import com.mojang.brigadier.arguments.LongArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import net.minecraft.commands.CommandSourceStack;
@@ -16,10 +14,10 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.networking.ExpandScreenPacket;
-import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentContract;
+import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
+import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -27,8 +25,6 @@ import java.util.Comparator;
 import java.util.List;
 
 import static org.crimsoncrips.craftorio.CraftorioMisc.pointThreshold;
-import static org.crimsoncrips.craftorio.server.CraftorioDataAttachments.AMOUNT_OF_LAND;
-import static org.crimsoncrips.craftorio.server.CraftorioDataAttachments.POINTS;
 
 
 public class CommandEvents {
@@ -51,10 +47,21 @@ public class CommandEvents {
                         )
                 .then(Commands.literal("check_values").requires(cs -> cs.hasPermission(2)).executes(CommandEvents::runPropertiesCheck))
                 .then(Commands.literal("check_contracts").executes(CommandEvents::runCheckContracts))
+                .then(Commands.literal("check_effects").executes(CommandEvents::runCheckEffects))
 
         );
 
 
+    }
+
+    private static int runCheckEffects(CommandContext<CommandSourceStack> context) {
+        ServerPlayer serverPlayer = context.getSource().getPlayer();
+        if (serverPlayer != null) {
+            for (CraftorioEffects effects : CraftorioMisc.getCraftorioPointEffects(serverPlayer)){
+                context.getSource().sendSuccess(() -> Component.literal("Name:" + effects.getActualName() + "  Time:" + effects.getTime()), true);
+            }
+        }
+        return 1;
     }
 
     private static int runCheckContracts(CommandContext<CommandSourceStack> context) {

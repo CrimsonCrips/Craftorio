@@ -3,6 +3,7 @@ package org.crimsoncrips.craftorio.registries.effect;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.Registry;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
@@ -13,9 +14,6 @@ import org.crimsoncrips.craftorio.registries.CraftorioRegistries;
 
 import java.util.ArrayList;
 import java.util.List;
-
-import static org.crimsoncrips.craftorio.server.CraftorioDataAttachments.GENERAL_MULTIPLIER_EFFECTS;
-import static org.crimsoncrips.craftorio.server.CraftorioDataAttachments.TAG_MULTIPLIER_EFFECTS;
 
 public abstract class CraftorioEffects {
 
@@ -40,13 +38,19 @@ public abstract class CraftorioEffects {
 
     public abstract MapCodec<? extends CraftorioEffects> codec();
 
+    public abstract CraftorioEffects copy();
+
     public CraftorioEffects(String name, int time){
         this.name = name;
         this.time = time;
     }
 
-    public String getName(){
+    public String getNameKey(){
         return name;
+    }
+
+    public String getActualName(){
+        return Component.translatable(name).getString();
     }
 
     public void setName(String name) {
@@ -64,25 +68,15 @@ public abstract class CraftorioEffects {
 
         if (shouldEnd()) {
             Level level = player.level();
-            boolean universal = CraftorioMisc.universalBased(level);
-
             if (this instanceof TagMultiplierEffect) {
                 List<TagMultiplierEffect> effects = new ArrayList<>(CraftorioMisc.getTagEffects(player));
                 effects.remove(this);
-                if (universal) {
-                    level.setData(TAG_MULTIPLIER_EFFECTS, effects);
-                } else {
-                    player.setData(TAG_MULTIPLIER_EFFECTS, effects);
-                }
+                CraftorioMisc.setTagEffects(player,effects);
             }
             if (this instanceof GeneralMultiplierEffect) {
                 List<GeneralMultiplierEffect> effects = new ArrayList<>(CraftorioMisc.getGeneralEffects(player));
                 effects.remove(this);
-                if (universal) {
-                    level.setData(GENERAL_MULTIPLIER_EFFECTS, effects);
-                } else {
-                    player.setData(GENERAL_MULTIPLIER_EFFECTS, effects);
-                }
+                CraftorioMisc.setGeneralEffects(player,effects);
             }
         }
     }
@@ -90,4 +84,5 @@ public abstract class CraftorioEffects {
     public boolean shouldEnd(){
         return time <= 0;
     }
+
 }

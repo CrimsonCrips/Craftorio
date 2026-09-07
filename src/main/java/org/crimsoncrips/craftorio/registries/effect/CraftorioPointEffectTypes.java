@@ -15,22 +15,22 @@ public class CraftorioPointEffectTypes {
     public static final DeferredRegister<MapCodec<? extends CraftorioEffects>> TYPES =
             DeferredRegister.create(CraftorioEffects.TYPE_REGISTRY_KEY, Craftorio.MODID);
 
-    public static final Supplier<MapCodec<org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect>> GENERAL_MULTIPLIER =
+    public static final Supplier<MapCodec<GeneralMultiplierEffect>> GENERAL_MULTIPLIER =
             TYPES.register("general_multiplier", () -> RecordCodecBuilder.mapCodec(instance ->
                     instance.group(
-                            Codec.FLOAT.fieldOf("multiplier").forGetter(org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect::getMultiplier),
-                            Codec.STRING.fieldOf("name").forGetter(org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect::getName),
-                            Codec.INT.fieldOf("time").forGetter(org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect::getTime)
-                    ).apply(instance, org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect::new)
+                            Codec.FLOAT.fieldOf("multiplier").forGetter(GeneralMultiplierEffect::getMultiplier),
+                            Codec.STRING.fieldOf("name").forGetter(GeneralMultiplierEffect::getNameKey),
+                            Codec.INT.fieldOf("time").forGetter(GeneralMultiplierEffect::getTime)
+                    ).apply(instance, GeneralMultiplierEffect::new)
             ));
 
-    public static final Supplier<MapCodec<org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect>> TAG_MULTIPLIER =
+    public static final Supplier<MapCodec<TagMultiplierEffect>> TAG_MULTIPLIER =
             TYPES.register("tag_multiplier", () -> RecordCodecBuilder.mapCodec(instance ->
                     instance.group(
-                            Codec.FLOAT.fieldOf("multiplier").forGetter(org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect::getMultiplier),
-                            Codec.STRING.fieldOf("name").forGetter(org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect::getName),
-                            TagKey.hashedCodec(Registries.ITEM).fieldOf("item_tag").forGetter(org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect::getItemTag),
-                            Codec.INT.fieldOf("time").forGetter(org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect::getTime)
-                    ).apply(instance, org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect::new)
+                            Codec.FLOAT.fieldOf("multiplier").forGetter(TagMultiplierEffect::getMultiplier),
+                            Codec.STRING.fieldOf("name").forGetter(TagMultiplierEffect::getNameKey),
+                            TagKey.hashedCodec(Registries.ITEM).fieldOf("item_tag").forGetter(TagMultiplierEffect::getItemTag),
+                            Codec.INT.fieldOf("time").forGetter(TagMultiplierEffect::getTime)
+                    ).apply(instance, TagMultiplierEffect::new)
             ));
 }

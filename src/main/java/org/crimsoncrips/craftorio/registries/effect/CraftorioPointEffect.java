@@ -1,9 +1,10 @@
 package org.crimsoncrips.craftorio.registries.effect;
 
 import com.mojang.serialization.MapCodec;
+import net.minecraft.resources.ResourceLocation;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 
-public class CraftorioPointEffect extends CraftorioEffects {
+public abstract class CraftorioPointEffect extends CraftorioEffects {
 
     private final float multiplier;
 
@@ -20,4 +21,7 @@ public class CraftorioPointEffect extends CraftorioEffects {
     public MapCodec<? extends CraftorioEffects> codec() {
         return null;
     }
+
+    @Override
+    public abstract CraftorioEffects copy();
 }

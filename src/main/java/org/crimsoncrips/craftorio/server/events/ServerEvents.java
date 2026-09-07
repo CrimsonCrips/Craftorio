@@ -5,15 +5,15 @@ import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
-import net.neoforged.neoforge.client.event.RenderTooltipEvent;
 import net.neoforged.neoforge.event.entity.player.AdvancementEvent;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
@@ -24,12 +24,10 @@ import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.block.CraftorioBlocks;
-import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentContract;
-import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentItem;
-import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentItemReward;
+import org.crimsoncrips.craftorio.item.CraftorioItems;
+import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
+import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioPointEffect;
-import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
-import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
 import org.crimsoncrips.craftorio.server.CraftorioAdvancementPoints;
 import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
 import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
@@ -117,9 +115,14 @@ public class ServerEvents {
             player.addItem(CraftorioBlocks.SINKER.get().asItem().getDefaultInstance());
             CraftorioMisc.setPoints(CraftorioMisc.startingValue(), player);
 
-            //testing purposes
-            CraftorioMisc.grantEffect(player, ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "general/50_percent_addition"));
-            CraftorioMisc.grantEffect(player, ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "tag/copper_block_debuff"));
+            List<CraftorioEffects> craftorioEffectsList = new ArrayList<>();
+
+            for (int i = 0; i < 20;i++){
+                craftorioEffectsList.add(CraftorioMisc.getRandomEffect(player.registryAccess(),player.getRandom()));
+            }
+
+            CraftorioMisc.giveEffectItem(CraftorioItems.EFFECT_ITEM.get(),(ServerPlayer) player,craftorioEffectsList);
+            CraftorioMisc.giveEffectItem(CraftorioItems.MYSTERY_EFFECT_ITEM.get(),(ServerPlayer) player,craftorioEffectsList);
 
 
             CraftorioMisc.grantContract(player,ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "starter_contract"));

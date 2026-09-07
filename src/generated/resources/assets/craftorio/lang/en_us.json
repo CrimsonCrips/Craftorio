@@ -1,10 +1,19 @@
 {
   "block.craftorio.sinker": "Sinker",
+  "item.craftorio.effect_item": "Effect Item",
+  "item.craftorio.mystery_effect_item": "Mystery Effect Item",
   "misc.craftorio.advancement_value": "Points given for advancement : ",
   "misc.craftorio.claim_land": "Claim Land",
   "misc.craftorio.expand_border": "Expand Border",
   "misc.craftorio.points_required": "Points Required",
   "misc.craftorio.sinker_button": "Sink Points",
   "misc.craftorio.too_much_value": "Value exceeds Infinity!",
-  "misc.craftorio.unclaim_land": "Unclaim Land"
+  "misc.craftorio.unclaim_land": "Unclaim Land",
+  "registry.copper_block_buff": "Copper Block Buff",
+  "registry.copper_block_debuff": "Copper Block Debuff",
+  "registry.general_1": "General 1",
+  "registry.general_2": "General 2",
+  "registry.general_3": "General 3",
+  "registry.general_4": "General 4",
+  "registry.general_5": "General 5"
 }

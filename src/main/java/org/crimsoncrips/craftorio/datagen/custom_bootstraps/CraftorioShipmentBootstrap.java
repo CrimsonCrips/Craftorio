@@ -5,9 +5,9 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Items;
 import org.crimsoncrips.craftorio.Craftorio;
-import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentContract;
-import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentItem;
-import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentItemReward;
+import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
+import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentItem;
+import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentItemReward;
 
 import java.math.BigInteger;
 import java.util.List;

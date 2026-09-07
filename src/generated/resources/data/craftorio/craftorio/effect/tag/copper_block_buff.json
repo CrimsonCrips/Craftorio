@@ -2,6 +2,6 @@
   "type": "craftorio:tag_multiplier",
   "item_tag": "#craftorio:copper",
   "multiplier": 100.0,
-  "name": "Copper Block Buff",
+  "name": "registry.copper_block_buff",
   "time": 500
 }

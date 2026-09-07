@@ -1,4 +1,4 @@
-package org.crimsoncrips.craftorio.registries.contracts.shipment;
+package org.crimsoncrips.craftorio.registries.shipment;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;

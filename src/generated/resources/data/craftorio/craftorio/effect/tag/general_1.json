@@ -1,0 +1,6 @@
+{
+  "type": "craftorio:general_multiplier",
+  "multiplier": 100.0,
+  "name": "registry.general_1",
+  "time": 500
+}

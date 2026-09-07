@@ -10,7 +10,7 @@ public class CraftorioClientConfig {
     public CraftorioClientConfig(final ModConfigSpec.Builder builder) {
 
         builder.push("General");
-        this.POINT_FORMATTING = buildInt(builder, "POINT_FORMATTING", 0,0,3, "Point formatting (0 = 100000,1 = 1e5,2 = 100k,3 = 100 Thousand)");
+        this.POINT_FORMATTING = buildInt(builder, "POINT_FORMATTING", 2,0,3, "Point formatting (0 = 100000,1 = 1e5,2 = 100k,3 = 100 Thousand)");
         this.POINT_BAR_LOCATION = buildBoolean(builder, "POINT_BAR_LOCATION", true, "true = Right, false = Left");
 
         builder.pop();

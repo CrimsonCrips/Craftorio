@@ -53,7 +53,9 @@ public class ClientEvents {
 		Camera camPos = event.getCamera();
 
 		for (CraftorioBorder border : borders) {
-			renderBorderWall(mc,poseStack, camPos, border);
+			if (border.getDimension().equals(mc.player.level().dimension())) {
+				renderBorderWall(mc, poseStack, camPos, border);
+			}
 		}
 		
 	}
@@ -73,7 +75,7 @@ public class ClientEvents {
 			RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.SRC_ALPHA, GlStateManager.DestFactor.ONE, GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ZERO);
 			RenderSystem.setShaderTexture(0, FORCEFIELD_TEXTURE);
 			RenderSystem.depthMask(Minecraft.useShaderTransparency());
-			int i = 200;
+			int i = border.getStatus().getColor();
 			float f = (float)(i >> 16 & 255) / 255.0F;
 			float f1 = (float)(i >> 8 & 255) / 255.0F;
 			float f2 = (float)(i & 255) / 255.0F;
