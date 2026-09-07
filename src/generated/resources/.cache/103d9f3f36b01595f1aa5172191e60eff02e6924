@@ -1,4 +1,5 @@
-// 1.21.1	2026-09-07T00:02:43.62894395	Registries
-801bfb2d4a40a026c3955e7c8248088f111e3a45 data/craftorio/craftorio/effect/general/50_percent_addition.json
+// 1.21.1	2026-09-07T16:06:19.201836994	Registries
+6e71e6f6be42ca052c69fddba53da81c6146f644 data/craftorio/craftorio/effect/general/50_percent_addition.json
 3b5f16dac9fde2bea2c4e1be6b72ec9f04915f02 data/craftorio/craftorio/effect/tag/copper_block_buff.json
-ca2a61a9889bfe41a7bd52a95e9896678673947d data/craftorio/craftorio/shipment_contract/starter_contract.json
+d94fbb7881cc0ce61de595ee53d08c1e9294a224 data/craftorio/craftorio/effect/tag/copper_block_debuff.json
+2fd9e261b3d54063137cb79029ec51907e8577f3 data/craftorio/craftorio/shipment_contract/starter_contract.json

@@ -12,14 +12,23 @@ import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
 public class CraftorioEffectBootstrap {
 
     public static void bootstrap(BootstrapContext<CraftorioEffects> context) {
+
+        //Buff
         context.register(
                 key("general/50_percent_addition"),
-                new GeneralMultiplierEffect(1.5F, "50% addition", 200)
+                new GeneralMultiplierEffect(1.5F, "50% addition", 500)
         );
 
         context.register(
                 key("tag/copper_block_buff"),
                 new TagMultiplierEffect(100F, "Copper Block Buff", CraftorioItemTagGen.COPPER, 500)
+        );
+
+
+        //Debuffs
+        context.register(
+                key("tag/copper_block_debuff"),
+                new TagMultiplierEffect(-10F, "Copper Block Debuff", CraftorioItemTagGen.COPPER, 500)
         );
     }
 

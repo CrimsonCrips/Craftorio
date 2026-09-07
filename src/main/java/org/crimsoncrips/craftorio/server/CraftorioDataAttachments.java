@@ -19,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
+import static org.crimsoncrips.craftorio.CraftorioMisc.BIGINT_CODEC;
+
 
 public class CraftorioDataAttachments {
     public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES = DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, Craftorio.MODID);
@@ -34,11 +36,11 @@ public class CraftorioDataAttachments {
                     .build());
 
     public static final Supplier<AttachmentType<BigInteger>> POINTS = ATTACHMENT_TYPES.register(
-            "points", () -> AttachmentType.builder(CraftorioMisc::startingValue).serialize(Codec.STRING.xmap(BigInteger::new, BigInteger::toString)).sync(ByteBufCodecs.fromCodec(Codec.STRING.xmap(BigInteger::new, BigInteger::toString))).build()
+            "points", () -> AttachmentType.builder(CraftorioMisc::startingValue).serialize(BIGINT_CODEC()).sync(ByteBufCodecs.fromCodec(BIGINT_CODEC())).build()
     );
 
     public static final Supplier<AttachmentType<BigInteger>> TEMP_POINTS = ATTACHMENT_TYPES.register(
-            "temp_points", () -> AttachmentType.builder(() -> BigInteger.ZERO).serialize(Codec.STRING.xmap(BigInteger::new, BigInteger::toString)).sync(ByteBufCodecs.fromCodec(Codec.STRING.xmap(BigInteger::new, BigInteger::toString))).build()
+            "temp_points", () -> AttachmentType.builder(() -> BigInteger.ZERO).serialize(BIGINT_CODEC()).sync(ByteBufCodecs.fromCodec(BIGINT_CODEC())).build()
     );
 
     public static final Supplier<AttachmentType<Boolean>> CHUNK_BASED = ATTACHMENT_TYPES.register(

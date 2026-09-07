@@ -1,5 +1,7 @@
 package org.crimsoncrips.craftorio;
 
+import com.mojang.serialization.Codec;
+import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
@@ -22,6 +24,7 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.phys.Vec3;
 import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentContract;
 import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentItem;
+import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentItemReward;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioPointEffect;
@@ -434,7 +437,7 @@ public class CraftorioMisc {
         BigInteger absValue = value.abs();
 
         String result = switch (formatType) {
-            case 0 -> value.toString();
+            case 0 -> absValue.toString();
             case 1 -> toScientificNotation(absValue);
             case 2 -> toSuffix(absValue,false);
             case 3 -> toSuffix(absValue, true);
@@ -703,9 +706,13 @@ public class CraftorioMisc {
         }
     }
 
-    public static CraftorioShipmentContract makeCraftorioContract(List<CraftorioShipmentItem> contractItems,String name,int time){
-        return new CraftorioShipmentContract(contractItems,name,time);
+    public static CraftorioShipmentContract makeCraftorioContract(List<CraftorioShipmentItem> contractItems, String name, int time, BigInteger pointsGiving, List<CraftorioShipmentItemReward> rewards){
+        return new CraftorioShipmentContract(contractItems,name,time,pointsGiving,rewards);
     }
+
+    public static Codec<BigInteger> BIGINT_CODEC(){
+       return Codec.STRING.xmap(BigInteger::new, BigInteger::toString);
+    };
 
 
 

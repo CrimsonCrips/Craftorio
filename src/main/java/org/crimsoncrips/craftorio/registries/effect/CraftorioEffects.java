@@ -6,10 +6,12 @@ import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.Level;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.registries.CraftorioRegistries;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static org.crimsoncrips.craftorio.server.CraftorioDataAttachments.GENERAL_MULTIPLIER_EFFECTS;
@@ -56,21 +58,36 @@ public abstract class CraftorioEffects {
     public void setTime(int time) {
         this.time = time;
     }
+
     public void tick(Player player){
         setTime(time - 1);
 
         if (shouldEnd()) {
+            Level level = player.level();
+            boolean universal = CraftorioMisc.universalBased(level);
+
             if (this instanceof TagMultiplierEffect) {
-                List<TagMultiplierEffect> effects = CraftorioMisc.getTagEffects(player);
+                List<TagMultiplierEffect> effects = new ArrayList<>(CraftorioMisc.getTagEffects(player));
                 effects.remove(this);
-                player.setData(TAG_MULTIPLIER_EFFECTS, effects);
+                if (universal) {
+                    level.setData(TAG_MULTIPLIER_EFFECTS, effects);
+                } else {
+                    player.setData(TAG_MULTIPLIER_EFFECTS, effects);
+                }
             }
             if (this instanceof GeneralMultiplierEffect) {
-                List<GeneralMultiplierEffect> effects = CraftorioMisc.getGeneralEffects(player);
+                List<GeneralMultiplierEffect> effects = new ArrayList<>(CraftorioMisc.getGeneralEffects(player));
                 effects.remove(this);
-                player.setData(GENERAL_MULTIPLIER_EFFECTS, CraftorioMisc.getGeneralEffects(player));
+                if (universal) {
+                    level.setData(GENERAL_MULTIPLIER_EFFECTS, effects);
+                } else {
+                    player.setData(GENERAL_MULTIPLIER_EFFECTS, effects);
+                }
             }
         }
     }
-    public boolean shouldEnd(){ return time <= 0; }
+
+    public boolean shouldEnd(){
+        return time <= 0;
+    }
 }

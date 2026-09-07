@@ -25,6 +25,7 @@ import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.block.CraftorioBlocks;
 import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentContract;
 import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentItem;
+import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentItemReward;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioPointEffect;
 import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
@@ -116,16 +117,8 @@ public class ServerEvents {
 
             //testing purposes
             CraftorioMisc.grantEffect(player, ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "general/50_percent_addition"));
-            CraftorioMisc.grantEffect(player, ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "tag/copper_block_buff"));
+            CraftorioMisc.grantEffect(player, ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "tag/copper_block_debuff"));
 
-
-            CraftorioShipmentItem contractItem = new CraftorioShipmentItem(10, Items.OBSIDIAN);
-            List<CraftorioShipmentItem> contractItems = new ArrayList<>();
-            contractItems.add(contractItem);
-
-            List<CraftorioShipmentContract> contracts = new ArrayList<>();
-            contracts.add(CraftorioMisc.makeCraftorioContract(contractItems,"OBSIDIAN",500));
-            CraftorioMisc.setCraftorioContracts(player,contracts);
 
             CraftorioMisc.grantContract(player,ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "starter_contract"));
 
@@ -175,9 +168,7 @@ public class ServerEvents {
 
         if (!CraftorioMisc.getCraftorioContracts(player).isEmpty()){
             for (CraftorioShipmentContract contract : ImmutableList.copyOf(CraftorioMisc.getCraftorioContracts(player))) {
-                if (!contract.shouldEnd()) {
-                    contract.tick(player);
-                }
+                contract.tick(player);
             }
         }
     }

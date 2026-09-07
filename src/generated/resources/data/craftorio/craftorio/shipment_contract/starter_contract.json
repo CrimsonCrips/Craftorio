@@ -9,6 +9,17 @@
       "contract_item": "minecraft:iron_ingot"
     }
   ],
+  "itemRewards": [
+    {
+      "amountGiving": 32,
+      "rewardingItem": "minecraft:copper_ingot"
+    },
+    {
+      "amountGiving": 16,
+      "rewardingItem": "minecraft:iron_ingot"
+    }
+  ],
   "name": "Starter Contract",
+  "pointRewards": "1000",
   "time": 500
 }

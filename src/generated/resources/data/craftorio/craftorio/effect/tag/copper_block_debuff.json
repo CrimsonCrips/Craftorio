@@ -1,0 +1,7 @@
+{
+  "type": "craftorio:tag_multiplier",
+  "item_tag": "#craftorio:copper",
+  "multiplier": -10.0,
+  "name": "Copper Block Debuff",
+  "time": 500
+}
