@@ -29,7 +29,7 @@ import java.util.List;
 
 @Mixin(GuiMap.class)
 
-public abstract class CraftGuiMapMixin {
+public abstract class CraftorioGuiMapMixin {
 
     @Shadow
     private MapTileSelection mapTileSelection;

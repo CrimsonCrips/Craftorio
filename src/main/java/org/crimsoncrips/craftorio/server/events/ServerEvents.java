@@ -33,6 +33,7 @@ import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
 import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
 
 
+import java.awt.*;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,21 +44,23 @@ public class ServerEvents {
 
     @SubscribeEvent
     public void serverStarted(ServerStartedEvent event) {
-        ServerLevel level = event.getServer().getLevel(event.getServer().overworld().dimension());
-        if (level == null) return;
-
-
-        if (!level.getData(FINALIZED)){
-            level.setData(CHUNK_BASED,Craftorio.SERVER_CONFIG.CHUNK_BASED_EXPANSION.getAsBoolean());
-            level.setData(UNIVERSAL_BASED,Craftorio.SERVER_CONFIG.UNIVERSAL_PROGRESSION.getAsBoolean());
-            if (CraftorioMisc.universalBased(level)){
-                level.setData(NO_BORDERS,true);
-            } else {
-                level.setData(NO_BORDERS,Craftorio.SERVER_CONFIG.NO_BORDERS.getAsBoolean());
+        // CHUNK_BASED/UNIVERSAL_BASED/NO_BORDERS/FINALIZED are level data attachments,
+        // which are per-dimension - initialize them on every dimension (not just the
+        // overworld) so a level other than the overworld never falls back to the
+        // attachment's hardcoded default instead of the configured value.
+        for (ServerLevel level : event.getServer().getAllLevels()) {
+            if (!level.getData(FINALIZED)){
+                level.setData(CHUNK_BASED,Craftorio.SERVER_CONFIG.CHUNK_BASED_EXPANSION.getAsBoolean());
+                level.setData(UNIVERSAL_BASED,Craftorio.SERVER_CONFIG.UNIVERSAL_PROGRESSION.getAsBoolean());
+                if (CraftorioMisc.universalBased(level)){
+                    level.setData(NO_BORDERS,true);
+                } else {
+                    level.setData(NO_BORDERS,Craftorio.SERVER_CONFIG.NO_BORDERS.getAsBoolean());
+                }
             }
-        }
 
-        level.setData(FINALIZED,true);
+            level.setData(FINALIZED,true);
+        }
     }
 
 
@@ -105,6 +108,30 @@ public class ServerEvents {
         itemTooltipEvent.getToolTip().add(1,Component.literal("Points : " + pointValue + multiplierText ).withColor(16759552));
     }
 
+    @SubscribeEvent
+    public void playerDimension(PlayerEvent.PlayerChangedDimensionEvent dimensionEvent){
+        Player player = dimensionEvent.getEntity();
+        Level level = player.level();
+
+        if (player instanceof ServerPlayer serverPlayer && !CraftorioMisc.getDimensionsExplored(player).contains(dimensionEvent.getTo())) {
+            if (CraftorioMisc.chunkBased(level)){
+                CraftorioMisc.ownChunk(CraftorioMisc.startingLocations(level.getChunk(serverPlayer.getOnPos()).getPos()),level,true,player,true);
+            } else {
+                List<CraftorioBorder> newBorder = new ArrayList<>(CraftorioMisc.getCraftorioBorders(player));
+                newBorder.add(new CraftorioBorder(serverPlayer.getOnPos(),CraftorioMisc.startingLand(),1,10,1,10, dimensionEvent.getTo()));
+                CraftorioMisc.setCraftorioBorders(player,newBorder);
+            }
+
+            List<ResourceKey<Level>> newDimensions = new ArrayList<>(CraftorioMisc.getDimensionsExplored(player));
+            newDimensions.add(dimensionEvent.getTo());
+            CraftorioMisc.setDimensionsExplored(player,newDimensions);
+
+
+        }
+
+
+    }
+
 
     @SubscribeEvent
     public void playerLogin(PlayerEvent.PlayerLoggedInEvent event) {
@@ -125,6 +152,7 @@ public class ServerEvents {
             CraftorioMisc.giveEffectItem(CraftorioItems.MYSTERY_EFFECT_ITEM.get(),(ServerPlayer) player,craftorioEffectsList);
 
 
+
             CraftorioMisc.grantContract(player,ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "starter_contract"));
 
             if (player instanceof ServerPlayer serverPlayer) {
@@ -137,6 +165,10 @@ public class ServerEvents {
                 if (CraftorioMisc.universalBased(level)){
                    spawnPos = serverLevel.getSharedSpawnPos();
                 }
+
+                List<ResourceKey<Level>> newDimension = new ArrayList<>();
+                newDimension.add(serverPlayer.getRespawnDimension());
+                CraftorioMisc.setDimensionsExplored(player,newDimension);
 
                 if (CraftorioMisc.chunkBased(level)){
                     CraftorioMisc.ownChunk(CraftorioMisc.startingLocations(level.getChunk(spawnPos).getPos()),level,true,player,true);
@@ -152,8 +184,6 @@ public class ServerEvents {
                 serverPlayer.teleportTo(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5);
                 serverPlayer.setRespawnPosition(serverLevel.dimension(), spawnPos, 0F, true, false);
 
-
-
             }
 
 
@@ -161,7 +191,6 @@ public class ServerEvents {
             if ((CraftorioMisc.getLandAmount(player) <= 0 && CraftorioMisc.isNoBorders(level)) || !CraftorioMisc.isNoBorders(level)){
                 CraftorioMisc.setLandAmount(CraftorioMisc.startingLand(), player);
             }
-
 
             player.setData(GIVEN, true);
         }
@@ -209,6 +238,10 @@ public class ServerEvents {
             List<CraftorioBorder> borders = CraftorioMisc.getCraftorioBorders(player);
 
             for (CraftorioBorder border : borders) {
+                if (!border.getDimension().equals(player.level().dimension())) {
+                    continue;
+                }
+
                 double x = player.getX();
                 double z = player.getZ();
 

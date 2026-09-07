@@ -4,11 +4,14 @@
   "package": "org.crimsoncrips.craftorio.mixin",
   "compatibilityLevel": "JAVA_21",
   "mixins": [
-    "CraftCollisionGetter",
-    "CraftEntityMixin",
-    "CraftGuiMapMixin"
+    "CraftorioCollisionGetter",
+    "CraftorioEntityMixin",
+    "CraftorioGamePacketListenerMixin",
+    "CraftorioGuiMapMixin",
+    "CraftorioServerLevelMixin"
   ],
   "client": [
+    "CraftorioMultiPlayerGameModeMixin"
   ],
   "injectors": {
     "defaultRequire": 1

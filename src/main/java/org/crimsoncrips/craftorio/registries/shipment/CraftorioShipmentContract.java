@@ -140,7 +140,7 @@ public class CraftorioShipmentContract {
                 }
             }
 
-            List<CraftorioShipmentContract> newContract = CraftorioMisc.getCraftorioContracts(player);
+            List<CraftorioShipmentContract> newContract = new ArrayList<>(CraftorioMisc.getCraftorioContracts(player));
             newContract.remove(this);
             CraftorioMisc.setCraftorioContracts(player,newContract);
         }

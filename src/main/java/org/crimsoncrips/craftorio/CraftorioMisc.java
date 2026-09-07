@@ -137,6 +137,7 @@ public class CraftorioMisc {
             } else {
                 border.lerpSizeBetween(borderSize - expandAmount,3000);
             }
+            setCraftorioBorders(player, getCraftorioBorders(player));
         }
     }
 
@@ -802,6 +803,24 @@ public class CraftorioMisc {
         return registry.getRandom(random)
                 .map(holder -> holder.value().copy())
                 .orElseThrow(() -> new IllegalStateException("No shipment contracts are registered"));
+    }
+
+    public static List<ResourceKey<Level>> getDimensionsExplored(Player player){
+        Level level = player.level();
+        if (universalBased(level)){
+            return level.getData(DIMENSIONS_EXPLORED);
+        } else {
+            return player.getData(DIMENSIONS_EXPLORED);
+        }
+    }
+
+    public static void setDimensionsExplored(Player player, List<ResourceKey<Level>> dimensionsExplored){
+        Level level = player.level();
+        if (universalBased(level)){
+            level.setData(DIMENSIONS_EXPLORED, dimensionsExplored);
+        } else {
+            player.setData(DIMENSIONS_EXPLORED, dimensionsExplored);
+        }
     }
 
 

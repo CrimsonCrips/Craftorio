@@ -1,9 +1,14 @@
 package org.crimsoncrips.craftorio.server;
 
 import com.mojang.serialization.Codec;
+import io.netty.buffer.ByteBuf;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -15,6 +20,7 @@ import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
 import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
 
+import java.awt.*;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -94,6 +100,19 @@ public class CraftorioDataAttachments {
                     AttachmentType.<List<CraftorioBorder>>builder((holder) -> new ArrayList<>())
                             .serialize(Codec.list(CraftorioBorder.CODEC))
                             .sync(CraftorioBorder.STREAM_CODEC.apply(ByteBufCodecs.list()))
+                            .build());
+
+    private static final StreamCodec<ByteBuf, ResourceKey<Level>> DIMENSION_STREAM_CODEC =
+            ResourceLocation.STREAM_CODEC.map(
+                    loc -> ResourceKey.create(Registries.DIMENSION, loc),
+                    ResourceKey::location
+            );
+
+    public static final Supplier<AttachmentType<List<ResourceKey<Level>>>> DIMENSIONS_EXPLORED =
+            ATTACHMENT_TYPES.register("dimensions_explored", () ->
+                    AttachmentType.<List<ResourceKey<Level>>>builder((holder) -> new ArrayList<>())
+                            .serialize(Codec.list(Level.RESOURCE_KEY_CODEC))
+                            .sync(DIMENSION_STREAM_CODEC.apply(ByteBufCodecs.list()))
                             .build());
 
 }

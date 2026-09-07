@@ -1,5 +1,7 @@
 package org.crimsoncrips.craftorio.server;
 
+import net.minecraft.core.BlockPos;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.shapes.BooleanOp;
@@ -14,13 +16,37 @@ import java.util.List;
 
 public class BorderCollisionHooks {
 
+    /**
+     * Mirrors WorldBorder#isWithinBounds: a position must be inside every one
+     * of the player's Craftorio borders, matching the AND semantics used by
+     * {@link #combineCraftorioBorders} (outside any single border is solid).
+     */
+    public static boolean isWithinCraftorioBorders(Player player, BlockPos pos) {
+        return isWithinCraftorioBorders(player, pos.getX(), pos.getZ());
+    }
+
+    public static boolean isWithinCraftorioBorders(Player player, double x, double z) {
+        ResourceKey<Level> dimension = player.level().dimension();
+        for (CraftorioBorder border : CraftorioMisc.getCraftorioBorders(player)) {
+            if (!border.getDimension().equals(dimension)) {
+                continue;
+            }
+            if (!border.isWithinBounds(x, z)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public static @NotNull VoxelShape combineCraftorioBorders(Level level, Player player, @Nullable VoxelShape original) {
         VoxelShape result = original == null ? Shapes.empty() : original;
 
         List<CraftorioBorder> borders = CraftorioMisc.getCraftorioBorders(player);
 
         for (CraftorioBorder border : borders) {
-            
+            if (!border.getDimension().equals(level.dimension())) {
+                continue;
+            }
 
             VoxelShape insideShape = Shapes.box(
                     border.getMinX(),
