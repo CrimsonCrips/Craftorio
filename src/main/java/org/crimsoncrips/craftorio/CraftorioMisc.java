@@ -1,12 +1,12 @@
 package org.crimsoncrips.craftorio;
 
 import com.mojang.serialization.Codec;
-import com.mojang.serialization.codecs.RecordCodecBuilder;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.*;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.PlayerRespawnLogic;
 import net.minecraft.server.level.ServerLevel;
@@ -23,14 +23,13 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.phys.Vec3;
 import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentContract;
-import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentItem;
-import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentItemReward;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioPointEffect;
 import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
 import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
+import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
 
 import java.awt.*;
 import java.math.BigDecimal;
@@ -125,7 +124,6 @@ public class CraftorioMisc {
         BigInteger amountToClaim = CraftorioMisc.pointsToExpand(expandAmount,claimed_amount);
         expandAmount *= Craftorio.SERVER_CONFIG.EXPANSION_AMOUNT.getAsInt();
         if (points.compareTo(amountToClaim) >= 0){
-            System.out.println(expandAmount);
             double borderSize = level.getWorldBorder().getSize();
             if (expand){
                 level.getWorldBorder().lerpSizeBetween(borderSize,borderSize + expandAmount,3000);
@@ -706,13 +704,39 @@ public class CraftorioMisc {
         }
     }
 
-    public static CraftorioShipmentContract makeCraftorioContract(List<CraftorioShipmentItem> contractItems, String name, int time, BigInteger pointsGiving, List<CraftorioShipmentItemReward> rewards){
-        return new CraftorioShipmentContract(contractItems,name,time,pointsGiving,rewards);
-    }
-
     public static Codec<BigInteger> BIGINT_CODEC(){
        return Codec.STRING.xmap(BigInteger::new, BigInteger::toString);
     };
+
+
+    public static List<CraftorioBorder> getCraftorioBorders(Player player){
+        Level level = player.level();
+        if (universalBased(level)){
+            return level.getData(PLAYER_BORDERS);
+        } else {
+            return player.getData(PLAYER_BORDERS);
+        }
+    }
+
+    public static void setCraftorioBorders(Player player, List<CraftorioBorder> borders){
+        Level level = player.level();
+        if (universalBased(level)){
+            level.setData(PLAYER_BORDERS, borders);
+        } else {
+            player.setData(PLAYER_BORDERS, borders);
+        }
+    }
+
+    public static CraftorioBorder getCraftorioBorder(Player player, ResourceKey<Level> dimensionType){
+        for (CraftorioBorder craftorioBorder : getCraftorioBorders(player)) {
+            if (craftorioBorder.getDimension().equals(dimensionType)) {
+                return craftorioBorder;
+            }
+        }
+        return null;
+    }
+
+
 
 
 

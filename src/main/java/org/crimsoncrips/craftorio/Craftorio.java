@@ -72,6 +72,7 @@ public class Craftorio {
         if (FMLEnvironment.dist.isClient()) {
             modEventBus.addListener(new ClientEvents()::registerScreens);
             modEventBus.addListener(ClientEvents::showPoints);
+            NeoForge.EVENT_BUS.addListener(ClientEvents::renderBorders);
         }
 
         CraftorioPointEffectTypes.TYPES.register(modEventBus);

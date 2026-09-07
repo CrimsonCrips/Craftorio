@@ -13,6 +13,7 @@ import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.registries.contracts.shipment.CraftorioShipmentContract;
 import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
+import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -87,5 +88,12 @@ public class CraftorioDataAttachments {
                     .sync(GlobalPos.STREAM_CODEC)
                     .build()
     );
+
+    public static final Supplier<AttachmentType<List<CraftorioBorder>>> PLAYER_BORDERS =
+            ATTACHMENT_TYPES.register("player_borders", () ->
+                    AttachmentType.<List<CraftorioBorder>>builder((holder) -> new ArrayList<>())
+                            .serialize(Codec.list(CraftorioBorder.CODEC))
+                            .sync(CraftorioBorder.STREAM_CODEC.apply(ByteBufCodecs.list()))
+                            .build());
 
 }

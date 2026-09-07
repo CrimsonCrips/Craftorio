@@ -20,6 +20,7 @@ import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
+import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.block.CraftorioBlocks;
@@ -31,6 +32,7 @@ import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
 import org.crimsoncrips.craftorio.server.CraftorioAdvancementPoints;
 import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
+import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
 
 
 import java.math.BigInteger;
@@ -133,20 +135,27 @@ public class ServerEvents {
                    spawnPos = serverLevel.getSharedSpawnPos();
                 }
 
+                if (CraftorioMisc.chunkBased(level)){
+                    CraftorioMisc.ownChunk(CraftorioMisc.startingLocations(level.getChunk(spawnPos).getPos()),level,true,player,true);
+                } else {
+                    List<CraftorioBorder> newBorder = new ArrayList<>();
+                    newBorder.add(new CraftorioBorder(spawnPos,CraftorioMisc.startingLand(),1,10,1,10, serverPlayer.getRespawnDimension()));
+                    CraftorioMisc.setCraftorioBorders(player,newBorder);
+                }
+
                 GlobalPos origin = GlobalPos.of(serverLevel.dimension(), spawnPos);
                 serverPlayer.setData(CraftorioDataAttachments.SPAWN_ORIGIN.get(), origin);
 
                 serverPlayer.teleportTo(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5);
                 serverPlayer.setRespawnPosition(serverLevel.dimension(), spawnPos, 0F, true, false);
 
-                CraftorioMisc.ownChunk(CraftorioMisc.startingLocations(level.getChunk(spawnPos).getPos()),level,true,player,true);
+
+
             }
 
 
 
-            if (CraftorioMisc.getLandAmount(player) <= 0 && CraftorioMisc.isNoBorders(level)){
-                CraftorioMisc.setLandAmount(CraftorioMisc.startingLand(), player);
-            } else if (!CraftorioMisc.isNoBorders(level)){
+            if ((CraftorioMisc.getLandAmount(player) <= 0 && CraftorioMisc.isNoBorders(level)) || !CraftorioMisc.isNoBorders(level)){
                 CraftorioMisc.setLandAmount(CraftorioMisc.startingLand(), player);
             }
 
@@ -188,6 +197,27 @@ public class ServerEvents {
 
         if (value.compareTo(BigInteger.ZERO) > 0) {
             player.sendSystemMessage(Component.literal(string + value));
+        }
+    }
+
+    @SubscribeEvent
+    public void serverTick(ServerTickEvent.Post event) {
+        for (ServerPlayer player : event.getServer().getPlayerList().getPlayers()) {
+            List<CraftorioBorder> borders = CraftorioMisc.getCraftorioBorders(player);
+
+            for (CraftorioBorder border : borders) {
+                double x = player.getX();
+                double z = player.getZ();
+
+                if (!border.isWithinBounds(x, z)) {
+                    double distanceOutside = -border.getDistanceToBorder(x, z);
+
+                    if (distanceOutside > border.getDamageSafeZone() && player.tickCount % 20 == 0) {
+                        int damageMultiplier = (int) Math.max(1, distanceOutside - border.getDamageSafeZone());
+                        player.hurt(player.damageSources().outOfBorder(), (float) (damageMultiplier * border.getDamagePerBlock()));
+                    }
+                }
+            }
         }
     }
 
