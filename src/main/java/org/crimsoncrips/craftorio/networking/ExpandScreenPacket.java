@@ -7,7 +7,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.crimsoncrips.craftorio.Craftorio;
-import org.crimsoncrips.craftorio.client.BorderExpandScreen;
+import org.crimsoncrips.craftorio.client.screen.BorderExpandScreen;
 
 public record ExpandScreenPacket(boolean boolVal) implements CustomPacketPayload {
 

@@ -1,4 +1,4 @@
-package org.crimsoncrips.craftorio.client;
+package org.crimsoncrips.craftorio.client.screen;
 
 import com.google.common.collect.Lists;
 import net.minecraft.client.gui.GuiGraphics;
@@ -8,19 +8,14 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.player.Inventory;
-import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
-import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.inventory.SinkerMenu;
 import org.crimsoncrips.craftorio.networking.SinkItemsPacket;
 
-import java.math.BigInteger;
 import java.util.List;
 
 public class SinkScreen extends AbstractContainerScreen<SinkerMenu>{

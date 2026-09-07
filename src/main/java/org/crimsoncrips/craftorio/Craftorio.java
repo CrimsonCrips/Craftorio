@@ -26,6 +26,7 @@ import org.crimsoncrips.craftorio.server.CraftorioServerConfig;
 import org.crimsoncrips.craftorio.server.events.CommandEvents;
 import org.crimsoncrips.craftorio.networking.RegistrationEvents;
 import org.crimsoncrips.craftorio.server.events.ServerEvents;
+import org.crimsoncrips.craftorio.server.unlocks.CraftorioUnlockedItemsManager;
 import org.slf4j.Logger;
 
 import java.util.Locale;
@@ -48,6 +49,11 @@ public class Craftorio {
     public static final CraftorioClientConfig CLIENT_CONFIG;
     private static final ModConfigSpec CLIENT_CONFIG_SPEC;
 
+    // Tracks which items each player has unlocked for the shop screen, backed by
+    // its own per-player NBT files rather than a data attachment - see
+    // CraftorioUnlockedItemsManager for why.
+    public static final CraftorioUnlockedItemsManager UNLOCKED_ITEMS = new CraftorioUnlockedItemsManager();
+
     static {
         final Pair<CraftorioServerConfig, ModConfigSpec> serverPair = new ModConfigSpec.Builder().configure(CraftorioServerConfig::new);
         SERVER_CONFIG = serverPair.getLeft();
@@ -67,6 +73,7 @@ public class Craftorio {
 
         NeoForge.EVENT_BUS.register(new CommandEvents());
         NeoForge.EVENT_BUS.register(new ServerEvents());
+        NeoForge.EVENT_BUS.register(UNLOCKED_ITEMS);
 
         modEventBus.addListener(new RegistrationEvents()::setupPackets);
         modEventBus.addListener(CraftorioDataMaps::registerDataMaps);

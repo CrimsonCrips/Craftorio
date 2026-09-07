@@ -8,16 +8,21 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.networking.ExpandScreenPacket;
+import org.crimsoncrips.craftorio.networking.OpenShopScreenPacket;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
+import org.crimsoncrips.craftorio.server.CraftorioShop;
+import org.crimsoncrips.craftorio.server.CraftorioShopMode;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -48,6 +53,7 @@ public class CommandEvents {
                 .then(Commands.literal("check_values").requires(cs -> cs.hasPermission(2)).executes(CommandEvents::runPropertiesCheck))
                 .then(Commands.literal("check_contracts").executes(CommandEvents::runCheckContracts))
                 .then(Commands.literal("check_effects").executes(CommandEvents::runCheckEffects))
+                .then(Commands.literal("shop").executes(CommandEvents::runOpenShop))
 
         );
 
@@ -90,6 +96,22 @@ public class CommandEvents {
         if (serverPlayer != null) {
             PacketDistributor.sendToPlayer(serverPlayer, new ExpandScreenPacket(true));
         }
+        return 1;
+    }
+
+    private static int runOpenShop(CommandContext<CommandSourceStack> context) {
+        ServerPlayer serverPlayer = context.getSource().getPlayer();
+        if (serverPlayer == null) return 0;
+
+        if (!CraftorioShop.isEnabled()) {
+            serverPlayer.sendSystemMessage(Component.literal("The shop is currently disabled."));
+            return 0;
+        }
+
+        boolean allUnlocked = Craftorio.SERVER_CONFIG.SHOP_MODE.get() == CraftorioShopMode.OPEN;
+        List<ResourceLocation> unlocked = allUnlocked ? List.of() : new ArrayList<>(Craftorio.UNLOCKED_ITEMS.getUnlocked(serverPlayer));
+
+        PacketDistributor.sendToPlayer(serverPlayer, new OpenShopScreenPacket(allUnlocked, unlocked));
         return 1;
     }
 

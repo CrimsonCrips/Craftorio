@@ -12,6 +12,7 @@ public class CraftorioServerConfig {
     public final ModConfigSpec.IntValue BASE_COST;
     public final ModConfigSpec.IntValue EXPANSION_AMOUNT;
     public final ModConfigSpec.ConfigValue<String> STARTING_POINTS;
+    public final ModConfigSpec.EnumValue<CraftorioShopMode> SHOP_MODE;
 
     public final ModConfigSpec.DoubleValue MIN_SPAWN_DISTANCE;
     public final ModConfigSpec.DoubleValue MAX_SPAWN_DISTANCE;
@@ -26,6 +27,7 @@ public class CraftorioServerConfig {
         this.COST_MULTIPLIER = buildDouble(builder, "COST_MULTIPLIER", 0.05F,0,Double.MAX_VALUE, "Cost Multiplier (ex. 0.05F = 5%)");
         this.BASE_COST = buildInt(builder, "BASE_COST", 10,1,Integer.MAX_VALUE, "Base Cost of Land");
         this.STARTING_POINTS = buildString(builder, "STARTING_POINTS",  "100", "Starting points (exponents work like 1e2)");
+        this.SHOP_MODE = builder.comment("Shop screen access: DISABLED (cant be opened), UNLOCKED (only items the player has picked up at least once can be bought), OPEN (every priced item is buyable immediately)").translation("SHOP_MODE").defineEnum("SHOP_MODE", CraftorioShopMode.UNLOCKED);
 
         MIN_SPAWN_DISTANCE = builder.defineInRange("min_spawn_distance", 500.0, 0.0, 100000.0);
         MAX_SPAWN_DISTANCE = builder.defineInRange("max_spawn_distance", 2000.0, 0.0, 1000000.0);
