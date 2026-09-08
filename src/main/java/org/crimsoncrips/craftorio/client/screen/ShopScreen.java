@@ -7,22 +7,20 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.registries.effect.ShopMultiplierEffect;
 import org.crimsoncrips.craftorio.server.CraftorioShop;
+import org.crimsoncrips.craftorio.server.CraftorioShopCatalog;
+import org.crimsoncrips.craftorio.server.CraftorioShopCatalog.CatalogEntry;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -46,14 +44,14 @@ public class ShopScreen extends Screen {
     private static final int GRID_TOP = 50;
 
 
-    private static List<Item> catalog;
+    private static List<CatalogEntry> catalog;
 
     private final boolean allUnlocked;
     private final Set<ResourceLocation> unlockedItems;
 
     private EditBox searchBox;
     private String searchQuery = "";
-    private List<Item> filtered = List.of();
+    private List<CatalogEntry> filtered = List.of();
     private int page = 0;
 
     public ShopScreen(boolean allUnlocked, Set<ResourceLocation> unlockedItems) {
@@ -62,41 +60,65 @@ public class ShopScreen extends Screen {
         this.unlockedItems = unlockedItems;
     }
 
-    private boolean isUnlocked(Item item) {
-        return this.allUnlocked || this.unlockedItems.contains(BuiltInRegistries.ITEM.getKey(item));
+    private boolean isUnlocked(CatalogEntry entry) {
+        // Enchanted books and potions don't have a natural "pick it up first"
+        // moment the way regular items do, so they're always available.
+        if (CraftorioShopCatalog.isVariantKey(entry.key())) {
+            return true;
+        }
+        return this.allUnlocked || this.unlockedItems.contains(entry.key());
     }
 
-    private static List<Item> getCatalog(Player player) {
+    private static List<CatalogEntry> getCatalog(Player player) {
         if (catalog == null) {
-            List<Item> items = new ArrayList<>();
-            for (Item item : BuiltInRegistries.ITEM) {
-                if (item == Items.AIR) continue;
-                if (CraftorioShop.getUnitPrice(player, item,true).signum() <= 0) continue;
-                items.add(item);
-            }
-            items.sort(Comparator.comparing(item -> BuiltInRegistries.ITEM.getKey(item).toString()));
-            catalog = items;
+            List<CatalogEntry> entries = new ArrayList<>(CraftorioShopCatalog.buildFullCatalog(player.registryAccess()));
+            entries.removeIf(entry -> CraftorioShop.getUnitPrice(player, entry.stack(), true).signum() <= 0);
+            entries.sort(Comparator.comparing(entry -> entry.key().toString()));
+            catalog = entries;
         }
         return catalog;
     }
 
     private void updateFiltered() {
         String query = this.searchQuery.strip().toLowerCase(Locale.ROOT);
+        List<CatalogEntry> full = getCatalog(this.minecraft.player);
 
         if (query.isEmpty()) {
-            this.filtered = getCatalog(this.minecraft.player);
+            this.filtered = full;
             return;
         }
 
-        List<Item> matches = new ArrayList<>();
-        for (Item item : getCatalog(this.minecraft.player)) {
-            String name = new ItemStack(item).getHoverName().getString().toLowerCase(Locale.ROOT);
-            String path = BuiltInRegistries.ITEM.getKey(item).getPath();
-            if (name.contains(query) || path.contains(query)) {
-                matches.add(item);
+        String[] tokens = query.split("\\s+");
+        List<CatalogEntry> matches = new ArrayList<>();
+        entryLoop:
+        for (CatalogEntry entry : full) {
+            for (String token : tokens) {
+                if (!matchesToken(entry, token)) continue entryLoop;
             }
+            matches.add(entry);
         }
         this.filtered = matches;
+    }
+
+    private boolean matchesToken(CatalogEntry entry, String token) {
+        if (token.isEmpty()) return true;
+
+        char prefix = token.charAt(0);
+        if (prefix == '#') {
+            String tagQuery = token.substring(1);
+            if (tagQuery.isEmpty()) return true;
+            return entry.stack().getTags().anyMatch(tag -> tag.location().toString().contains(tagQuery));
+        }
+
+        if (prefix == '@') {
+            String modQuery = token.substring(1);
+            if (modQuery.isEmpty()) return true;
+            return entry.key().getNamespace().toLowerCase(Locale.ROOT).contains(modQuery);
+        }
+
+        String name = entry.stack().getHoverName().getString().toLowerCase(Locale.ROOT);
+        String path = entry.key().getPath().toLowerCase(Locale.ROOT);
+        return name.contains(token) || path.contains(token);
     }
 
     private int totalPages() {
@@ -174,7 +196,8 @@ public class ShopScreen extends Screen {
         guiGraphics.drawCenteredString(this.font, this.getTitle(), centerX, 8, 0xFFFFFF);
 
         BigInteger points = CraftorioMisc.getPoints(this.minecraft.player);
-        CraftorioMisc.CraftorioTextEffects.drawCenteredLine(guiGraphics, this.font, centerX, 20, true, 0xFFAA00, points, " points");
+        int maxPointsWidth = (int) (this.width * 0.7);
+        CraftorioMisc.CraftorioTextEffects.drawCenteredLineFit(guiGraphics, this.font, centerX, 20, true, 0xFFAA00, maxPointsWidth, points, " points");
 
         int footerY = GRID_TOP + ROWS * CELL_SIZE + 8;
         guiGraphics.drawCenteredString(this.font, Component.literal((this.page + 1) + " / " + this.totalPages()), centerX, footerY + 6, 0xFFFFFF);
@@ -188,31 +211,42 @@ public class ShopScreen extends Screen {
     @OnlyIn(Dist.CLIENT)
     private class ShopItemButton extends AbstractButton {
 
-        private final Item item;
-        private final ItemStack displayStack;
+        private final CatalogEntry entry;
         private final boolean locked;
+        private final BigInteger price;
+        private final BigInteger unmodifiedPrice;
+        private final double shopMultiplier;
+        private final boolean needsLiveTooltip;
 
-        ShopItemButton(int x, int y, Item item) {
+        ShopItemButton(int x, int y, CatalogEntry entry) {
             super(x, y, SLOT_SIZE, SLOT_SIZE, CommonComponents.EMPTY);
-            this.item = item;
-            this.displayStack = new ItemStack(item);
-            this.locked = !ShopScreen.this.isUnlocked(item);
+            this.entry = entry;
+            this.locked = !ShopScreen.this.isUnlocked(entry);
             Player player = ShopScreen.this.minecraft.player;
 
-            BigInteger unmodified_price = CraftorioShop.getUnitPrice(player, item,false);
-            BigInteger price = CraftorioShop.getUnitPrice(player, item,true);
-            double shop_multiplier = Craftorio.SERVER_CONFIG.SHOP_COST_MULTIPLIER.getAsInt();
+            this.unmodifiedPrice = CraftorioShop.getUnitPrice(player, entry.stack(), false);
+            this.price = CraftorioShop.getUnitPrice(player, entry.stack(), true);
+            double multiplier = Craftorio.SERVER_CONFIG.SHOP_COST_MULTIPLIER.getAsInt();
             for (ShopMultiplierEffect shopEffect : CraftorioMisc.getShopEffects(player)) {
-                shop_multiplier += shopEffect.getMultiplier();
+                multiplier += shopEffect.getMultiplier();
             }
+            this.shopMultiplier = multiplier;
 
+            BigInteger cap = CraftorioMisc.pointThreshold();
+            this.needsLiveTooltip = this.price.equals(cap) || this.price.equals(cap.negate())
+                    || this.unmodifiedPrice.equals(cap) || this.unmodifiedPrice.equals(cap.negate());
+
+            this.setTooltip(Tooltip.create(buildTooltipComponent()));
+        }
+
+        private MutableComponent buildTooltipComponent() {
             MutableComponent tooltipComponent = CraftorioMisc.CraftorioTextEffects.capAwareLine(
-                    this.displayStack.getHoverName().getString() + " - ", price, " (", unmodified_price, " * " + shop_multiplier + ")"
+                    this.entry.stack().getHoverName().getString() + " - ", this.price, " (", this.unmodifiedPrice, " * " + this.shopMultiplier + ")"
             );
             if (this.locked) {
                 tooltipComponent.append(Component.literal(" (Locked)"));
             }
-            this.setTooltip(Tooltip.create(tooltipComponent));
+            return tooltipComponent;
         }
 
         @Override
@@ -220,19 +254,21 @@ public class ShopScreen extends Screen {
             // Locked items just refuse to do anything - no screen change, no packet.
             if (this.locked) return;
 
-            ShopScreen.this.minecraft.setScreen(new ShopPurchaseScreen(this.item, ShopScreen.this));
+            ShopScreen.this.minecraft.setScreen(new ShopPurchaseScreen(this.entry, ShopScreen.this));
         }
 
         @Override
         protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+            if (this.needsLiveTooltip) {
+                this.setTooltip(Tooltip.create(buildTooltipComponent()));
+            }
+
             if (this.isHovered()) {
                 guiGraphics.fill(this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(), 0x80FFFFFF);
             }
 
-
-
-            guiGraphics.renderItem(this.displayStack, this.getX() + 1, this.getY() + 1);
-            guiGraphics.renderItemDecorations(ShopScreen.this.font, this.displayStack, this.getX() + 1, this.getY() + 1);
+            guiGraphics.renderItem(this.entry.stack(), this.getX() + 1, this.getY() + 1);
+            guiGraphics.renderItemDecorations(ShopScreen.this.font, this.entry.stack(), this.getX() + 1, this.getY() + 1);
 
             if (this.locked) {
                 int lockSize = SLOT_SIZE - 10;

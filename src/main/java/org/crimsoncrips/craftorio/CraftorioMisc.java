@@ -81,7 +81,7 @@ public class CraftorioMisc {
         }
         return chunkCoords;
     }
-    public static void ownChunk(List<ChunkPos> chunkPos, Level level, boolean claiming, Player player,boolean starting){
+    public static void ownChunks(List<ChunkPos> chunkPos, Level level, boolean claiming, Player player, boolean starting){
         if (level == null) return;
 
         if (starting) {
@@ -102,8 +102,6 @@ public class CraftorioMisc {
 
             for (ChunkPos chunkSelected : chunkPos) {
                 ChunkAccess chunk = level.getChunk(chunkSelected.x, chunkSelected.z);
-                if (startingLocations(level.getChunk(CraftorioMisc.getPlayerOrigin(player)).getPos()).contains(chunkSelected))
-                    return;
                 if (claiming && !isOwnedBy(chunk, player)) {
                     setOwnedBy(chunk, player, true);
                     setLandAmount(claimed_amount + 1, player);
@@ -217,10 +215,27 @@ public class CraftorioMisc {
     public static BigInteger pointsToExpand(long amount, long claimedLand) {
         BigDecimal total = BigDecimal.ZERO;
         BigDecimal baseCost = BigDecimal.valueOf(landBaseCost());
-        for (int i = 0; i < amount; i++) {
+        BigInteger cap = pointThreshold();
 
-            BigDecimal cost = baseCost.multiply(BigDecimal.valueOf(Math.pow(landCostIncreaser(), claimedLand + i)));
-            total = total.add(cost);
+        for (int i = 0; i < amount; i++) {
+            double multiplier = Math.pow(landCostIncreaser(), claimedLand + i);
+
+            BigInteger cost;
+            if (Double.isInfinite(multiplier) || Double.isNaN(multiplier)) {
+                cost = cap;
+            } else {
+                BigDecimal costDecimal = baseCost.multiply(BigDecimal.valueOf(multiplier));
+                cost = costDecimal.setScale(0, RoundingMode.CEILING).toBigInteger();
+                if (cost.compareTo(cap) > 0) {
+                    cost = cap;
+                }
+            }
+
+            total = total.add(new BigDecimal(cost));
+            if (total.compareTo(new BigDecimal(cap)) >= 0) {
+                total = new BigDecimal(cap);
+                break;
+            }
         }
         return total.setScale(0, RoundingMode.CEILING).toBigInteger();
     }
@@ -272,7 +287,6 @@ public class CraftorioMisc {
             throw new IllegalArgumentException("Input string is null or empty");
         }
 
-        // strip whitespace and common formatting (commas)
         String cleaned = input.trim().replace(",", "");
 
         BigDecimal decimal;
@@ -379,7 +393,16 @@ public class CraftorioMisc {
         return level.getData(NO_BORDERS);
     }
 
-    
+
+    public static int getRandomEffectTime(Level level){
+        return level.getData(RANDOM_EFFECT_TIME);
+    }
+
+    public static void setRandomEffectTime(Level level, int time){
+        level.setData(RANDOM_EFFECT_TIME, time);
+    }
+
+
     //Land
     public static long getLandAmount(Player player){
         Level level = player.level();
@@ -530,6 +553,10 @@ public class CraftorioMisc {
         }
 
         public static void drawCenteredLine(GuiGraphics graphics, Font font, int centerX, int y, boolean dropShadow, int normalColor, Object... parts) {
+            drawCenteredLineFit(graphics, font, centerX, y, dropShadow, normalColor, Integer.MAX_VALUE, parts);
+        }
+
+        public static void drawCenteredLineFit(GuiGraphics graphics, Font font, int centerX, int y, boolean dropShadow, int normalColor, int maxWidth, Object... parts) {
             String[] rendered = new String[parts.length];
             int totalWidth = 0;
             for (int i = 0; i < parts.length; i++) {
@@ -537,6 +564,15 @@ public class CraftorioMisc {
                         ? bigIntFormat(bigInt, Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt())
                         : String.valueOf(parts[i]);
                 totalWidth += font.width(rendered[i]);
+            }
+
+            float scale = totalWidth > maxWidth && totalWidth > 0 ? Math.max(0.3f, maxWidth / (float) totalWidth) : 1.0f;
+
+            graphics.pose().pushPose();
+            if (scale != 1.0f) {
+                graphics.pose().translate(centerX, y, 0);
+                graphics.pose().scale(scale, scale, scale);
+                graphics.pose().translate(-centerX, -y, 0);
             }
 
             int cursorX = centerX - totalWidth / 2;
@@ -548,6 +584,8 @@ public class CraftorioMisc {
                     cursorX += font.width(rendered[i]);
                 }
             }
+
+            graphics.pose().popPose();
         }
 
         public static MutableComponent capAwareNumberComponent(BigInteger value) {
@@ -763,29 +801,24 @@ public class CraftorioMisc {
     }
 
     public static void grantEffect(Player player, ResourceLocation id) {
-        Level level = player.level();
-        boolean universal = universalBased(level);
-        Registry<CraftorioEffects> registry = level.registryAccess().registryOrThrow(CraftorioEffects.REGISTRY_KEY);
+        Registry<CraftorioEffects> registry = player.level().registryAccess().registryOrThrow(CraftorioEffects.REGISTRY_KEY);
+        registry.getOptional(id).ifPresent(effect -> grantEffect(player, effect));
+    }
 
-        registry.getOptional(id).ifPresent(effect -> {
-            if (effect instanceof TagMultiplierEffect tagEffect) {
-                List<TagMultiplierEffect> list = getTagEffects(player);
-                list.add(tagEffect);
-                if (universal){
-                    level.setData(TAG_MULTIPLIER_EFFECTS, list);
-                } else {
-                    player.setData(TAG_MULTIPLIER_EFFECTS, list);
-                }
-            } else if (effect instanceof GeneralMultiplierEffect generalEffect) {
-                List<GeneralMultiplierEffect> list = getGeneralEffects(player);
-                list.add(generalEffect);
-                if (universal){
-                    level.setData(GENERAL_MULTIPLIER_EFFECTS, list);
-                } else {
-                    player.setData(GENERAL_MULTIPLIER_EFFECTS, list);
-                }
-            }
-        });
+    public static void grantEffect(Player player, CraftorioEffects effect) {
+        if (effect instanceof TagMultiplierEffect tagEffect) {
+            List<TagMultiplierEffect> list = new ArrayList<>(getTagEffects(player));
+            list.add(tagEffect);
+            setTagEffects(player, list);
+        } else if (effect instanceof GeneralMultiplierEffect generalEffect) {
+            List<GeneralMultiplierEffect> list = new ArrayList<>(getGeneralEffects(player));
+            list.add(generalEffect);
+            setGeneralEffects(player, list);
+        } else if (effect instanceof ShopMultiplierEffect shopEffect) {
+            List<ShopMultiplierEffect> list = new ArrayList<>(getShopEffects(player));
+            list.add(shopEffect);
+            setShopEffects(player, list);
+        }
     }
 
     public static String ticksToTimeString(int ticks) {

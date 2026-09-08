@@ -2,6 +2,7 @@ package org.crimsoncrips.craftorio.server;
 
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
@@ -20,9 +21,12 @@ public class CraftorioShop {
         return Craftorio.SERVER_CONFIG.SHOP_MODE.get() != CraftorioShopMode.DISABLED;
     }
 
+    public static BigInteger getUnitPrice(Player player, Item item, boolean applyCostIncrease) {
+        return getUnitPrice(player, new ItemStack(item, 1), applyCostIncrease);
+    }
 
-    public static BigInteger getUnitPrice(Player player, Item item,boolean applyCostIncrease) {
-        BigInteger bigInteger = CraftorioMisc.checkValue(new ItemStack(item, 1), player, false);
+    public static BigInteger getUnitPrice(Player player, ItemStack template, boolean applyCostIncrease) {
+        BigInteger bigInteger = CraftorioMisc.checkValue(template, player, false);
 
         BigDecimal result = new BigDecimal(BigInteger.valueOf(Craftorio.SERVER_CONFIG.SHOP_COST_MULTIPLIER.getAsInt()));
 
@@ -33,7 +37,12 @@ public class CraftorioShop {
         return applyCostIncrease ? bigInteger.multiply(result.toBigInteger()) : bigInteger;
     }
 
-    public static void purchase(ServerPlayer player, Item item, int quantity) {
+    public static void purchase(ServerPlayer player, ResourceLocation key, int quantity) {
+        CraftorioShopCatalog.resolve(player.registryAccess(), key)
+                .ifPresent(template -> purchase(player, template, quantity));
+    }
+
+    public static void purchase(ServerPlayer player, ItemStack template, int quantity) {
         if (quantity <= 0) return;
 
         CraftorioShopMode mode = Craftorio.SERVER_CONFIG.SHOP_MODE.get();
@@ -42,7 +51,7 @@ public class CraftorioShop {
             return;
         }
 
-        BigInteger unitPrice = getUnitPrice(player, item,true);
+        BigInteger unitPrice = getUnitPrice(player, template, true);
         if (unitPrice.signum() <= 0) {
             player.sendSystemMessage(Component.literal("That item isn't sold in the shop.").withStyle(ChatFormatting.RED));
             return;
@@ -57,17 +66,17 @@ public class CraftorioShop {
         }
 
         CraftorioMisc.setPoints(points.subtract(totalPrice), player);
-        giveItems(player, item, quantity);
+        giveItems(player, template, quantity);
 
         player.sendSystemMessage(Component.literal(
-                "Purchased " + quantity + "x " + new ItemStack(item).getHoverName().getString() + "."
+                "Purchased " + quantity + "x " + template.getHoverName().getString() + "."
         ).withStyle(ChatFormatting.GREEN));
     }
 
-    private static void giveItems(ServerPlayer player, Item item, int quantity) {
+    private static void giveItems(ServerPlayer player, ItemStack template, int quantity) {
         int remaining = quantity;
         while (remaining > 0) {
-            ItemStack stack = new ItemStack(item);
+            ItemStack stack = template.copy();
             int amount = Math.min(remaining, stack.getMaxStackSize());
             stack.setCount(amount);
             player.addItem(stack);

@@ -4,8 +4,10 @@ import com.mojang.brigadier.CommandDispatcher;
 import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
+import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
+import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -17,9 +19,11 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.networking.EffectTimerPacket;
 import org.crimsoncrips.craftorio.networking.ExpandScreenPacket;
+import org.crimsoncrips.craftorio.networking.OpenClaimShopScreenPacket;
 import org.crimsoncrips.craftorio.networking.OpenShopScreenPacket;
-import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
+import org.crimsoncrips.craftorio.networking.OpenValueBrowserPacket;
 import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
 import org.crimsoncrips.craftorio.server.CraftorioShop;
 import org.crimsoncrips.craftorio.server.CraftorioShopMode;
@@ -40,35 +44,23 @@ public class CommandEvents {
 
         dispatcher.register(Commands.literal("craftorio").then(
                         Commands.literal("points")
-                                .then(Commands.literal("valueless_items").requires(cs -> cs.hasPermission(2)).executes(CommandEvents::runValueless))
                                 .then(Commands.literal("add").requires(cs -> cs.hasPermission(3)).then(Commands.argument("amount",StringArgumentType.string()).executes(CommandEvents::runAddPoints)))
                                 .then(Commands.literal("set").requires(cs -> cs.hasPermission(3)).then(Commands.argument("amount",StringArgumentType.string()).executes(CommandEvents::runSetPoints)))
-                                .then(Commands.literal("subtract").requires(cs -> cs.hasPermission(3)).then(Commands.argument("amount",StringArgumentType.string()).executes(CommandEvents::runSubtractPoints)))).then(
-                        Commands.literal("land")
-                                .then(Commands.literal("check_amount").requires(cs -> cs.hasPermission(2)).executes(CommandEvents::runShowLandAmount))
-                                .then(Commands.literal("border_expand").executes(CommandEvents::runBorderExpand))).then(
-                        Commands.literal("point_value")
-                                .then(Commands.literal("highest_value").then(Commands.argument("list_no", IntegerArgumentType.integer()).executes(CommandEvents::runHighestValue)))
-                        )
+                                .then(Commands.literal("subtract").requires(cs -> cs.hasPermission(3)).then(Commands.argument("amount",StringArgumentType.string()).executes(CommandEvents::runSubtractPoints)))
+                                .then(Commands.literal("give").then(Commands.argument("target", EntityArgument.player()).then(Commands.argument("amount",StringArgumentType.string()).executes(CommandEvents::runGivePoints)))))
                 .then(Commands.literal("check_values").requires(cs -> cs.hasPermission(2)).executes(CommandEvents::runPropertiesCheck))
                 .then(Commands.literal("check_contracts").executes(CommandEvents::runCheckContracts))
-                .then(Commands.literal("check_effects").executes(CommandEvents::runCheckEffects))
                 .then(Commands.literal("shop").executes(CommandEvents::runOpenShop))
+                .then(Commands.literal("claim_shop").executes(CommandEvents::runOpenClaimShop))
+                .then(Commands.literal("value_browser").executes(CommandEvents::runOpenValueBrowser))
+                .then(Commands.literal("border_expand").executes(CommandEvents::runBorderExpand))
+                .then(Commands.literal("toggle_effect_timer").requires(cs -> cs.hasPermission(4)).executes(CommandEvents::runToggleEffectTimer))
 
         );
 
 
     }
 
-    private static int runCheckEffects(CommandContext<CommandSourceStack> context) {
-        ServerPlayer serverPlayer = context.getSource().getPlayer();
-        if (serverPlayer != null) {
-            for (CraftorioEffects effects : CraftorioMisc.getCraftorioEffects(serverPlayer)){
-                context.getSource().sendSuccess(() -> Component.literal("Name:" + effects.getActualName() + "  Time:" + effects.getTime()), true);
-            }
-        }
-        return 1;
-    }
 
     private static int runCheckContracts(CommandContext<CommandSourceStack> context) {
         ServerPlayer serverPlayer = context.getSource().getPlayer();
@@ -107,7 +99,6 @@ public class CommandEvents {
             serverPlayer.sendSystemMessage(Component.literal("The shop is currently disabled."));
             return 0;
         }
-
         boolean allUnlocked = Craftorio.SERVER_CONFIG.SHOP_MODE.get() == CraftorioShopMode.OPEN;
         List<ResourceLocation> unlocked = allUnlocked ? List.of() : new ArrayList<>(Craftorio.UNLOCKED_ITEMS.getUnlocked(serverPlayer));
 
@@ -115,25 +106,19 @@ public class CommandEvents {
         return 1;
     }
 
-    private static int runHighestValue(CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = context.getSource().getPlayer();
+    private static int runOpenClaimShop(CommandContext<CommandSourceStack> context) {
+        ServerPlayer serverPlayer = context.getSource().getPlayer();
+        if (serverPlayer == null) return 0;
 
-        List<ItemStack> listOfItems = new ArrayList<>();
-        BuiltInRegistries.ITEM.forEach(item -> {
-            listOfItems.add(item.getDefaultInstance());
-        });
-        int limit = IntegerArgumentType.getInteger(context,"list_no");
+        PacketDistributor.sendToPlayer(serverPlayer, new OpenClaimShopScreenPacket());
+        return 1;
+    }
 
-        List<ItemStack> highestValueItems = listOfItems.stream()
-                .sorted(Comparator.comparing((ItemStack stack) -> CraftorioMisc.checkValue(stack, player,false)).reversed())
-                .limit(limit)
-                .toList();
+    private static int runOpenValueBrowser(CommandContext<CommandSourceStack> context) {
+        ServerPlayer serverPlayer = context.getSource().getPlayer();
+        if (serverPlayer == null) return 0;
 
-        for (ItemStack itemStack : highestValueItems){
-            BigInteger pointsValue = CraftorioMisc.checkValue(itemStack, player,false);
-            String string = itemStack.getDisplayName().getString() + " " + pointsValue;
-            context.getSource().sendSuccess(() -> Component.literal(string), true);
-        }
+        PacketDistributor.sendToPlayer(serverPlayer, new OpenValueBrowserPacket());
         return 1;
     }
 
@@ -181,6 +166,33 @@ public class CommandEvents {
             context.getSource().sendSuccess(() -> Component.literal(string), true);
         }
         CraftorioMisc.setPoints(points,context.getSource().getPlayer());
+        return 1;
+    }
+
+    private static int runGivePoints(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
+        ServerPlayer target = EntityArgument.getPlayer(context, "target");
+        BigInteger amount = CraftorioMisc.toBigInteger(StringArgumentType.getString(context,"amount"));
+        BigInteger newTotal = CraftorioMisc.getPoints(target).add(amount);
+
+        if (newTotal.compareTo(pointThreshold()) >= 0) {
+            String string = Component.translatable("misc.craftorio.too_much_value").getString();
+            context.getSource().sendSuccess(() -> Component.literal(string), true);
+        }
+
+        CraftorioMisc.setPoints(newTotal, target);
+        context.getSource().sendSuccess(() -> Component.literal("Gave " + amount + " points to " + target.getGameProfile().getName()), true);
+        return 1;
+    }
+
+    private static int runToggleEffectTimer(CommandContext<CommandSourceStack> context) {
+        ServerPlayer serverPlayer = context.getSource().getPlayer();
+        if (serverPlayer == null) return 0;
+
+        boolean nowEnabled = ServerEvents.toggleEffectTimerViewer(serverPlayer);
+        int current = Math.max(CraftorioMisc.getRandomEffectTime(serverPlayer.level()), 0);
+        PacketDistributor.sendToPlayer(serverPlayer, new EffectTimerPacket(nowEnabled, current));
+
+        context.getSource().sendSuccess(() -> Component.literal("Effect timer display " + (nowEnabled ? "enabled" : "disabled")), true);
         return 1;
     }
 

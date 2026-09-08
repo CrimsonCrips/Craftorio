@@ -11,23 +11,23 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.attachment.AttachmentSync;
 import net.neoforged.neoforge.event.entity.player.AdvancementEvent;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
-import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.block.CraftorioBlocks;
 import org.crimsoncrips.craftorio.item.CraftorioItems;
+import org.crimsoncrips.craftorio.networking.EffectTimerPacket;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
-import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
-import org.crimsoncrips.craftorio.registries.effect.ShopMultiplierEffect;
+import org.crimsoncrips.craftorio.server.ChunkCollisionHooks;
 import org.crimsoncrips.craftorio.server.CraftorioAdvancementPoints;
 import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
 import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
@@ -35,7 +35,10 @@ import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.UUID;
 
 import static org.crimsoncrips.craftorio.server.CraftorioDataAttachments.*;
 
@@ -58,34 +61,6 @@ public class ServerEvents {
         }
     }
 
-
-    @SubscribeEvent
-    public void blockPlace(BlockEvent.EntityPlaceEvent blockEvent){
-        if (blockEvent.getEntity() instanceof Player player){
-            Level level = blockEvent.getEntity().level();
-            if (!CraftorioMisc.chunkBased(level)) return;
-            ChunkPos pos = level.getChunkAt(blockEvent.getPos()).getPos();
-
-            if (!CraftorioMisc.isOwnedBy(level.getChunk(pos.x,pos.z),player)){
-                blockEvent.setCanceled(true);
-            }
-        }
-
-    }
-
-    @SubscribeEvent
-    public void blockBreak(BlockEvent.BreakEvent blockEvent){
-        if (blockEvent.getPlayer() instanceof Player player){
-            Level level = blockEvent.getPlayer().level();
-            ChunkPos pos = level.getChunkAt(blockEvent.getPos()).getPos();
-            if (!CraftorioMisc.chunkBased(level)) return;
-
-            if (!CraftorioMisc.isOwnedBy(level.getChunk(pos.x,pos.z),player)){
-                blockEvent.setCanceled(true);
-            }
-        }
-
-    }
 
     @SubscribeEvent
     public void itemTooltip(ItemTooltipEvent itemTooltipEvent){
@@ -120,10 +95,11 @@ public class ServerEvents {
     public void setArea(Player player,BlockPos blockPos,ResourceKey<Level> dimensionLevel){
         Level level = player.level();
         if (CraftorioMisc.chunkBased(level)){
-            CraftorioMisc.ownChunk(CraftorioMisc.startingLocations(level.getChunk(blockPos).getPos()),level,true,player,true);
+            CraftorioMisc.ownChunks(CraftorioMisc.startingLocations(level.getChunk(blockPos).getPos()),level,true,player,true);
         } else {
             List<CraftorioBorder> newBorder = new ArrayList<>(CraftorioMisc.getCraftorioBorders(player));
-            newBorder.add(new CraftorioBorder(blockPos,CraftorioMisc.startingLand(),1,10,1,10, dimensionLevel));
+            newBorder.removeIf(border -> border.getDimension().equals(dimensionLevel));
+            newBorder.add(new CraftorioBorder(blockPos,CraftorioMisc.startingLand() * 5,1,10,1,10, dimensionLevel));
             CraftorioMisc.setCraftorioBorders(player,newBorder);
         }
     }
@@ -131,19 +107,29 @@ public class ServerEvents {
     @SubscribeEvent
     public void playerDimension(PlayerEvent.PlayerChangedDimensionEvent dimensionEvent){
         Player player = dimensionEvent.getEntity();
-        Level level = player.level();
 
-        if (player instanceof ServerPlayer serverPlayer && !CraftorioMisc.getDimensionsExplored(player).contains(dimensionEvent.getTo())) {
-            setArea(player,serverPlayer.getOnPos(),dimensionEvent.getTo());
+        if (player instanceof ServerPlayer serverPlayer) {
+            if (!CraftorioMisc.getDimensionsExplored(player).contains(dimensionEvent.getTo())) {
+                setArea(player,serverPlayer.getOnPos(),dimensionEvent.getTo());
 
-            List<ResourceKey<Level>> newDimensions = new ArrayList<>(CraftorioMisc.getDimensionsExplored(player));
-            newDimensions.add(dimensionEvent.getTo());
-            CraftorioMisc.setDimensionsExplored(player,newDimensions);
+                List<ResourceKey<Level>> newDimensions = new ArrayList<>(CraftorioMisc.getDimensionsExplored(player));
+                newDimensions.add(dimensionEvent.getTo());
+                CraftorioMisc.setDimensionsExplored(player,newDimensions);
+            }
 
-
+            // Level-scoped attachments (e.g. the shared CraftorioBorder list
+            // when UNIVERSAL_PROGRESSION is on) only push to a client the
+            // moment they change while that client is already watching the
+            // level - a player arriving in a level that already has data set
+            // (from a prior visit, or another player) never receives it
+            // otherwise. Best-effort: never let a sync failure here prevent
+            // the border/claim setup above from taking effect.
+            try {
+                AttachmentSync.syncInitialLevelAttachments(serverPlayer.serverLevel(), serverPlayer);
+            } catch (Exception e) {
+                Craftorio.LOGGER.error("Failed to sync level attachments to {} on dimension change", serverPlayer.getGameProfile().getName(), e);
+            }
         }
-
-
     }
 
 
@@ -258,8 +244,59 @@ public class ServerEvents {
                     }
                 }
             }
+
+            Level level = player.level();
+            if (CraftorioMisc.chunkBased(level) && player.tickCount % 20 == 0
+                    && !ChunkCollisionHooks.isWithinClaimedChunk(player, player.blockPosition())) {
+                player.hurt(player.damageSources().outOfBorder(), (float) Craftorio.SERVER_CONFIG.CHUNK_OUT_OF_BOUNDS_DAMAGE.getAsDouble());
+            }
         }
     }
 
+    private static final Set<UUID> effectTimerViewers = new HashSet<>();
+
+    public static boolean toggleEffectTimerViewer(ServerPlayer player) {
+        UUID id = player.getUUID();
+        if (effectTimerViewers.remove(id)) {
+            return false;
+        }
+        effectTimerViewers.add(id);
+        return true;
+    }
+
+    @SubscribeEvent
+    public void randomEffectTick(ServerTickEvent.Post event) {
+        if (!Craftorio.SERVER_CONFIG.RANDOM_EFFECTS_ENABLED.getAsBoolean()) return;
+
+        for (ServerLevel level : event.getServer().getAllLevels()) {
+            int timeUntilNextEffect = CraftorioMisc.getRandomEffectTime(level) - 1;
+
+            if (!effectTimerViewers.isEmpty() && level.getGameTime() % 20 == 0) {
+                for (ServerPlayer player : level.players()) {
+                    if (effectTimerViewers.contains(player.getUUID())) {
+                        PacketDistributor.sendToPlayer(player, new EffectTimerPacket(true, Math.max(timeUntilNextEffect, 0)));
+                    }
+                }
+            }
+
+            if (timeUntilNextEffect > 0) {
+                CraftorioMisc.setRandomEffectTime(level, timeUntilNextEffect);
+                continue;
+            }
+
+            List<ServerPlayer> players = level.players();
+            if (!players.isEmpty()) {
+                CraftorioEffects rolledEffect = CraftorioMisc.getRandomEffect(level.registryAccess(), level.random);
+                for (ServerPlayer player : players) {
+                    CraftorioMisc.grantEffect(player, rolledEffect.copy());
+                }
+            }
+
+            int minInterval = Craftorio.SERVER_CONFIG.RANDOM_EFFECT_MIN_INTERVAL.get();
+            int maxInterval = Craftorio.SERVER_CONFIG.RANDOM_EFFECT_MAX_INTERVAL.get();
+            int nextInterval = minInterval + level.random.nextInt(Math.max(1, maxInterval - minInterval + 1));
+            CraftorioMisc.setRandomEffectTime(level, nextInterval);
+        }
+    }
 
 }

@@ -1,5 +1,7 @@
 package org.crimsoncrips.craftorio.client;
 
+import org.crimsoncrips.craftorio.CraftorioMisc;
+
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Random;
@@ -46,6 +48,8 @@ public final class PointsAnimation {
 
     private static boolean lastJumpWasIncrease = false; // NEW
 
+    private static int pendingInfinityBurstMode = -1;
+
     public static void tick(BigInteger actualPoints, BigInteger tempPoints) {
         if (lastSeenTarget == null) {
             lastSeenTarget = actualPoints;
@@ -56,6 +60,15 @@ public final class PointsAnimation {
         }
 
         if (!actualPoints.equals(lastSeenTarget)) {
+            PointsPopup.spawn(actualPoints.subtract(lastSeenTarget));
+
+            BigInteger cap = CraftorioMisc.pointThreshold();
+            if (actualPoints.equals(cap)) {
+                pendingInfinityBurstMode = 0;
+            } else if (actualPoints.equals(cap.negate())) {
+                pendingInfinityBurstMode = 1;
+            }
+
             animFrom = tempPoints;
             animTo = actualPoints;
             animStartMillis = System.currentTimeMillis();
@@ -83,6 +96,12 @@ public final class PointsAnimation {
         if (t >= 1.0) {
             landed = true;
             landedAtMillis = now;
+
+            if (pendingInfinityBurstMode != -1) {
+                InfinityBurst.spawn(pendingInfinityBurstMode, getPeakScale());
+                pendingInfinityBurstMode = -1;
+            }
+
             return animTo;
         }
 
@@ -128,6 +147,13 @@ public final class PointsAnimation {
         double t = Math.min(1.0, (now - animStartMillis) / (double) animDurationMillis);
         double eased = easeInCubic(t);
         return (float) (GROWTH_START_SCALE + (growthPeak - GROWTH_START_SCALE) * eased);
+    }
+
+    public static float getPeakScale() {
+        if (!lastJumpWasIncrease) {
+            return GROWTH_START_SCALE;
+        }
+        return POP_OVERSHOOT_BASE + (POP_OVERSHOOT_MAX - POP_OVERSHOOT_BASE) * (float) lastMagnitudeFactor;
     }
 
     public static float[] getShakeOffset() {

@@ -25,6 +25,7 @@ public class CraftorioRecipeGenerator extends CraftorioRecipeHelper {
 		ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, CraftorioBlocks.SINKER.asItem())
 				.requires(Ingredient.of(Blocks.BARREL.asItem()))
 				.requires(Ingredient.of(Items.GOLD_INGOT))
+				.unlockedBy(getHasName(Blocks.BARREL), has(Blocks.BARREL))
 				.save(recipeOutput);
 	}
 }

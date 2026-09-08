@@ -11,7 +11,9 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.chunk.ChunkAccess;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.networking.OwnLandPacket;
 import org.spongepowered.asm.mixin.Mixin;
@@ -45,14 +47,20 @@ public abstract class CraftorioGuiMapMixin {
 
 
             GuiMap guiMap = (GuiMap)(Object)this;
-            List<ChunkPos> chunks = CraftorioMisc.generateSelectionChunks(mapTileSelection.getStartX(),mapTileSelection.getStartZ(),mapTileSelection.getEndX(), mapTileSelection.getEndZ());
             if (guiMap.getMinecraft().level == null) return;
             long claimed_amount = CraftorioMisc.getLandAmount(player1);
+            List<ChunkPos> chunks = new ArrayList<>();
+            for (ChunkPos chunkPos : CraftorioMisc.generateSelectionChunks(mapTileSelection.getStartX(),mapTileSelection.getStartZ(),mapTileSelection.getEndX(), mapTileSelection.getEndZ())){
+                if (!CraftorioMisc.isOwnedBy(player1.level().getChunk(chunkPos.x,chunkPos.z),player1)){
+                    chunks.add(chunkPos);
+                }
+            }
             BigInteger amountToClaim = CraftorioMisc.pointsToExpand(chunks.size(),claimed_amount);
+            String formattedAmount = CraftorioMisc.bigIntFormat(amountToClaim, Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
 
             String string = Component.translatable("misc.craftorio.claim_land").getString();
 
-            options.add(new RightClickOption(string + " : " + amountToClaim, options.size(), guiMap) {
+            options.add(new RightClickOption(string + " : " + formattedAmount, options.size(), guiMap) {
                 public void onAction(Screen screen) {
                     PacketDistributor.sendToServer(new OwnLandPacket(chunks,true));
                 }
@@ -66,8 +74,4 @@ public abstract class CraftorioGuiMapMixin {
 
     }
 
-    @WrapWithCondition(method = "render", at = @At(value = "INVOKE", target = "Lnet/minecraft/client/gui/GuiGraphics;drawCenteredString(Lnet/minecraft/client/gui/Font;Ljava/lang/String;III)V",ordinal = 1))
-    private boolean test(GuiGraphics instance, Font font, String text, int x, int y, int color) {
-        return false;
-    }
 }

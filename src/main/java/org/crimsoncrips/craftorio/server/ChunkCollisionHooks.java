@@ -1,6 +1,8 @@
 package org.crimsoncrips.craftorio.server;
 
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.SectionPos;
+import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.ChunkPos;
@@ -18,8 +20,18 @@ public class ChunkCollisionHooks {
 
     //Created By Drullkus
 
-    public static boolean levelHasUnlockableChunks(Level level) {
-        return level.dimensionType().bedWorks();
+    public static boolean isWithinClaimedChunk(Player player, BlockPos pos) {
+        return isWithinClaimedChunk(player, pos.getX(), pos.getZ());
+    }
+
+    public static boolean isWithinClaimedChunk(Player player, double x, double z) {
+        Level level = player.level();
+        if (!CraftorioMisc.chunkBased(level)) {
+            return true;
+        }
+
+        ChunkAccess chunk = level.getChunk(SectionPos.blockToSectionCoord(Mth.floor(x)), SectionPos.blockToSectionCoord(Mth.floor(z)));
+        return CraftorioMisc.isOwnedBy(chunk, player);
     }
 
     public static @NotNull VoxelShape combineWorldAndChunkBorders(Level level, Entity entity, @Nullable VoxelShape worldBorderCollision) {

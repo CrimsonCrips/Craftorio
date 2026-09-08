@@ -11,7 +11,8 @@
     "CraftorioServerLevelMixin"
   ],
   "client": [
-    "CraftorioMultiPlayerGameModeMixin"
+    "CraftorioMultiPlayerGameModeMixin",
+    "CraftorioJadeOverlayMixin"
   ],
   "injectors": {
     "defaultRequire": 1

@@ -33,7 +33,7 @@ public class CraftorioDataAttachments {
     public static final DeferredRegister<AttachmentType<?>> ATTACHMENT_TYPES = DeferredRegister.create(NeoForgeRegistries.ATTACHMENT_TYPES, Craftorio.MODID);
 
     public static final Supplier<AttachmentType<Long>> AMOUNT_OF_LAND = ATTACHMENT_TYPES.register(
-            "amount_of_land", () -> AttachmentType.builder(() -> 0L).serialize(Codec.LONG).sync(ByteBufCodecs.VAR_LONG).build()
+            "amount_of_land", () -> AttachmentType.builder(() -> 0L).serialize(Codec.LONG).copyOnDeath().sync(ByteBufCodecs.VAR_LONG).build()
     );
 
     public static final Supplier<AttachmentType<List<String>>> OWNED_BY = ATTACHMENT_TYPES.register(
@@ -43,11 +43,11 @@ public class CraftorioDataAttachments {
                     .build());
 
     public static final Supplier<AttachmentType<BigInteger>> POINTS = ATTACHMENT_TYPES.register(
-            "points", () -> AttachmentType.builder(CraftorioMisc::startingValue).serialize(BIGINT_CODEC()).sync(ByteBufCodecs.fromCodec(BIGINT_CODEC())).build()
+            "points", () -> AttachmentType.builder(CraftorioMisc::startingValue).serialize(BIGINT_CODEC()).copyOnDeath().sync(ByteBufCodecs.fromCodec(BIGINT_CODEC())).build()
     );
 
     public static final Supplier<AttachmentType<BigInteger>> TEMP_POINTS = ATTACHMENT_TYPES.register(
-            "temp_points", () -> AttachmentType.builder(() -> BigInteger.ZERO).serialize(BIGINT_CODEC()).sync(ByteBufCodecs.fromCodec(BIGINT_CODEC())).build()
+            "temp_points", () -> AttachmentType.builder(() -> BigInteger.ZERO).serialize(BIGINT_CODEC()).copyOnDeath().sync(ByteBufCodecs.fromCodec(BIGINT_CODEC())).build()
     );
 
     public static final Supplier<AttachmentType<Boolean>> CHUNK_BASED = ATTACHMENT_TYPES.register(
@@ -67,36 +67,41 @@ public class CraftorioDataAttachments {
     );
 
     public static final Supplier<AttachmentType<Boolean>> GIVEN = ATTACHMENT_TYPES.register(
-            "given", () -> AttachmentType.builder(() -> false).serialize(Codec.BOOL).sync(ByteBufCodecs.BOOL).build()
+            "given", () -> AttachmentType.builder(() -> false).serialize(Codec.BOOL).copyOnDeath().sync(ByteBufCodecs.BOOL).build()
     );
 
     public static final Supplier<AttachmentType<List<TagMultiplierEffect>>> TAG_MULTIPLIER_EFFECTS = ATTACHMENT_TYPES.register(
             "tag_multiplier_effects", () -> AttachmentType.<List<TagMultiplierEffect>>builder((holder) -> new ArrayList<>())
                             .serialize(Codec.list(TagMultiplierEffect.CODEC))
+                            .copyOnDeath()
                             .sync(TagMultiplierEffect.CODEC_STREAM.apply(ByteBufCodecs.list()))
                             .build());
 
     public static final Supplier<AttachmentType<List<GeneralMultiplierEffect>>> GENERAL_MULTIPLIER_EFFECTS = ATTACHMENT_TYPES.register(
             "general_multiplier_effects", () -> AttachmentType.<List<GeneralMultiplierEffect>>builder((holder) -> new ArrayList<>())
                     .serialize(Codec.list(GeneralMultiplierEffect.CODEC))
+                    .copyOnDeath()
                     .sync(GeneralMultiplierEffect.CODEC_STREAM.apply(ByteBufCodecs.list()))
                     .build());
 
     public static final Supplier<AttachmentType<List<ShopMultiplierEffect>>> SHOP_MULTIPLIER_EFFECTS = ATTACHMENT_TYPES.register(
             "shop_multiplier_effects", () -> AttachmentType.<List<ShopMultiplierEffect>>builder((holder) -> new ArrayList<>())
                     .serialize(Codec.list(ShopMultiplierEffect.CODEC))
+                    .copyOnDeath()
                     .sync(ShopMultiplierEffect.CODEC_STREAM.apply(ByteBufCodecs.list()))
                     .build());
 
     public static final Supplier<AttachmentType<List<CraftorioShipmentContract>>> SHIPMENT_CONTRACTS = ATTACHMENT_TYPES.register(
             "shipment_contracts", () -> AttachmentType.<List<CraftorioShipmentContract>>builder((holder) -> new ArrayList<>())
                     .serialize(Codec.list(CraftorioShipmentContract.CODEC))
+                    .copyOnDeath()
                     .sync(CraftorioShipmentContract.CODEC_STREAM.apply(ByteBufCodecs.list()))
                     .build());
 
     public static final Supplier<AttachmentType<GlobalPos>> SPAWN_ORIGIN = ATTACHMENT_TYPES.register(
             "spawn_origin", () -> AttachmentType.builder(() -> GlobalPos.of(Level.OVERWORLD, BlockPos.ZERO))
                     .serialize(GlobalPos.CODEC)
+                    .copyOnDeath()
                     .sync(GlobalPos.STREAM_CODEC)
                     .build()
     );
@@ -105,6 +110,7 @@ public class CraftorioDataAttachments {
             ATTACHMENT_TYPES.register("player_borders", () ->
                     AttachmentType.<List<CraftorioBorder>>builder((holder) -> new ArrayList<>())
                             .serialize(Codec.list(CraftorioBorder.CODEC))
+                            .copyOnDeath()
                             .sync(CraftorioBorder.STREAM_CODEC.apply(ByteBufCodecs.list()))
                             .build());
 
@@ -118,7 +124,15 @@ public class CraftorioDataAttachments {
             ATTACHMENT_TYPES.register("dimensions_explored", () ->
                     AttachmentType.<List<ResourceKey<Level>>>builder((holder) -> new ArrayList<>())
                             .serialize(Codec.list(Level.RESOURCE_KEY_CODEC))
+                            .copyOnDeath()
                             .sync(DIMENSION_STREAM_CODEC.apply(ByteBufCodecs.list()))
                             .build());
+
+    // Ticks remaining until a random registered effect can next be rolled for
+    // this level - mirrors vanilla's clearWeatherTime/rainTime countdowns.
+    // Purely server-internal bookkeeping, so it isn't synced to the client.
+    public static final Supplier<AttachmentType<Integer>> RANDOM_EFFECT_TIME = ATTACHMENT_TYPES.register(
+            "random_effect_time", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).build()
+    );
 
 }

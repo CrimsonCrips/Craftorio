@@ -28,6 +28,8 @@ import java.util.UUID;
 
 public class CraftorioUnlockedItemsIO {
 
+    //Thank you drullkus
+
     private static final Codec<Set<ResourceLocation>> UNLOCKS_CODEC =
             Codec.list(ResourceLocation.CODEC)
                     .fieldOf("unlocked")

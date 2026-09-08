@@ -4,6 +4,7 @@ import com.mojang.logging.LogUtils;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.ModContainer;
+import net.neoforged.fml.ModList;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.config.ModConfig;
 import net.neoforged.fml.loading.FMLEnvironment;
@@ -13,12 +14,16 @@ import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.crimsoncrips.craftorio.block.CraftorioBlocks;
 import org.crimsoncrips.craftorio.block.entity.CraftorioBlockEntityTypes;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import org.crimsoncrips.craftorio.client.ClientEvents;
 import org.crimsoncrips.craftorio.client.CraftorioClientConfig;
+import org.crimsoncrips.craftorio.client.compat.XaeroWorldMapCompat;
+import org.crimsoncrips.craftorio.client.screen.CraftorioConfigScreen;
 import org.crimsoncrips.craftorio.datagen.CraftorioDatagen;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffectTypes;
 import org.crimsoncrips.craftorio.item.CraftorioItems;
+import org.crimsoncrips.craftorio.loot.CraftorioLootModifiers;
 import org.crimsoncrips.craftorio.server.CraftorioAdvancementPoints;
 import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
 import org.crimsoncrips.craftorio.server.CraftorioServerConfig;
@@ -31,7 +36,6 @@ import org.slf4j.Logger;
 import java.util.Locale;
 
 @SuppressWarnings("Deprecated")
-// The value here should match an entry in the META-INF/neoforge.mods.toml file
 @Mod(Craftorio.MODID)
 public class Craftorio {
     // Define mod id in a common place for everything to reference
@@ -48,9 +52,7 @@ public class Craftorio {
     public static final CraftorioClientConfig CLIENT_CONFIG;
     private static final ModConfigSpec CLIENT_CONFIG_SPEC;
 
-    // Tracks which items each player has unlocked for the shop screen, backed by
-    // its own per-player NBT files rather than a data attachment - see
-    // CraftorioUnlockedItemsManager for why.
+
     public static final CraftorioUnlockedItemsManager UNLOCKED_ITEMS = new CraftorioUnlockedItemsManager();
 
     static {
@@ -79,9 +81,20 @@ public class Craftorio {
         if (FMLEnvironment.dist.isClient()) {
             modEventBus.addListener(new ClientEvents()::registerScreens);
             modEventBus.addListener(ClientEvents::showPoints);
+            modEventBus.addListener(ClientEvents::showActiveEffects);
+            modEventBus.addListener(ClientEvents::showEffectTimer);
             NeoForge.EVENT_BUS.addListener(ClientEvents::renderBorders);
+            NeoForge.EVENT_BUS.addListener(ClientEvents::renderClaimedChunkBorders);
+            modContainer.registerExtensionPoint(IConfigScreenFactory.class,
+                    (IConfigScreenFactory) (container, modListScreen) -> new CraftorioConfigScreen(modListScreen));
+
+            if (ModList.get().isLoaded("xaeroworldmap")) {
+                NeoForge.EVENT_BUS.addListener(XaeroWorldMapCompat::onClientTick);
+                NeoForge.EVENT_BUS.addListener(XaeroWorldMapCompat::renderOverlay);
+            }
         }
 
+        CraftorioLootModifiers.MODIFIERS.register(modEventBus);
         CraftorioEffectTypes.TYPES.register(modEventBus);
         CraftorioBlocks.BLOCKS.register(modEventBus);
         CraftorioBlockEntityTypes.BLOCK_ENTITIES.register(modEventBus);

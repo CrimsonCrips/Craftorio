@@ -18,14 +18,20 @@ public class CraftorioServerConfig {
     public final ModConfigSpec.DoubleValue MIN_SPAWN_DISTANCE;
     public final ModConfigSpec.DoubleValue MAX_SPAWN_DISTANCE;
 
+    public final ModConfigSpec.DoubleValue CHUNK_OUT_OF_BOUNDS_DAMAGE;
+
+    public final ModConfigSpec.BooleanValue RANDOM_EFFECTS_ENABLED;
+    public final ModConfigSpec.IntValue RANDOM_EFFECT_MIN_INTERVAL;
+    public final ModConfigSpec.IntValue RANDOM_EFFECT_MAX_INTERVAL;
+
 
     public CraftorioServerConfig(final ModConfigSpec.Builder builder) {
 
         builder.push("General");
         this.CHUNK_BASED_EXPANSION = buildBoolean(builder, "CHUNK_BASED_EXPANSION", false, "Mode of expansion is through chunks");
         this.UNIVERSAL_PROGRESSION = buildBoolean(builder, "UNIVERSAL_PROGRESSION", true, "Whether progress is universal or solo");
-        this.STARTING_LAND_SIZE = buildInt(builder, "STARTING_LAND_SIZE", 5,1,Integer.MAX_VALUE, "Starting size for claimed land");
-        this.COST_MULTIPLIER = buildDouble(builder, "COST_MULTIPLIER", 0.05F,0,Double.MAX_VALUE, "Cost Multiplier (ex. 0.05F = 5%)");
+        this.STARTING_LAND_SIZE = buildInt(builder, "STARTING_LAND_SIZE", 1,1,Integer.MAX_VALUE, "Starting size for claimed land");
+        this.COST_MULTIPLIER = buildDouble(builder, "COST_MULTIPLIER", 0.05F,0,Double.MAX_VALUE, "Cost Multiplier to claim land (ex. 0.05F = 5%)");
         this.BASE_COST = buildInt(builder, "BASE_COST", 10,1,Integer.MAX_VALUE, "Base Cost of Land");
         this.STARTING_POINTS = buildString(builder, "STARTING_POINTS",  "100", "Starting points (exponents work like 1e2)");
         this.SHOP_MODE = builder.comment("Shop screen access: DISABLED (cant be opened), UNLOCKED (only items the player has picked up at least once can be bought), OPEN (every priced item is buyable immediately)").translation("SHOP_MODE").defineEnum("SHOP_MODE", CraftorioShopMode.UNLOCKED);
@@ -34,12 +40,19 @@ public class CraftorioServerConfig {
         MIN_SPAWN_DISTANCE = builder.defineInRange("min_spawn_distance", 500.0, 0.0, 100000.0);
         MAX_SPAWN_DISTANCE = builder.defineInRange("max_spawn_distance", 2000.0, 0.0, 1000000.0);
 
+        builder.push("Random Effects");
+        this.RANDOM_EFFECTS_ENABLED = buildBoolean(builder, "RANDOM_EFFECTS_ENABLED", true, "Whether registered effects can randomly be granted, similar to weather");
+        this.RANDOM_EFFECT_MIN_INTERVAL = buildInt(builder, "RANDOM_EFFECT_MIN_INTERVAL", 6000, 1, Integer.MAX_VALUE, "Minimum ticks (20 ticks = 1 second) until another random effect can happen");
+        this.RANDOM_EFFECT_MAX_INTERVAL = buildInt(builder, "RANDOM_EFFECT_MAX_INTERVAL", 24000, 1, Integer.MAX_VALUE, "Maximum ticks (20 ticks = 1 second) until another random effect can happen");
+        builder.pop();
+
         builder.push("Border Based");
         this.EXPANSION_AMOUNT = buildInt(builder, "EXPANSION_AMOUNT", 1,1,Integer.MAX_VALUE, "Amount of expansion per purchase");
         builder.pop();
 
         builder.push("Chunk Based");
         this.NO_BORDERS = buildBoolean(builder, "NO_BORDERS", false, "Whether another player can lay claim to a already claimed chunk to be able to access as well");
+        this.CHUNK_OUT_OF_BOUNDS_DAMAGE = buildDouble(builder, "CHUNK_OUT_OF_BOUNDS_DAMAGE", 2.0, 0, Double.MAX_VALUE, "Flat damage dealt per second while standing outside a chunk you own");
 
         builder.pop();
 

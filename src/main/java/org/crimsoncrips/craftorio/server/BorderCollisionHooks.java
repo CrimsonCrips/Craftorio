@@ -16,11 +16,7 @@ import java.util.List;
 
 public class BorderCollisionHooks {
 
-    /**
-     * Mirrors WorldBorder#isWithinBounds: a position must be inside every one
-     * of the player's Craftorio borders, matching the AND semantics used by
-     * {@link #combineCraftorioBorders} (outside any single border is solid).
-     */
+
     public static boolean isWithinCraftorioBorders(Player player, BlockPos pos) {
         return isWithinCraftorioBorders(player, pos.getX(), pos.getZ());
     }

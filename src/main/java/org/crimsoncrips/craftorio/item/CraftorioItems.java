@@ -24,6 +24,7 @@ public class CraftorioItems {
 
     public static final DeferredItem<Item> EFFECT_ITEM = ITEMS.register("effect_item", () -> new EffectItem(new Item.Properties()));
     public static final DeferredItem<Item> MYSTERY_EFFECT_ITEM = ITEMS.register("mystery_effect_item", () -> new MysteryEffectItem(new Item.Properties()));
+    public static final DeferredItem<Item> CLAIM_ITEM = ITEMS.register("claim_item", () -> new ClaimChunkItem(new Item.Properties()));
 
 
 }

@@ -8,14 +8,18 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
+import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.inventory.SinkerMenu;
 import org.crimsoncrips.craftorio.networking.SinkItemsPacket;
 
+import java.math.BigInteger;
 import java.util.List;
 
 public class SinkScreen extends AbstractContainerScreen<SinkerMenu>{
@@ -33,7 +37,24 @@ public class SinkScreen extends AbstractContainerScreen<SinkerMenu>{
 
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
 		super.render(guiGraphics, mouseX, mouseY, partialTick);
+
+		int j = (this.height - this.imageHeight) / 2;
+		int maxPointsWidth = (int) (this.width * 0.7);
+		CraftorioMisc.CraftorioTextEffects.drawCenteredLineFit(guiGraphics, this.font, this.width / 2, j - 46, true, 0xFFAA00, maxPointsWidth, computeSinkerValue(), " points");
+
 		this.renderTooltip(guiGraphics, mouseX, mouseY);
+	}
+
+	private BigInteger computeSinkerValue() {
+		BigInteger total = BigInteger.ZERO;
+		Container container = this.menu.getContainer();
+		for (int slot = 0; slot < this.menu.getRowCount() * 9; slot++) {
+			ItemStack stack = container.getItem(slot);
+			if (!stack.isEmpty()) {
+				total = total.add(CraftorioMisc.checkValue(stack, this.minecraft.player, false));
+			}
+		}
+		return total;
 	}
 
 	protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {

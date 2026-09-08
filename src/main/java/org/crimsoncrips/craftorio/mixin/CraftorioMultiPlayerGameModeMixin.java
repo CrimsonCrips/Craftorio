@@ -10,18 +10,14 @@ import net.minecraft.core.Direction;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.phys.BlockHitResult;
+import org.crimsoncrips.craftorio.item.ClaimChunkItem;
 import org.crimsoncrips.craftorio.server.BorderCollisionHooks;
+import org.crimsoncrips.craftorio.server.ChunkCollisionHooks;
 import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 
-/**
- * Mirrors the client-side WorldBorder gates in MultiPlayerGameMode
- * (startDestroyBlock / continueDestroyBlock / useItemOn) so that blocks
- * outside a CraftorioBorder are rejected before any packet is sent or any
- * predicted local block change happens - matching vanilla's "can't even try"
- * feel instead of a server-side cancel that flickers on the client.
- */
+
 @Mixin(MultiPlayerGameMode.class)
 public abstract class CraftorioMultiPlayerGameModeMixin {
 
@@ -30,7 +26,7 @@ public abstract class CraftorioMultiPlayerGameModeMixin {
     @WrapMethod(method = "startDestroyBlock")
     private boolean gateCraftorioBorderStartDestroy(BlockPos loc, Direction face, Operation<Boolean> original) {
         LocalPlayer player = this.minecraft.player;
-        if (player != null && !BorderCollisionHooks.isWithinCraftorioBorders(player, loc)) {
+        if (player != null && !(BorderCollisionHooks.isWithinCraftorioBorders(player, loc) && ChunkCollisionHooks.isWithinClaimedChunk(player, loc))) {
             return false;
         }
         return original.call(loc, face);
@@ -39,7 +35,7 @@ public abstract class CraftorioMultiPlayerGameModeMixin {
     @WrapMethod(method = "continueDestroyBlock")
     private boolean gateCraftorioBorderContinueDestroy(BlockPos posBlock, Direction directionFacing, Operation<Boolean> original) {
         LocalPlayer player = this.minecraft.player;
-        if (player != null && !BorderCollisionHooks.isWithinCraftorioBorders(player, posBlock)) {
+        if (player != null && !(BorderCollisionHooks.isWithinCraftorioBorders(player, posBlock) && ChunkCollisionHooks.isWithinClaimedChunk(player, posBlock))) {
             return false;
         }
         return original.call(posBlock, directionFacing);
@@ -47,7 +43,8 @@ public abstract class CraftorioMultiPlayerGameModeMixin {
 
     @WrapMethod(method = "useItemOn")
     private InteractionResult gateCraftorioBorderUseItemOn(LocalPlayer player, InteractionHand hand, BlockHitResult result, Operation<InteractionResult> original) {
-        if (!BorderCollisionHooks.isWithinCraftorioBorders(player, result.getBlockPos())) {
+        boolean claimingChunk = player.getItemInHand(hand).getItem() instanceof ClaimChunkItem;
+        if (!claimingChunk && !(BorderCollisionHooks.isWithinCraftorioBorders(player, result.getBlockPos()) && ChunkCollisionHooks.isWithinClaimedChunk(player, result.getBlockPos()))) {
             return InteractionResult.FAIL;
         }
         return original.call(player, hand, result);

@@ -13,6 +13,7 @@ import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioEffectBoots
 import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioShipmentBootstrap;
 import org.crimsoncrips.craftorio.datagen.language.CraftLangGen;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioPointsDeterminer;
+import org.crimsoncrips.craftorio.datagen.recipe.CraftorioRecipeGenerator;
 import org.crimsoncrips.craftorio.datagen.tags.CraftorioBlockTagGen;
 import org.crimsoncrips.craftorio.datagen.tags.CraftorioItemTagGen;
 import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
@@ -35,6 +36,8 @@ public class CraftorioDatagen {
         generator.addProvider(event.includeServer(), blocktags);
         generator.addProvider(event.includeServer(), new CraftorioItemTagGen(output, provider, blocktags.contentsGetter(), helper));
         generator.addProvider(event.includeServer(), new CraftorioPointsDeterminer(output, provider));
+        generator.addProvider(event.includeServer(), new CraftorioLootModifierProvider(output, provider));
+        generator.addProvider(event.includeServer(), new CraftorioRecipeGenerator(output, provider));
 
         RegistrySetBuilder registryBuilder = new RegistrySetBuilder()
                 .add(CraftorioEffects.REGISTRY_KEY, CraftorioEffectBootstrap::bootstrap)

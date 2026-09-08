@@ -24,6 +24,11 @@ public class EffectItem extends Item {
     }
 
     @Override
+    public int getDefaultMaxStackSize() {
+        return 1;
+    }
+
+    @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
         ItemStack itemstack = player.getItemInHand(usedHand);
         for (CraftorioEffects chosenEffect : getContainedEffects(itemstack)){
