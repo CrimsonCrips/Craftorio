@@ -63,7 +63,7 @@ public class CommandEvents {
     private static int runCheckEffects(CommandContext<CommandSourceStack> context) {
         ServerPlayer serverPlayer = context.getSource().getPlayer();
         if (serverPlayer != null) {
-            for (CraftorioEffects effects : CraftorioMisc.getCraftorioPointEffects(serverPlayer)){
+            for (CraftorioEffects effects : CraftorioMisc.getCraftorioEffects(serverPlayer)){
                 context.getSource().sendSuccess(() -> Component.literal("Name:" + effects.getActualName() + "  Time:" + effects.getTime()), true);
             }
         }

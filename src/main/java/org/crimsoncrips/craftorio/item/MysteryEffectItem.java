@@ -7,7 +7,6 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
-import org.crimsoncrips.craftorio.registries.effect.CraftorioPointEffect;
 
 import java.util.List;
 

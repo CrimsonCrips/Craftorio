@@ -10,7 +10,7 @@ import org.crimsoncrips.craftorio.Craftorio;
 
 import java.util.function.Supplier;
 
-public class CraftorioPointEffectTypes {
+public class CraftorioEffectTypes {
 
     public static final DeferredRegister<MapCodec<? extends CraftorioEffects>> TYPES =
             DeferredRegister.create(CraftorioEffects.TYPE_REGISTRY_KEY, Craftorio.MODID);
@@ -32,5 +32,14 @@ public class CraftorioPointEffectTypes {
                             TagKey.hashedCodec(Registries.ITEM).fieldOf("item_tag").forGetter(TagMultiplierEffect::getItemTag),
                             Codec.INT.fieldOf("time").forGetter(TagMultiplierEffect::getTime)
                     ).apply(instance, TagMultiplierEffect::new)
+            ));
+
+    public static final Supplier<MapCodec<ShopMultiplierEffect>> SHOP_MULTIPLIER =
+            TYPES.register("shop_multiplier", () -> RecordCodecBuilder.mapCodec(instance ->
+                    instance.group(
+                            Codec.FLOAT.fieldOf("multiplier").forGetter(ShopMultiplierEffect::getMultiplier),
+                            Codec.STRING.fieldOf("name").forGetter(ShopMultiplierEffect::getNameKey),
+                            Codec.INT.fieldOf("time").forGetter(ShopMultiplierEffect::getTime)
+                    ).apply(instance, ShopMultiplierEffect::new)
             ));
 }

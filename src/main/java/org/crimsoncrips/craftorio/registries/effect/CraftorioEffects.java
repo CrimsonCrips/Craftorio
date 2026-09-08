@@ -78,6 +78,11 @@ public abstract class CraftorioEffects {
                 effects.remove(this);
                 CraftorioMisc.setGeneralEffects(player,effects);
             }
+            if (this instanceof ShopMultiplierEffect) {
+                List<ShopMultiplierEffect> effects = new ArrayList<>(CraftorioMisc.getShopEffects(player));
+                effects.remove(this);
+                CraftorioMisc.setShopEffects(player,effects);
+            }
         }
     }
 

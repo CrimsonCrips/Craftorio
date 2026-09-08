@@ -11,8 +11,9 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
-public class TagMultiplierEffect extends CraftorioPointEffect {
+public class TagMultiplierEffect extends CraftorioEffects {
 
+    private final float multiplier;
     private final TagKey<Item> itemTag;
 
     public static final Codec<TagMultiplierEffect> CODEC = RecordCodecBuilder.create(instance ->
@@ -33,8 +34,13 @@ public class TagMultiplierEffect extends CraftorioPointEffect {
     );
 
     public TagMultiplierEffect(float multiplier, String key, TagKey<Item> itemTag, int time){
-        super(multiplier,key,time);
+        super(key,time);
+        this.multiplier = multiplier;
         this.itemTag = itemTag;
+    }
+
+    public float getMultiplier(){
+        return multiplier;
     }
 
     public float getTagMultiplier(ItemStack item) {
@@ -47,7 +53,7 @@ public class TagMultiplierEffect extends CraftorioPointEffect {
 
     @Override
     public MapCodec<? extends CraftorioEffects> codec() {
-        return CraftorioPointEffectTypes.TAG_MULTIPLIER.get();
+        return CraftorioEffectTypes.TAG_MULTIPLIER.get();
     }
 
     @Override

@@ -8,7 +8,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.registries.effect.ShopMultiplierEffect;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 
 
@@ -19,16 +21,16 @@ public class CraftorioShop {
     }
 
 
-    public static BigInteger getUnitPrice(Player player, Item item) {
-        return CraftorioMisc.checkValue(new ItemStack(item, 1), player, true);
-    }
+    public static BigInteger getUnitPrice(Player player, Item item,boolean applyCostIncrease) {
+        BigInteger bigInteger = CraftorioMisc.checkValue(new ItemStack(item, 1), player, false);
 
-    public static boolean isPurchasable(ServerPlayer player, Item item) {
-        CraftorioShopMode mode = Craftorio.SERVER_CONFIG.SHOP_MODE.get();
-        if (mode == CraftorioShopMode.DISABLED) return false;
-        if (getUnitPrice(player, item).signum() <= 0) return false;
+        BigDecimal result = new BigDecimal(BigInteger.valueOf(Craftorio.SERVER_CONFIG.SHOP_COST_MULTIPLIER.getAsInt()));
 
-        return mode == CraftorioShopMode.OPEN || Craftorio.UNLOCKED_ITEMS.isUnlocked(player, item);
+        for (ShopMultiplierEffect shopEffect : CraftorioMisc.getShopEffects(player)) {
+            result = result.add(BigDecimal.valueOf(shopEffect.getMultiplier()));
+        }
+
+        return applyCostIncrease ? bigInteger.multiply(result.toBigInteger()) : bigInteger;
     }
 
     public static void purchase(ServerPlayer player, Item item, int quantity) {
@@ -40,14 +42,9 @@ public class CraftorioShop {
             return;
         }
 
-        BigInteger unitPrice = getUnitPrice(player, item);
+        BigInteger unitPrice = getUnitPrice(player, item,true);
         if (unitPrice.signum() <= 0) {
             player.sendSystemMessage(Component.literal("That item isn't sold in the shop.").withStyle(ChatFormatting.RED));
-            return;
-        }
-
-        if (mode == CraftorioShopMode.UNLOCKED && !Craftorio.UNLOCKED_ITEMS.isUnlocked(player, item)) {
-            player.sendSystemMessage(Component.literal("You haven't unlocked that item yet - pick one up first.").withStyle(ChatFormatting.RED));
             return;
         }
 
@@ -73,7 +70,10 @@ public class CraftorioShop {
             ItemStack stack = new ItemStack(item);
             int amount = Math.min(remaining, stack.getMaxStackSize());
             stack.setCount(amount);
-            player.getInventory().add(stack);
+            player.addItem(stack);
+            if (!stack.isEmpty()) {
+                player.drop(stack, false);
+            }
             remaining -= amount;
         }
     }

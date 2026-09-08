@@ -32,6 +32,8 @@ public class CraftLangGen extends CraftLangProvider {
 		this.addRegistryName("general_4", "General 4");
 		this.addRegistryName("general_5", "General 5");
 
+		this.addRegistryName("0_25_increase", "0.25 Increase");
+
 		this.addRegistryName("copper_block_buff", "Copper Block Buff");
 		this.addRegistryName("copper_block_debuff", "Copper Block Debuff");
 	}

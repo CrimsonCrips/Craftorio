@@ -20,6 +20,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.registries.effect.ShopMultiplierEffect;
 import org.crimsoncrips.craftorio.server.CraftorioShop;
 
 import java.math.BigInteger;
@@ -69,7 +70,7 @@ public class ShopScreen extends Screen {
             List<Item> items = new ArrayList<>();
             for (Item item : BuiltInRegistries.ITEM) {
                 if (item == Items.AIR) continue;
-                if (CraftorioShop.getUnitPrice(player, item).signum() <= 0) continue;
+                if (CraftorioShop.getUnitPrice(player, item,true).signum() <= 0) continue;
                 items.add(item);
             }
             items.sort(Comparator.comparing(item -> BuiltInRegistries.ITEM.getKey(item).toString()));
@@ -209,10 +210,17 @@ public class ShopScreen extends Screen {
             this.item = item;
             this.displayStack = new ItemStack(item);
             this.locked = !ShopScreen.this.isUnlocked(item);
+            Player player = ShopScreen.this.minecraft.player;
 
-            BigInteger price = CraftorioShop.getUnitPrice(ShopScreen.this.minecraft.player, item);
+            BigInteger unmodified_price = CraftorioShop.getUnitPrice(player, item,false);
+            BigInteger price = CraftorioShop.getUnitPrice(player, item,true);
             String priceText = CraftorioMisc.bigIntFormat(price, Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
-            String tooltipText = this.displayStack.getHoverName().getString() + " - " + priceText + " pts";
+            double shop_multiplier = Craftorio.SERVER_CONFIG.SHOP_COST_MULTIPLIER.getAsInt();
+            for (ShopMultiplierEffect shopEffect : CraftorioMisc.getShopEffects(player)) {
+                shop_multiplier += shopEffect.getMultiplier();
+            }
+
+            String tooltipText = this.displayStack.getHoverName().getString() + " - " + priceText + " (" + unmodified_price + " * " + shop_multiplier + ")";
             if (this.locked) {
                 tooltipText += " (Locked)";
             }

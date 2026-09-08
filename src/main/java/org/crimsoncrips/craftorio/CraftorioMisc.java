@@ -24,14 +24,9 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.phys.Vec3;
-import org.crimsoncrips.craftorio.data_components.CraftorioDataComponents;
-import org.crimsoncrips.craftorio.item.CraftorioItems;
+import org.crimsoncrips.craftorio.registries.effect.*;
 import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
-import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
-import org.crimsoncrips.craftorio.registries.effect.CraftorioPointEffect;
-import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
-import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
 import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
 import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
 
@@ -151,7 +146,7 @@ public class CraftorioMisc {
 
 
 
-    public static BigInteger checkValue(ItemStack itemStack,Player player,boolean forToolip){
+    public static BigInteger checkValue(ItemStack itemStack,Player player,boolean addBuffAddition){
         var valueString = itemStack.getItem().builtInRegistryHolder().getData(CraftorioDataMaps.POINT_VALUE);
         BigDecimal determinedValue;
         determinedValue = valueString != null ? (new BigDecimal(valueString).multiply(BigDecimal.valueOf(itemStack.getCount()))) : BigDecimal.valueOf(0);
@@ -196,7 +191,7 @@ public class CraftorioMisc {
         }
 
         //Buff Multiplier Addition
-        if (!forToolip){
+        if (addBuffAddition){
             BigDecimal result = new BigDecimal(value).multiply(BigDecimal.valueOf(itemMultiplierValue(player,itemStack)));
             value = value.add(result.toBigInteger());
         }
@@ -207,11 +202,11 @@ public class CraftorioMisc {
 
     public static float itemMultiplierValue(Player player, ItemStack itemStack){
         float multiplier = 0;
-        for (CraftorioPointEffect craftorioEffect : getCraftorioPointEffects(player)) {
-            if (craftorioEffect instanceof TagMultiplierEffect multiplierEffect) {
+        for (CraftorioEffects craftorioPointEffect : getCraftorioEffects(player)) {
+            if (craftorioPointEffect instanceof TagMultiplierEffect multiplierEffect) {
                 multiplier += multiplierEffect.getTagMultiplier(itemStack);
-            } else {
-                multiplier += craftorioEffect.getMultiplier();
+            } else if (craftorioPointEffect instanceof GeneralMultiplierEffect generalMultiplierEffect) {
+                multiplier += generalMultiplierEffect.getMultiplier();
             }
         }
         return multiplier;
@@ -569,11 +564,21 @@ public class CraftorioMisc {
 
 
     //Effect checks
-    public static List<CraftorioPointEffect> getCraftorioPointEffects(Player player){
-        List<CraftorioPointEffect> newList = new ArrayList<>();
+    public static List<CraftorioEffects> getCraftorioEffects(Player player){
+        List<CraftorioEffects> newList = new ArrayList<>();
         newList.addAll(getTagEffects(player));
         newList.addAll(getGeneralEffects(player));
+        newList.addAll(getShopEffects(player));
         return newList;
+    }
+
+    public static List<ShopMultiplierEffect> getShopEffects(Player player){
+        Level level = player.level();
+        if (universalBased(level)){
+            return level.getData(SHOP_MULTIPLIER_EFFECTS);
+        } else {
+            return player.getData(SHOP_MULTIPLIER_EFFECTS);
+        }
     }
 
     public static List<TagMultiplierEffect> getTagEffects(Player player){
@@ -591,6 +596,15 @@ public class CraftorioMisc {
             return level.getData(GENERAL_MULTIPLIER_EFFECTS);
         } else {
             return player.getData(GENERAL_MULTIPLIER_EFFECTS);
+        }
+    }
+
+    public static void setShopEffects(Player player, List<ShopMultiplierEffect> effects){
+        Level level = player.level();
+        if (universalBased(level)){
+            level.setData(SHOP_MULTIPLIER_EFFECTS,effects);
+        } else {
+            player.setData(SHOP_MULTIPLIER_EFFECTS,effects);
         }
     }
 

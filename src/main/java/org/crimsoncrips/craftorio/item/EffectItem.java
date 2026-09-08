@@ -9,14 +9,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.WrittenBookItem;
 import net.minecraft.world.level.Level;
 import org.crimsoncrips.craftorio.CraftorioMisc;
-import org.crimsoncrips.craftorio.data_components.CraftorioDataComponents;
-import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
-import org.crimsoncrips.craftorio.registries.effect.CraftorioPointEffect;
-import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
-import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
+import org.crimsoncrips.craftorio.CraftorioDataComponents;
+import org.crimsoncrips.craftorio.registries.effect.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +37,11 @@ public class EffectItem extends Item {
                 effects.add(generalMultiplierEffect);
                 CraftorioMisc.setGeneralEffects(player,effects);
             }
+            if (chosenEffect instanceof ShopMultiplierEffect shopMultiplierEffect) {
+                List<ShopMultiplierEffect> effects = new ArrayList<>(CraftorioMisc.getShopEffects(player));
+                effects.add(shopMultiplierEffect);
+                CraftorioMisc.setShopEffects(player,effects);
+            }
         }
         if (!player.isCreative()) {
             player.getItemInHand(usedHand).shrink(1);
@@ -53,7 +54,8 @@ public class EffectItem extends Item {
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
         for (CraftorioEffects chosenEffect : getContainedEffects(stack)) {
             ChatFormatting color = ChatFormatting.BLUE;
-            if (chosenEffect instanceof CraftorioPointEffect pointEffect && pointEffect.getMultiplier() < 0) {
+            if ((chosenEffect instanceof TagMultiplierEffect tagEffect && tagEffect.getMultiplier() < 0)
+                    || (chosenEffect instanceof GeneralMultiplierEffect generalEffect && generalEffect.getMultiplier() < 0)) {
                 color = ChatFormatting.RED;
             }
 

@@ -7,6 +7,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
@@ -15,6 +16,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.networking.ShopPurchasePacket;
+import org.crimsoncrips.craftorio.registries.effect.ShopMultiplierEffect;
 import org.crimsoncrips.craftorio.server.CraftorioShop;
 
 import java.math.BigInteger;
@@ -72,6 +74,7 @@ public class ShopPurchaseScreen extends Screen {
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         super.render(guiGraphics, mouseX, mouseY, partialTick);
+        Player player = this.minecraft.player;
 
         int centerX = this.width / 2;
         int centerY = this.height / 2;
@@ -80,9 +83,16 @@ public class ShopPurchaseScreen extends Screen {
         guiGraphics.renderItem(stack, centerX - 8, centerY - 40);
         guiGraphics.drawCenteredString(this.font, stack.getHoverName(), centerX, centerY - 58, 0xFFFFFF);
 
-        BigInteger unitPrice = CraftorioShop.getUnitPrice(this.minecraft.player, this.item);
-        String priceText = CraftorioMisc.bigIntFormat(unitPrice, Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
-        guiGraphics.drawCenteredString(this.font, Component.literal(priceText + " points each"), centerX, centerY - 20, 0xFFAA00);
+        BigInteger unmodified_price = CraftorioShop.getUnitPrice(player, item,false);
+        BigInteger price = CraftorioShop.getUnitPrice(player, item,true);
+        String priceText = CraftorioMisc.bigIntFormat(price, Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
+        double shop_multiplier = Craftorio.SERVER_CONFIG.SHOP_COST_MULTIPLIER.getAsInt();
+        for (ShopMultiplierEffect shopEffect : CraftorioMisc.getShopEffects(player)) {
+            shop_multiplier += shopEffect.getMultiplier();
+        }
+        String tooltipText = priceText + " (" + unmodified_price + " * " + shop_multiplier + ")";
+
+        guiGraphics.drawCenteredString(this.font, Component.literal(tooltipText + " points each"), centerX, centerY - 20, 0xFFAA00);
 
         if (!this.errorMessage.getString().isEmpty()) {
             guiGraphics.drawCenteredString(this.font, this.errorMessage, centerX, centerY + 40, 0xFF5555);

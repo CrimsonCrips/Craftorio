@@ -6,6 +6,7 @@ import net.minecraft.resources.ResourceLocation;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.datagen.tags.CraftorioItemTagGen;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
+import org.crimsoncrips.craftorio.registries.effect.ShopMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
 
@@ -40,8 +41,13 @@ public class CraftorioEffectBootstrap {
         );
 
         context.register(
-                key("tag/general_5"),
+                key("general/general_5"),
                 new GeneralMultiplierEffect(100F, "registry.general_5", 500)
+        );
+
+        context.register(
+                key("shop/0_25_increase"),
+                new ShopMultiplierEffect(1.25F, "registry.0_25_increase", 500)
         );
 
 

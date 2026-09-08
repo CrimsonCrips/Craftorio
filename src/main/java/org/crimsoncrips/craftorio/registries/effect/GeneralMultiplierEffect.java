@@ -7,7 +7,9 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
-public class GeneralMultiplierEffect extends CraftorioPointEffect {
+public class GeneralMultiplierEffect extends CraftorioEffects {
+
+    private final float multiplier;
 
     public static final Codec<GeneralMultiplierEffect> CODEC = RecordCodecBuilder.create(instance ->
             instance.group(
@@ -24,14 +26,18 @@ public class GeneralMultiplierEffect extends CraftorioPointEffect {
             GeneralMultiplierEffect::new
     );
 
+    public float getMultiplier(){
+        return multiplier;
+    }
 
     @Override
-    public MapCodec<? extends CraftorioPointEffect> codec() {
-        return CraftorioPointEffectTypes.GENERAL_MULTIPLIER.get();
+    public MapCodec<? extends CraftorioEffects> codec() {
+        return CraftorioEffectTypes.GENERAL_MULTIPLIER.get();
     }
 
     public GeneralMultiplierEffect(float multiplier,String key,int time){
-        super(multiplier,key,time);
+        super(key,time);
+        this.multiplier = multiplier;
     }
 
     @Override

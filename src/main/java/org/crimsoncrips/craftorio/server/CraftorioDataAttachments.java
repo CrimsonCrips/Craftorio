@@ -15,12 +15,12 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.registries.effect.ShopMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
 import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
 import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
 
-import java.awt.*;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -80,6 +80,12 @@ public class CraftorioDataAttachments {
             "general_multiplier_effects", () -> AttachmentType.<List<GeneralMultiplierEffect>>builder((holder) -> new ArrayList<>())
                     .serialize(Codec.list(GeneralMultiplierEffect.CODEC))
                     .sync(GeneralMultiplierEffect.CODEC_STREAM.apply(ByteBufCodecs.list()))
+                    .build());
+
+    public static final Supplier<AttachmentType<List<ShopMultiplierEffect>>> SHOP_MULTIPLIER_EFFECTS = ATTACHMENT_TYPES.register(
+            "shop_multiplier_effects", () -> AttachmentType.<List<ShopMultiplierEffect>>builder((holder) -> new ArrayList<>())
+                    .serialize(Codec.list(ShopMultiplierEffect.CODEC))
+                    .sync(ShopMultiplierEffect.CODEC_STREAM.apply(ByteBufCodecs.list()))
                     .build());
 
     public static final Supplier<AttachmentType<List<CraftorioShipmentContract>>> SHIPMENT_CONTRACTS = ATTACHMENT_TYPES.register(
