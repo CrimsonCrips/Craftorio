@@ -10,6 +10,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
@@ -173,21 +174,7 @@ public class ShopScreen extends Screen {
         guiGraphics.drawCenteredString(this.font, this.getTitle(), centerX, 8, 0xFFFFFF);
 
         BigInteger points = CraftorioMisc.getPoints(this.minecraft.player);
-        String pointsNumber = CraftorioMisc.bigIntFormat(points, Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
-        String cappedText = CraftorioMisc.bigIntFormat(CraftorioMisc.pointThreshold(), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
-        String negCappedText = "-" + cappedText;
-        String pointsLine = pointsNumber + " points";
-
-        int pointsWidth = this.font.width(pointsLine);
-        int pointsX = centerX - pointsWidth / 2;
-
-        if (pointsNumber.equals(cappedText)) {
-            CraftorioMisc.CraftorioTextEffects.drawFancy(guiGraphics, this.font, pointsLine, pointsX, 20, true, 0);
-        } else if (pointsNumber.equals(negCappedText)) {
-            CraftorioMisc.CraftorioTextEffects.drawFancy(guiGraphics, this.font, pointsLine, pointsX, 20, true, 1);
-        } else {
-            guiGraphics.drawCenteredString(this.font, Component.literal(pointsLine), centerX, 20, 0xFFAA00);
-        }
+        CraftorioMisc.CraftorioTextEffects.drawCenteredLine(guiGraphics, this.font, centerX, 20, true, 0xFFAA00, points, " points");
 
         int footerY = GRID_TOP + ROWS * CELL_SIZE + 8;
         guiGraphics.drawCenteredString(this.font, Component.literal((this.page + 1) + " / " + this.totalPages()), centerX, footerY + 6, 0xFFFFFF);
@@ -214,17 +201,18 @@ public class ShopScreen extends Screen {
 
             BigInteger unmodified_price = CraftorioShop.getUnitPrice(player, item,false);
             BigInteger price = CraftorioShop.getUnitPrice(player, item,true);
-            String priceText = CraftorioMisc.bigIntFormat(price, Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
             double shop_multiplier = Craftorio.SERVER_CONFIG.SHOP_COST_MULTIPLIER.getAsInt();
             for (ShopMultiplierEffect shopEffect : CraftorioMisc.getShopEffects(player)) {
                 shop_multiplier += shopEffect.getMultiplier();
             }
 
-            String tooltipText = this.displayStack.getHoverName().getString() + " - " + priceText + " (" + unmodified_price + " * " + shop_multiplier + ")";
+            MutableComponent tooltipComponent = CraftorioMisc.CraftorioTextEffects.capAwareLine(
+                    this.displayStack.getHoverName().getString() + " - ", price, " (", unmodified_price, " * " + shop_multiplier + ")"
+            );
             if (this.locked) {
-                tooltipText += " (Locked)";
+                tooltipComponent.append(Component.literal(" (Locked)"));
             }
-            this.setTooltip(Tooltip.create(Component.literal(tooltipText)));
+            this.setTooltip(Tooltip.create(tooltipComponent));
         }
 
         @Override

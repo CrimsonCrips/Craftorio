@@ -5,6 +5,7 @@ import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerLevel;
@@ -99,7 +100,21 @@ public class ServerEvents {
         if (multiplierValue != 0){
             multiplierText = " (" + unmultipliedValue + " * " + multiplierValue + ")";
         }
-        itemTooltipEvent.getToolTip().add(1,Component.literal("Points : " + pointValue + multiplierText ).withColor(16759552));
+
+        String cappedText = CraftorioMisc.bigIntFormat(CraftorioMisc.pointThreshold(), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
+        String negCappedText = "-" + cappedText;
+
+        MutableComponent line = Component.literal("Points : ").withColor(16759552);
+        if (pointValue.equals(cappedText)) {
+            line.append(CraftorioMisc.CraftorioTextEffects.fancyComponent(pointValue, 0));
+        } else if (pointValue.equals(negCappedText)) {
+            line.append(CraftorioMisc.CraftorioTextEffects.fancyComponent(pointValue, 1));
+        } else {
+            line.append(Component.literal(pointValue).withColor(16759552));
+        }
+        line.append(Component.literal(multiplierText).withColor(16759552));
+
+        itemTooltipEvent.getToolTip().add(1, line);
     }
 
     public void setArea(Player player,BlockPos blockPos,ResourceKey<Level> dimensionLevel){

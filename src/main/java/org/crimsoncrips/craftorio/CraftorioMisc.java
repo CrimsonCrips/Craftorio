@@ -6,6 +6,8 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.*;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.PlayerRespawnLogic;
@@ -502,6 +504,118 @@ public class CraftorioMisc {
                 default -> throw new IllegalArgumentException(
                         "Invalid formatType");
             };
+        }
+
+        public static MutableComponent fancyComponent(String text, int mode){
+            return switch (mode) {
+                case 0 -> rainbowWaveComponent(text);
+                case 1 -> staticNoiseComponent(text);
+                default -> throw new IllegalArgumentException("Invalid formatType");
+            };
+        }
+
+        public static int drawCapAwareNumber(GuiGraphics graphics, Font font, BigInteger value, int x, int y, boolean dropShadow, int normalColor) {
+            String text = bigIntFormat(value, Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
+            String cappedText = bigIntFormat(pointThreshold(), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
+            String negCappedText = "-" + cappedText;
+
+            if (text.equals(cappedText)) {
+                drawFancy(graphics, font, text, x, y, dropShadow, 0);
+            } else if (text.equals(negCappedText)) {
+                drawFancy(graphics, font, text, x, y, dropShadow, 1);
+            } else {
+                graphics.drawString(font, text, x, y, normalColor, dropShadow);
+            }
+            return font.width(text);
+        }
+
+        public static void drawCenteredLine(GuiGraphics graphics, Font font, int centerX, int y, boolean dropShadow, int normalColor, Object... parts) {
+            String[] rendered = new String[parts.length];
+            int totalWidth = 0;
+            for (int i = 0; i < parts.length; i++) {
+                rendered[i] = parts[i] instanceof BigInteger bigInt
+                        ? bigIntFormat(bigInt, Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt())
+                        : String.valueOf(parts[i]);
+                totalWidth += font.width(rendered[i]);
+            }
+
+            int cursorX = centerX - totalWidth / 2;
+            for (int i = 0; i < parts.length; i++) {
+                if (parts[i] instanceof BigInteger bigInt) {
+                    cursorX += drawCapAwareNumber(graphics, font, bigInt, cursorX, y, dropShadow, normalColor);
+                } else {
+                    graphics.drawString(font, rendered[i], cursorX, y, normalColor, dropShadow);
+                    cursorX += font.width(rendered[i]);
+                }
+            }
+        }
+
+        public static MutableComponent capAwareNumberComponent(BigInteger value) {
+            String text = bigIntFormat(value, Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
+            String cappedText = bigIntFormat(pointThreshold(), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
+            String negCappedText = "-" + cappedText;
+
+            if (text.equals(cappedText)) {
+                return fancyComponent(text, 0);
+            } else if (text.equals(negCappedText)) {
+                return fancyComponent(text, 1);
+            } else {
+                return Component.literal(text);
+            }
+        }
+
+        public static MutableComponent capAwareLine(Object... parts) {
+            MutableComponent result = Component.empty();
+            for (Object part : parts) {
+                if (part instanceof BigInteger bigInt) {
+                    result.append(capAwareNumberComponent(bigInt));
+                } else {
+                    result.append(Component.literal(String.valueOf(part)));
+                }
+            }
+            return result;
+        }
+
+        private static MutableComponent rainbowWaveComponent(String text) {
+            double time = System.nanoTime() / 1_000_000_000.0;
+
+            MutableComponent result = Component.empty();
+            for (int i = 0; i < text.length(); i++) {
+                float hue = (float) ((time * 0.25) + (i * 0.08));
+                hue -= Math.floor(hue);
+                int color = Color.HSBtoRGB(hue, 0.8f, 1.0f) & 0xFFFFFF;
+
+                result.append(Component.literal(String.valueOf(text.charAt(i))).withColor(color));
+            }
+            return result;
+        }
+
+        private static MutableComponent staticNoiseComponent(String text) {
+            long now = System.currentTimeMillis();
+            long frameSeed = now / Math.max(1L, 80L);
+
+            char[] GLITCH_CHARS = {
+                    '#', '%', '&', '$', '@', '*', '?', '!', '/', '\\', '|', '~', '^', '0', '1'
+            };
+
+            MutableComponent result = Component.empty();
+            for (int i = 0; i < text.length(); i++) {
+                char original = text.charAt(i);
+
+                long charSeed = frameSeed * 31L + i;
+                Random rnd = new Random(charSeed);
+
+                char displayChar = original;
+                if (Character.isLetter(original) && rnd.nextFloat() < 0.25f) {
+                    displayChar = GLITCH_CHARS[rnd.nextInt(GLITCH_CHARS.length)];
+                }
+
+                int gray = 140 + rnd.nextInt(116);
+                int color = (gray << 16) | (gray << 8) | gray;
+
+                result.append(Component.literal(String.valueOf(displayChar)).withColor(color));
+            }
+            return result;
         }
 
         private static void drawRainbowWave(GuiGraphics graphics, Font font, String text, int x, int y, boolean dropShadow) {

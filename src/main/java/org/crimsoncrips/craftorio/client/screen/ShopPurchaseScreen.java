@@ -85,14 +85,13 @@ public class ShopPurchaseScreen extends Screen {
 
         BigInteger unmodified_price = CraftorioShop.getUnitPrice(player, item,false);
         BigInteger price = CraftorioShop.getUnitPrice(player, item,true);
-        String priceText = CraftorioMisc.bigIntFormat(price, Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
         double shop_multiplier = Craftorio.SERVER_CONFIG.SHOP_COST_MULTIPLIER.getAsInt();
         for (ShopMultiplierEffect shopEffect : CraftorioMisc.getShopEffects(player)) {
             shop_multiplier += shopEffect.getMultiplier();
         }
-        String tooltipText = priceText + " (" + unmodified_price + " * " + shop_multiplier + ")";
 
-        guiGraphics.drawCenteredString(this.font, Component.literal(tooltipText + " points each"), centerX, centerY - 20, 0xFFAA00);
+        CraftorioMisc.CraftorioTextEffects.drawCenteredLine(guiGraphics, this.font, centerX, centerY - 20, true, 0xFFAA00,
+                price, " (", unmodified_price, " * " + shop_multiplier + ")", " points each");
 
         if (!this.errorMessage.getString().isEmpty()) {
             guiGraphics.drawCenteredString(this.font, this.errorMessage, centerX, centerY + 40, 0xFF5555);
