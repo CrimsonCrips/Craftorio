@@ -5,6 +5,7 @@ import net.minecraft.core.RegistrySetBuilder;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.neoforged.fml.common.Mod;
+import net.neoforged.neoforge.common.data.AdvancementProvider;
 import net.neoforged.neoforge.common.data.DatapackBuiltinEntriesProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
@@ -19,6 +20,7 @@ import org.crimsoncrips.craftorio.datagen.tags.CraftorioItemTagGen;
 import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
@@ -38,6 +40,7 @@ public class CraftorioDatagen {
         generator.addProvider(event.includeServer(), new CraftorioPointsDeterminer(output, provider));
         generator.addProvider(event.includeServer(), new CraftorioLootModifierProvider(output, provider));
         generator.addProvider(event.includeServer(), new CraftorioRecipeGenerator(output, provider));
+        generator.addProvider(event.includeServer(), new AdvancementProvider(output, provider, helper, List.of(new CraftorioAdvancementProvider())));
 
         RegistrySetBuilder registryBuilder = new RegistrySetBuilder()
                 .add(CraftorioEffects.REGISTRY_KEY, CraftorioEffectBootstrap::bootstrap)

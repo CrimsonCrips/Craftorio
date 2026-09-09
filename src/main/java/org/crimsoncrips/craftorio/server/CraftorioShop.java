@@ -66,25 +66,11 @@ public class CraftorioShop {
         }
 
         CraftorioMisc.setPoints(points.subtract(totalPrice), player);
-        giveItems(player, template, quantity);
+        CraftorioMisc.giveItemsSplitByStack(player, template, quantity);
 
         player.sendSystemMessage(Component.translatable(
                 "misc.craftorio.purchased_items", quantity, template.getHoverName()
         ).withStyle(ChatFormatting.GREEN));
-    }
-
-    private static void giveItems(ServerPlayer player, ItemStack template, int quantity) {
-        int remaining = quantity;
-        while (remaining > 0) {
-            ItemStack stack = template.copy();
-            int amount = Math.min(remaining, stack.getMaxStackSize());
-            stack.setCount(amount);
-            player.addItem(stack);
-            if (!stack.isEmpty()) {
-                player.drop(stack, false);
-            }
-            remaining -= amount;
-        }
     }
 
 }

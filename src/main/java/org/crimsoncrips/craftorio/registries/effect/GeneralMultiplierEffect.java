@@ -6,6 +6,7 @@ import com.mojang.serialization.codecs.RecordCodecBuilder;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 
 public class GeneralMultiplierEffect extends CraftorioEffects {
 
@@ -15,7 +16,8 @@ public class GeneralMultiplierEffect extends CraftorioEffects {
             instance.group(
                     Codec.FLOAT.fieldOf("multiplier").forGetter(GeneralMultiplierEffect::getMultiplier),
                     Codec.STRING.fieldOf("name").forGetter(GeneralMultiplierEffect::getNameKey),
-                    Codec.INT.fieldOf("time").forGetter(GeneralMultiplierEffect::getTime)
+                    Codec.INT.fieldOf("time").forGetter(GeneralMultiplierEffect::getTime),
+                    ResourceLocation.CODEC.fieldOf("icon").forGetter(GeneralMultiplierEffect::getIcon)
             ).apply(instance, GeneralMultiplierEffect::new)
     );
 
@@ -23,6 +25,7 @@ public class GeneralMultiplierEffect extends CraftorioEffects {
             ByteBufCodecs.FLOAT, GeneralMultiplierEffect::getMultiplier,
             ByteBufCodecs.STRING_UTF8, GeneralMultiplierEffect::getNameKey,
             ByteBufCodecs.INT, GeneralMultiplierEffect::getTime,
+            ResourceLocation.STREAM_CODEC, GeneralMultiplierEffect::getIcon,
             GeneralMultiplierEffect::new
     );
 
@@ -35,14 +38,14 @@ public class GeneralMultiplierEffect extends CraftorioEffects {
         return CraftorioEffectTypes.GENERAL_MULTIPLIER.get();
     }
 
-    public GeneralMultiplierEffect(float multiplier,String key,int time){
-        super(key,time);
+    public GeneralMultiplierEffect(float multiplier,String key,int time, ResourceLocation icon){
+        super(key,time,icon);
         this.multiplier = multiplier;
     }
 
     @Override
     public GeneralMultiplierEffect copy() {
-        return new GeneralMultiplierEffect(getMultiplier(), getNameKey(), getTime());
+        return new GeneralMultiplierEffect(getMultiplier(), getNameKey(), getTime(), getIcon());
     }
 
 }

@@ -1,4 +1,5 @@
 {
+  "icon": "craftorio:textures/gui/locked.png",
   "itemBounty": [
     {
       "amountRequired": 32,

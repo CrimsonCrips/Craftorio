@@ -212,6 +212,20 @@ public class CraftorioMisc {
         return multiplier;
     }
 
+    public static void giveItemsSplitByStack(ServerPlayer player, ItemStack template, int quantity) {
+        int remaining = quantity;
+        while (remaining > 0) {
+            ItemStack stack = template.copy();
+            int amount = Math.min(remaining, stack.getMaxStackSize());
+            stack.setCount(amount);
+            player.addItem(stack);
+            if (!stack.isEmpty()) {
+                player.drop(stack, false);
+            }
+            remaining -= amount;
+        }
+    }
+
     public static BigInteger pointsToExpand(long amount, long claimedLand) {
         BigDecimal total = BigDecimal.ZERO;
         BigDecimal baseCost = BigDecimal.valueOf(landBaseCost());
@@ -945,7 +959,7 @@ public class CraftorioMisc {
         return registryAccess.registryOrThrow(CraftorioEffects.REGISTRY_KEY).holders().toList();
     }
 
-    public static Collection<Holder.Reference<CraftorioShipmentContract>> getAllShipments(RegistryAccess registryAccess) {
+    public static Collection<Holder.Reference<CraftorioShipmentContract>> getAllContracts(RegistryAccess registryAccess) {
         return registryAccess.registryOrThrow(CraftorioShipmentContract.REGISTRY_KEY).holders().toList();
     }
 

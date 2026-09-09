@@ -25,10 +25,13 @@ public class CraftorioConfigScreen extends Screen {
         int centerY = this.height / 2;
 
         this.addRenderableWidget(Button.builder(formatButtonLabel(), this::cycleFormat)
-                .bounds(centerX - 100, centerY - 30, 200, 20).build());
+                .bounds(centerX - 100, centerY - 40, 200, 20).build());
+
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.server_config_button"), b -> this.minecraft.setScreen(new CraftorioServerConfigScreen(this)))
+                .bounds(centerX - 100, centerY - 10, 200, 20).build());
 
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.done"), b -> this.onClose())
-                .bounds(centerX - 100, centerY + 10, 200, 20).build());
+                .bounds(centerX - 100, centerY + 20, 200, 20).build());
     }
 
     private void cycleFormat(Button button) {

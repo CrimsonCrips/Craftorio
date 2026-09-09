@@ -2,16 +2,14 @@ package org.crimsoncrips.craftorio.client.screen;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
-import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.EditBox;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.util.Mth;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -26,33 +24,19 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.Locale;
 import java.util.Set;
+import java.util.stream.Stream;
 
 
 @OnlyIn(Dist.CLIENT)
-public class ShopScreen extends Screen {
+public class ShopScreen extends CatalogScreen<CatalogEntry> {
 
     private static final ResourceLocation LOCKED_TEXTURE = Craftorio.getGuiTexture("locked.png");
-
-    private static final int COLS = 9;
-    private static final int ROWS = 16;
-    private static final int PAGE_SIZE = COLS * ROWS;
-    private static final int SLOT_SIZE = 18;
-    private static final int SLOT_GAP = 4;
-    private static final int CELL_SIZE = SLOT_SIZE + SLOT_GAP;
-    private static final int GRID_TOP = 50;
-
 
     private static List<CatalogEntry> catalog;
 
     private final boolean allUnlocked;
     private final Set<ResourceLocation> unlockedItems;
-
-    private EditBox searchBox;
-    private String searchQuery = "";
-    private List<CatalogEntry> filtered = List.of();
-    private int page = 0;
 
     public ShopScreen(boolean allUnlocked, Set<ResourceLocation> unlockedItems) {
         super(Component.translatable("misc.craftorio.shop_title"));
@@ -67,8 +51,10 @@ public class ShopScreen extends Screen {
         return this.allUnlocked || this.unlockedItems.contains(entry.key());
     }
 
-    private static List<CatalogEntry> getCatalog(Player player) {
+    @Override
+    protected List<CatalogEntry> buildCatalog() {
         if (catalog == null) {
+            Player player = this.minecraft.player;
             List<CatalogEntry> entries = new ArrayList<>(CraftorioShopCatalog.buildFullCatalog(player.registryAccess()));
             entries.removeIf(entry -> CraftorioShop.getUnitPrice(player, entry.stack(), true).signum() <= 0);
             entries.sort(Comparator.comparing(entry -> entry.key().toString()));
@@ -77,133 +63,34 @@ public class ShopScreen extends Screen {
         return catalog;
     }
 
-    private void updateFiltered() {
-        String query = this.searchQuery.strip().toLowerCase(Locale.ROOT);
-        List<CatalogEntry> full = getCatalog(this.minecraft.player);
-
-        if (query.isEmpty()) {
-            this.filtered = full;
-            return;
-        }
-
-        String[] tokens = query.split("\\s+");
-        List<CatalogEntry> matches = new ArrayList<>();
-        entryLoop:
-        for (CatalogEntry entry : full) {
-            for (String token : tokens) {
-                if (!matchesToken(entry, token)) continue entryLoop;
-            }
-            matches.add(entry);
-        }
-        this.filtered = matches;
-    }
-
-    private boolean matchesToken(CatalogEntry entry, String token) {
-        if (token.isEmpty()) return true;
-
-        char prefix = token.charAt(0);
-        if (prefix == '#') {
-            String tagQuery = token.substring(1);
-            if (tagQuery.isEmpty()) return true;
-            return entry.stack().getTags().anyMatch(tag -> tag.location().toString().contains(tagQuery));
-        }
-
-        if (prefix == '@') {
-            String modQuery = token.substring(1);
-            if (modQuery.isEmpty()) return true;
-            return entry.key().getNamespace().toLowerCase(Locale.ROOT).contains(modQuery);
-        }
-
-        String name = entry.stack().getHoverName().getString().toLowerCase(Locale.ROOT);
-        String path = entry.key().getPath().toLowerCase(Locale.ROOT);
-        return name.contains(token) || path.contains(token);
-    }
-
-    private int totalPages() {
-        return Math.max(1, (this.filtered.size() + PAGE_SIZE - 1) / PAGE_SIZE);
+    @Override
+    protected String getSearchName(CatalogEntry entry) {
+        return entry.stack().getHoverName().getString();
     }
 
     @Override
-    protected void init() {
-        super.init();
-
-        this.updateFiltered();
-
-        this.searchBox = new EditBox(this.font, this.width / 2 - 70, 28, 140, 16, Component.translatable("misc.craftorio.search"));
-        this.searchBox.setValue(this.searchQuery);
-        this.searchBox.setResponder(this::onSearchChanged);
-
-        this.refreshWidgets();
-    }
-
-    private void onSearchChanged(String value) {
-        this.searchQuery = value;
-        this.updateFiltered();
-        this.page = 0;
-        this.refreshWidgets();
-    }
-
-    private void refreshWidgets() {
-        this.clearWidgets();
-
-
-        this.addRenderableWidget(this.searchBox);
-
-        int gridWidth = COLS * CELL_SIZE - SLOT_GAP;
-        int startX = (this.width - gridWidth) / 2;
-
-        int firstIndex = this.page * PAGE_SIZE;
-        for (int i = 0; i < PAGE_SIZE; i++) {
-            int index = firstIndex + i;
-            if (index >= this.filtered.size()) break;
-
-            int col = i % COLS;
-            int row = i / COLS;
-
-            this.addRenderableWidget(new ShopItemButton(
-                    startX + col * CELL_SIZE,
-                    GRID_TOP + row * CELL_SIZE,
-                    this.filtered.get(index)
-            ));
-        }
-
-        int footerY = GRID_TOP + ROWS * CELL_SIZE + 8;
-        int centerX = this.width / 2;
-
-        this.addRenderableWidget(Button.builder(Component.literal("<<"), b -> this.setPage(0))
-                .bounds(centerX - 90, footerY, 34, 20).build());
-        this.addRenderableWidget(Button.builder(Component.literal("<"), b -> this.setPage(this.page - 1))
-                .bounds(centerX - 54, footerY, 34, 20).build());
-        this.addRenderableWidget(Button.builder(Component.literal(">"), b -> this.setPage(this.page + 1))
-                .bounds(centerX + 20, footerY, 34, 20).build());
-        this.addRenderableWidget(Button.builder(Component.literal(">>"), b -> this.setPage(this.totalPages() - 1))
-                .bounds(centerX + 56, footerY, 34, 20).build());
-    }
-
-    private void setPage(int newPage) {
-        this.page = Mth.clamp(newPage, 0, this.totalPages() - 1);
-        this.refreshWidgets();
+    protected String getSearchNamespace(CatalogEntry entry) {
+        return entry.key().getNamespace();
     }
 
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+    protected Stream<ResourceLocation> getSearchTags(CatalogEntry entry) {
+        return entry.stack().getTags().map(TagKey::location);
+    }
 
-        int centerX = this.width / 2;
+    @Override
+    protected AbstractWidget createEntryWidget(int x, int y, CatalogEntry entry) {
+        return new ShopItemButton(x, y, entry);
+    }
+
+    @Override
+    protected void renderHeader(GuiGraphics guiGraphics, int centerX) {
         guiGraphics.drawCenteredString(this.font, this.getTitle(), centerX, 8, 0xFFFFFF);
 
         BigInteger points = CraftorioMisc.getPoints(this.minecraft.player);
         int maxPointsWidth = (int) (this.width * 0.7);
         String pointsSuffix = Component.translatable("misc.craftorio.points_suffix").getString();
         CraftorioMisc.CraftorioTextEffects.drawCenteredLineFit(guiGraphics, this.font, centerX, 20, true, 0xFFAA00, maxPointsWidth, points, pointsSuffix);
-
-        int footerY = GRID_TOP + ROWS * CELL_SIZE + 8;
-        guiGraphics.drawCenteredString(this.font, Component.literal((this.page + 1) + " / " + this.totalPages()), centerX, footerY + 6, 0xFFFFFF);
-    }
-
-    @Override
-    public boolean isPauseScreen() {
-        return false;
     }
 
     @OnlyIn(Dist.CLIENT)
@@ -249,7 +136,6 @@ public class ShopScreen extends Screen {
 
         @Override
         public void onPress() {
-
             if (this.locked) return;
 
             ShopScreen.this.minecraft.setScreen(new ShopPurchaseScreen(this.entry, ShopScreen.this));

@@ -15,13 +15,11 @@ public class RegistrationEvents {
         registrar.playToServer(BorderExpandPacket.TYPE, BorderExpandPacket.STREAM_CODEC, BorderExpandPacket::handle);
         registrar.playToServer(ShopPurchasePacket.TYPE, ShopPurchasePacket.STREAM_CODEC, ShopPurchasePacket::handle);
         registrar.playToServer(ClaimItemPurchasePacket.TYPE, ClaimItemPurchasePacket.STREAM_CODEC, ClaimItemPurchasePacket::handle);
+        registrar.playToServer(RequestOpenShopPacket.TYPE, RequestOpenShopPacket.STREAM_CODEC, RequestOpenShopPacket::handle);
 
         if (FMLEnvironment.dist.isClient()) {
-            registrar.playToClient(ExpandScreenPacket.TYPE, ExpandScreenPacket.STREAM_CODEC, ExpandScreenPacket::handle);
             registrar.playToClient(OpenShopScreenPacket.TYPE, OpenShopScreenPacket.STREAM_CODEC, OpenShopScreenPacket::handle);
             registrar.playToClient(EffectTimerPacket.TYPE, EffectTimerPacket.STREAM_CODEC, EffectTimerPacket::handle);
-            registrar.playToClient(OpenValueBrowserPacket.TYPE, OpenValueBrowserPacket.STREAM_CODEC, OpenValueBrowserPacket::handle);
-            registrar.playToClient(OpenClaimShopScreenPacket.TYPE, OpenClaimShopScreenPacket.STREAM_CODEC, OpenClaimShopScreenPacket::handle);
         }
     }
 }

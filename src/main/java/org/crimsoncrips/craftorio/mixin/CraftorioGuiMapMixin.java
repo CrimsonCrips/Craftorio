@@ -65,11 +65,6 @@ public abstract class CraftorioGuiMapMixin {
                     PacketDistributor.sendToServer(new OwnLandPacket(chunks,true));
                 }
             });
-            options.add(new RightClickOption("misc.craftorio.unclaim_land", options.size(), guiMap) {
-                public void onAction(Screen screen) {
-                    PacketDistributor.sendToServer(new OwnLandPacket(chunks,false));
-                }
-            });
         }
 
     }

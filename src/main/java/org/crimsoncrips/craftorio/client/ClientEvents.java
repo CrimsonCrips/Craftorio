@@ -10,6 +10,7 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
@@ -468,5 +469,27 @@ public class ClientEvents {
 	public static void showEffectTimer(RegisterGuiLayersEvent e) {
 		e.registerBelow(VanillaGuiLayers.EXPERIENCE_BAR, effectTimerLayer,
 				(graphics, partialTicks) -> ClientEvents.displayEffectTimer(graphics));
+	}
+
+	public static final ResourceLocation BORDER_MODE_INDICATOR_ICON = Craftorio.getGuiTexture("locked.png");
+	public static final int BORDER_MODE_INDICATOR_SIZE = 16;
+	public static final int BORDER_MODE_INDICATOR_GAP = 4;
+
+	public static void drawBorderModeIndicators(GuiGraphics graphics, int x, int y) {
+		graphics.blit(BORDER_MODE_INDICATOR_ICON, x, y, 0.0F, 0.0F, BORDER_MODE_INDICATOR_SIZE, BORDER_MODE_INDICATOR_SIZE, BORDER_MODE_INDICATOR_SIZE, BORDER_MODE_INDICATOR_SIZE);
+		y += BORDER_MODE_INDICATOR_SIZE + BORDER_MODE_INDICATOR_GAP;
+		graphics.blit(BORDER_MODE_INDICATOR_ICON, x, y, 0.0F, 0.0F, BORDER_MODE_INDICATOR_SIZE, BORDER_MODE_INDICATOR_SIZE, BORDER_MODE_INDICATOR_SIZE, BORDER_MODE_INDICATOR_SIZE);
+		y += BORDER_MODE_INDICATOR_SIZE + BORDER_MODE_INDICATOR_GAP;
+		graphics.blit(BORDER_MODE_INDICATOR_ICON, x, y, 0.0F, 0.0F, BORDER_MODE_INDICATOR_SIZE, BORDER_MODE_INDICATOR_SIZE, BORDER_MODE_INDICATOR_SIZE, BORDER_MODE_INDICATOR_SIZE);
+	}
+
+	public static void renderPauseMenuIndicators(ScreenEvent.Render.Post event) {
+		if (!(event.getScreen() instanceof PauseScreen)) return;
+
+		Minecraft minecraft = Minecraft.getInstance();
+		if (minecraft.level == null) return;
+
+		int x = minecraft.getWindow().getGuiScaledWidth() - BORDER_MODE_INDICATOR_SIZE - 8;
+		drawBorderModeIndicators(event.getGuiGraphics(), x, 8);
 	}
 }

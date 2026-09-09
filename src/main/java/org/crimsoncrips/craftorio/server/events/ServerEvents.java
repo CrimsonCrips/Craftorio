@@ -27,6 +27,7 @@ import org.crimsoncrips.craftorio.block.CraftorioBlocks;
 import org.crimsoncrips.craftorio.item.CraftorioItems;
 import org.crimsoncrips.craftorio.networking.EffectTimerPacket;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
+import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
 import org.crimsoncrips.craftorio.server.ChunkCollisionHooks;
 import org.crimsoncrips.craftorio.server.CraftorioAdvancementPoints;
 import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
@@ -193,6 +194,14 @@ public class ServerEvents {
             for (CraftorioEffects effect : ImmutableList.copyOf(CraftorioMisc.getCraftorioEffects(player))) {
                 if (!effect.shouldEnd()) {
                     effect.tick(player);
+                }
+            }
+        }
+
+        if (!CraftorioMisc.getCraftorioContracts(player).isEmpty()){
+            for (CraftorioShipmentContract contract : ImmutableList.copyOf(CraftorioMisc.getCraftorioContracts(player))) {
+                if (!contract.shouldEnd()) {
+                    contract.tick(player);
                 }
             }
         }

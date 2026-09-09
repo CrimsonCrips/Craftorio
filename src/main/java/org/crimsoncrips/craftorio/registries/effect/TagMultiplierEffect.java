@@ -7,6 +7,7 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -21,7 +22,8 @@ public class TagMultiplierEffect extends CraftorioEffects {
                     Codec.FLOAT.fieldOf("multiplier").forGetter(TagMultiplierEffect::getMultiplier),
                     Codec.STRING.fieldOf("name").forGetter(TagMultiplierEffect::getNameKey),
                     TagKey.hashedCodec(Registries.ITEM).fieldOf("item_tag").forGetter(TagMultiplierEffect::getItemTag),
-                    Codec.INT.fieldOf("time").forGetter(TagMultiplierEffect::getTime)
+                    Codec.INT.fieldOf("time").forGetter(TagMultiplierEffect::getTime),
+                    ResourceLocation.CODEC.fieldOf("icon").forGetter(TagMultiplierEffect::getIcon)
             ).apply(instance, TagMultiplierEffect::new)
     );
 
@@ -30,11 +32,12 @@ public class TagMultiplierEffect extends CraftorioEffects {
             ByteBufCodecs.STRING_UTF8, TagMultiplierEffect::getNameKey,
             ByteBufCodecs.fromCodec(TagKey.hashedCodec(Registries.ITEM)), TagMultiplierEffect::getItemTag,
             ByteBufCodecs.INT, TagMultiplierEffect::getTime,
+            ResourceLocation.STREAM_CODEC, TagMultiplierEffect::getIcon,
             TagMultiplierEffect::new
     );
 
-    public TagMultiplierEffect(float multiplier, String key, TagKey<Item> itemTag, int time){
-        super(key,time);
+    public TagMultiplierEffect(float multiplier, String key, TagKey<Item> itemTag, int time, ResourceLocation icon){
+        super(key,time,icon);
         this.multiplier = multiplier;
         this.itemTag = itemTag;
     }
@@ -58,6 +61,6 @@ public class TagMultiplierEffect extends CraftorioEffects {
 
     @Override
     public TagMultiplierEffect copy() {
-        return new TagMultiplierEffect(getMultiplier(), getNameKey(),getItemTag(), getTime());
+        return new TagMultiplierEffect(getMultiplier(), getNameKey(),getItemTag(), getTime(), getIcon());
     }
 }

@@ -17,6 +17,7 @@ import org.crimsoncrips.craftorio.block.entity.CraftorioBlockEntityTypes;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import org.crimsoncrips.craftorio.client.ClientEvents;
 import org.crimsoncrips.craftorio.client.CraftorioClientConfig;
+import org.crimsoncrips.craftorio.client.CraftorioKeyMappings;
 import org.crimsoncrips.craftorio.client.compat.XaeroWorldMapCompat;
 import org.crimsoncrips.craftorio.client.screen.CraftorioConfigScreen;
 import org.crimsoncrips.craftorio.datagen.CraftorioDatagen;
@@ -85,6 +86,9 @@ public class Craftorio {
             modEventBus.addListener(ClientEvents::showEffectTimer);
             NeoForge.EVENT_BUS.addListener(ClientEvents::renderBorders);
             NeoForge.EVENT_BUS.addListener(ClientEvents::renderClaimedChunkBorders);
+            NeoForge.EVENT_BUS.addListener(ClientEvents::renderPauseMenuIndicators);
+            modEventBus.addListener(CraftorioKeyMappings::register);
+            NeoForge.EVENT_BUS.addListener(CraftorioKeyMappings::onClientTick);
             modContainer.registerExtensionPoint(IConfigScreenFactory.class,
                     (IConfigScreenFactory) (container, modListScreen) -> new CraftorioConfigScreen(modListScreen));
 

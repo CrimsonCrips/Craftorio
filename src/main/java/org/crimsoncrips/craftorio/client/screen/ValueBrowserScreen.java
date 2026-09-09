@@ -2,15 +2,15 @@ package org.crimsoncrips.craftorio.client.screen;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
-import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
-import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.util.Mth;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -21,86 +21,67 @@ import org.crimsoncrips.craftorio.CraftorioMisc;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Locale;
+import java.util.Map;
+import java.util.stream.Stream;
 
 @OnlyIn(Dist.CLIENT)
-public class ValueBrowserScreen extends Screen {
+public class ValueBrowserScreen extends CatalogScreen<Item> {
 
-    private static final int COLS = 9;
-    private static final int ROWS = 16;
-    private static final int PAGE_SIZE = COLS * ROWS;
-    private static final int SLOT_SIZE = 18;
-    private static final int SLOT_GAP = 4;
-    private static final int CELL_SIZE = SLOT_SIZE + SLOT_GAP;
-    private static final int GRID_TOP = 50;
+    private static List<Item> baseCatalog;
+    private static Map<Item, BigInteger> valueCache;
 
     private boolean sortByValuable = true;
-    private EditBox searchBox;
-    private String searchQuery = "";
-    private List<Item> filtered = List.of();
-    private int page = 0;
 
     public ValueBrowserScreen() {
         super(Component.translatable("misc.craftorio.value_browser_title"));
     }
 
-    private List<Item> buildCatalog() {
-        Player player = this.minecraft.player;
+    private static void ensureCatalogBuilt(Player player) {
+        if (baseCatalog != null) return;
+
         List<Item> items = new ArrayList<>();
+        Map<Item, BigInteger> values = new HashMap<>();
         for (Item item : BuiltInRegistries.ITEM) {
             if (item == Items.AIR) continue;
             items.add(item);
+            values.put(item, CraftorioMisc.checkValue(new ItemStack(item), player, false));
         }
 
-        Comparator<Item> byValue = Comparator.comparing(item -> CraftorioMisc.checkValue(new ItemStack(item), player, false));
-        items.sort(sortByValuable ? byValue.reversed() : byValue);
-        return items;
-    }
-
-    private void updateFiltered() {
-        String query = this.searchQuery.strip().toLowerCase(Locale.ROOT);
-        List<Item> catalog = buildCatalog();
-
-        if (query.isEmpty()) {
-            this.filtered = catalog;
-            return;
-        }
-
-        List<Item> matches = new ArrayList<>();
-        for (Item item : catalog) {
-            String name = new ItemStack(item).getHoverName().getString().toLowerCase(Locale.ROOT);
-            String path = BuiltInRegistries.ITEM.getKey(item).getPath();
-            if (name.contains(query) || path.contains(query)) {
-                matches.add(item);
-            }
-        }
-        this.filtered = matches;
-    }
-
-    private int totalPages() {
-        return Math.max(1, (this.filtered.size() + PAGE_SIZE - 1) / PAGE_SIZE);
+        baseCatalog = items;
+        valueCache = values;
     }
 
     @Override
-    protected void init() {
-        super.init();
+    protected List<Item> buildCatalog() {
+        ensureCatalogBuilt(this.minecraft.player);
 
-        this.updateFiltered();
-
-        this.searchBox = new EditBox(this.font, this.width / 2 - 70, 28, 140, 16, Component.translatable("misc.craftorio.search"));
-        this.searchBox.setValue(this.searchQuery);
-        this.searchBox.setResponder(this::onSearchChanged);
-
-        this.refreshWidgets();
+        List<Item> sorted = new ArrayList<>(baseCatalog);
+        sorted.sort(sortByValuable
+                ? (a, b) -> valueCache.get(b).compareTo(valueCache.get(a))
+                : (a, b) -> valueCache.get(a).compareTo(valueCache.get(b)));
+        return sorted;
     }
 
-    private void onSearchChanged(String value) {
-        this.searchQuery = value;
-        this.page = 0;
-        this.updateFiltered();
-        this.refreshWidgets();
+    @Override
+    protected String getSearchName(Item item) {
+        return new ItemStack(item).getHoverName().getString();
+    }
+
+    @Override
+    protected String getSearchNamespace(Item item) {
+        return BuiltInRegistries.ITEM.getKey(item).getNamespace();
+    }
+
+    @Override
+    protected Stream<ResourceLocation> getSearchTags(Item item) {
+        return new ItemStack(item).getTags().map(TagKey::location);
+    }
+
+    @Override
+    protected AbstractWidget createEntryWidget(int x, int y, Item item) {
+        return new ValueEntryButton(x, y, item);
     }
 
     private void toggleSort() {
@@ -110,64 +91,13 @@ public class ValueBrowserScreen extends Screen {
         this.refreshWidgets();
     }
 
-    private void refreshWidgets() {
-        this.clearWidgets();
-
-        this.addRenderableWidget(this.searchBox);
-
-        int gridWidth = COLS * CELL_SIZE - SLOT_GAP;
-        int startX = (this.width - gridWidth) / 2;
-
-        int firstIndex = this.page * PAGE_SIZE;
-        for (int i = 0; i < PAGE_SIZE; i++) {
-            int index = firstIndex + i;
-            if (index >= this.filtered.size()) break;
-
-            int col = i % COLS;
-            int row = i / COLS;
-
-            this.addRenderableWidget(new ValueEntryButton(
-                    startX + col * CELL_SIZE,
-                    GRID_TOP + row * CELL_SIZE,
-                    this.filtered.get(index)
-            ));
-        }
-
-        int footerY = GRID_TOP + ROWS * CELL_SIZE + 8;
+    @Override
+    protected void addExtraWidgets() {
         int centerX = this.width / 2;
-
-        this.addRenderableWidget(Button.builder(Component.literal("<<"), b -> this.setPage(0))
-                .bounds(centerX - 90, footerY, 34, 20).build());
-        this.addRenderableWidget(Button.builder(Component.literal("<"), b -> this.setPage(this.page - 1))
-                .bounds(centerX - 54, footerY, 34, 20).build());
-        this.addRenderableWidget(Button.builder(Component.literal(">"), b -> this.setPage(this.page + 1))
-                .bounds(centerX + 20, footerY, 34, 20).build());
-        this.addRenderableWidget(Button.builder(Component.literal(">>"), b -> this.setPage(this.totalPages() - 1))
-                .bounds(centerX + 56, footerY, 34, 20).build());
-
         this.addRenderableWidget(Button.builder(
                         Component.translatable(this.sortByValuable ? "misc.craftorio.sorted_most_valuable" : "misc.craftorio.sorted_most_valueless"),
                         b -> this.toggleSort())
                 .bounds(centerX - 70, 8, 140, 16).build());
-    }
-
-    private void setPage(int newPage) {
-        this.page = Mth.clamp(newPage, 0, this.totalPages() - 1);
-        this.refreshWidgets();
-    }
-
-    @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
-
-        int footerY = GRID_TOP + ROWS * CELL_SIZE + 8;
-        int centerX = this.width / 2;
-        guiGraphics.drawCenteredString(this.font, Component.literal((this.page + 1) + " / " + this.totalPages()), centerX, footerY + 6, 0xFFFFFF);
-    }
-
-    @Override
-    public boolean isPauseScreen() {
-        return false;
     }
 
     @OnlyIn(Dist.CLIENT)

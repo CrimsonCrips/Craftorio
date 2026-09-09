@@ -28,26 +28,12 @@ public final class CraftorioClaimItemShop {
             return;
         }
 
-        CraftorioMisc.setPoints(points.subtract(totalPrice), player);
-        giveItems(player, quantity);
-
         ItemStack claimItemStack = new ItemStack(CraftorioItems.CLAIM_ITEM.get());
+        CraftorioMisc.setPoints(points.subtract(totalPrice), player);
+        CraftorioMisc.giveItemsSplitByStack(player, claimItemStack, quantity);
+
         player.sendSystemMessage(Component.translatable(
                 "misc.craftorio.purchased_items", quantity, claimItemStack.getHoverName()
         ).withStyle(ChatFormatting.GREEN));
-    }
-
-    private static void giveItems(ServerPlayer player, int quantity) {
-        int remaining = quantity;
-        while (remaining > 0) {
-            ItemStack stack = new ItemStack(CraftorioItems.CLAIM_ITEM.get());
-            int amount = Math.min(remaining, stack.getMaxStackSize());
-            stack.setCount(amount);
-            player.addItem(stack);
-            if (!stack.isEmpty()) {
-                player.drop(stack, false);
-            }
-            remaining -= amount;
-        }
     }
 }

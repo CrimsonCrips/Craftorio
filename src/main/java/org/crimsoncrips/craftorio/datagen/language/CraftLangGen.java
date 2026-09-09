@@ -15,7 +15,6 @@ public class CraftLangGen extends CraftLangProvider {
 	protected void addTranslations() {
 		this.addBlock(CraftorioBlocks.SINKER,"Sinker");
 		this.addMisc("claim_land", "Claim Land");
-		this.addMisc("unclaim_land", "Unclaim Land");
 
 		this.addMisc("sinker_button", "Sink Points");
 		this.addMisc("points_required", "Points Required");
@@ -54,6 +53,8 @@ public class CraftLangGen extends CraftLangProvider {
 		this.addMisc("sorted_most_valueless", "Sorted: Most Valueless");
 
 		this.addMisc("config_title", "Craftorio Config");
+		this.addMisc("server_config_title", "Craftorio Server Config");
+		this.addMisc("server_config_button", "Server Config");
 		this.addMisc("point_formatting_label", "Point Formatting: %s");
 		this.addMisc("format_raw", "Raw Numbers");
 		this.addMisc("format_scientific", "Scientific");
@@ -61,12 +62,20 @@ public class CraftLangGen extends CraftLangProvider {
 		this.addMisc("format_worded", "Worded");
 
 		this.addMisc("contract_info", "Name:%s  Time:%s");
-		this.addMisc("debug_no_borders", "No Borders:%s");
-		this.addMisc("debug_universal", "Universal:%s");
-		this.addMisc("debug_chunk_based", "ChunkBased:%s");
 		this.addMisc("gave_points", "Gave %s points to %s");
 		this.addMisc("effect_timer_enabled", "Effect timer display enabled");
 		this.addMisc("effect_timer_disabled", "Effect timer display disabled");
+
+		this.addMisc("hub_title", "Craftorio Menu");
+		this.addMisc("hub_shop", "Item Shop");
+
+		this.add("key.craftorio.open_hub", "Open Craftorio Menu");
+		this.add("key.categories.craftorio", "Craftorio");
+
+		this.add("advancements.craftorio.root.title", "Craftorio");
+		this.add("advancements.craftorio.root.description", "Obtain a Sinker");
+		this.add("advancements.craftorio.claim_land.title", "Land Baron");
+		this.add("advancements.craftorio.claim_land.description", "Obtain a Chunk Claim Item");
 
 		this.addItem(CraftorioItems.EFFECT_ITEM,"Effect Item");
 		this.addItem(CraftorioItems.MYSTERY_EFFECT_ITEM,"Mystery Effect Item");

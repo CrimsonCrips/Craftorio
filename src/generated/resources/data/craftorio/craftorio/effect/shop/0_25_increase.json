@@ -1,5 +1,6 @@
 {
   "type": "craftorio:shop_multiplier",
+  "icon": "craftorio:textures/gui/locked.png",
   "multiplier": 1.25,
   "name": "registry.0_25_increase",
   "time": 500

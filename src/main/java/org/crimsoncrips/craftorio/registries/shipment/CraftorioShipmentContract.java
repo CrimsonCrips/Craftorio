@@ -26,6 +26,7 @@ public class CraftorioShipmentContract {
     private int time;
     private BigInteger pointRewards;
     private List<CraftorioShipmentItemReward> rewards;
+    private ResourceLocation icon;
 
     public static final ResourceKey<Registry<CraftorioShipmentContract>> REGISTRY_KEY =
             ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "shipment_contract"));
@@ -38,7 +39,8 @@ public class CraftorioShipmentContract {
                     Codec.STRING.fieldOf("name").forGetter(CraftorioShipmentContract::getName),
                     Codec.INT.fieldOf("time").forGetter(CraftorioShipmentContract::getTime),
                     BIGINT_CODEC().fieldOf("pointRewards").forGetter(CraftorioShipmentContract::getPointRewards),
-                    Codec.list(CraftorioShipmentItemReward.CODEC).fieldOf("itemRewards").forGetter(CraftorioShipmentContract::getRewards)
+                    Codec.list(CraftorioShipmentItemReward.CODEC).fieldOf("itemRewards").forGetter(CraftorioShipmentContract::getRewards),
+                    ResourceLocation.CODEC.fieldOf("icon").forGetter(CraftorioShipmentContract::getIcon)
             ).apply(instance, CraftorioShipmentContract::new)
     );
 
@@ -48,15 +50,17 @@ public class CraftorioShipmentContract {
             ByteBufCodecs.INT, CraftorioShipmentContract::getTime,
             ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()),CraftorioShipmentContract::getPointRewards,
             CraftorioShipmentItemReward.CODEC_STREAM.apply(ByteBufCodecs.list()), CraftorioShipmentContract::getRewards,
+            ResourceLocation.STREAM_CODEC, CraftorioShipmentContract::getIcon,
             CraftorioShipmentContract::new
     );
 
-    public CraftorioShipmentContract(List<CraftorioShipmentItem> itemBounty,String name, int time,BigInteger pointRewards,List<CraftorioShipmentItemReward> rewards){
+    public CraftorioShipmentContract(List<CraftorioShipmentItem> itemBounty,String name, int time,BigInteger pointRewards,List<CraftorioShipmentItemReward> rewards, ResourceLocation icon){
         this.itemBounty = itemBounty;
         this.name = name;
         this.time = time;
         this.pointRewards = pointRewards;
         this.rewards = rewards;
+        this.icon = icon;
     }
 
     public boolean isComplete(){
@@ -74,7 +78,7 @@ public class CraftorioShipmentContract {
         for (CraftorioShipmentItem item : itemBounty) {
             copiedItems.add(item.copy());
         }
-        return new CraftorioShipmentContract(copiedItems, getName(), getTime(),getPointRewards(),getRewards());
+        return new CraftorioShipmentContract(copiedItems, getName(), getTime(),getPointRewards(),getRewards(),getIcon());
     }
 
     public boolean shouldEnd(){
@@ -131,7 +135,16 @@ public class CraftorioShipmentContract {
         this.rewards = rewards;
     }
 
+    public ResourceLocation getIcon() {
+        return icon;
+    }
+
+    public void setIcon(ResourceLocation icon) {
+        this.icon = icon;
+    }
+
     public void tick(Player player){
+        setTime(time - 1);
         if (shouldEnd()){
             if (isComplete()){
                 CraftorioMisc.setPoints(getPointRewards().add(CraftorioMisc.getPoints(player)),player);
@@ -144,7 +157,6 @@ public class CraftorioShipmentContract {
             newContract.remove(this);
             CraftorioMisc.setCraftorioContracts(player,newContract);
         }
-        setTime(time - 1);
     }
 
 }

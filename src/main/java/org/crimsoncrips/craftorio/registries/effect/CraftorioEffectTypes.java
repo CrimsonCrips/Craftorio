@@ -4,6 +4,7 @@ import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.crimsoncrips.craftorio.Craftorio;
@@ -20,7 +21,8 @@ public class CraftorioEffectTypes {
                     instance.group(
                             Codec.FLOAT.fieldOf("multiplier").forGetter(GeneralMultiplierEffect::getMultiplier),
                             Codec.STRING.fieldOf("name").forGetter(GeneralMultiplierEffect::getNameKey),
-                            Codec.INT.fieldOf("time").forGetter(GeneralMultiplierEffect::getTime)
+                            Codec.INT.fieldOf("time").forGetter(GeneralMultiplierEffect::getTime),
+                            ResourceLocation.CODEC.fieldOf("icon").forGetter(GeneralMultiplierEffect::getIcon)
                     ).apply(instance, GeneralMultiplierEffect::new)
             ));
 
@@ -30,7 +32,8 @@ public class CraftorioEffectTypes {
                             Codec.FLOAT.fieldOf("multiplier").forGetter(TagMultiplierEffect::getMultiplier),
                             Codec.STRING.fieldOf("name").forGetter(TagMultiplierEffect::getNameKey),
                             TagKey.hashedCodec(Registries.ITEM).fieldOf("item_tag").forGetter(TagMultiplierEffect::getItemTag),
-                            Codec.INT.fieldOf("time").forGetter(TagMultiplierEffect::getTime)
+                            Codec.INT.fieldOf("time").forGetter(TagMultiplierEffect::getTime),
+                            ResourceLocation.CODEC.fieldOf("icon").forGetter(TagMultiplierEffect::getIcon)
                     ).apply(instance, TagMultiplierEffect::new)
             ));
 
@@ -39,7 +42,8 @@ public class CraftorioEffectTypes {
                     instance.group(
                             Codec.FLOAT.fieldOf("multiplier").forGetter(ShopMultiplierEffect::getMultiplier),
                             Codec.STRING.fieldOf("name").forGetter(ShopMultiplierEffect::getNameKey),
-                            Codec.INT.fieldOf("time").forGetter(ShopMultiplierEffect::getTime)
+                            Codec.INT.fieldOf("time").forGetter(ShopMultiplierEffect::getTime),
+                            ResourceLocation.CODEC.fieldOf("icon").forGetter(ShopMultiplierEffect::getIcon)
                     ).apply(instance, ShopMultiplierEffect::new)
             ));
 }

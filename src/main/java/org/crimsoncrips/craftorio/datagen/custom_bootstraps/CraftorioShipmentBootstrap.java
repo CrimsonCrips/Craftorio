@@ -14,6 +14,8 @@ import java.util.List;
 
 public class CraftorioShipmentBootstrap {
 
+    private static final ResourceLocation DEFAULT_ICON = Craftorio.getGuiTexture("locked.png");
+
     public static void bootstrap(BootstrapContext<CraftorioShipmentContract> context) {
         context.register(
                 key("starter_contract"), new CraftorioShipmentContract(
@@ -23,7 +25,8 @@ public class CraftorioShipmentBootstrap {
                 ),"Starter Contract", 500, BigInteger.valueOf(1000),
                         List.of(
                         new CraftorioShipmentItemReward(32, Items.COPPER_INGOT),
-                        new CraftorioShipmentItemReward(16, Items.IRON_INGOT))
+                        new CraftorioShipmentItemReward(16, Items.IRON_INGOT)),
+                        DEFAULT_ICON
                 )
         );
     }
