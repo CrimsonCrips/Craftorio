@@ -68,7 +68,7 @@ public class ClientEvents {
 
 
 	private static void renderBorderWall(Minecraft minecraft, PoseStack poseStack, Camera camera, CraftorioBorder border) {
-		double d0 = (double)(minecraft.options.getEffectiveRenderDistance() * 32);
+		double d0 = (double)(minecraft.options.getEffectiveRenderDistance() * 16);
 		if (!(camera.getPosition().x < border.getMaxX() - d0) || !(camera.getPosition().x > border.getMinX() + d0) || !(camera.getPosition().z < border.getMaxZ() - d0) || !(camera.getPosition().z > border.getMinZ() + d0)) {
 			double d1 = (double)1.0F - border.getDistanceToBorder(camera.getPosition().x, camera.getPosition().z) / d0;
 			d1 = Math.pow(d1, (double)4.0F);
@@ -172,7 +172,7 @@ public class ClientEvents {
 	}
 
 
-	private static final double CLAIM_BORDER_FADE_DISTANCE = 12.0;
+	private static final double CLAIM_BORDER_FADE_DISTANCE = 16.0;
 	private static final int CLAIM_BORDER_COLOR = 0x30D5C8;
 
 	private record ClaimBorderSegment(boolean alongX, double planeCoord, double tangentStart, double tangentEnd, double distance) {}
