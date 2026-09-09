@@ -122,15 +122,6 @@ public class CommandEvents {
         return 1;
     }
 
-    private static int runValueless(CommandContext<CommandSourceStack> context) {
-        BuiltInRegistries.ITEM.forEach(item -> {
-            BigInteger points = CraftorioMisc.checkValue(new ItemStack(item),context.getSource().getPlayer(),false);
-            if (points.compareTo(BigInteger.ZERO) <= 0){
-                context.getSource().sendSuccess(() -> Component.literal(item.getDefaultInstance().getDisplayName().getString() + " " + points), true);
-            }
-        });
-        return 1;
-    }
 
     private static int runSetPoints(CommandContext<CommandSourceStack> context) {
         ServerLevel serverLevel = context.getSource().getLevel();
@@ -193,14 +184,6 @@ public class CommandEvents {
         PacketDistributor.sendToPlayer(serverPlayer, new EffectTimerPacket(nowEnabled, current));
 
         context.getSource().sendSuccess(() -> Component.translatable(nowEnabled ? "misc.craftorio.effect_timer_enabled" : "misc.craftorio.effect_timer_disabled"), true);
-        return 1;
-    }
-
-    private static int runShowLandAmount(CommandContext<CommandSourceStack> context) {
-        ServerLevel serverLevel = context.getSource().getLevel();
-
-        long land = CraftorioMisc.getLandAmount(context.getSource().getPlayer());
-        context.getSource().sendSuccess(() -> Component.literal(String.valueOf(land)), true);
         return 1;
     }
 

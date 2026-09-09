@@ -1,5 +1,6 @@
 {
   "block.craftorio.sinker": "Sinker",
+  "item.craftorio.claim_item": "Chunk Claim Item",
   "item.craftorio.effect_item": "Effect Item",
   "item.craftorio.mystery_effect_item": "Mystery Effect Item",
   "misc.craftorio.advancement_value": "Points given for advancement : ",
