@@ -1,0 +1,32 @@
+{
+  "criteria": {
+    "has_sinker": {
+      "conditions": {
+        "items": [
+          {
+            "items": "craftorio:sinker"
+          }
+        ]
+      },
+      "trigger": "minecraft:inventory_changed"
+    }
+  },
+  "display": {
+    "description": {
+      "translate": "advancements.craftorio.root.description"
+    },
+    "icon": {
+      "count": 1,
+      "id": "craftorio:sinker"
+    },
+    "title": {
+      "translate": "advancements.craftorio.root.title"
+    }
+  },
+  "requirements": [
+    [
+      "has_sinker"
+    ]
+  ],
+  "sends_telemetry_event": true
+}
