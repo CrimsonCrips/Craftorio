@@ -30,7 +30,7 @@ public class BorderExpandScreen extends Screen {
 	BorderExpandScreen borderExpandScreen;
 
 	public BorderExpandScreen() {
-		super(Component.literal("Test"));
+		super(Component.translatable("misc.craftorio.expand_border"));
 		this.borderExpandScreen = this;
 	}
 
@@ -51,7 +51,7 @@ public class BorderExpandScreen extends Screen {
 		String INFINITY_TEXT = CraftorioMisc.bigIntFormat(CraftorioMisc.pointThreshold(), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
 		String NEG_INFINITY_TEXT = "-" + CraftorioMisc.bigIntFormat(CraftorioMisc.pointThreshold(), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
 
-		guiGraphics.drawString(this.font, Component.literal(string), i - 25, j - 40 + (-string.length() * 2), 4210752, false);
+		guiGraphics.drawString(this.font, string, i - 25, j - 40 + (-string.length() * 2), 4210752, false);
 		if (pointsToExpand.equals(INFINITY_TEXT)) {
 			CraftorioMisc.CraftorioTextEffects.drawFancy(guiGraphics, font, pointsToExpand, i + 9 + (-pointsToExpand.length() * 2), j - 30, true,0);
 		} else if (pointsToExpand.equals(NEG_INFINITY_TEXT)) {
@@ -114,8 +114,7 @@ public class BorderExpandScreen extends Screen {
 	class ExpandBorder extends ExpansionButtons {
 		public ExpandBorder(int x, int y, int width, int height){
 			super(x,y,width,height);
-			String string = Component.translatable("misc.craftorio.expand_border").getString();
-			Tooltip tooltip = Tooltip.create(Component.literal(string));
+			Tooltip tooltip = Tooltip.create(Component.translatable("misc.craftorio.expand_border"));
 			this.setTooltip(tooltip);
 		}
 
@@ -135,13 +134,13 @@ public class BorderExpandScreen extends Screen {
 			super(x,y,width,height);
 			this.maxer = maxer;
 			this.positive = positive;
-			String text;
+			Component text;
 			if (maxer){
-				text = positive ? "Max+" : "Max-";
+				text = positive ? Component.translatable("misc.craftorio.max_plus") : Component.translatable("misc.craftorio.max_minus");
 			} else {
-				text = positive ? "+1" : "-1";
+				text = positive ? Component.literal("+1") : Component.literal("-1");
 			}
-			Tooltip tooltip = Tooltip.create(Component.literal(text));
+			Tooltip tooltip = Tooltip.create(text);
 			this.setTooltip(tooltip);
 		}
 

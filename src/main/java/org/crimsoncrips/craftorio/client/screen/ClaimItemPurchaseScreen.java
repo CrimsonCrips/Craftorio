@@ -28,7 +28,7 @@ public class ClaimItemPurchaseScreen extends Screen {
     private Component errorMessage = CommonComponents.EMPTY;
 
     public ClaimItemPurchaseScreen() {
-        super(Component.literal("Buy Claim Chunk Items"));
+        super(Component.translatable("misc.craftorio.claim_shop_title"));
     }
 
     @Override
@@ -36,25 +36,25 @@ public class ClaimItemPurchaseScreen extends Screen {
         int centerX = this.width / 2;
         int centerY = this.height / 2;
 
-        this.quantityBox = new EditBox(this.font, centerX - 50, centerY - 10, 100, 20, Component.literal("Quantity"));
+        this.quantityBox = new EditBox(this.font, centerX - 50, centerY - 10, 100, 20, Component.translatable("misc.craftorio.quantity"));
         this.quantityBox.setValue(String.valueOf(quantity));
         this.quantityBox.setFilter(s -> s.isEmpty() || s.chars().allMatch(Character::isDigit));
         this.quantityBox.setResponder(this::onQuantityTyped);
         this.addRenderableWidget(this.quantityBox);
         this.setInitialFocus(this.quantityBox);
 
-        this.addRenderableWidget(Button.builder(Component.literal("Max-"), b -> setQuantity(0))
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.max_minus"), b -> setQuantity(0))
                 .bounds(centerX - 94, centerY + 40, 44, 20).build());
         this.addRenderableWidget(Button.builder(Component.literal("-1"), b -> setQuantity(quantity - 1))
                 .bounds(centerX - 46, centerY + 40, 44, 20).build());
         this.addRenderableWidget(Button.builder(Component.literal("+1"), b -> setQuantity(quantity + 1))
                 .bounds(centerX + 2, centerY + 40, 44, 20).build());
-        this.addRenderableWidget(Button.builder(Component.literal("Max+"), b -> setQuantity(maxAffordable()))
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.max_plus"), b -> setQuantity(maxAffordable()))
                 .bounds(centerX + 50, centerY + 40, 44, 20).build());
 
-        this.addRenderableWidget(Button.builder(Component.literal("Buy"), b -> this.confirm())
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.buy"), b -> this.confirm())
                 .bounds(centerX - 50, centerY + 66, 48, 20).build());
-        this.addRenderableWidget(Button.builder(Component.literal("Cancel"), b -> this.minecraft.setScreen(null))
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.cancel"), b -> this.minecraft.setScreen(null))
                 .bounds(centerX + 2, centerY + 66, 48, 20).build());
     }
 
@@ -81,7 +81,7 @@ public class ClaimItemPurchaseScreen extends Screen {
 
     private void confirm() {
         if (quantity <= 0) {
-            this.errorMessage = Component.literal("Enter a valid quantity").withColor(0xFF5555);
+            this.errorMessage = Component.translatable("misc.craftorio.enter_valid_quantity").withColor(0xFF5555);
             return;
         }
 
@@ -102,9 +102,10 @@ public class ClaimItemPurchaseScreen extends Screen {
         Player player = this.minecraft.player;
         if (player != null) {
             BigInteger totalCost = CraftorioClaimItemShop.getCost(player, quantity);
+            String pointsTotalSuffix = Component.translatable("misc.craftorio.points_total_suffix").getString();
 
             CraftorioMisc.CraftorioTextEffects.drawCenteredLine(guiGraphics, this.font, centerX, centerY - 20, true, 0xFFAA00,
-                    totalCost, " points total");
+                    totalCost, pointsTotalSuffix);
         }
 
         if (!this.errorMessage.getString().isEmpty()) {

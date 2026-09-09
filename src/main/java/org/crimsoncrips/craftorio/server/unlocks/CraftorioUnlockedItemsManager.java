@@ -42,9 +42,7 @@ public class CraftorioUnlockedItemsManager {
 
     @SubscribeEvent
     public void playerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
-        // Drop the cached set once the player is gone rather than keeping it
-        // in memory for the rest of the server's uptime; getUnlocked() will
-        // transparently reload it from disk if they log back in.
+
         this.cache.remove(event.getEntity().getUUID());
     }
 

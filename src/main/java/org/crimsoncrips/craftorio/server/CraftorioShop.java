@@ -47,13 +47,13 @@ public class CraftorioShop {
 
         CraftorioShopMode mode = Craftorio.SERVER_CONFIG.SHOP_MODE.get();
         if (mode == CraftorioShopMode.DISABLED) {
-            player.sendSystemMessage(Component.literal("The shop is disabled.").withStyle(ChatFormatting.RED));
+            player.sendSystemMessage(Component.translatable("misc.craftorio.shop_disabled").withStyle(ChatFormatting.RED));
             return;
         }
 
         BigInteger unitPrice = getUnitPrice(player, template, true);
         if (unitPrice.signum() <= 0) {
-            player.sendSystemMessage(Component.literal("That item isn't sold in the shop.").withStyle(ChatFormatting.RED));
+            player.sendSystemMessage(Component.translatable("misc.craftorio.item_not_sold").withStyle(ChatFormatting.RED));
             return;
         }
 
@@ -61,15 +61,15 @@ public class CraftorioShop {
         BigInteger points = CraftorioMisc.getPoints(player);
 
         if (points.compareTo(totalPrice) < 0) {
-            player.sendSystemMessage(Component.literal("You don't have enough points for that.").withStyle(ChatFormatting.RED));
+            player.sendSystemMessage(Component.translatable("misc.craftorio.not_enough_points").withStyle(ChatFormatting.RED));
             return;
         }
 
         CraftorioMisc.setPoints(points.subtract(totalPrice), player);
         giveItems(player, template, quantity);
 
-        player.sendSystemMessage(Component.literal(
-                "Purchased " + quantity + "x " + template.getHoverName().getString() + "."
+        player.sendSystemMessage(Component.translatable(
+                "misc.craftorio.purchased_items", quantity, template.getHoverName()
         ).withStyle(ChatFormatting.GREEN));
     }
 

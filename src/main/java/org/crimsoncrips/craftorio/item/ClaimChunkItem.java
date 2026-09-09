@@ -41,7 +41,7 @@ public class ClaimChunkItem extends Item {
         ChunkAccess chunk = level.getChunk(chunkPos.x, chunkPos.z);
 
         if (CraftorioMisc.isOwnedBy(chunk, player)) {
-            player.sendSystemMessage(Component.literal("You already own that chunk.").withStyle(ChatFormatting.RED));
+            player.sendSystemMessage(Component.translatable("misc.craftorio.already_own_chunk").withStyle(ChatFormatting.RED));
             return InteractionResult.FAIL;
         }
 
@@ -57,7 +57,7 @@ public class ClaimChunkItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        tooltipComponents.add(Component.literal("Right-click a block to claim its chunk for free.")
+        tooltipComponents.add(Component.translatable("misc.craftorio.claim_item_tooltip")
                 .withStyle(Style.EMPTY.withColor(ChatFormatting.GOLD)));
     }
 }

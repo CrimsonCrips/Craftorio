@@ -128,9 +128,7 @@ public class CraftorioDataAttachments {
                             .sync(DIMENSION_STREAM_CODEC.apply(ByteBufCodecs.list()))
                             .build());
 
-    // Ticks remaining until a random registered effect can next be rolled for
-    // this level - mirrors vanilla's clearWeatherTime/rainTime countdowns.
-    // Purely server-internal bookkeeping, so it isn't synced to the client.
+
     public static final Supplier<AttachmentType<Integer>> RANDOM_EFFECT_TIME = ATTACHMENT_TYPES.register(
             "random_effect_time", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).build()
     );

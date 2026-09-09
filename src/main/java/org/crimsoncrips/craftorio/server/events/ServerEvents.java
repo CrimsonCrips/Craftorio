@@ -79,7 +79,7 @@ public class ServerEvents {
         String cappedText = CraftorioMisc.bigIntFormat(CraftorioMisc.pointThreshold(), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
         String negCappedText = "-" + cappedText;
 
-        MutableComponent line = Component.literal("Points : ").withColor(16759552);
+        MutableComponent line = Component.translatable("misc.craftorio.points_label").withColor(16759552);
         if (pointValue.equals(cappedText)) {
             line.append(CraftorioMisc.CraftorioTextEffects.fancyComponent(pointValue, 0));
         } else if (pointValue.equals(negCappedText)) {
@@ -117,13 +117,7 @@ public class ServerEvents {
                 CraftorioMisc.setDimensionsExplored(player,newDimensions);
             }
 
-            // Level-scoped attachments (e.g. the shared CraftorioBorder list
-            // when UNIVERSAL_PROGRESSION is on) only push to a client the
-            // moment they change while that client is already watching the
-            // level - a player arriving in a level that already has data set
-            // (from a prior visit, or another player) never receives it
-            // otherwise. Best-effort: never let a sync failure here prevent
-            // the border/claim setup above from taking effect.
+
             try {
                 AttachmentSync.syncInitialLevelAttachments(serverPlayer.serverLevel(), serverPlayer);
             } catch (Exception e) {

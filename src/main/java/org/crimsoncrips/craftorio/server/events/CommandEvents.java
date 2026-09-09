@@ -66,7 +66,7 @@ public class CommandEvents {
         ServerPlayer serverPlayer = context.getSource().getPlayer();
         if (serverPlayer != null) {
             for (CraftorioShipmentContract shipmentContract : CraftorioMisc.getCraftorioContracts(serverPlayer)){
-                context.getSource().sendSuccess(() -> Component.literal("Name:" + shipmentContract.getName() + "  Time:" + shipmentContract.getTime()), true);
+                context.getSource().sendSuccess(() -> Component.translatable("misc.craftorio.contract_info", shipmentContract.getName(), shipmentContract.getTime()), true);
             }
         }
         return 1;
@@ -75,9 +75,9 @@ public class CommandEvents {
     private static int runPropertiesCheck(CommandContext<CommandSourceStack> context) {
         ServerPlayer serverPlayer = context.getSource().getPlayer();
         if (serverPlayer != null) {
-            context.getSource().sendSuccess(() -> Component.literal("No Borders:" + CraftorioMisc.isNoBorders(serverPlayer.level())), true);
-            context.getSource().sendSuccess(() -> Component.literal("Universal:" + CraftorioMisc.universalBased(serverPlayer.level())), true);
-            context.getSource().sendSuccess(() -> Component.literal("ChunkBased:" + CraftorioMisc.chunkBased(serverPlayer.level())), true);
+            context.getSource().sendSuccess(() -> Component.translatable("misc.craftorio.debug_no_borders", CraftorioMisc.isNoBorders(serverPlayer.level())), true);
+            context.getSource().sendSuccess(() -> Component.translatable("misc.craftorio.debug_universal", CraftorioMisc.universalBased(serverPlayer.level())), true);
+            context.getSource().sendSuccess(() -> Component.translatable("misc.craftorio.debug_chunk_based", CraftorioMisc.chunkBased(serverPlayer.level())), true);
 
         }
         return 1;
@@ -96,7 +96,7 @@ public class CommandEvents {
         if (serverPlayer == null) return 0;
 
         if (!CraftorioShop.isEnabled()) {
-            serverPlayer.sendSystemMessage(Component.literal("The shop is currently disabled."));
+            serverPlayer.sendSystemMessage(Component.translatable("misc.craftorio.shop_disabled"));
             return 0;
         }
         boolean allUnlocked = Craftorio.SERVER_CONFIG.SHOP_MODE.get() == CraftorioShopMode.OPEN;
@@ -180,7 +180,7 @@ public class CommandEvents {
         }
 
         CraftorioMisc.setPoints(newTotal, target);
-        context.getSource().sendSuccess(() -> Component.literal("Gave " + amount + " points to " + target.getGameProfile().getName()), true);
+        context.getSource().sendSuccess(() -> Component.translatable("misc.craftorio.gave_points", amount.toString(), target.getGameProfile().getName()), true);
         return 1;
     }
 
@@ -192,7 +192,7 @@ public class CommandEvents {
         int current = Math.max(CraftorioMisc.getRandomEffectTime(serverPlayer.level()), 0);
         PacketDistributor.sendToPlayer(serverPlayer, new EffectTimerPacket(nowEnabled, current));
 
-        context.getSource().sendSuccess(() -> Component.literal("Effect timer display " + (nowEnabled ? "enabled" : "disabled")), true);
+        context.getSource().sendSuccess(() -> Component.translatable(nowEnabled ? "misc.craftorio.effect_timer_enabled" : "misc.craftorio.effect_timer_disabled"), true);
         return 1;
     }
 

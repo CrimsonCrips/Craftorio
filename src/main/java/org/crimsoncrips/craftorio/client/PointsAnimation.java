@@ -158,7 +158,7 @@ public final class PointsAnimation {
 
     public static float[] getShakeOffset() {
         if (!lastJumpWasIncrease) {
-            return new float[]{0, 0}; // NEW: no shake on decrease
+            return new float[]{0, 0};
         }
 
         if (!landed) return new float[]{0, 0};
@@ -179,7 +179,7 @@ public final class PointsAnimation {
         return !landed;
     }
 
-    // ---- duration helpers ----
+
 
     private static long computeDuration(BigInteger from, BigInteger to) {
         double logDiff = Math.abs(log10(to) - log10(from));
@@ -204,7 +204,7 @@ public final class PointsAnimation {
 
 
     private static double log10(BigInteger val) {
-        BigInteger abs = val.abs(); // NEW: work on magnitude only
+        BigInteger abs = val.abs();
         if (abs.signum() == 0) return 0.0;
         String digits = abs.toString();
         int length = digits.length();
@@ -220,6 +220,6 @@ public final class PointsAnimation {
         double mantissa = Math.pow(10, fracPart);
         BigDecimal result = BigDecimal.valueOf(mantissa).multiply(BigDecimal.TEN.pow((int) intPart));
         BigInteger magnitude = result.toBigInteger();
-        return negative ? magnitude.negate() : magnitude; // NEW
+        return negative ? magnitude.negate() : magnitude;
     }
 }

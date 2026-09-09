@@ -40,7 +40,8 @@ public class SinkScreen extends AbstractContainerScreen<SinkerMenu>{
 
 		int j = (this.height - this.imageHeight) / 2;
 		int maxPointsWidth = (int) (this.width * 0.7);
-		CraftorioMisc.CraftorioTextEffects.drawCenteredLineFit(guiGraphics, this.font, this.width / 2, j - 46, true, 0xFFAA00, maxPointsWidth, computeSinkerValue(), " points");
+		String pointsSuffix = Component.translatable("misc.craftorio.points_suffix").getString();
+		CraftorioMisc.CraftorioTextEffects.drawCenteredLineFit(guiGraphics, this.font, this.width / 2, j - 46, true, 0xFFAA00, maxPointsWidth, computeSinkerValue(), pointsSuffix);
 
 		this.renderTooltip(guiGraphics, mouseX, mouseY);
 	}
@@ -74,8 +75,7 @@ public class SinkScreen extends AbstractContainerScreen<SinkerMenu>{
     class SinkButton extends AbstractButton  {
 		public SinkButton(int x, int y) {
 			super(x, y, 16, 16, CommonComponents.EMPTY);
-			String string = Component.translatable("misc.craftorio.sinker_button").getString();
-			Tooltip tooltip = Tooltip.create(Component.literal(string));
+			Tooltip tooltip = Tooltip.create(Component.translatable("misc.craftorio.sinker_button"));
 			this.setTooltip(tooltip);
 		}
 

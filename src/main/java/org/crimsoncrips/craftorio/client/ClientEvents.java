@@ -12,6 +12,7 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
@@ -456,7 +457,8 @@ public class ClientEvents {
 			return;
 
 		Font font = minecraft.font;
-		String text = "Next effect in: " + CraftorioMisc.ticksToTimeString(effectTimerTicksRemaining);
+		String next_effect_in = Component.translatable("misc.craftorio.next_effect_in").getString();
+		String text = next_effect_in + CraftorioMisc.ticksToTimeString(effectTimerTicksRemaining);
 		int screenWidth = minecraft.getWindow().getGuiScaledWidth();
 		int rightEdge = screenWidth - 4;
 

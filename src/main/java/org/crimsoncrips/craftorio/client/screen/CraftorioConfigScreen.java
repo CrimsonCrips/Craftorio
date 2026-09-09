@@ -10,12 +10,12 @@ import org.crimsoncrips.craftorio.Craftorio;
 @OnlyIn(Dist.CLIENT)
 public class CraftorioConfigScreen extends Screen {
 
-    private static final String[] FORMAT_NAMES = {"Raw Numbers", "Scientific", "Short Suffix", "Worded"};
+    private static final String[] FORMAT_KEYS = {"format_raw", "format_scientific", "format_short_suffix", "format_worded"};
 
     private final Screen parent;
 
     public CraftorioConfigScreen(Screen parent) {
-        super(Component.literal("Craftorio Config"));
+        super(Component.translatable("misc.craftorio.config_title"));
         this.parent = parent;
     }
 
@@ -27,18 +27,19 @@ public class CraftorioConfigScreen extends Screen {
         this.addRenderableWidget(Button.builder(formatButtonLabel(), this::cycleFormat)
                 .bounds(centerX - 100, centerY - 30, 200, 20).build());
 
-        this.addRenderableWidget(Button.builder(Component.literal("Done"), b -> this.onClose())
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.done"), b -> this.onClose())
                 .bounds(centerX - 100, centerY + 10, 200, 20).build());
     }
 
     private void cycleFormat(Button button) {
-        int next = (Craftorio.CLIENT_CONFIG.POINT_FORMATTING.get() + 1) % FORMAT_NAMES.length;
+        int next = (Craftorio.CLIENT_CONFIG.POINT_FORMATTING.get() + 1) % FORMAT_KEYS.length;
         Craftorio.CLIENT_CONFIG.POINT_FORMATTING.set(next);
         button.setMessage(formatButtonLabel());
     }
 
     private Component formatButtonLabel() {
-        return Component.literal("Point Formatting: " + FORMAT_NAMES[Craftorio.CLIENT_CONFIG.POINT_FORMATTING.get()]);
+        String formatName = Component.translatable("misc.craftorio." + FORMAT_KEYS[Craftorio.CLIENT_CONFIG.POINT_FORMATTING.get()]).getString();
+        return Component.translatable("misc.craftorio.point_formatting_label", formatName);
     }
 
     @Override

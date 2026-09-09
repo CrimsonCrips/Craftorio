@@ -43,7 +43,7 @@ public class ValueBrowserScreen extends Screen {
     private int page = 0;
 
     public ValueBrowserScreen() {
-        super(Component.literal("Item Values"));
+        super(Component.translatable("misc.craftorio.value_browser_title"));
     }
 
     private List<Item> buildCatalog() {
@@ -89,7 +89,7 @@ public class ValueBrowserScreen extends Screen {
 
         this.updateFiltered();
 
-        this.searchBox = new EditBox(this.font, this.width / 2 - 70, 28, 140, 16, Component.literal("Search"));
+        this.searchBox = new EditBox(this.font, this.width / 2 - 70, 28, 140, 16, Component.translatable("misc.craftorio.search"));
         this.searchBox.setValue(this.searchQuery);
         this.searchBox.setResponder(this::onSearchChanged);
 
@@ -146,7 +146,7 @@ public class ValueBrowserScreen extends Screen {
                 .bounds(centerX + 56, footerY, 34, 20).build());
 
         this.addRenderableWidget(Button.builder(
-                        Component.literal(this.sortByValuable ? "Sorted: Most Valuable" : "Sorted: Most Valueless"),
+                        Component.translatable(this.sortByValuable ? "misc.craftorio.sorted_most_valuable" : "misc.craftorio.sorted_most_valueless"),
                         b -> this.toggleSort())
                 .bounds(centerX - 70, 8, 140, 16).build());
     }

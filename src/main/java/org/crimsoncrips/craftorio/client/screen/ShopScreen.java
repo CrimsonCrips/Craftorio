@@ -55,14 +55,12 @@ public class ShopScreen extends Screen {
     private int page = 0;
 
     public ShopScreen(boolean allUnlocked, Set<ResourceLocation> unlockedItems) {
-        super(Component.literal("Shop"));
+        super(Component.translatable("misc.craftorio.shop_title"));
         this.allUnlocked = allUnlocked;
         this.unlockedItems = unlockedItems;
     }
 
     private boolean isUnlocked(CatalogEntry entry) {
-        // Enchanted books and potions don't have a natural "pick it up first"
-        // moment the way regular items do, so they're always available.
         if (CraftorioShopCatalog.isVariantKey(entry.key())) {
             return true;
         }
@@ -131,7 +129,7 @@ public class ShopScreen extends Screen {
 
         this.updateFiltered();
 
-        this.searchBox = new EditBox(this.font, this.width / 2 - 70, 28, 140, 16, Component.literal("Search"));
+        this.searchBox = new EditBox(this.font, this.width / 2 - 70, 28, 140, 16, Component.translatable("misc.craftorio.search"));
         this.searchBox.setValue(this.searchQuery);
         this.searchBox.setResponder(this::onSearchChanged);
 
@@ -148,8 +146,7 @@ public class ShopScreen extends Screen {
     private void refreshWidgets() {
         this.clearWidgets();
 
-        // clearWidgets() drops the search box too - re-add it every rebuild
-        // so it keeps working and doesn't lose focus/cursor state.
+
         this.addRenderableWidget(this.searchBox);
 
         int gridWidth = COLS * CELL_SIZE - SLOT_GAP;
@@ -197,7 +194,8 @@ public class ShopScreen extends Screen {
 
         BigInteger points = CraftorioMisc.getPoints(this.minecraft.player);
         int maxPointsWidth = (int) (this.width * 0.7);
-        CraftorioMisc.CraftorioTextEffects.drawCenteredLineFit(guiGraphics, this.font, centerX, 20, true, 0xFFAA00, maxPointsWidth, points, " points");
+        String pointsSuffix = Component.translatable("misc.craftorio.points_suffix").getString();
+        CraftorioMisc.CraftorioTextEffects.drawCenteredLineFit(guiGraphics, this.font, centerX, 20, true, 0xFFAA00, maxPointsWidth, points, pointsSuffix);
 
         int footerY = GRID_TOP + ROWS * CELL_SIZE + 8;
         guiGraphics.drawCenteredString(this.font, Component.literal((this.page + 1) + " / " + this.totalPages()), centerX, footerY + 6, 0xFFFFFF);
@@ -244,14 +242,14 @@ public class ShopScreen extends Screen {
                     this.entry.stack().getHoverName().getString() + " - ", this.price, " (", this.unmodifiedPrice, " * " + this.shopMultiplier + ")"
             );
             if (this.locked) {
-                tooltipComponent.append(Component.literal(" (Locked)"));
+                tooltipComponent.append(Component.translatable("misc.craftorio.locked_suffix"));
             }
             return tooltipComponent;
         }
 
         @Override
         public void onPress() {
-            // Locked items just refuse to do anything - no screen change, no packet.
+
             if (this.locked) return;
 
             ShopScreen.this.minecraft.setScreen(new ShopPurchaseScreen(this.entry, ShopScreen.this));

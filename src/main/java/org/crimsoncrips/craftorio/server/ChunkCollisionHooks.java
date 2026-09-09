@@ -56,7 +56,7 @@ public class ChunkCollisionHooks {
                         SectionPos.sectionToBlockCoord(chunkZ) + 16
                 );
 
-                // Make a hole in the world solid
+
                 chunkBorderCollisions = Shapes.join(
                         chunkBorderCollisions,
                         chunkShape,
@@ -67,7 +67,7 @@ public class ChunkCollisionHooks {
 
         return worldBorderCollision == null
                 ? chunkBorderCollisions
-                // OR'ing to the original border collision ensures that players don't enter the damage zone
+
                 : Shapes.or(worldBorderCollision, chunkBorderCollisions);
     }
 
