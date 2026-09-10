@@ -44,12 +44,14 @@ import org.crimsoncrips.craftorio.networking.OpenShopScreenPacket;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
+import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
 import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 @OnlyIn(Dist.CLIENT)
 public class ClientEvents {
@@ -206,8 +208,11 @@ public class ClientEvents {
 
 	private static final double CLAIM_BORDER_FADE_DISTANCE = 16.0;
 	private static final int CLAIM_BORDER_COLOR = 0x30D5C8;
+	private static final int OTHER_CLAIM_BORDER_COLOR = 0xFF3030;
+	private static final int OTHER_CLAIM_BORDER_COLOR_SHARED = 0x808080;
 
-	private record ClaimBorderSegment(boolean alongX, double planeCoord, double tangentStart, double tangentEnd, double distance) {}
+	private record ClaimBorderSegment(boolean alongX, double planeCoord, double tangentStart, double tangentEnd, double distance, int color) {}
+	private record ClaimWallKey(boolean alongX, long plane, long tangentStart) {}
 
 	@SubscribeEvent
 	public static void renderClaimedChunkBorders(RenderLevelStageEvent event) {
@@ -239,14 +244,13 @@ public class ClientEvents {
 		RenderSystem.enablePolygonOffset();
 		RenderSystem.disableCull();
 
-		float r = (float) (CLAIM_BORDER_COLOR >> 16 & 255) / 255.0F;
-		float g = (float) (CLAIM_BORDER_COLOR >> 8 & 255) / 255.0F;
-		float b = (float) (CLAIM_BORDER_COLOR & 255) / 255.0F;
-
 		for (ClaimBorderSegment segment : segments) {
 			float alpha = claimBorderAlpha(segment.distance());
 			if (alpha <= 0.0F) continue;
 
+			float r = (float) (segment.color() >> 16 & 255) / 255.0F;
+			float g = (float) (segment.color() >> 8 & 255) / 255.0F;
+			float b = (float) (segment.color() & 255) / 255.0F;
 			RenderSystem.setShaderColor(r, g, b, alpha);
 
 			BufferBuilder bufferbuilder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_TEX);
@@ -273,35 +277,53 @@ public class ClientEvents {
 
 	private static List<ClaimBorderSegment> collectNearbyClaimBorders(Minecraft mc, Vec3 camPos) {
 		List<ClaimBorderSegment> segments = new ArrayList<>();
+		Set<ClaimWallKey> seenWalls = new HashSet<>();
 		int scanRadius = Mth.ceil(CLAIM_BORDER_FADE_DISTANCE / 16.0) + 1;
 		ChunkPos center = new ChunkPos(BlockPos.containing(camPos.x, camPos.y, camPos.z));
 
 		for (int cx = center.x - scanRadius; cx <= center.x + scanRadius; cx++) {
 			for (int cz = center.z - scanRadius; cz <= center.z + scanRadius; cz++) {
 				ChunkAccess chunk = mc.level.getChunk(cx, cz);
-				if (!CraftorioMisc.isOwnedBy(chunk, mc.player)) continue;
+				if (!CraftorioMisc.isClaimed(chunk)) continue;
 
-				addClaimSegmentIfBorder(mc, camPos, segments, cx + 1, cz, true, (cx + 1) * 16.0, cz * 16.0, (cz + 1) * 16.0);
-				addClaimSegmentIfBorder(mc, camPos, segments, cx - 1, cz, true, cx * 16.0, cz * 16.0, (cz + 1) * 16.0);
-				addClaimSegmentIfBorder(mc, camPos, segments, cx, cz + 1, false, (cz + 1) * 16.0, cx * 16.0, (cx + 1) * 16.0);
-				addClaimSegmentIfBorder(mc, camPos, segments, cx, cz - 1, false, cz * 16.0, cx * 16.0, (cx + 1) * 16.0);
+				addClaimSegmentIfBorder(mc, camPos, segments, seenWalls, chunk, cx + 1, cz, true, (cx + 1) * 16.0, cz * 16.0, (cz + 1) * 16.0);
+				addClaimSegmentIfBorder(mc, camPos, segments, seenWalls, chunk, cx - 1, cz, true, cx * 16.0, cz * 16.0, (cz + 1) * 16.0);
+				addClaimSegmentIfBorder(mc, camPos, segments, seenWalls, chunk, cx, cz + 1, false, (cz + 1) * 16.0, cx * 16.0, (cx + 1) * 16.0);
+				addClaimSegmentIfBorder(mc, camPos, segments, seenWalls, chunk, cx, cz - 1, false, cz * 16.0, cx * 16.0, (cx + 1) * 16.0);
 			}
 		}
 		return segments;
 	}
 
-	private static void addClaimSegmentIfBorder(Minecraft mc, Vec3 camPos, List<ClaimBorderSegment> segments,
-												  int neighborCx, int neighborCz, boolean alongX,
+	private static int claimRank(ChunkAccess chunk, Minecraft mc) {
+		if (chunk == null) return 0;
+		if (CraftorioMisc.isOwnedBy(chunk, mc.player)) return 2;
+		if (CraftorioMisc.isOwnedByAnother(chunk, mc.player)) return 1;
+		return 0;
+	}
+
+	private static void addClaimSegmentIfBorder(Minecraft mc, Vec3 camPos, List<ClaimBorderSegment> segments, Set<ClaimWallKey> seenWalls,
+												  ChunkAccess sourceChunk, int neighborCx, int neighborCz, boolean alongX,
 												  double planeCoord, double tangentStart, double tangentEnd) {
 		ChunkAccess neighbor = mc.level.getChunk(neighborCx, neighborCz);
-		if (CraftorioMisc.isOwnedBy(neighbor, mc.player)) return;
+
+		int sourceRank = claimRank(sourceChunk, mc);
+		int neighborRank = claimRank(neighbor, mc);
+		if (sourceRank == neighborRank) return;
+
+		ClaimWallKey key = new ClaimWallKey(alongX, (long) planeCoord, (long) tangentStart);
+		if (!seenWalls.add(key)) return;
 
 		double distance = alongX
 				? distanceToSegment2D(camPos.x, camPos.z, planeCoord, tangentStart, planeCoord, tangentEnd)
 				: distanceToSegment2D(camPos.x, camPos.z, tangentStart, planeCoord, tangentEnd, planeCoord);
 		if (distance > CLAIM_BORDER_FADE_DISTANCE) return;
 
-		segments.add(new ClaimBorderSegment(alongX, planeCoord, tangentStart, tangentEnd, distance));
+		int winningRank = Math.max(sourceRank, neighborRank);
+		int color = winningRank == 2 ? CLAIM_BORDER_COLOR
+				: (CraftorioMisc.isNoBorders(mc.level) ? OTHER_CLAIM_BORDER_COLOR_SHARED : OTHER_CLAIM_BORDER_COLOR);
+
+		segments.add(new ClaimBorderSegment(alongX, planeCoord, tangentStart, tangentEnd, distance, color));
 	}
 
 	private static double distanceToSegment2D(double px, double pz, double x1, double z1, double x2, double z2) {
@@ -429,6 +451,25 @@ public class ClientEvents {
 
 
 	private static final ResourceLocation activeEffectsLayer = Craftorio.prefix("active_effects");
+
+	@SubscribeEvent
+	public static void tickUniversalProgressDisplay(ClientTickEvent.Post event) {
+		Minecraft minecraft = Minecraft.getInstance();
+		if (minecraft.player == null || minecraft.level == null) return;
+		if (!CraftorioMisc.universalBased(minecraft.level)) return;
+
+		for (CraftorioEffects effect : CraftorioMisc.getCraftorioEffects(minecraft.player)) {
+			if (effect.getTime() > 0) {
+				effect.setTime(effect.getTime() - 1);
+			}
+		}
+
+		for (CraftorioShipmentContract contract : CraftorioMisc.getCraftorioContracts(minecraft.player)) {
+			if (contract.getTime() > 0) {
+				contract.setTime(contract.getTime() - 1);
+			}
+		}
+	}
 
 	public static void displayActiveEffects(GuiGraphics graphics) {
 		Minecraft minecraft = Minecraft.getInstance();

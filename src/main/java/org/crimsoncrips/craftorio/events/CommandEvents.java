@@ -69,6 +69,27 @@ public class CommandEvents {
     private static int runGivePoints(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer target = EntityArgument.getPlayer(context, "target");
         BigInteger amount = CraftorioMisc.toBigInteger(StringArgumentType.getString(context,"amount"));
+
+        if (amount.signum() <= 0) {
+            context.getSource().sendFailure(Component.translatable("misc.craftorio.enter_valid_quantity"));
+            return 0;
+        }
+
+        ServerPlayer sender = context.getSource().getPlayer();
+        if (sender != null && sender == target) {
+            context.getSource().sendFailure(Component.translatable("misc.craftorio.cannot_give_yourself_points"));
+            return 0;
+        }
+
+        if (sender != null) {
+            BigInteger senderPoints = CraftorioMisc.getPoints(sender);
+            if (senderPoints.compareTo(amount) < 0) {
+                context.getSource().sendFailure(Component.translatable("misc.craftorio.not_enough_points"));
+                return 0;
+            }
+            CraftorioMisc.setPoints(senderPoints.subtract(amount), sender);
+        }
+
         BigInteger newTotal = CraftorioMisc.getPoints(target).add(amount);
 
         if (newTotal.compareTo(pointThreshold()) >= 0) {
@@ -85,7 +106,10 @@ public class CommandEvents {
         if (serverPlayer == null) return 0;
 
         boolean nowEnabled = ServerEvents.toggleEffectTimerViewer(serverPlayer);
-        int current = Math.max(CraftorioMisc.getRandomEffectTime(serverPlayer.level()), 0);
+        int current = CraftorioMisc.universalBased(serverPlayer.level())
+                ? CraftorioMisc.getRandomEffectTime(serverPlayer.level())
+                : CraftorioMisc.getRandomEffectTime(serverPlayer);
+        current = Math.max(current, 0);
         PacketDistributor.sendToPlayer(serverPlayer, new EffectTimerPacket(nowEnabled, current));
 
         context.getSource().sendSuccess(() -> Component.translatable(nowEnabled ? "misc.craftorio.effect_timer_enabled" : "misc.craftorio.effect_timer_disabled"), true);
@@ -95,7 +119,14 @@ public class CommandEvents {
     private static int runSetContractRefreshTime(CommandContext<CommandSourceStack> context) {
         int seconds = IntegerArgumentType.getInteger(context, "seconds");
         ServerLevel level = context.getSource().getLevel();
-        CraftorioMisc.setContractRefreshTime(level, seconds * CraftorioMisc.SECONDS_TO_TICKS);
+        int ticks = seconds * CraftorioMisc.SECONDS_TO_TICKS;
+
+        ServerPlayer player = context.getSource().getPlayer();
+        if (player == null || CraftorioMisc.universalBased(level)) {
+            CraftorioMisc.setContractRefreshTime(level, ticks);
+        } else {
+            CraftorioMisc.setContractRefreshTime(player, ticks);
+        }
 
         context.getSource().sendSuccess(() -> Component.translatable("misc.craftorio.contract_refresh_time_set", seconds), true);
         return 1;
@@ -104,7 +135,14 @@ public class CommandEvents {
     private static int runSetEffectTimerTime(CommandContext<CommandSourceStack> context) {
         int seconds = IntegerArgumentType.getInteger(context, "seconds");
         ServerLevel level = context.getSource().getLevel();
-        CraftorioMisc.setRandomEffectTime(level, seconds * CraftorioMisc.SECONDS_TO_TICKS);
+        int ticks = seconds * CraftorioMisc.SECONDS_TO_TICKS;
+
+        ServerPlayer player = context.getSource().getPlayer();
+        if (player == null || CraftorioMisc.universalBased(level)) {
+            CraftorioMisc.setRandomEffectTime(level, ticks);
+        } else {
+            CraftorioMisc.setRandomEffectTime(player, ticks);
+        }
 
         context.getSource().sendSuccess(() -> Component.translatable("misc.craftorio.effect_timer_time_set", seconds), true);
         return 1;

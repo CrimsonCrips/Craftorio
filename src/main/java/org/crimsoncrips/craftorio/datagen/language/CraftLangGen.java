@@ -31,13 +31,15 @@ public class CraftLangGen extends CraftLangProvider {
 		this.addMisc("cancel", "Cancel");
 		this.addMisc("done", "Done");
 		this.addMisc("enter_valid_quantity", "Enter a valid quantity");
-
+		this.addMisc("owned_contracts_title", "Active Contracts");
 		this.addMisc("shop_title", "Shop");
 		this.addMisc("shop_disabled", "The shop is currently disabled.");
+		this.addMisc("shop_disabled_suffix", " (Disabled)");
 		this.addMisc("item_not_sold", "That item isn't sold in the shop.");
 		this.addMisc("not_enough_points", "You don't have enough points for that.");
 		this.addMisc("already_own_chunk", "You already own that chunk.");
-		this.addMisc("claim_item_tooltip", "Right-click a block to claim its chunk for free.");
+		this.addMisc("cannot_own_other_players_chunk", "You cannot own another player's chunk.");
+		this.addMisc("claim_item_tooltip", "Right-click a block to claim its chunk.");
 		this.addMisc("purchased_items", "Purchased %sx %s.");
 		this.addMisc("purchase_title", "Purchase %s");
 		this.addMisc("claim_shop_title", "Buy Claim Chunk Items");
@@ -65,6 +67,7 @@ public class CraftLangGen extends CraftLangProvider {
 		this.addMisc("contract_info", "Name:%s  Time:%s");
 		this.addMisc("starter_contract_description", "A basic shipment to get your operation started.");
 		this.addMisc("gave_points", "Gave %s points to %s");
+		this.addMisc("cannot_give_yourself_points", "You cannot give yourself points.");
 		this.addMisc("effect_timer_enabled", "Effect timer display enabled");
 		this.addMisc("effect_timer_disabled", "Effect timer display disabled");
 

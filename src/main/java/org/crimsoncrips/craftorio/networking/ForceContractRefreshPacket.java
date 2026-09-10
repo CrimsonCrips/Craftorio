@@ -23,7 +23,11 @@ public record ForceContractRefreshPacket() implements CustomPacketPayload {
             if (!(ctx.player() instanceof ServerPlayer serverPlayer)) return;
             if (!serverPlayer.isCreative()) return;
 
-            CraftorioMisc.setContractRefreshTime(serverPlayer.level(), 0);
+            if (CraftorioMisc.universalBased(serverPlayer.level())) {
+                CraftorioMisc.setContractRefreshTime(serverPlayer.level(), 0);
+            } else {
+                CraftorioMisc.setContractRefreshTime(serverPlayer, 0);
+            }
         });
     }
 }

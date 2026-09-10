@@ -30,7 +30,9 @@ public record RequestContractOfferPacket() implements CustomPacketPayload {
                     ? List.of()
                     : CraftorioMisc.getContractOffer(serverPlayer);
 
-            int ticksUntilRefresh = CraftorioMisc.getContractRefreshTime(serverPlayer.level());
+            int ticksUntilRefresh = CraftorioMisc.universalBased(serverPlayer.level())
+                    ? CraftorioMisc.getContractRefreshTime(serverPlayer.level())
+                    : CraftorioMisc.getContractRefreshTime(serverPlayer);
 
             PacketDistributor.sendToPlayer(serverPlayer, new OpenContractOfferScreenPacket(offer, ticksUntilRefresh));
         });

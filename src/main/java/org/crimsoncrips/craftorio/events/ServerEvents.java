@@ -31,6 +31,7 @@ import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
 import org.crimsoncrips.craftorio.server.ChunkCollisionHooks;
 import org.crimsoncrips.craftorio.server.CraftorioAdvancementPoints;
 import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
+import org.crimsoncrips.craftorio.server.CraftorioShop;
 import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
 
 
@@ -51,7 +52,7 @@ public class ServerEvents {
             if (!level.getData(FINALIZED)){
                 level.setData(CHUNK_BASED,Craftorio.SERVER_CONFIG.CHUNK_BASED_EXPANSION.getAsBoolean());
                 level.setData(UNIVERSAL_BASED,Craftorio.SERVER_CONFIG.UNIVERSAL_PROGRESSION.getAsBoolean());
-                if (CraftorioMisc.universalBased(level)){
+                if (CraftorioMisc.universalBased(level) || !CraftorioMisc.chunkBased(level)){
                     level.setData(NO_BORDERS,true);
                 } else {
                     level.setData(NO_BORDERS,Craftorio.SERVER_CONFIG.NO_BORDERS.getAsBoolean());
@@ -143,10 +144,6 @@ public class ServerEvents {
                 craftorioEffectsList.add(CraftorioMisc.getRandomEffect(player.registryAccess(),player.getRandom()));
             }
 
-            CraftorioMisc.giveEffectItem(CraftorioItems.EFFECT_ITEM.get(),(ServerPlayer) player,craftorioEffectsList);
-            CraftorioMisc.giveEffectItem(CraftorioItems.MYSTERY_EFFECT_ITEM.get(),(ServerPlayer) player,craftorioEffectsList);
-
-
 
 
             if (player instanceof ServerPlayer serverPlayer) {
@@ -183,6 +180,7 @@ public class ServerEvents {
 
             if (player instanceof ServerPlayer serverPlayer) {
                 PacketDistributor.sendToPlayer(serverPlayer, new org.crimsoncrips.craftorio.networking.WelcomeToastPacket());
+                PacketDistributor.sendToPlayer(serverPlayer, new org.crimsoncrips.craftorio.networking.ShopStatusPacket(CraftorioShop.isEnabled()));
             }
 
             player.setData(GIVEN, true);
@@ -194,18 +192,34 @@ public class ServerEvents {
         Player player = event.getEntity();
 
         if (!CraftorioMisc.universalBased(player.level())){
-            if (!CraftorioMisc.getCraftorioEffects(player).isEmpty()) {
-                for (CraftorioEffects effect : ImmutableList.copyOf(CraftorioMisc.getCraftorioEffects(player))) {
-                    if (!effect.shouldEnd()) {
-                        effect.tick(player);
-                    }
+            tickEffectsAndContracts(player);
+        }
+    }
+
+    @SubscribeEvent
+    public void universalProgressTick(ServerTickEvent.Post event) {
+        for (ServerLevel level : event.getServer().getAllLevels()) {
+            if (!CraftorioMisc.universalBased(level)) continue;
+
+            List<ServerPlayer> players = level.players();
+            if (players.isEmpty()) continue;
+
+            tickEffectsAndContracts(players.get(0));
+        }
+    }
+
+    private void tickEffectsAndContracts(Player player) {
+        if (!CraftorioMisc.getCraftorioEffects(player).isEmpty()) {
+            for (CraftorioEffects effect : ImmutableList.copyOf(CraftorioMisc.getCraftorioEffects(player))) {
+                if (!effect.shouldEnd()) {
+                    effect.tick(player);
                 }
             }
+        }
 
-            if (!CraftorioMisc.getCraftorioContracts(player).isEmpty()) {
-                for (CraftorioShipmentContract contract : ImmutableList.copyOf(CraftorioMisc.getCraftorioContracts(player))) {
-                    contract.tick(player);
-                }
+        if (!CraftorioMisc.getCraftorioContracts(player).isEmpty()) {
+            for (CraftorioShipmentContract contract : ImmutableList.copyOf(CraftorioMisc.getCraftorioContracts(player))) {
+                contract.tick(player);
             }
         }
     }
@@ -225,6 +239,15 @@ public class ServerEvents {
 
         if (value.compareTo(BigInteger.ZERO) > 0) {
             player.sendSystemMessage(Component.literal(string + value));
+        }
+
+        if (CraftorioMisc.universalBased(player.level()) && player instanceof ServerPlayer earner) {
+            for (ServerPlayer other : earner.getServer().getPlayerList().getPlayers()) {
+                if (other == earner) continue;
+                for (String criterion : advancement.value().criteria().keySet()) {
+                    other.getAdvancements().award(advancement, criterion);
+                }
+            }
         }
     }
 
@@ -288,68 +311,91 @@ public class ServerEvents {
         if (!Craftorio.SERVER_CONFIG.RANDOM_EFFECTS_ENABLED.getAsBoolean()) return;
 
         for (ServerLevel level : event.getServer().getAllLevels()) {
-            int timeUntilNextEffect = CraftorioMisc.getRandomEffectTime(level) - 1;
+            if (CraftorioMisc.universalBased(level)) {
+                int timeUntilNextEffect = CraftorioMisc.getRandomEffectTime(level) - 1;
 
-            if (!effectTimerViewers.isEmpty() && level.getGameTime() % 20 == 0) {
-                for (ServerPlayer player : level.players()) {
-                    if (effectTimerViewers.contains(player.getUUID())) {
-                        PacketDistributor.sendToPlayer(player, new EffectTimerPacket(true, Math.max(timeUntilNextEffect, 0)));
+                if (!effectTimerViewers.isEmpty() && level.getGameTime() % 20 == 0) {
+                    for (ServerPlayer player : level.players()) {
+                        if (effectTimerViewers.contains(player.getUUID())) {
+                            PacketDistributor.sendToPlayer(player, new EffectTimerPacket(true, Math.max(timeUntilNextEffect, 0)));
+                        }
                     }
                 }
-            }
 
-            if (timeUntilNextEffect > 0) {
-                CraftorioMisc.setRandomEffectTime(level, timeUntilNextEffect);
-                continue;
-            }
+                if (timeUntilNextEffect > 0) {
+                    CraftorioMisc.setRandomEffectTime(level, timeUntilNextEffect);
+                    continue;
+                }
 
-            List<ServerPlayer> players = level.players();
-            if (!players.isEmpty()) {
-                CraftorioEffects rolledEffect = CraftorioMisc.getRandomEffect(level.registryAccess(), level.random);
-                for (ServerPlayer player : players) {
+                List<ServerPlayer> players = level.players();
+                if (!players.isEmpty()) {
+                    CraftorioEffects rolledEffect = CraftorioMisc.getRandomEffect(level.registryAccess(), level.random);
+                    CraftorioMisc.grantEffect(players.get(0), rolledEffect.copy());
+                }
+
+                CraftorioMisc.setRandomEffectTime(level, Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get());
+            } else {
+                for (ServerPlayer player : level.players()) {
+                    int timeUntilNextEffect = CraftorioMisc.getRandomEffectTime(player) - 1;
+
+                    if (level.getGameTime() % 20 == 0 && effectTimerViewers.contains(player.getUUID())) {
+                        PacketDistributor.sendToPlayer(player, new EffectTimerPacket(true, Math.max(timeUntilNextEffect, 0)));
+                    }
+
+                    if (timeUntilNextEffect > 0) {
+                        CraftorioMisc.setRandomEffectTime(player, timeUntilNextEffect);
+                        continue;
+                    }
+
+                    CraftorioEffects rolledEffect = CraftorioMisc.getRandomEffect(level.registryAccess(), player.getRandom());
                     CraftorioMisc.grantEffect(player, rolledEffect.copy());
+
+                    CraftorioMisc.setRandomEffectTime(player, Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get());
                 }
             }
-
-            int minInterval = Craftorio.SERVER_CONFIG.RANDOM_EFFECT_MIN_INTERVAL.get();
-            int maxInterval = Craftorio.SERVER_CONFIG.RANDOM_EFFECT_MAX_INTERVAL.get();
-            int nextInterval = minInterval + level.random.nextInt(Math.max(1, maxInterval - minInterval + 1));
-            CraftorioMisc.setRandomEffectTime(level, nextInterval);
         }
     }
 
     @SubscribeEvent
     public void contractOfferTick(ServerTickEvent.Post event) {
         for (ServerLevel level : event.getServer().getAllLevels()) {
-            int timeUntilRefresh = CraftorioMisc.getContractRefreshTime(level) - 1;
-
-            if (timeUntilRefresh > 0) {
-                CraftorioMisc.setContractRefreshTime(level, timeUntilRefresh);
-                continue;
-            }
-
-            List<ServerPlayer> players = level.players();
+            int refreshTicks = Craftorio.SERVER_CONFIG.CONTRACT_REFRESH_SECONDS.get() * CraftorioMisc.SECONDS_TO_TICKS;
 
             if (CraftorioMisc.universalBased(level)) {
+                int timeUntilRefresh = CraftorioMisc.getContractRefreshTime(level) - 1;
+
+                if (timeUntilRefresh > 0) {
+                    CraftorioMisc.setContractRefreshTime(level, timeUntilRefresh);
+                    continue;
+                }
+
                 List<ResourceLocation> offer = CraftorioMisc.rollContractOffer(level.registryAccess(), level.random);
                 level.setData(CraftorioDataAttachments.CONTRACT_OFFER, offer);
                 level.setData(CraftorioDataAttachments.CONTRACT_OFFER_CLAIMED, false);
 
-                for (ServerPlayer player : players) {
+                for (ServerPlayer player : level.players()) {
                     notifyNewContracts(player, offer);
                 }
+
+                CraftorioMisc.setContractRefreshTime(level, refreshTicks);
             } else {
-                for (ServerPlayer player : players) {
+                for (ServerPlayer player : level.players()) {
+                    int timeUntilRefresh = CraftorioMisc.getContractRefreshTime(player) - 1;
+
+                    if (timeUntilRefresh > 0) {
+                        CraftorioMisc.setContractRefreshTime(player, timeUntilRefresh);
+                        continue;
+                    }
+
                     List<ResourceLocation> offer = CraftorioMisc.rollContractOffer(player.registryAccess(), player.getRandom());
                     player.setData(CraftorioDataAttachments.CONTRACT_OFFER, offer);
                     player.setData(CraftorioDataAttachments.CONTRACT_OFFER_CLAIMED, false);
 
                     notifyNewContracts(player, offer);
+
+                    CraftorioMisc.setContractRefreshTime(player, refreshTicks);
                 }
             }
-
-            int refreshTicks = Craftorio.SERVER_CONFIG.CONTRACT_REFRESH_SECONDS.get() * CraftorioMisc.SECONDS_TO_TICKS;
-            CraftorioMisc.setContractRefreshTime(level, refreshTicks);
         }
     }
 

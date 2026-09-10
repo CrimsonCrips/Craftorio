@@ -18,18 +18,19 @@ import xaero.map.world.MapWorld;
 
 import java.lang.reflect.Field;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 public final class XaeroWorldMapCompat {
 
     private static final int CLAIM_COLOR = 0x30D5C8;
+    private static final int OWN_CLAIM_COLOR = 0x30D5C8;
+    private static final int OTHER_CLAIM_COLOR_STRICT = 0xFF3030;
+    private static final int OTHER_CLAIM_COLOR_SHARED = 0x808080;
     private static final int CHUNK_FILL_ALPHA = 0x50;
     private static final int BORDER_FILL_ALPHA = 0x40;
     private static final int OUTLINE_ALPHA = 0xC0;
 
-    private static final Map<ResourceKey<Level>, Set<Long>> claimedChunks = new HashMap<>();
+    private static final Map<ResourceKey<Level>, Map<Long, Integer>> claimedChunks = new HashMap<>();
 
     private static final Field CAMERA_X_FIELD;
     private static final Field CAMERA_Z_FIELD;
@@ -69,7 +70,8 @@ public final class XaeroWorldMapCompat {
 
         ChunkPos center = new ChunkPos(mc.player.blockPosition());
         int radius = mc.options.renderDistance().get();
-        Set<Long> set = claimedChunks.computeIfAbsent(mc.level.dimension(), d -> new HashSet<>());
+        Map<Long, Integer> chunks = claimedChunks.computeIfAbsent(mc.level.dimension(), d -> new HashMap<>());
+        boolean noBorders = CraftorioMisc.isNoBorders(mc.level);
 
         for (int cx = center.x - radius; cx <= center.x + radius; cx++) {
             for (int cz = center.z - radius; cz <= center.z + radius; cz++) {
@@ -78,9 +80,11 @@ public final class XaeroWorldMapCompat {
 
                 long packed = ChunkPos.asLong(cx, cz);
                 if (CraftorioMisc.isOwnedBy(chunk, mc.player)) {
-                    set.add(packed);
+                    chunks.put(packed, OWN_CLAIM_COLOR);
+                } else if (CraftorioMisc.isOwnedByAnother(chunk, mc.player)) {
+                    chunks.put(packed, noBorders ? OTHER_CLAIM_COLOR_SHARED : OTHER_CLAIM_COLOR_STRICT);
                 } else {
-                    set.remove(packed);
+                    chunks.remove(packed);
                 }
             }
         }
@@ -121,19 +125,20 @@ public final class XaeroWorldMapCompat {
         boolean viewingOwnDimension = playerLevel.dimension().equals(viewedDim);
 
         if (viewingOwnDimension && CraftorioMisc.chunkBased(playerLevel)) {
-            Set<Long> claims = claimedChunks.get(viewedDim);
+            Map<Long, Integer> claims = claimedChunks.get(viewedDim);
             if (claims == null || claims.isEmpty()) return;
 
-            for (long packed : claims) {
-                ChunkPos pos = new ChunkPos(packed);
+            for (Map.Entry<Long, Integer> entry : claims.entrySet()) {
+                ChunkPos pos = new ChunkPos(entry.getKey());
                 double minX = pos.getMinBlockX();
                 double maxX = pos.getMaxBlockX() + 1.0;
                 double minZ = pos.getMinBlockZ();
                 double maxZ = pos.getMaxBlockZ() + 1.0;
                 if (maxX < viewMinX || minX > viewMaxX || maxZ < viewMinZ || minZ > viewMaxZ) continue;
 
+                int color = entry.getValue();
                 drawWorldRect(graphics, minX, minZ, maxX, maxZ, cameraX, cameraZ, scale, guiScale, guiWidth, guiHeight,
-                        withAlpha(CHUNK_FILL_ALPHA), withAlpha(OUTLINE_ALPHA));
+                        withAlpha(CHUNK_FILL_ALPHA, color), withAlpha(OUTLINE_ALPHA, color));
             }
         } else if (viewingOwnDimension) {
             CraftorioBorder border = CraftorioMisc.getCraftorioBorder(mc.player, viewedDim);
@@ -147,12 +152,12 @@ public final class XaeroWorldMapCompat {
             if (maxX < viewMinX || minX > viewMaxX || maxZ < viewMinZ || minZ > viewMaxZ) return;
 
             drawWorldRect(graphics, minX, minZ, maxX, maxZ, cameraX, cameraZ, scale, guiScale, guiWidth, guiHeight,
-                    withAlpha(BORDER_FILL_ALPHA), withAlpha(OUTLINE_ALPHA));
+                    withAlpha(BORDER_FILL_ALPHA, CLAIM_COLOR), withAlpha(OUTLINE_ALPHA, CLAIM_COLOR));
         }
     }
 
-    private static int withAlpha(int alpha) {
-        return (alpha << 24) | CLAIM_COLOR;
+    private static int withAlpha(int alpha, int rgb) {
+        return (alpha << 24) | rgb;
     }
 
     private static void drawWorldRect(GuiGraphics graphics, double minX, double minZ, double maxX, double maxZ,

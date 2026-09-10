@@ -130,7 +130,7 @@ public class CraftorioDataAttachments {
 
 
     public static final Supplier<AttachmentType<Integer>> RANDOM_EFFECT_TIME = ATTACHMENT_TYPES.register(
-            "random_effect_time", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).build()
+            "random_effect_time", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().build()
     );
 
     public static final Supplier<AttachmentType<List<ResourceLocation>>> CONTRACT_OFFER = ATTACHMENT_TYPES.register(
@@ -143,7 +143,7 @@ public class CraftorioDataAttachments {
     );
 
     public static final Supplier<AttachmentType<Integer>> CONTRACT_REFRESH_TIME = ATTACHMENT_TYPES.register(
-            "contract_refresh_time", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).build()
+            "contract_refresh_time", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().build()
     );
 
 }

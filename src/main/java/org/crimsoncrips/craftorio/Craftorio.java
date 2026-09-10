@@ -86,6 +86,7 @@ public class Craftorio {
             NeoForge.EVENT_BUS.addListener(ClientEvents::renderPauseMenuIndicators);
             modEventBus.addListener(CraftorioKeyMappings::register);
             NeoForge.EVENT_BUS.addListener(CraftorioKeyMappings::onClientTick);
+            NeoForge.EVENT_BUS.addListener(ClientEvents::tickUniversalProgressDisplay);
             ClientEvents.registerConfigScreen(modContainer);
 
             if (ModList.get().isLoaded("xaeroworldmap")) {

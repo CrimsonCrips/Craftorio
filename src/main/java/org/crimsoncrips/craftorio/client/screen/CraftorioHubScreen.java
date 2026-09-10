@@ -11,6 +11,7 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.client.ClientContractOfferState;
+import org.crimsoncrips.craftorio.client.ClientShopState;
 import org.crimsoncrips.craftorio.events.ClientEvents;
 import org.crimsoncrips.craftorio.networking.RequestContractOfferPacket;
 import org.crimsoncrips.craftorio.networking.RequestOpenShopPacket;
@@ -37,7 +38,11 @@ public class CraftorioHubScreen extends Screen {
 
         boolean chunkBased = this.minecraft.level != null && CraftorioMisc.chunkBased(this.minecraft.level);
 
-        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.hub_shop"), b -> PacketDistributor.sendToServer(new RequestOpenShopPacket()))
+        Component shopLabel = Component.translatable("misc.craftorio.hub_shop");
+        if (!ClientShopState.isEnabled()) {
+            shopLabel = shopLabel.copy().append(Component.translatable("misc.craftorio.shop_disabled_suffix").withStyle(ChatFormatting.RED));
+        }
+        this.addRenderableWidget(Button.builder(shopLabel, b -> PacketDistributor.sendToServer(new RequestOpenShopPacket()))
                 .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
         y += BUTTON_STRIDE;
 

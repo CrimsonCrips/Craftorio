@@ -42,6 +42,11 @@ public class ClaimChunkItem extends Item {
             return InteractionResult.FAIL;
         }
 
+        if (!CraftorioMisc.isNoBorders(level) && CraftorioMisc.isOwnedByAnother(chunk, player)) {
+            player.sendSystemMessage(Component.translatable("misc.craftorio.cannot_own_other_players_chunk").withStyle(ChatFormatting.RED));
+            return InteractionResult.FAIL;
+        }
+
         CraftorioMisc.setOwnedBy(chunk, player, true);
         CraftorioMisc.setLandAmount(CraftorioMisc.getLandAmount(player) + 1, player);
 

@@ -27,5 +27,6 @@ public class PacketRegistration {
         registrar.playToClient(PunishmentToastPacket.TYPE, PunishmentToastPacket.STREAM_CODEC, PunishmentToastPacket::handle);
         registrar.playToClient(WelcomeToastPacket.TYPE, WelcomeToastPacket.STREAM_CODEC, WelcomeToastPacket::handle);
         registrar.playToClient(ContractOfferStatusPacket.TYPE, ContractOfferStatusPacket.STREAM_CODEC, ContractOfferStatusPacket::handle);
+        registrar.playToClient(ShopStatusPacket.TYPE, ShopStatusPacket.STREAM_CODEC, ShopStatusPacket::handle);
     }
 }

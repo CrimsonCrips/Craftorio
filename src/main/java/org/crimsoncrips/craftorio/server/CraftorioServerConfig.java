@@ -21,8 +21,7 @@ public class CraftorioServerConfig {
     public final ModConfigSpec.DoubleValue CHUNK_OUT_OF_BOUNDS_DAMAGE;
 
     public final ModConfigSpec.BooleanValue RANDOM_EFFECTS_ENABLED;
-    public final ModConfigSpec.IntValue RANDOM_EFFECT_MIN_INTERVAL;
-    public final ModConfigSpec.IntValue RANDOM_EFFECT_MAX_INTERVAL;
+    public final ModConfigSpec.IntValue RANDOM_EFFECT_INTERVAL;
 
     public final ModConfigSpec.IntValue MAX_OFFERED_CONTRACTS;
     public final ModConfigSpec.IntValue CONTRACT_REFRESH_SECONDS;
@@ -50,8 +49,7 @@ public class CraftorioServerConfig {
 
         builder.push("Random Effects");
         this.RANDOM_EFFECTS_ENABLED = buildBoolean(builder, "RANDOM_EFFECTS_ENABLED", true, "Whether registered effects can randomly be granted, similar to weather");
-        this.RANDOM_EFFECT_MIN_INTERVAL = buildInt(builder, "RANDOM_EFFECT_MIN_INTERVAL", 6000, 1, Integer.MAX_VALUE, "Minimum ticks (20 ticks = 1 second) until another random effect can happen");
-        this.RANDOM_EFFECT_MAX_INTERVAL = buildInt(builder, "RANDOM_EFFECT_MAX_INTERVAL", 24000, 1, Integer.MAX_VALUE, "Maximum ticks (20 ticks = 1 second) until another random effect can happen");
+        this.RANDOM_EFFECT_INTERVAL = buildInt(builder, "RANDOM_EFFECT_INTERVAL", 12000, 1, Integer.MAX_VALUE, "Ticks (20 ticks = 1 second) between random effect grants");
         builder.pop();
 
         builder.push("Border Based");

@@ -48,6 +48,12 @@ public final class CraftorioPointsAdvancements {
         AdvancementHolder holder = player.server.getAdvancements().get(Craftorio.prefix(path));
         if (holder == null) return;
 
-        player.getAdvancements().award(holder, CRITERION);
+        if (CraftorioMisc.universalBased(player.level())) {
+            for (ServerPlayer other : player.server.getPlayerList().getPlayers()) {
+                other.getAdvancements().award(holder, CRITERION);
+            }
+        } else {
+            player.getAdvancements().award(holder, CRITERION);
+        }
     }
 }

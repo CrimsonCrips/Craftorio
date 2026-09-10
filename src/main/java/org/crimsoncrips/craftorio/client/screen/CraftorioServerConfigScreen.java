@@ -60,8 +60,7 @@ public class CraftorioServerConfigScreen extends Screen {
         addDoubleRow("MIN_SPAWN_DISTANCE", config.MIN_SPAWN_DISTANCE);
         addDoubleRow("MAX_SPAWN_DISTANCE", config.MAX_SPAWN_DISTANCE);
         addDoubleRow("CHUNK_OUT_OF_BOUNDS_DAMAGE", config.CHUNK_OUT_OF_BOUNDS_DAMAGE);
-        addIntRow("RANDOM_EFFECT_MIN_INTERVAL", config.RANDOM_EFFECT_MIN_INTERVAL);
-        addIntRow("RANDOM_EFFECT_MAX_INTERVAL", config.RANDOM_EFFECT_MAX_INTERVAL);
+        addIntRow("RANDOM_EFFECT_INTERVAL", config.RANDOM_EFFECT_INTERVAL);
         addIntRow("MAX_OFFERED_CONTRACTS", config.MAX_OFFERED_CONTRACTS);
         addIntRow("CONTRACT_REFRESH_SECONDS", config.CONTRACT_REFRESH_SECONDS);
 

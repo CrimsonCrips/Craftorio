@@ -5,6 +5,7 @@
   "compatibilityLevel": "JAVA_21",
   "mixins": [
     "CraftorioCollisionGetter",
+    "CraftorioContainerMenuMixin",
     "CraftorioEntityMixin",
     "CraftorioGamePacketListenerMixin",
     "CraftorioGuiMapMixin",

@@ -1,7 +1,6 @@
 package org.crimsoncrips.craftorio.networking;
 
 import net.minecraft.network.RegistryFriendlyByteBuf;
-import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
@@ -29,10 +28,9 @@ public record RequestOpenShopPacket() implements CustomPacketPayload {
         ctx.enqueueWork(() -> {
             if (!(ctx.player() instanceof ServerPlayer serverPlayer)) return;
 
-            if (!CraftorioShop.isEnabled()) {
-                serverPlayer.sendSystemMessage(Component.translatable("misc.craftorio.shop_disabled"));
-                return;
-            }
+            boolean shopEnabled = CraftorioShop.isEnabled();
+            PacketDistributor.sendToPlayer(serverPlayer, new ShopStatusPacket(shopEnabled));
+            if (!shopEnabled) return;
 
             boolean allUnlocked = Craftorio.SERVER_CONFIG.SHOP_MODE.get() == CraftorioShopMode.OPEN;
             List<ResourceLocation> unlocked = allUnlocked ? List.of() : new ArrayList<>(Craftorio.UNLOCKED_ITEMS.getUnlocked(serverPlayer));

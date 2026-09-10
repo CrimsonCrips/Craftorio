@@ -2,6 +2,7 @@ package org.crimsoncrips.craftorio;
 
 import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.*;
@@ -103,8 +104,18 @@ public class CraftorioMisc {
             if (!(points.compareTo(amountToClaim) >= 0))
                 return;
 
+            boolean warnedOwnedByAnother = false;
             for (ChunkPos chunkSelected : chunkPos) {
                 ChunkAccess chunk = level.getChunk(chunkSelected.x, chunkSelected.z);
+
+                if (claiming && !isNoBorders(level) && isOwnedByAnother(chunk, player)) {
+                    if (!warnedOwnedByAnother) {
+                        player.sendSystemMessage(Component.translatable("misc.craftorio.cannot_own_other_players_chunk").withStyle(ChatFormatting.RED));
+                        warnedOwnedByAnother = true;
+                    }
+                    continue;
+                }
+
                 if (claiming && !isOwnedBy(chunk, player)) {
                     setOwnedBy(chunk, player, true);
                     setLandAmount(claimed_amount + 1, player);
@@ -385,27 +396,38 @@ public class CraftorioMisc {
         return Craftorio.SERVER_CONFIG.STARTING_LAND_SIZE.getAsInt();
     }
     //Owned
+    private static List<String> ownersOf(ChunkAccess chunkAccess){
+        List<String> owners = chunkAccess.getExistingDataOrNull(OWNED_BY);
+        return owners != null ? owners : List.of();
+    }
+
     public static boolean isOwnedBy(ChunkAccess chunkAccess,Player player){
-        Level level = player.level();
-        if (isNoBorders(level)) {
-            return chunkAccess.hasData(OWNED_BY);
-        } else {
-            return chunkAccess.getData(OWNED_BY).contains(player.getStringUUID());
-        }
+        return ownersOf(chunkAccess).contains(player.getStringUUID());
+    }
+
+    public static boolean isOwnedByAnother(ChunkAccess chunkAccess,Player player){
+        List<String> ownedBy = ownersOf(chunkAccess);
+        return !ownedBy.isEmpty() && !ownedBy.contains(player.getStringUUID());
+    }
+
+    public static boolean isClaimed(ChunkAccess chunkAccess){
+        return !ownersOf(chunkAccess).isEmpty();
     }
 
     public static void setOwnedBy(ChunkAccess chunkAccess,Player player,boolean own){
-        List<String> ownedBy = chunkAccess.getData(OWNED_BY);
         String uuid = player.getStringUUID();
 
         if (own){
             if (!isOwnedBy(chunkAccess, player)){
+                List<String> ownedBy = new ArrayList<>(ownersOf(chunkAccess));
                 ownedBy.add(uuid);
                 chunkAccess.setData(OWNED_BY,ownedBy);
             }
         } else {
             if (isOwnedBy(chunkAccess,player)){
-                chunkAccess.getData(OWNED_BY).remove(uuid);
+                List<String> ownedBy = new ArrayList<>(ownersOf(chunkAccess));
+                ownedBy.remove(uuid);
+                chunkAccess.setData(OWNED_BY,ownedBy);
             }
         }
     }
@@ -421,6 +443,14 @@ public class CraftorioMisc {
 
     public static void setRandomEffectTime(Level level, int time){
         level.setData(RANDOM_EFFECT_TIME, time);
+    }
+
+    public static int getRandomEffectTime(Player player){
+        return player.getData(RANDOM_EFFECT_TIME);
+    }
+
+    public static void setRandomEffectTime(Player player, int time){
+        player.setData(RANDOM_EFFECT_TIME, time);
     }
 
 
@@ -1042,6 +1072,14 @@ public class CraftorioMisc {
 
     public static void setContractRefreshTime(Level level, int ticks){
         level.setData(CraftorioDataAttachments.CONTRACT_REFRESH_TIME, ticks);
+    }
+
+    public static int getContractRefreshTime(Player player){
+        return player.getData(CraftorioDataAttachments.CONTRACT_REFRESH_TIME);
+    }
+
+    public static void setContractRefreshTime(Player player, int ticks){
+        player.setData(CraftorioDataAttachments.CONTRACT_REFRESH_TIME, ticks);
     }
 
 
