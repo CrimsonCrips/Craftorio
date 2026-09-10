@@ -7,6 +7,9 @@ import io.netty.buffer.ByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
+import org.crimsoncrips.craftorio.CraftorioMisc;
+
+import java.util.Optional;
 
 public class ShopMultiplierEffect extends CraftorioEffects {
 
@@ -16,17 +19,22 @@ public class ShopMultiplierEffect extends CraftorioEffects {
             instance.group(
                     Codec.FLOAT.fieldOf("multiplier").forGetter(ShopMultiplierEffect::getMultiplier),
                     Codec.STRING.fieldOf("name").forGetter(ShopMultiplierEffect::getNameKey),
-                    Codec.INT.fieldOf("time").forGetter(ShopMultiplierEffect::getTime),
-                    ResourceLocation.CODEC.fieldOf("icon").forGetter(ShopMultiplierEffect::getIcon)
-            ).apply(instance, ShopMultiplierEffect::new)
+                    Codec.INT.fieldOf("seconds").forGetter(effect -> effect.getTime() / CraftorioMisc.SECONDS_TO_TICKS),
+                    ResourceLocation.CODEC.optionalFieldOf("icon").forGetter(effect -> Optional.ofNullable(effect.getIcon()))
+            ).apply(instance, (multiplier, name, seconds, icon) ->
+                    new ShopMultiplierEffect(multiplier, name, seconds, icon.orElse(null)))
     );
 
     public static final StreamCodec<ByteBuf, ShopMultiplierEffect> CODEC_STREAM = StreamCodec.composite(
             ByteBufCodecs.FLOAT, ShopMultiplierEffect::getMultiplier,
             ByteBufCodecs.STRING_UTF8, ShopMultiplierEffect::getNameKey,
             ByteBufCodecs.INT, ShopMultiplierEffect::getTime,
-            ResourceLocation.STREAM_CODEC, ShopMultiplierEffect::getIcon,
-            ShopMultiplierEffect::new
+            ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC), effect -> Optional.ofNullable(effect.getIcon()),
+            (multiplier, name, time, icon) -> {
+                ShopMultiplierEffect effect = new ShopMultiplierEffect(multiplier, name, time / CraftorioMisc.SECONDS_TO_TICKS, icon.orElse(null));
+                effect.setTime(time);
+                return effect;
+            }
     );
 
     public float getMultiplier(){
@@ -39,14 +47,16 @@ public class ShopMultiplierEffect extends CraftorioEffects {
         return CraftorioEffectTypes.SHOP_MULTIPLIER.get();
     }
 
-    public ShopMultiplierEffect(float multiplier, String key, int time, ResourceLocation icon){
-        super(key,time,icon);
+    public ShopMultiplierEffect(float multiplier, String key, int seconds, ResourceLocation icon){
+        super(key, seconds * CraftorioMisc.SECONDS_TO_TICKS, icon);
         this.multiplier = multiplier;
     }
 
     @Override
     public ShopMultiplierEffect copy() {
-        return new ShopMultiplierEffect(getMultiplier(), getNameKey(), getTime(), getIcon());
+        ShopMultiplierEffect copy = new ShopMultiplierEffect(getMultiplier(), getNameKey(), getTime() / CraftorioMisc.SECONDS_TO_TICKS, getIcon());
+        copy.setTime(getTime());
+        return copy;
     }
 
 }

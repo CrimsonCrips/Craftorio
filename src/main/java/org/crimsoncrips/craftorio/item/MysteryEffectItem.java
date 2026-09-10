@@ -13,7 +13,7 @@ import java.util.List;
 public class MysteryEffectItem extends EffectItem {
 
     public MysteryEffectItem(Properties properties) {
-        super(properties);
+        super(properties.stacksTo(1));
     }
 
     @Override

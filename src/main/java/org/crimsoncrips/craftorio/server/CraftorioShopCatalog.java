@@ -78,6 +78,7 @@ public class CraftorioShopCatalog {
 
         for (Item item : BuiltInRegistries.ITEM) {
             if (item == Items.AIR) continue;
+            if (item.builtInRegistryHolder().is(org.crimsoncrips.craftorio.datagen.tags.CraftorioItemTagGen.SHOP_BLACKLIST)) continue;
             entries.add(new CatalogEntry(BuiltInRegistries.ITEM.getKey(item), new ItemStack(item)));
         }
 

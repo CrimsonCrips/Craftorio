@@ -1,14 +1,7 @@
 {
   "criteria": {
-    "has_sinker": {
-      "conditions": {
-        "items": [
-          {
-            "items": "craftorio:sinker"
-          }
-        ]
-      },
-      "trigger": "minecraft:inventory_changed"
+    "tick": {
+      "trigger": "minecraft:tick"
     }
   },
   "display": {
@@ -25,7 +18,7 @@
   },
   "requirements": [
     [
-      "has_sinker"
+      "tick"
     ]
   ],
   "sends_telemetry_event": true

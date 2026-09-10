@@ -25,7 +25,7 @@ public class CraftorioRegistries {
 
     @SubscribeEvent
     static void newDataPackRegistry(DataPackRegistryEvent.NewRegistry event) {
-        event.dataPackRegistry(CraftorioEffects.REGISTRY_KEY, CraftorioEffects.dispatchCodec());
-        event.dataPackRegistry(CraftorioShipmentContract.REGISTRY_KEY, CraftorioShipmentContract.CODEC);
+        event.dataPackRegistry(CraftorioEffects.REGISTRY_KEY, CraftorioEffects.dispatchCodec(), CraftorioEffects.dispatchCodec());
+        event.dataPackRegistry(CraftorioShipmentContract.REGISTRY_KEY, CraftorioShipmentContract.CODEC, CraftorioShipmentContract.CODEC);
     }
 }

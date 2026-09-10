@@ -4,5 +4,5 @@
   "item_tag": "#craftorio:copper",
   "multiplier": 100.0,
   "name": "registry.copper_block_buff",
-  "time": 500
+  "seconds": 25
 }

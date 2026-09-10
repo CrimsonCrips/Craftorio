@@ -1,4 +1,4 @@
-package org.crimsoncrips.craftorio.client;
+package org.crimsoncrips.craftorio.events;
 
 import com.mojang.blaze3d.platform.GlStateManager;
 import com.mojang.blaze3d.systems.RenderSystem;
@@ -11,6 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.PauseScreen;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
@@ -19,14 +20,27 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.phys.Vec3;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.fml.ModContainer;
 import net.neoforged.neoforge.client.event.*;
+import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMenuTypes;
 
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.client.InfinityBurst;
+import org.crimsoncrips.craftorio.client.PointsAnimation;
+import org.crimsoncrips.craftorio.client.PointsPopup;
+import org.crimsoncrips.craftorio.client.screen.AutoSinkerScreen;
+import org.crimsoncrips.craftorio.client.screen.ContractRevealScreen;
+import org.crimsoncrips.craftorio.client.screen.CraftorioConfigScreen;
+import org.crimsoncrips.craftorio.client.screen.ShopScreen;
 import org.crimsoncrips.craftorio.client.screen.SinkScreen;
+import org.crimsoncrips.craftorio.networking.OpenContractOfferScreenPacket;
+import org.crimsoncrips.craftorio.networking.OpenShopScreenPacket;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
@@ -34,13 +48,29 @@ import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
+@OnlyIn(Dist.CLIENT)
 public class ClientEvents {
 
 	@SubscribeEvent
 	public void registerScreens(RegisterMenuScreensEvent event) {
 		event.register(CraftorioMenuTypes.SINKER.get(), SinkScreen::new);
+		event.register(CraftorioMenuTypes.AUTO_SINKER.get(), AutoSinkerScreen::new);
+	}
+
+	public static void registerConfigScreen(ModContainer modContainer) {
+		modContainer.registerExtensionPoint(IConfigScreenFactory.class,
+				(IConfigScreenFactory) (container, modListScreen) -> new CraftorioConfigScreen(modListScreen));
+	}
+
+	public static void openShopScreen(OpenShopScreenPacket message) {
+		Minecraft.getInstance().setScreen(new ShopScreen(message.allUnlocked(), new HashSet<>(message.unlockedItems())));
+	}
+
+	public static void openContractOfferScreen(OpenContractOfferScreenPacket message) {
+		Minecraft.getInstance().setScreen(new ContractRevealScreen(message.contractIds(), message.ticksUntilRefresh()));
 	}
 
 	private static final ResourceLocation FORCEFIELD_TEXTURE = Craftorio.prefix("textures/forcefield.png");
@@ -471,16 +501,50 @@ public class ClientEvents {
 				(graphics, partialTicks) -> ClientEvents.displayEffectTimer(graphics));
 	}
 
-	public static final ResourceLocation BORDER_MODE_INDICATOR_ICON = Craftorio.getGuiTexture("locked.png");
-	public static final int BORDER_MODE_INDICATOR_SIZE = 16;
+	private static final ResourceLocation toastLayer = Craftorio.prefix("craftorio_toasts");
+
+	public static void showToasts(RegisterGuiLayersEvent e) {
+		e.registerBelow(VanillaGuiLayers.EXPERIENCE_BAR, toastLayer,
+				(graphics, partialTicks) -> org.crimsoncrips.craftorio.client.CraftorioToastManager.render(graphics));
+	}
+
+	public static final ResourceLocation STATUS_ICONS = Craftorio.getGuiTexture("status_icons.png");
+	public static final int STATUS_ICON_SIZE = 13;
+	public static final int STATUS_ICON_SHEET_WIDTH = 26;
+	public static final int STATUS_ICON_SHEET_HEIGHT = 39;
+	public static final int BORDER_MODE_INDICATOR_SIZE = STATUS_ICON_SIZE;
 	public static final int BORDER_MODE_INDICATOR_GAP = 4;
 
-	public static void drawBorderModeIndicators(GuiGraphics graphics, int x, int y) {
-		graphics.blit(BORDER_MODE_INDICATOR_ICON, x, y, 0.0F, 0.0F, BORDER_MODE_INDICATOR_SIZE, BORDER_MODE_INDICATOR_SIZE, BORDER_MODE_INDICATOR_SIZE, BORDER_MODE_INDICATOR_SIZE);
+	private static final int CHUNK_BASED_ROW = 0;
+	private static final int UNIVERSAL_BASED_ROW = 1;
+	private static final int NO_BORDERS_ROW = 2;
+
+	public static void drawBorderModeIndicators(GuiGraphics graphics, Font font, int x, int y, int mouseX, int mouseY) {
+		Minecraft minecraft = Minecraft.getInstance();
+		if (minecraft.level == null) return;
+
+		net.minecraft.world.level.Level level = minecraft.level;
+
+		drawIndicator(graphics, font, x, y, mouseX, mouseY, CHUNK_BASED_ROW, CraftorioMisc.chunkBased(level),
+				Component.translatable("misc.craftorio.chunk_based_label", CraftorioMisc.chunkBased(level)));
 		y += BORDER_MODE_INDICATOR_SIZE + BORDER_MODE_INDICATOR_GAP;
-		graphics.blit(BORDER_MODE_INDICATOR_ICON, x, y, 0.0F, 0.0F, BORDER_MODE_INDICATOR_SIZE, BORDER_MODE_INDICATOR_SIZE, BORDER_MODE_INDICATOR_SIZE, BORDER_MODE_INDICATOR_SIZE);
+
+		drawIndicator(graphics, font, x, y, mouseX, mouseY, UNIVERSAL_BASED_ROW, CraftorioMisc.universalBased(level),
+				Component.translatable("misc.craftorio.universal_based_label", CraftorioMisc.universalBased(level)));
 		y += BORDER_MODE_INDICATOR_SIZE + BORDER_MODE_INDICATOR_GAP;
-		graphics.blit(BORDER_MODE_INDICATOR_ICON, x, y, 0.0F, 0.0F, BORDER_MODE_INDICATOR_SIZE, BORDER_MODE_INDICATOR_SIZE, BORDER_MODE_INDICATOR_SIZE, BORDER_MODE_INDICATOR_SIZE);
+
+		drawIndicator(graphics, font, x, y, mouseX, mouseY, NO_BORDERS_ROW, CraftorioMisc.isNoBorders(level),
+				Component.translatable("misc.craftorio.no_borders_based_label", CraftorioMisc.isNoBorders(level)));
+	}
+
+	private static void drawIndicator(GuiGraphics graphics, Font font, int x, int y, int mouseX, int mouseY, int row, boolean value, Component tooltip) {
+		float u = value ? 0.0F : STATUS_ICON_SIZE;
+		float v = row * STATUS_ICON_SIZE;
+		graphics.blit(STATUS_ICONS, x, y, u, v, STATUS_ICON_SIZE, STATUS_ICON_SIZE, STATUS_ICON_SHEET_WIDTH, STATUS_ICON_SHEET_HEIGHT);
+
+		if (mouseX >= x && mouseX < x + BORDER_MODE_INDICATOR_SIZE && mouseY >= y && mouseY < y + BORDER_MODE_INDICATOR_SIZE) {
+			graphics.renderTooltip(font, tooltip, mouseX, mouseY);
+		}
 	}
 
 	public static void renderPauseMenuIndicators(ScreenEvent.Render.Post event) {
@@ -490,6 +554,6 @@ public class ClientEvents {
 		if (minecraft.level == null) return;
 
 		int x = minecraft.getWindow().getGuiScaledWidth() - BORDER_MODE_INDICATOR_SIZE - 8;
-		drawBorderModeIndicators(event.getGuiGraphics(), x, 8);
+		drawBorderModeIndicators(event.getGuiGraphics(), minecraft.font, x, 8, event.getMouseX(), event.getMouseY());
 	}
 }

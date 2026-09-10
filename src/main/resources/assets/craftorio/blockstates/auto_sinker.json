@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "craftorio:block/auto_sinker"
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "values": [
+    "minecraft:bedrock",
+    "minecraft:barrier",
+    "minecraft:structure_block",
+    "minecraft:structure_void",
+    "minecraft:jigsaw",
+    "minecraft:command_block",
+    "minecraft:chain_command_block",
+    "minecraft:repeating_command_block",
+    "minecraft:command_block_minecart",
+    "minecraft:reinforced_deepslate",
+    "minecraft:debug_stick",
+    "minecraft:light",
+    "minecraft:spawner",
+    "minecraft:trial_spawner",
+    "minecraft:vault",
+    "minecraft:knowledge_book",
+    "minecraft:petrified_oak_slab",
+    "minecraft:end_portal_frame",
+    "minecraft:dragon_egg"
+  ]
+}

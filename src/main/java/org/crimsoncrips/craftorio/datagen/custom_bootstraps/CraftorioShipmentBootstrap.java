@@ -11,10 +11,12 @@ import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentItemRewar
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Optional;
 
 public class CraftorioShipmentBootstrap {
 
-    private static final ResourceLocation DEFAULT_ICON = Craftorio.getGuiTexture("locked.png");
+    private static final ResourceLocation DEFAULT_ICON = Craftorio.getGuiTexture("default_contract_icon.png");
+    private static final ResourceLocation STARTER_PUNISHMENT = Craftorio.prefix("tag/copper_block_debuff");
 
     public static void bootstrap(BootstrapContext<CraftorioShipmentContract> context) {
         context.register(
@@ -22,11 +24,13 @@ public class CraftorioShipmentBootstrap {
                         List.of(
                         new CraftorioShipmentItem(32, Items.COPPER_INGOT),
                         new CraftorioShipmentItem(16, Items.IRON_INGOT)
-                ),"Starter Contract", 500, BigInteger.valueOf(1000),
+                ),"Starter Contract", "misc.craftorio.starter_contract_description", 25, BigInteger.valueOf(1000),
                         List.of(
                         new CraftorioShipmentItemReward(32, Items.COPPER_INGOT),
                         new CraftorioShipmentItemReward(16, Items.IRON_INGOT)),
-                        DEFAULT_ICON
+                        DEFAULT_ICON,
+                        Optional.of(STARTER_PUNISHMENT),
+                        false
                 )
         );
     }

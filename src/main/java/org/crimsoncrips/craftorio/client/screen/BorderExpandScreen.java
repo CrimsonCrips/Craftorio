@@ -4,6 +4,7 @@ import com.google.common.collect.Lists;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
@@ -83,6 +84,9 @@ public class BorderExpandScreen extends Screen {
 		this.addButton(new BorderExpandAmount(i + 60, j, 22, 22,true, true));
 		this.addButton(new BorderExpandAmount(i - 60, j, 22, 22,true,false));
 		this.addButton(new ExpandBorder(i, j - 100, 22, 22));
+
+		this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.cancel"), b -> this.onClose())
+				.bounds(i - 50, j + 40, 100, 20).build());
 	}
 
 	@Override

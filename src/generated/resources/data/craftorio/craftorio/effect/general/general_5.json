@@ -1,7 +1,0 @@
-{
-  "type": "craftorio:general_multiplier",
-  "icon": "craftorio:textures/gui/locked.png",
-  "multiplier": 100.0,
-  "name": "registry.general_5",
-  "time": 500
-}

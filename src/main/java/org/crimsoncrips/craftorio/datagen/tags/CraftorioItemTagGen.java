@@ -7,6 +7,7 @@ import net.minecraft.data.tags.ItemTagsProvider;
 import net.minecraft.tags.ItemTags;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
@@ -26,6 +27,8 @@ public class CraftorioItemTagGen extends ItemTagsProvider {
 	public static final TagKey<Item> COPPER_TRAPDOOR = create("copper_trapdoor");
 	public static final TagKey<Item> COPPER_BULB = create("copper_bulb");
 
+	public static final TagKey<Item> SHOP_BLACKLIST = create("shop_blacklist");
+
 	public static final TagKey<Item> CORAL_BLOCKS = create("coral_block");
 	public static final TagKey<Item> DEAD_CORAL_BLOCKS = create("dead_coral_block");
 	public static final TagKey<Item> CORAL = create("coral");
@@ -40,6 +43,28 @@ public class CraftorioItemTagGen extends ItemTagsProvider {
 	@SuppressWarnings("unchecked")
     @Override
 	protected void addTags(HolderLookup.Provider provider) {
+
+		tag(SHOP_BLACKLIST).add(
+				Items.BEDROCK,
+				Items.BARRIER,
+				Items.STRUCTURE_BLOCK,
+				Items.STRUCTURE_VOID,
+				Items.JIGSAW,
+				Items.COMMAND_BLOCK,
+				Items.CHAIN_COMMAND_BLOCK,
+				Items.REPEATING_COMMAND_BLOCK,
+				Items.COMMAND_BLOCK_MINECART,
+				Items.REINFORCED_DEEPSLATE,
+				Items.DEBUG_STICK,
+				Items.LIGHT,
+				Items.SPAWNER,
+				Items.TRIAL_SPAWNER,
+				Items.VAULT,
+				Items.KNOWLEDGE_BOOK,
+				Items.PETRIFIED_OAK_SLAB,
+				Items.END_PORTAL_FRAME,
+				Items.DRAGON_EGG
+		);
 
 		tag(FROGLIGHT).add(
 				Blocks.OCHRE_FROGLIGHT.asItem(),

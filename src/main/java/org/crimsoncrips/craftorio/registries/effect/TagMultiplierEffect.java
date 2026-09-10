@@ -11,6 +11,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+import org.crimsoncrips.craftorio.CraftorioMisc;
+
+import java.util.Optional;
 
 public class TagMultiplierEffect extends CraftorioEffects {
 
@@ -22,9 +25,10 @@ public class TagMultiplierEffect extends CraftorioEffects {
                     Codec.FLOAT.fieldOf("multiplier").forGetter(TagMultiplierEffect::getMultiplier),
                     Codec.STRING.fieldOf("name").forGetter(TagMultiplierEffect::getNameKey),
                     TagKey.hashedCodec(Registries.ITEM).fieldOf("item_tag").forGetter(TagMultiplierEffect::getItemTag),
-                    Codec.INT.fieldOf("time").forGetter(TagMultiplierEffect::getTime),
-                    ResourceLocation.CODEC.fieldOf("icon").forGetter(TagMultiplierEffect::getIcon)
-            ).apply(instance, TagMultiplierEffect::new)
+                    Codec.INT.fieldOf("seconds").forGetter(effect -> effect.getTime() / CraftorioMisc.SECONDS_TO_TICKS),
+                    ResourceLocation.CODEC.optionalFieldOf("icon").forGetter(effect -> Optional.ofNullable(effect.getIcon()))
+            ).apply(instance, (multiplier, name, itemTag, seconds, icon) ->
+                    new TagMultiplierEffect(multiplier, name, itemTag, seconds, icon.orElse(null)))
     );
 
     public static final StreamCodec<ByteBuf, TagMultiplierEffect> CODEC_STREAM = StreamCodec.composite(
@@ -32,12 +36,16 @@ public class TagMultiplierEffect extends CraftorioEffects {
             ByteBufCodecs.STRING_UTF8, TagMultiplierEffect::getNameKey,
             ByteBufCodecs.fromCodec(TagKey.hashedCodec(Registries.ITEM)), TagMultiplierEffect::getItemTag,
             ByteBufCodecs.INT, TagMultiplierEffect::getTime,
-            ResourceLocation.STREAM_CODEC, TagMultiplierEffect::getIcon,
-            TagMultiplierEffect::new
+            ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC), effect -> Optional.ofNullable(effect.getIcon()),
+            (multiplier, name, itemTag, time, icon) -> {
+                TagMultiplierEffect effect = new TagMultiplierEffect(multiplier, name, itemTag, time / CraftorioMisc.SECONDS_TO_TICKS, icon.orElse(null));
+                effect.setTime(time);
+                return effect;
+            }
     );
 
-    public TagMultiplierEffect(float multiplier, String key, TagKey<Item> itemTag, int time, ResourceLocation icon){
-        super(key,time,icon);
+    public TagMultiplierEffect(float multiplier, String key, TagKey<Item> itemTag, int seconds, ResourceLocation icon){
+        super(key, seconds * CraftorioMisc.SECONDS_TO_TICKS, icon);
         this.multiplier = multiplier;
         this.itemTag = itemTag;
     }
@@ -61,6 +69,8 @@ public class TagMultiplierEffect extends CraftorioEffects {
 
     @Override
     public TagMultiplierEffect copy() {
-        return new TagMultiplierEffect(getMultiplier(), getNameKey(),getItemTag(), getTime(), getIcon());
+        TagMultiplierEffect copy = new TagMultiplierEffect(getMultiplier(), getNameKey(), getItemTag(), getTime() / CraftorioMisc.SECONDS_TO_TICKS, getIcon());
+        copy.setTime(getTime());
+        return copy;
     }
 }

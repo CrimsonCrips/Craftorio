@@ -1,5 +1,6 @@
 {
-  "icon": "craftorio:textures/gui/locked.png",
+  "description": "misc.craftorio.starter_contract_description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
   "itemBounty": [
     {
       "amountRequired": 32,
@@ -22,5 +23,6 @@
   ],
   "name": "Starter Contract",
   "pointRewards": "1000",
-  "time": 500
+  "punishment": "craftorio:tag/copper_block_debuff",
+  "seconds": 25
 }

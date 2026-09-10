@@ -1,6 +1,7 @@
-package org.crimsoncrips.craftorio.server.events;
+package org.crimsoncrips.craftorio.events;
 
 import com.mojang.brigadier.CommandDispatcher;
+import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.arguments.StringArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
@@ -8,6 +9,7 @@ import net.minecraft.commands.CommandSourceStack;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
@@ -34,7 +36,10 @@ public class CommandEvents {
                                 .then(Commands.literal("subtract").requires(cs -> cs.hasPermission(3)).then(Commands.argument("amount",StringArgumentType.string()).executes(ctx -> modifyPoints(ctx, PointsOp.SUBTRACT))))
                                 .then(Commands.literal("give").then(Commands.argument("target", EntityArgument.player()).then(Commands.argument("amount",StringArgumentType.string()).executes(CommandEvents::runGivePoints)))))
                 .then(Commands.literal("toggle_effect_timer").requires(cs -> cs.hasPermission(4)).executes(CommandEvents::runToggleEffectTimer))
-                .then(Commands.literal("check_contracts").executes(CommandEvents::runCheckContracts))
+                .then(Commands.literal("contract_refresh_time").requires(cs -> cs.hasPermission(3))
+                        .then(Commands.argument("seconds", IntegerArgumentType.integer(0)).executes(CommandEvents::runSetContractRefreshTime)))
+                .then(Commands.literal("effect_timer_time").requires(cs -> cs.hasPermission(3))
+                        .then(Commands.argument("seconds", IntegerArgumentType.integer(0)).executes(CommandEvents::runSetEffectTimerTime)))
         );
 
 
@@ -61,16 +66,6 @@ public class CommandEvents {
         return 1;
     }
 
-    private static int runCheckContracts(CommandContext<CommandSourceStack> context) {
-        ServerPlayer serverPlayer = context.getSource().getPlayer();
-        if (serverPlayer != null) {
-            for (CraftorioShipmentContract shipmentContract : CraftorioMisc.getCraftorioContracts(serverPlayer)){
-                context.getSource().sendSuccess(() -> Component.translatable("misc.craftorio.contract_info", shipmentContract.getName(), shipmentContract.getTime()), true);
-            }
-        }
-        return 1;
-    }
-
     private static int runGivePoints(CommandContext<CommandSourceStack> context) throws CommandSyntaxException {
         ServerPlayer target = EntityArgument.getPlayer(context, "target");
         BigInteger amount = CraftorioMisc.toBigInteger(StringArgumentType.getString(context,"amount"));
@@ -94,6 +89,24 @@ public class CommandEvents {
         PacketDistributor.sendToPlayer(serverPlayer, new EffectTimerPacket(nowEnabled, current));
 
         context.getSource().sendSuccess(() -> Component.translatable(nowEnabled ? "misc.craftorio.effect_timer_enabled" : "misc.craftorio.effect_timer_disabled"), true);
+        return 1;
+    }
+
+    private static int runSetContractRefreshTime(CommandContext<CommandSourceStack> context) {
+        int seconds = IntegerArgumentType.getInteger(context, "seconds");
+        ServerLevel level = context.getSource().getLevel();
+        CraftorioMisc.setContractRefreshTime(level, seconds * CraftorioMisc.SECONDS_TO_TICKS);
+
+        context.getSource().sendSuccess(() -> Component.translatable("misc.craftorio.contract_refresh_time_set", seconds), true);
+        return 1;
+    }
+
+    private static int runSetEffectTimerTime(CommandContext<CommandSourceStack> context) {
+        int seconds = IntegerArgumentType.getInteger(context, "seconds");
+        ServerLevel level = context.getSource().getLevel();
+        CraftorioMisc.setRandomEffectTime(level, seconds * CraftorioMisc.SECONDS_TO_TICKS);
+
+        context.getSource().sendSuccess(() -> Component.translatable("misc.craftorio.effect_timer_time_set", seconds), true);
         return 1;
     }
 

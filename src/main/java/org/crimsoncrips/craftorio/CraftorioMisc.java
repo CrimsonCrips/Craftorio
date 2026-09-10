@@ -30,6 +30,7 @@ import org.crimsoncrips.craftorio.registries.effect.*;
 import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
 import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
+import org.crimsoncrips.craftorio.server.CraftorioPointsAdvancements;
 import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
 
 import java.awt.*;
@@ -42,6 +43,8 @@ import java.util.List;
 import static org.crimsoncrips.craftorio.server.CraftorioDataAttachments.*;
 
 public class CraftorioMisc {
+
+    public static final int SECONDS_TO_TICKS = 20;
 
     public static List<ChunkPos> generateSelectionChunks(int startX,int startZ, int endX, int endZ) {
 
@@ -340,6 +343,10 @@ public class CraftorioMisc {
             level.setData(POINTS,assigningPoints);
         } else {
             player.setData(POINTS,assigningPoints);
+        }
+
+        if (player instanceof ServerPlayer serverPlayer) {
+            CraftorioPointsAdvancements.checkAndGrant(serverPlayer, assigningPoints);
         }
     }
 
@@ -807,11 +814,11 @@ public class CraftorioMisc {
     }
 
     public static void grantContract(Player player, ResourceLocation id) {
-        getContractTemplate(player.level(), id).ifPresent(template -> {
-            List<CraftorioShipmentContract> playerContract = getCraftorioContracts(player);
+        getContractTemplate(player.level(), id).ifPresentOrElse(template -> {
+            List<CraftorioShipmentContract> playerContract = new ArrayList<>(getCraftorioContracts(player));
             playerContract.add(template.copy());
             setCraftorioContracts(player,playerContract);
-        });
+        }, () -> Craftorio.LOGGER.warn("Tried to grant unknown shipment contract {} to {}", id, player.getName().getString()));
     }
 
     public static void grantEffect(Player player, ResourceLocation id) {
@@ -833,6 +840,19 @@ public class CraftorioMisc {
             list.add(shopEffect);
             setShopEffects(player, list);
         }
+    }
+
+    public static void punishContractFailure(Player player, CraftorioShipmentContract contract, ResourceLocation punishmentId) {
+        Registry<CraftorioEffects> registry = player.level().registryAccess().registryOrThrow(CraftorioEffects.REGISTRY_KEY);
+        registry.getOptional(punishmentId).ifPresent(effect -> {
+            CraftorioEffects granted = effect.copy();
+            grantEffect(player, granted);
+
+            if (player instanceof ServerPlayer serverPlayer) {
+                Component message = Component.translatable("misc.craftorio.contract_punishment_received", contract.getName(), granted.getActualName());
+                net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(serverPlayer, new org.crimsoncrips.craftorio.networking.PunishmentToastPacket(message));
+            }
+        });
     }
 
     public static String ticksToTimeString(int ticks) {
@@ -961,6 +981,67 @@ public class CraftorioMisc {
 
     public static Collection<Holder.Reference<CraftorioShipmentContract>> getAllContracts(RegistryAccess registryAccess) {
         return registryAccess.registryOrThrow(CraftorioShipmentContract.REGISTRY_KEY).holders().toList();
+    }
+
+    public static List<ResourceLocation> rollContractOffer(RegistryAccess registryAccess, RandomSource random) {
+        Collection<Holder.Reference<CraftorioShipmentContract>> all = getAllContracts(registryAccess);
+        List<ResourceLocation> pool = new ArrayList<>();
+        for (Holder.Reference<CraftorioShipmentContract> holder : all) {
+            pool.add(holder.key().location());
+        }
+
+        int max = Craftorio.SERVER_CONFIG.MAX_OFFERED_CONTRACTS.get();
+        List<ResourceLocation> offered = new ArrayList<>();
+        if (!pool.isEmpty()) {
+            for (int i = 0; i < max; i++) {
+                offered.add(pool.get(random.nextInt(pool.size())));
+            }
+        }
+        return offered;
+    }
+
+    public static List<ResourceLocation> getContractOffer(Player player){
+        Level level = player.level();
+        if (universalBased(level)){
+            return level.getData(CraftorioDataAttachments.CONTRACT_OFFER);
+        } else {
+            return player.getData(CraftorioDataAttachments.CONTRACT_OFFER);
+        }
+    }
+
+    public static void setContractOffer(Player player, List<ResourceLocation> offer){
+        Level level = player.level();
+        if (universalBased(level)){
+            level.setData(CraftorioDataAttachments.CONTRACT_OFFER, offer);
+        } else {
+            player.setData(CraftorioDataAttachments.CONTRACT_OFFER, offer);
+        }
+    }
+
+    public static boolean isContractOfferClaimed(Player player){
+        Level level = player.level();
+        if (universalBased(level)){
+            return level.getData(CraftorioDataAttachments.CONTRACT_OFFER_CLAIMED);
+        } else {
+            return player.getData(CraftorioDataAttachments.CONTRACT_OFFER_CLAIMED);
+        }
+    }
+
+    public static void setContractOfferClaimed(Player player, boolean claimed){
+        Level level = player.level();
+        if (universalBased(level)){
+            level.setData(CraftorioDataAttachments.CONTRACT_OFFER_CLAIMED, claimed);
+        } else {
+            player.setData(CraftorioDataAttachments.CONTRACT_OFFER_CLAIMED, claimed);
+        }
+    }
+
+    public static int getContractRefreshTime(Level level){
+        return level.getData(CraftorioDataAttachments.CONTRACT_REFRESH_TIME);
+    }
+
+    public static void setContractRefreshTime(Level level, int ticks){
+        level.setData(CraftorioDataAttachments.CONTRACT_REFRESH_TIME, ticks);
     }
 
 

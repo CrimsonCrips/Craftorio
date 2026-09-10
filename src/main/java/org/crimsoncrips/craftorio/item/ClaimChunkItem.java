@@ -22,10 +22,7 @@ public class ClaimChunkItem extends Item {
         super(properties);
     }
 
-    @Override
-    public int getDefaultMaxStackSize() {
-        return 64;
-    }
+
 
     @Override
     public InteractionResult useOn(UseOnContext context) {

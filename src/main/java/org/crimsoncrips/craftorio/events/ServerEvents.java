@@ -1,4 +1,4 @@
-package org.crimsoncrips.craftorio.server.events;
+package org.crimsoncrips.craftorio.events;
 
 import com.google.common.collect.ImmutableList;
 import net.minecraft.advancements.AdvancementHolder;
@@ -139,7 +139,7 @@ public class ServerEvents {
 
             List<CraftorioEffects> craftorioEffectsList = new ArrayList<>();
 
-            for (int i = 0; i < 20;i++){
+            for (int i = 0; i < 2;i++){
                 craftorioEffectsList.add(CraftorioMisc.getRandomEffect(player.registryAccess(),player.getRandom()));
             }
 
@@ -148,7 +148,6 @@ public class ServerEvents {
 
 
 
-            CraftorioMisc.grantContract(player,ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "starter_contract"));
 
             if (player instanceof ServerPlayer serverPlayer) {
                 ServerLevel serverLevel = (ServerLevel) serverPlayer.level();
@@ -182,6 +181,10 @@ public class ServerEvents {
                 CraftorioMisc.setLandAmount(CraftorioMisc.startingLand(), player);
             }
 
+            if (player instanceof ServerPlayer serverPlayer) {
+                PacketDistributor.sendToPlayer(serverPlayer, new org.crimsoncrips.craftorio.networking.WelcomeToastPacket());
+            }
+
             player.setData(GIVEN, true);
         }
     }
@@ -190,17 +193,17 @@ public class ServerEvents {
     public void playerTick(PlayerTickEvent.Post event) {
         Player player = event.getEntity();
 
-        if (!CraftorioMisc.getCraftorioEffects(player).isEmpty()){
-            for (CraftorioEffects effect : ImmutableList.copyOf(CraftorioMisc.getCraftorioEffects(player))) {
-                if (!effect.shouldEnd()) {
-                    effect.tick(player);
+        if (!CraftorioMisc.universalBased(player.level())){
+            if (!CraftorioMisc.getCraftorioEffects(player).isEmpty()) {
+                for (CraftorioEffects effect : ImmutableList.copyOf(CraftorioMisc.getCraftorioEffects(player))) {
+                    if (!effect.shouldEnd()) {
+                        effect.tick(player);
+                    }
                 }
             }
-        }
 
-        if (!CraftorioMisc.getCraftorioContracts(player).isEmpty()){
-            for (CraftorioShipmentContract contract : ImmutableList.copyOf(CraftorioMisc.getCraftorioContracts(player))) {
-                if (!contract.shouldEnd()) {
+            if (!CraftorioMisc.getCraftorioContracts(player).isEmpty()) {
+                for (CraftorioShipmentContract contract : ImmutableList.copyOf(CraftorioMisc.getCraftorioContracts(player))) {
                     contract.tick(player);
                 }
             }
@@ -242,8 +245,12 @@ public class ServerEvents {
                     double distanceOutside = -border.getDistanceToBorder(x, z);
 
                     if (distanceOutside > border.getDamageSafeZone() && player.tickCount % 20 == 0) {
-                        int damageMultiplier = (int) Math.max(1, distanceOutside - border.getDamageSafeZone());
-                        player.hurt(player.damageSources().outOfBorder(), (float) (damageMultiplier * border.getDamagePerBlock()));
+                        if (Craftorio.SERVER_CONFIG.INSTANT_DEATH_OUTSIDE_CLAIM.getAsBoolean()) {
+                            killOutsideClaim(player);
+                        } else {
+                            int damageMultiplier = (int) Math.max(1, distanceOutside - border.getDamageSafeZone());
+                            player.hurt(player.damageSources().outOfBorder(), (float) (damageMultiplier * border.getDamagePerBlock()));
+                        }
                     }
                 }
             }
@@ -251,9 +258,18 @@ public class ServerEvents {
             Level level = player.level();
             if (CraftorioMisc.chunkBased(level) && player.tickCount % 20 == 0
                     && !ChunkCollisionHooks.isWithinClaimedChunk(player, player.blockPosition())) {
-                player.hurt(player.damageSources().outOfBorder(), (float) Craftorio.SERVER_CONFIG.CHUNK_OUT_OF_BOUNDS_DAMAGE.getAsDouble());
+                if (Craftorio.SERVER_CONFIG.INSTANT_DEATH_OUTSIDE_CLAIM.getAsBoolean()) {
+                    killOutsideClaim(player);
+                } else {
+                    player.hurt(player.damageSources().outOfBorder(), (float) Craftorio.SERVER_CONFIG.CHUNK_OUT_OF_BOUNDS_DAMAGE.getAsDouble());
+                }
             }
         }
+    }
+
+    private void killOutsideClaim(ServerPlayer player) {
+        player.serverLevel().explode(player, player.getX(), player.getY(), player.getZ(), 3.0F, Level.ExplosionInteraction.NONE);
+        player.hurt(player.damageSources().outOfBorder(), Float.MAX_VALUE);
     }
 
     private static final Set<UUID> effectTimerViewers = new HashSet<>();
@@ -300,6 +316,46 @@ public class ServerEvents {
             int nextInterval = minInterval + level.random.nextInt(Math.max(1, maxInterval - minInterval + 1));
             CraftorioMisc.setRandomEffectTime(level, nextInterval);
         }
+    }
+
+    @SubscribeEvent
+    public void contractOfferTick(ServerTickEvent.Post event) {
+        for (ServerLevel level : event.getServer().getAllLevels()) {
+            int timeUntilRefresh = CraftorioMisc.getContractRefreshTime(level) - 1;
+
+            if (timeUntilRefresh > 0) {
+                CraftorioMisc.setContractRefreshTime(level, timeUntilRefresh);
+                continue;
+            }
+
+            List<ServerPlayer> players = level.players();
+
+            if (CraftorioMisc.universalBased(level)) {
+                List<ResourceLocation> offer = CraftorioMisc.rollContractOffer(level.registryAccess(), level.random);
+                level.setData(CraftorioDataAttachments.CONTRACT_OFFER, offer);
+                level.setData(CraftorioDataAttachments.CONTRACT_OFFER_CLAIMED, false);
+
+                for (ServerPlayer player : players) {
+                    notifyNewContracts(player, offer);
+                }
+            } else {
+                for (ServerPlayer player : players) {
+                    List<ResourceLocation> offer = CraftorioMisc.rollContractOffer(player.registryAccess(), player.getRandom());
+                    player.setData(CraftorioDataAttachments.CONTRACT_OFFER, offer);
+                    player.setData(CraftorioDataAttachments.CONTRACT_OFFER_CLAIMED, false);
+
+                    notifyNewContracts(player, offer);
+                }
+            }
+
+            int refreshTicks = Craftorio.SERVER_CONFIG.CONTRACT_REFRESH_SECONDS.get() * CraftorioMisc.SECONDS_TO_TICKS;
+            CraftorioMisc.setContractRefreshTime(level, refreshTicks);
+        }
+    }
+
+    private void notifyNewContracts(ServerPlayer player, List<ResourceLocation> offer) {
+        if (offer.isEmpty()) return;
+        PacketDistributor.sendToPlayer(player, new org.crimsoncrips.craftorio.networking.ContractOfferStatusPacket(true));
     }
 
 }

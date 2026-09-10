@@ -10,8 +10,11 @@ import net.neoforged.neoforge.common.data.DatapackBuiltinEntriesProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import org.crimsoncrips.craftorio.Craftorio;
-import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioEffectBootstrap;
+import org.crimsoncrips.craftorio.datagen.advancement.CraftorioAdvancementProvider;
+import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioGeneralEffectBootstrap;
 import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioShipmentBootstrap;
+import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioShopBootstrap;
+import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioTagEffectBootstrap;
 import org.crimsoncrips.craftorio.datagen.language.CraftLangGen;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioPointsDeterminer;
 import org.crimsoncrips.craftorio.datagen.recipe.CraftorioRecipeGenerator;
@@ -43,7 +46,14 @@ public class CraftorioDatagen {
         generator.addProvider(event.includeServer(), new AdvancementProvider(output, provider, helper, List.of(new CraftorioAdvancementProvider())));
 
         RegistrySetBuilder registryBuilder = new RegistrySetBuilder()
-                .add(CraftorioEffects.REGISTRY_KEY, CraftorioEffectBootstrap::bootstrap)
+                .add(CraftorioEffects.REGISTRY_KEY, context -> {
+                    CraftorioTagEffectBootstrap.buffBootstrap(context);
+                    CraftorioTagEffectBootstrap.debuffBootstrap(context);
+                    CraftorioGeneralEffectBootstrap.buffBootstrap(context);
+                    CraftorioGeneralEffectBootstrap.debuffBootstrap(context);
+                    CraftorioShopBootstrap.buffBootstrap(context);
+                    CraftorioShopBootstrap.debuffBootstrap(context);
+                })
                 .add(CraftorioShipmentContract.REGISTRY_KEY, CraftorioShipmentBootstrap::bootstrap);
 
         generator.addProvider(event.includeServer(),

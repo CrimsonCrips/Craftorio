@@ -8,7 +8,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.player.ItemEntityPickupEvent;
+import net.neoforged.neoforge.event.entity.player.ItemFishedEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.TradeWithVillagerEvent;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import org.crimsoncrips.craftorio.Craftorio;
 
@@ -31,19 +33,42 @@ public class CraftorioUnlockedItemsManager {
 
     @SubscribeEvent
     public void itemPickedUp(ItemEntityPickupEvent.Post event) {
-        Player player = event.getPlayer();
-        if (!(player instanceof ServerPlayer serverPlayer)) return;
+        tryUnlock(event.getPlayer(), event.getOriginalStack());
+    }
 
-        ItemStack stack = event.getOriginalStack();
-        if (stack.isEmpty()) return;
+    @SubscribeEvent
+    public void itemCrafted(PlayerEvent.ItemCraftedEvent event) {
+        tryUnlock(event.getEntity(), event.getCrafting());
+    }
 
-        this.unlock(serverPlayer, stack.getItem());
+    @SubscribeEvent
+    public void itemSmelted(PlayerEvent.ItemSmeltedEvent event) {
+        tryUnlock(event.getEntity(), event.getSmelting());
+    }
+
+    @SubscribeEvent
+    public void tradedWithVillager(TradeWithVillagerEvent event) {
+        tryUnlock(event.getEntity(), event.getMerchantOffer().getResult());
+    }
+
+    @SubscribeEvent
+    public void itemFished(ItemFishedEvent event) {
+        for (ItemStack stack : event.getDrops()) {
+            tryUnlock(event.getEntity(), stack);
+        }
     }
 
     @SubscribeEvent
     public void playerLoggedOut(PlayerEvent.PlayerLoggedOutEvent event) {
 
         this.cache.remove(event.getEntity().getUUID());
+    }
+
+    private void tryUnlock(Player player, ItemStack stack) {
+        if (!(player instanceof ServerPlayer serverPlayer)) return;
+        if (stack.isEmpty()) return;
+
+        this.unlock(serverPlayer, stack.getItem());
     }
 
 

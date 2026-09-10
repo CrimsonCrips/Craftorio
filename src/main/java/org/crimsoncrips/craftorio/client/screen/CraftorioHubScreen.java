@@ -1,5 +1,6 @@
 package org.crimsoncrips.craftorio.client.screen;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -9,11 +10,10 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.CraftorioMisc;
-import org.crimsoncrips.craftorio.client.ClientEvents;
+import org.crimsoncrips.craftorio.client.ClientContractOfferState;
+import org.crimsoncrips.craftorio.events.ClientEvents;
+import org.crimsoncrips.craftorio.networking.RequestContractOfferPacket;
 import org.crimsoncrips.craftorio.networking.RequestOpenShopPacket;
-import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
-
-import java.util.List;
 
 @OnlyIn(Dist.CLIENT)
 public class CraftorioHubScreen extends Screen {
@@ -21,7 +21,9 @@ public class CraftorioHubScreen extends Screen {
     private static final int BUTTON_WIDTH = 200;
     private static final int BUTTON_HEIGHT = 20;
     private static final int BUTTON_STRIDE = 24;
-    private static final int BUTTON_COUNT = 5;
+    private static final int REGULAR_BUTTON_COUNT = 5;
+    private static final int DONE_EXTRA_GAP = 16;
+    private static final int LIFT_OFFSET = 20;
 
     public CraftorioHubScreen() {
         super(Component.translatable("misc.craftorio.hub_title"));
@@ -30,24 +32,39 @@ public class CraftorioHubScreen extends Screen {
     @Override
     protected void init() {
         int centerX = this.width / 2;
-        int blockHeight = (BUTTON_COUNT - 1) * BUTTON_STRIDE + BUTTON_HEIGHT;
-        int y = (this.height - blockHeight) / 2;
+        int blockHeight = (REGULAR_BUTTON_COUNT - 1) * BUTTON_STRIDE + BUTTON_HEIGHT + DONE_EXTRA_GAP + BUTTON_STRIDE;
+        int y = (this.height - blockHeight) / 2 - LIFT_OFFSET;
+
+        boolean chunkBased = this.minecraft.level != null && CraftorioMisc.chunkBased(this.minecraft.level);
 
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.hub_shop"), b -> PacketDistributor.sendToServer(new RequestOpenShopPacket()))
                 .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
         y += BUTTON_STRIDE;
 
-        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.claim_shop_title"), b -> this.minecraft.setScreen(new ClaimItemPurchaseScreen()))
-                .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
+        if (chunkBased) {
+            this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.claim_shop_title"), b -> this.minecraft.setScreen(new ClaimItemPurchaseScreen()))
+                    .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
+        } else {
+            this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.expand_border"), b -> this.minecraft.setScreen(new BorderExpandScreen()))
+                    .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
+        }
         y += BUTTON_STRIDE;
 
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.value_browser_title"), b -> this.minecraft.setScreen(new ValueBrowserScreen()))
                 .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
         y += BUTTON_STRIDE;
 
-        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.expand_border"), b -> this.minecraft.setScreen(new BorderExpandScreen()))
+        Component revealLabel = Component.translatable("misc.craftorio.reveal_contract_button");
+        if (ClientContractOfferState.isAvailable()) {
+            revealLabel = revealLabel.copy().withStyle(style -> style.withColor(ChatFormatting.YELLOW));
+        }
+        this.addRenderableWidget(Button.builder(revealLabel, b -> PacketDistributor.sendToServer(new RequestContractOfferPacket()))
                 .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
         y += BUTTON_STRIDE;
+
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.owned_contracts_button"), b -> this.minecraft.setScreen(new OwnedContractsScreen(this)))
+                .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
+        y += BUTTON_STRIDE + DONE_EXTRA_GAP;
 
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.done"), b -> this.onClose())
                 .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
@@ -61,17 +78,8 @@ public class CraftorioHubScreen extends Screen {
         if (player == null || this.minecraft.level == null) return;
 
         int indicatorX = this.width - ClientEvents.BORDER_MODE_INDICATOR_SIZE - 8;
-        ClientEvents.drawBorderModeIndicators(guiGraphics, indicatorX, 8);
+        ClientEvents.drawBorderModeIndicators(guiGraphics, this.font, indicatorX, 8, mouseX, mouseY);
 
-        int textX = this.width / 2 + 120;
-        int y = 30;
-
-        List<CraftorioShipmentContract> contracts = CraftorioMisc.getCraftorioContracts(player);
-        for (CraftorioShipmentContract contract : contracts) {
-            String line = Component.translatable("misc.craftorio.contract_info", contract.getName(), contract.getTime()).getString();
-            guiGraphics.drawString(this.font, line, textX, y, 0xFFFFFF, false);
-            y += this.font.lineHeight + 2;
-        }
     }
 
     @Override

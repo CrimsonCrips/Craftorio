@@ -14,12 +14,10 @@ import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.crimsoncrips.craftorio.block.CraftorioBlocks;
 import org.crimsoncrips.craftorio.block.entity.CraftorioBlockEntityTypes;
-import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
-import org.crimsoncrips.craftorio.client.ClientEvents;
+import org.crimsoncrips.craftorio.events.ClientEvents;
 import org.crimsoncrips.craftorio.client.CraftorioClientConfig;
 import org.crimsoncrips.craftorio.client.CraftorioKeyMappings;
 import org.crimsoncrips.craftorio.client.compat.XaeroWorldMapCompat;
-import org.crimsoncrips.craftorio.client.screen.CraftorioConfigScreen;
 import org.crimsoncrips.craftorio.datagen.CraftorioDatagen;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffectTypes;
@@ -28,9 +26,9 @@ import org.crimsoncrips.craftorio.loot.CraftorioLootModifiers;
 import org.crimsoncrips.craftorio.server.CraftorioAdvancementPoints;
 import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
 import org.crimsoncrips.craftorio.server.CraftorioServerConfig;
-import org.crimsoncrips.craftorio.server.events.CommandEvents;
-import org.crimsoncrips.craftorio.networking.RegistrationEvents;
-import org.crimsoncrips.craftorio.server.events.ServerEvents;
+import org.crimsoncrips.craftorio.events.CommandEvents;
+import org.crimsoncrips.craftorio.networking.PacketRegistration;
+import org.crimsoncrips.craftorio.events.ServerEvents;
 import org.crimsoncrips.craftorio.server.unlocks.CraftorioUnlockedItemsManager;
 import org.slf4j.Logger;
 
@@ -43,9 +41,6 @@ public class Craftorio {
     public static final String MODID = "craftorio";
     // Directly reference a slf4j logger
     public static final Logger LOGGER = LogUtils.getLogger();
-    // Create a Deferred Register to hold Blocks which will all be registered under the "craftorio" namespace
-
-    // Create the DeferredRegister for attachment types
 
     public static final CraftorioServerConfig SERVER_CONFIG;
     private static final ModConfigSpec SERVER_CONFIG_SPEC;
@@ -77,20 +72,21 @@ public class Craftorio {
         NeoForge.EVENT_BUS.register(new ServerEvents());
         NeoForge.EVENT_BUS.register(UNLOCKED_ITEMS);
 
-        modEventBus.addListener(new RegistrationEvents()::setupPackets);
+        modEventBus.addListener(new PacketRegistration()::setupPackets);
         modEventBus.addListener(CraftorioDataMaps::registerDataMaps);
+        modEventBus.addListener(CraftorioBlockEntityTypes::registerCapabilities);
         if (FMLEnvironment.dist.isClient()) {
             modEventBus.addListener(new ClientEvents()::registerScreens);
             modEventBus.addListener(ClientEvents::showPoints);
             modEventBus.addListener(ClientEvents::showActiveEffects);
             modEventBus.addListener(ClientEvents::showEffectTimer);
+            modEventBus.addListener(ClientEvents::showToasts);
             NeoForge.EVENT_BUS.addListener(ClientEvents::renderBorders);
             NeoForge.EVENT_BUS.addListener(ClientEvents::renderClaimedChunkBorders);
             NeoForge.EVENT_BUS.addListener(ClientEvents::renderPauseMenuIndicators);
             modEventBus.addListener(CraftorioKeyMappings::register);
             NeoForge.EVENT_BUS.addListener(CraftorioKeyMappings::onClientTick);
-            modContainer.registerExtensionPoint(IConfigScreenFactory.class,
-                    (IConfigScreenFactory) (container, modListScreen) -> new CraftorioConfigScreen(modListScreen));
+            ClientEvents.registerConfigScreen(modContainer);
 
             if (ModList.get().isLoaded("xaeroworldmap")) {
                 NeoForge.EVENT_BUS.addListener(XaeroWorldMapCompat::onClientTick);

@@ -1,7 +1,7 @@
 package org.crimsoncrips.craftorio.mixin;
 
 import net.minecraft.client.renderer.Rect2i;
-import org.crimsoncrips.craftorio.client.ClientEvents;
+import org.crimsoncrips.craftorio.events.ClientEvents;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;

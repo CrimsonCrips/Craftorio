@@ -133,4 +133,17 @@ public class CraftorioDataAttachments {
             "random_effect_time", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).build()
     );
 
+    public static final Supplier<AttachmentType<List<ResourceLocation>>> CONTRACT_OFFER = ATTACHMENT_TYPES.register(
+            "contract_offer", () -> AttachmentType.<List<ResourceLocation>>builder((holder) -> new ArrayList<>())
+                    .serialize(Codec.list(ResourceLocation.CODEC))
+                    .build());
+
+    public static final Supplier<AttachmentType<Boolean>> CONTRACT_OFFER_CLAIMED = ATTACHMENT_TYPES.register(
+            "contract_offer_claimed", () -> AttachmentType.builder(() -> false).serialize(Codec.BOOL).build()
+    );
+
+    public static final Supplier<AttachmentType<Integer>> CONTRACT_REFRESH_TIME = ATTACHMENT_TYPES.register(
+            "contract_refresh_time", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).build()
+    );
+
 }

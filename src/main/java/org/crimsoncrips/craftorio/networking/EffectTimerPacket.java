@@ -6,7 +6,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.crimsoncrips.craftorio.Craftorio;
-import org.crimsoncrips.craftorio.client.ClientEvents;
+import org.crimsoncrips.craftorio.events.ClientEvents;
 
 public record EffectTimerPacket(boolean enabled, int ticksRemaining) implements CustomPacketPayload {
 

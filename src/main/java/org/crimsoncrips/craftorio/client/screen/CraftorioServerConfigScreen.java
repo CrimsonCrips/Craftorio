@@ -18,8 +18,9 @@ import org.crimsoncrips.craftorio.server.CraftorioShopMode;
 public class CraftorioServerConfigScreen extends Screen {
 
     private static final int ROW_HEIGHT = 22;
-    private static final int ROWS_PER_COLUMN = 8;
+    private static final int MIN_ROWS_PER_COLUMN = 3;
     private static final int START_Y = 30;
+    private static final int BOTTOM_RESERVED = 40;
     private static final int COLUMN_WIDTH = 260;
     private static final int LABEL_WIDTH = 150;
     private static final int FIELD_WIDTH = 90;
@@ -28,6 +29,7 @@ public class CraftorioServerConfigScreen extends Screen {
     private final Screen parent;
     private int row = 0;
     private int column = 0;
+    private int rowsPerColumn = MIN_ROWS_PER_COLUMN;
 
     public CraftorioServerConfigScreen(Screen parent) {
         super(Component.translatable("misc.craftorio.server_config_title"));
@@ -38,6 +40,7 @@ public class CraftorioServerConfigScreen extends Screen {
     protected void init() {
         this.row = 0;
         this.column = 0;
+        this.rowsPerColumn = Math.max(MIN_ROWS_PER_COLUMN, (this.height - START_Y - BOTTOM_RESERVED) / ROW_HEIGHT);
 
         CraftorioServerConfig config = Craftorio.SERVER_CONFIG;
 
@@ -45,6 +48,7 @@ public class CraftorioServerConfigScreen extends Screen {
         addBooleanRow("UNIVERSAL_PROGRESSION", config.UNIVERSAL_PROGRESSION);
         addBooleanRow("NO_BORDERS", config.NO_BORDERS);
         addBooleanRow("RANDOM_EFFECTS_ENABLED", config.RANDOM_EFFECTS_ENABLED);
+        addBooleanRow("INSTANT_DEATH_OUTSIDE_CLAIM", config.INSTANT_DEATH_OUTSIDE_CLAIM);
         addEnumRow("SHOP_MODE", config.SHOP_MODE);
 
         addIntRow("STARTING_LAND_SIZE", config.STARTING_LAND_SIZE);
@@ -58,6 +62,8 @@ public class CraftorioServerConfigScreen extends Screen {
         addDoubleRow("CHUNK_OUT_OF_BOUNDS_DAMAGE", config.CHUNK_OUT_OF_BOUNDS_DAMAGE);
         addIntRow("RANDOM_EFFECT_MIN_INTERVAL", config.RANDOM_EFFECT_MIN_INTERVAL);
         addIntRow("RANDOM_EFFECT_MAX_INTERVAL", config.RANDOM_EFFECT_MAX_INTERVAL);
+        addIntRow("MAX_OFFERED_CONTRACTS", config.MAX_OFFERED_CONTRACTS);
+        addIntRow("CONTRACT_REFRESH_SECONDS", config.CONTRACT_REFRESH_SECONDS);
 
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.done"), b -> this.onClose())
                 .bounds(this.width / 2 - 50, this.height - 26, 100, 20).build());
@@ -73,7 +79,7 @@ public class CraftorioServerConfigScreen extends Screen {
 
     private void advanceRow() {
         row++;
-        if (row >= ROWS_PER_COLUMN) {
+        if (row >= this.rowsPerColumn) {
             row = 0;
             column++;
         }

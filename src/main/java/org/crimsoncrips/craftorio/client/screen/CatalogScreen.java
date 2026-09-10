@@ -19,18 +19,24 @@ import java.util.stream.Stream;
 @OnlyIn(Dist.CLIENT)
 public abstract class CatalogScreen<T> extends Screen {
 
-    protected static final int COLS = 9;
-    protected static final int ROWS = 16;
-    protected static final int PAGE_SIZE = COLS * ROWS;
+    protected static final int MAX_COLS = 9;
+    protected static final int MAX_ROWS = 16;
+    protected static final int MIN_COLS = 3;
+    protected static final int MIN_ROWS = 1;
     protected static final int SLOT_SIZE = 18;
     protected static final int SLOT_GAP = 4;
     protected static final int CELL_SIZE = SLOT_SIZE + SLOT_GAP;
     protected static final int GRID_TOP = 50;
+    protected static final int GRID_SIDE_MARGIN = 20;
+    protected static final int FOOTER_RESERVED = 64;
 
     private EditBox searchBox;
     private String searchQuery = "";
     protected List<T> filtered = List.of();
     protected int page = 0;
+    protected int cols = MAX_COLS;
+    protected int rows = MAX_ROWS;
+    protected int pageSize = MAX_COLS * MAX_ROWS;
 
     protected CatalogScreen(Component title) {
         super(title);
@@ -91,18 +97,23 @@ public abstract class CatalogScreen<T> extends Screen {
     }
 
     protected int totalPages() {
-        return Math.max(1, (this.filtered.size() + PAGE_SIZE - 1) / PAGE_SIZE);
+        return Math.max(1, (this.filtered.size() + this.pageSize - 1) / this.pageSize);
     }
 
     protected int footerY() {
-        return GRID_TOP + ROWS * CELL_SIZE + 8;
+        return GRID_TOP + this.rows * CELL_SIZE + 8;
     }
 
     @Override
     protected void init() {
         super.init();
 
+        this.cols = Mth.clamp((this.width - GRID_SIDE_MARGIN * 2) / CELL_SIZE, MIN_COLS, MAX_COLS);
+        this.rows = Mth.clamp((this.height - GRID_TOP - FOOTER_RESERVED) / CELL_SIZE, MIN_ROWS, MAX_ROWS);
+        this.pageSize = this.cols * this.rows;
+
         this.updateFiltered();
+        this.page = Mth.clamp(this.page, 0, this.totalPages() - 1);
 
         this.searchBox = new EditBox(this.font, this.width / 2 - 70, 28, 140, 16, Component.translatable("misc.craftorio.search"));
         this.searchBox.setValue(this.searchQuery);
@@ -123,16 +134,16 @@ public abstract class CatalogScreen<T> extends Screen {
 
         this.addRenderableWidget(this.searchBox);
 
-        int gridWidth = COLS * CELL_SIZE - SLOT_GAP;
+        int gridWidth = this.cols * CELL_SIZE - SLOT_GAP;
         int startX = (this.width - gridWidth) / 2;
 
-        int firstIndex = this.page * PAGE_SIZE;
-        for (int i = 0; i < PAGE_SIZE; i++) {
+        int firstIndex = this.page * this.pageSize;
+        for (int i = 0; i < this.pageSize; i++) {
             int index = firstIndex + i;
             if (index >= this.filtered.size()) break;
 
-            int col = i % COLS;
-            int row = i / COLS;
+            int col = i % this.cols;
+            int row = i / this.cols;
 
             this.addRenderableWidget(createEntryWidget(startX + col * CELL_SIZE, GRID_TOP + row * CELL_SIZE, this.filtered.get(index)));
         }
@@ -148,6 +159,9 @@ public abstract class CatalogScreen<T> extends Screen {
                 .bounds(centerX + 20, footerY, 34, 20).build());
         this.addRenderableWidget(Button.builder(Component.literal(">>"), b -> this.setPage(this.totalPages() - 1))
                 .bounds(centerX + 56, footerY, 34, 20).build());
+
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.done"), b -> this.onClose())
+                .bounds(centerX - 50, footerY + 26, 100, 20).build());
 
         addExtraWidgets();
     }

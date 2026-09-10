@@ -24,6 +24,11 @@ public class CraftorioServerConfig {
     public final ModConfigSpec.IntValue RANDOM_EFFECT_MIN_INTERVAL;
     public final ModConfigSpec.IntValue RANDOM_EFFECT_MAX_INTERVAL;
 
+    public final ModConfigSpec.IntValue MAX_OFFERED_CONTRACTS;
+    public final ModConfigSpec.IntValue CONTRACT_REFRESH_SECONDS;
+
+    public final ModConfigSpec.BooleanValue INSTANT_DEATH_OUTSIDE_CLAIM;
+
 
     public CraftorioServerConfig(final ModConfigSpec.Builder builder) {
 
@@ -36,6 +41,9 @@ public class CraftorioServerConfig {
         this.STARTING_POINTS = buildString(builder, "STARTING_POINTS",  "100", "Starting points (exponents work like 1e2)");
         this.SHOP_MODE = builder.comment("Shop screen access: DISABLED (cant be opened), UNLOCKED (only items the player has picked up at least once can be bought), OPEN (every priced item is buyable immediately)").translation("SHOP_MODE").defineEnum("SHOP_MODE", CraftorioShopMode.UNLOCKED);
         this.SHOP_COST_MULTIPLIER = buildInt(builder, "SHOP_COST_MULTIPLIER", 10,1,Integer.MAX_VALUE, "Multiplier cost of buying items from shop");
+        this.MAX_OFFERED_CONTRACTS = buildInt(builder, "MAX_OFFERED_CONTRACTS", 3,1,5, "Maximum number of shipment contracts offered at once on the contract offer screen");
+        this.CONTRACT_REFRESH_SECONDS = buildInt(builder, "CONTRACT_REFRESH_SECONDS", 600, 1, Integer.MAX_VALUE, "Exact number of seconds between shipment contract offer refreshes");
+        this.INSTANT_DEATH_OUTSIDE_CLAIM = buildBoolean(builder, "INSTANT_DEATH_OUTSIDE_CLAIM", false, "If true, being outside your claimed area (chunk based or border based) instantly kills you via a harmless explosion instead of dealing gradual damage");
 
         MIN_SPAWN_DISTANCE = builder.defineInRange("min_spawn_distance", 500.0, 0.0, 100000.0);
         MAX_SPAWN_DISTANCE = builder.defineInRange("max_spawn_distance", 2000.0, 0.0, 1000000.0);

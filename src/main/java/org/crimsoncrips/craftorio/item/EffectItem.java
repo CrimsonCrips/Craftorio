@@ -20,12 +20,7 @@ import java.util.List;
 public class EffectItem extends Item {
 
     public EffectItem(Properties properties) {
-        super(properties);
-    }
-
-    @Override
-    public int getDefaultMaxStackSize() {
-        return 1;
+        super(properties.stacksTo(1));
     }
 
     @Override
