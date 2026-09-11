@@ -10,8 +10,10 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.achievement.StatsScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.Rect2i;
 import net.minecraft.network.chat.Component;
@@ -37,8 +39,10 @@ import org.crimsoncrips.craftorio.client.PointsPopup;
 import org.crimsoncrips.craftorio.client.screen.AutoSinkerScreen;
 import org.crimsoncrips.craftorio.client.screen.ContractRevealScreen;
 import org.crimsoncrips.craftorio.client.screen.CraftorioConfigScreen;
+import org.crimsoncrips.craftorio.client.screen.CraftorioSinkStatsScreen;
 import org.crimsoncrips.craftorio.client.screen.ShopScreen;
 import org.crimsoncrips.craftorio.client.screen.SinkScreen;
+import org.crimsoncrips.craftorio.client.screen.ValueCondenserScreen;
 import org.crimsoncrips.craftorio.networking.OpenContractOfferScreenPacket;
 import org.crimsoncrips.craftorio.networking.OpenShopScreenPacket;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
@@ -60,6 +64,7 @@ public class ClientEvents {
 	public void registerScreens(RegisterMenuScreensEvent event) {
 		event.register(CraftorioMenuTypes.SINKER.get(), SinkScreen::new);
 		event.register(CraftorioMenuTypes.AUTO_SINKER.get(), AutoSinkerScreen::new);
+		event.register(CraftorioMenuTypes.VALUE_CONDENSER.get(), ValueCondenserScreen::new);
 	}
 
 	public static void registerConfigScreen(ModContainer modContainer) {
@@ -72,7 +77,12 @@ public class ClientEvents {
 	}
 
 	public static void openContractOfferScreen(OpenContractOfferScreenPacket message) {
-		Minecraft.getInstance().setScreen(new ContractRevealScreen(message.contractIds(), message.ticksUntilRefresh()));
+		Screen current = Minecraft.getInstance().screen;
+		if (current instanceof ContractRevealScreen revealScreen) {
+			revealScreen.updateOffer(message.contractIds(), message.ticksUntilRefresh());
+		} else {
+			Minecraft.getInstance().setScreen(new ContractRevealScreen(message.contractIds(), message.ticksUntilRefresh()));
+		}
 	}
 
 	private static final ResourceLocation FORCEFIELD_TEXTURE = Craftorio.prefix("textures/forcefield.png");
@@ -422,8 +432,26 @@ public class ClientEvents {
 
 		graphics.pose().popPose();
 
+		float craftorioMultiplier = CraftorioMisc.getCraftorioMultiplier(minecraft.player);
+		String multiplierString = "x" + String.format("%.2f", 1.0 + craftorioMultiplier);
+		graphics.drawString(font, multiplierString, x + width + 6, y + 5, 0x55FF55, true);
+
 		PointsPopup.render(graphics, font, pivotX, pivotY);
 		InfinityBurst.render(graphics, font, pivotX, pivotY);
+	}
+
+	public static void drawMaxPointsAtMeterPosition(GuiGraphics graphics) {
+		Minecraft minecraft = Minecraft.getInstance();
+		if (minecraft.player == null) return;
+
+		Font font = minecraft.font;
+		int screenWidth = minecraft.getWindow().getGuiScaledWidth();
+		int centerX = screenWidth / 2;
+		int y = 5;
+
+		BigInteger maxPoints = CraftorioMisc.getHighestPoints(minecraft.player);
+		String prefix = Component.translatable("misc.craftorio.highest_points_label").getString();
+		CraftorioMisc.CraftorioTextEffects.drawCenteredLine(graphics, font, centerX, y + 5, true, 0xFFFF55, prefix, maxPoints);
 	}
 
 
@@ -596,5 +624,19 @@ public class ClientEvents {
 
 		int x = minecraft.getWindow().getGuiScaledWidth() - BORDER_MODE_INDICATOR_SIZE - 8;
 		drawBorderModeIndicators(event.getGuiGraphics(), minecraft.font, x, 8, event.getMouseX(), event.getMouseY());
+	}
+
+	public static void addCraftorioStatsButton(ScreenEvent.Init.Post event) {
+		if (!(event.getScreen() instanceof StatsScreen statsScreen)) return;
+
+		int width = 140;
+		int height = 20;
+		int x = statsScreen.width - width - 8;
+		int y = 8;
+
+		event.addListener(Button.builder(Component.translatable("misc.craftorio.sink_stats_button"),
+						b -> Minecraft.getInstance().setScreen(new CraftorioSinkStatsScreen()))
+				.bounds(x, y, width, height)
+				.build());
 	}
 }

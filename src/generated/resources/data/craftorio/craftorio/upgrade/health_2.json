@@ -1,0 +1,10 @@
+{
+  "type": "craftorio:health",
+  "parent": "craftorio:health_1",
+  "cost": "10000",
+  "description": "misc.craftorio.upgrade_health_2_description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "name": "misc.craftorio.upgrade_health_2",
+  "operation": "ADD",
+  "value": 3.0
+}

@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:item/generated",
   "textures": {
-    "layer0": "craftorio:item/placeholder_item"
+    "layer0": "craftorio:item/claim_item"
   }
 }

@@ -17,7 +17,7 @@ public class CraftorioGeneralEffectBootstrap {
         for (float multiplier : MULTIPLIERS) {
             context.register(
                     key("general/multiplier_" + pathSuffix(multiplier)),
-                    new GeneralMultiplierEffect(multiplier, "registry.general_multiplier_" + pathSuffix(multiplier), DURATION_SECONDS, DEFAULT_ICON)
+                    new GeneralMultiplierEffect(multiplier, "registry.general_multiplier_" + pathSuffix(multiplier), DURATION_SECONDS, DEFAULT_ICON, 1, true)
             );
         }
     }
@@ -26,7 +26,7 @@ public class CraftorioGeneralEffectBootstrap {
         for (float multiplier : MULTIPLIERS) {
             context.register(
                     key("general/multiplier_neg_" + pathSuffix(multiplier)),
-                    new GeneralMultiplierEffect(-multiplier, "registry.general_multiplier_neg_" + pathSuffix(multiplier), DURATION_SECONDS, DEFAULT_ICON)
+                    new GeneralMultiplierEffect(-multiplier, "registry.general_multiplier_neg_" + pathSuffix(multiplier), DURATION_SECONDS, DEFAULT_ICON, 1, true)
             );
         }
     }

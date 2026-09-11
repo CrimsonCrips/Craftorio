@@ -1,0 +1,10 @@
+{
+  "type": "craftorio:damage",
+  "parent": "craftorio:root",
+  "cost": "3000",
+  "description": "misc.craftorio.upgrade_damage_1_description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "name": "misc.craftorio.upgrade_damage_1",
+  "operation": "ADD",
+  "value": 1.0
+}

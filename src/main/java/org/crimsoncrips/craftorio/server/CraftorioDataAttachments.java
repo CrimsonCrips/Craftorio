@@ -23,7 +23,11 @@ import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
 
 import static org.crimsoncrips.craftorio.CraftorioMisc.BIGINT_CODEC;
@@ -41,6 +45,10 @@ public class CraftorioDataAttachments {
                     .serialize(Codec.list(Codec.STRING))
                     .sync(ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()))
                     .build());
+
+    public static final Supplier<AttachmentType<BigInteger>> HIGHEST_REACHED_POINTS = ATTACHMENT_TYPES.register(
+            "highest_reached_points", () -> AttachmentType.builder(CraftorioMisc::startingValue).serialize(BIGINT_CODEC()).copyOnDeath().sync(ByteBufCodecs.fromCodec(BIGINT_CODEC())).build()
+    );
 
     public static final Supplier<AttachmentType<BigInteger>> POINTS = ATTACHMENT_TYPES.register(
             "points", () -> AttachmentType.builder(CraftorioMisc::startingValue).serialize(BIGINT_CODEC()).copyOnDeath().sync(ByteBufCodecs.fromCodec(BIGINT_CODEC())).build()
@@ -144,6 +152,33 @@ public class CraftorioDataAttachments {
 
     public static final Supplier<AttachmentType<Integer>> CONTRACT_REFRESH_TIME = ATTACHMENT_TYPES.register(
             "contract_refresh_time", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().build()
+    );
+
+    public static final Supplier<AttachmentType<Boolean>> UNIVERSAL_PROGRESS_STARTED = ATTACHMENT_TYPES.register(
+            "universal_progress_started", () -> AttachmentType.builder(() -> false).serialize(Codec.BOOL).build()
+    );
+
+    private static final Codec<Map<ResourceLocation, Long>> ITEMS_SINKED_CODEC = Codec.unboundedMap(ResourceLocation.CODEC, Codec.LONG);
+
+    public static final Supplier<AttachmentType<Map<ResourceLocation, Long>>> ITEMS_SINKED = ATTACHMENT_TYPES.register(
+            "items_sinked", () -> AttachmentType.<Map<ResourceLocation, Long>>builder((holder) -> new HashMap<>())
+                    .serialize(ITEMS_SINKED_CODEC)
+                    .copyOnDeath()
+                    .sync(ByteBufCodecs.fromCodec(ITEMS_SINKED_CODEC))
+                    .build());
+
+    private static final Codec<Set<ResourceLocation>> UNLOCKED_UPGRADES_CODEC = Codec.list(ResourceLocation.CODEC)
+            .xmap(HashSet::new, ArrayList::new);
+
+    public static final Supplier<AttachmentType<Set<ResourceLocation>>> UNLOCKED_UPGRADES = ATTACHMENT_TYPES.register(
+            "unlocked_upgrades", () -> AttachmentType.<Set<ResourceLocation>>builder((holder) -> new HashSet<>())
+                    .serialize(UNLOCKED_UPGRADES_CODEC)
+                    .copyOnDeath()
+                    .sync(ByteBufCodecs.fromCodec(UNLOCKED_UPGRADES_CODEC))
+                    .build());
+
+    public static final Supplier<AttachmentType<Double>> ADVANCEMENT_MULTIPLIER_BONUS = ATTACHMENT_TYPES.register(
+            "advancement_multiplier_bonus", () -> AttachmentType.builder(() -> 0.0).serialize(Codec.DOUBLE).copyOnDeath().sync(ByteBufCodecs.DOUBLE).build()
     );
 
 }

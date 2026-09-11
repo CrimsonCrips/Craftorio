@@ -3,9 +3,11 @@ package org.crimsoncrips.craftorio.client.screen;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
@@ -15,9 +17,11 @@ import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.networking.ClaimContractPacket;
 import org.crimsoncrips.craftorio.networking.ForceContractRefreshPacket;
+import org.crimsoncrips.craftorio.networking.RefreshContractOfferPacket;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
 
+import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,15 +59,17 @@ public class ContractRevealScreen extends Screen {
     private static final int CLAIM_BUTTON_HEIGHT = 16;
     private static final int CLAIM_BUTTON_GAP = 8;
 
-    private final List<ResourceLocation> contractIds;
+    private List<ResourceLocation> contractIds;
     private final List<OfferedCard> cards = new ArrayList<>();
 
     private long startMillis = -1L;
     private int cardWidth = BASE_CARD_WIDTH;
     private int cardHeight = BASE_CARD_HEIGHT;
 
-    private final int initialTicksUntilRefresh;
+    private int initialTicksUntilRefresh;
     private long refreshTimerStartMillis = -1L;
+
+    private Button refreshButton;
 
     public ContractRevealScreen(List<ResourceLocation> contractIds, int ticksUntilRefresh) {
         super(Component.translatable("misc.craftorio.contract_reveal_title"));
@@ -140,11 +146,24 @@ public class ContractRevealScreen extends Screen {
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.done"), b -> this.onClose())
                 .bounds(centerX - 50, this.height - 30, 100, 20).build());
 
+        this.refreshButton = Button.builder(Component.translatable("misc.craftorio.refresh_contracts_button"),
+                        b -> PacketDistributor.sendToServer(new RefreshContractOfferPacket()))
+                .bounds(centerX - 60, 32, 120, 16).build();
+        updateRefreshTooltip();
+        this.addRenderableWidget(this.refreshButton);
+
         if (player != null && player.isCreative()) {
             this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.force_contract_refresh_button"),
                             b -> PacketDistributor.sendToServer(new ForceContractRefreshPacket()))
                     .bounds(this.width - 130, 6, 120, 16).build());
         }
+    }
+
+    public void updateOffer(List<ResourceLocation> contractIds, int ticksUntilRefresh) {
+        this.contractIds = contractIds;
+        this.initialTicksUntilRefresh = ticksUntilRefresh;
+        this.refreshTimerStartMillis = System.currentTimeMillis();
+        this.rebuildWidgets();
     }
 
     private int claimButtonY(float centerY) {
@@ -170,9 +189,20 @@ public class ContractRevealScreen extends Screen {
     public void renderBackground(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
     }
 
+    private void updateRefreshTooltip() {
+        if (this.refreshButton == null || this.minecraft.player == null) return;
+
+        BigInteger cost = CraftorioMisc.contractRefreshCost(this.minecraft.player);
+        String costText = CraftorioMisc.bigIntFormat(cost, Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
+
+        this.refreshButton.setTooltip(Tooltip.create(Component.translatable("misc.craftorio.refresh_contracts_tooltip", costText)));
+    }
+
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         this.renderTransparentBackground(graphics);
+
+        updateRefreshTooltip();
 
         graphics.drawCenteredString(this.font, Component.translatable("misc.craftorio.choose_a_contract"), this.width / 2, 8, 0xFFFFFF);
 
@@ -215,6 +245,7 @@ public class ContractRevealScreen extends Screen {
 
         float finalScale = scaleX * pulse * card.hoverScale;
         float centerY = card.restY + dropOffset + bobOffset;
+        boolean locked = !meetsThreshold(card.contract);
 
         graphics.pose().pushPose();
         graphics.pose().translate(card.restX + SHADOW_OFFSET, centerY + SHADOW_OFFSET, 0);
@@ -227,20 +258,36 @@ public class ContractRevealScreen extends Screen {
         graphics.pose().pushPose();
         graphics.pose().translate(card.restX, centerY, 0);
         graphics.pose().scale(finalScale, pulse * card.hoverScale, 1f);
+        if (locked) {
+            graphics.setColor(0.6f, 0.6f, 0.6f, 0.55f);
+        }
         graphics.blit(CARD_TEXTURE, -this.cardWidth / 2, -this.cardHeight / 2, 0, 0, this.cardWidth, this.cardHeight, this.cardWidth, this.cardHeight);
+        if (locked) {
+            graphics.setColor(1f, 1f, 1f, 1f);
+        }
         graphics.pose().popPose();
 
         boolean revealed = elapsed >= SPIN_DURATION_MS + REVEAL_DELAY_MS;
         if (card.claimButton != null) {
-            card.claimButton.visible = revealed;
+            card.claimButton.visible = revealed && !locked;
         }
 
         if (revealed) {
-            renderDetails(graphics, card, elapsed, centerY);
+            renderDetails(graphics, card, elapsed, centerY, locked);
+        }
+
+        if (revealed && locked) {
+            renderLockedMessage(graphics, card, elapsed, centerY);
         }
     }
 
-    private void renderDetails(GuiGraphics graphics, OfferedCard card, long elapsed, float centerY) {
+    private boolean meetsThreshold(CraftorioShipmentContract contract) {
+        Player player = this.minecraft.player;
+        if (player == null) return true;
+        return CraftorioMisc.getHighestPoints(player).compareTo(contract.getPointThreshold()) >= 0;
+    }
+
+    private void renderDetails(GuiGraphics graphics, OfferedCard card, long elapsed, float centerY, boolean locked) {
         long sinceReveal = elapsed - (SPIN_DURATION_MS + REVEAL_DELAY_MS);
         float growT = Mth.clamp(sinceReveal / (float) GROW_DURATION_MS, 0f, 1f);
         float growScale = easeOutBack(growT);
@@ -251,26 +298,37 @@ public class ContractRevealScreen extends Screen {
         int wrapWidth = (int) (innerWidth / textScale);
         float textTop = centerY - this.cardHeight / 2f + 14;
 
+        int nameColor = locked ? 0x707070 : 0xFFFFFF;
+        int timeColor = locked ? 0x555555 : 0xAAAAAA;
+        int descColor = locked ? 0x707070 : 0xFFFFFF;
+        int punishmentColor = locked ? 0x707070 : 0xFFFFFF;
+
         graphics.pose().pushPose();
         graphics.pose().translate(card.restX, textTop, 0);
         graphics.pose().scale(growScale * textScale, growScale * textScale, 1f);
 
         float y = 0;
         if (card.contract.getIcon() != null) {
+            if (locked) {
+                graphics.setColor(0.5f, 0.5f, 0.5f, 0.7f);
+            }
             graphics.blit(card.contract.getIcon(), -ICON_SIZE / 2, 0, 0, 0, ICON_SIZE, ICON_SIZE, ICON_SIZE, ICON_SIZE);
+            if (locked) {
+                graphics.setColor(1f, 1f, 1f, 1f);
+            }
             y = ICON_SIZE + ICON_GAP;
         }
-        for (var line : this.font.split(Component.literal(card.contract.getName()), wrapWidth)) {
-            graphics.drawString(this.font, line, -this.font.width(line) / 2, (int) y, 0xFFFFFF, true);
+        for (var line : this.font.split(Component.literal(card.contract.getActualName()), wrapWidth)) {
+            graphics.drawString(this.font, line, -this.font.width(line) / 2, (int) y, nameColor, true);
             y += this.font.lineHeight;
         }
 
         String timeLine = Component.translatable("misc.craftorio.contract_time_remaining", CraftorioMisc.ticksToTimeString(card.contract.getTime())).getString();
-        graphics.drawString(this.font, timeLine, -this.font.width(timeLine) / 2, (int) y, 0xAAAAAA, true);
+        graphics.drawString(this.font, timeLine, -this.font.width(timeLine) / 2, (int) y, timeColor, true);
         y += this.font.lineHeight + 3;
 
         for (var line : this.font.split(Component.literal(card.contract.getActualDescription()), wrapWidth)) {
-            graphics.drawString(this.font, line, -this.font.width(line) / 2, (int) y, 0xFFDD55, true);
+            graphics.drawString(this.font, line, -this.font.width(line) / 2, (int) y, descColor, true);
             y += this.font.lineHeight;
         }
 
@@ -278,9 +336,37 @@ public class ContractRevealScreen extends Screen {
         if (!punishmentLine.getString().isEmpty()) {
             y += 3;
             for (var line : this.font.split(punishmentLine, wrapWidth)) {
-                graphics.drawString(this.font, line, -this.font.width(line) / 2, (int) y, 0xFFFFFF, true);
+                graphics.drawString(this.font, line, -this.font.width(line) / 2, (int) y, punishmentColor, true);
                 y += this.font.lineHeight;
             }
+        }
+
+        graphics.pose().popPose();
+    }
+
+    private void renderLockedMessage(GuiGraphics graphics, OfferedCard card, long elapsed, float centerY) {
+        long sinceReveal = elapsed - (SPIN_DURATION_MS + REVEAL_DELAY_MS);
+        float growT = Mth.clamp(sinceReveal / (float) GROW_DURATION_MS, 0f, 1f);
+        float growScale = easeOutBack(growT);
+        if (growScale <= 0f) return;
+
+        float textScale = TEXT_SCALE * this.cardWidth / BASE_CARD_WIDTH * card.hoverScale;
+        int innerWidth = this.cardWidth - 20;
+        int wrapWidth = (int) (innerWidth / textScale);
+
+        List<FormattedCharSequence> lines = new ArrayList<>();
+        lines.addAll(this.font.split(Component.translatable("misc.craftorio.contract_threshold_not_met"), wrapWidth));
+        lines.addAll(this.font.split(Component.translatable("misc.craftorio.contract_threshold_required",
+                CraftorioMisc.bigIntFormat(card.contract.getPointThreshold(), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt())), wrapWidth));
+
+        graphics.pose().pushPose();
+        graphics.pose().translate(card.restX, centerY, 0);
+        graphics.pose().scale(growScale * textScale, growScale * textScale, 1f);
+
+        float y = -(lines.size() * this.font.lineHeight) / 2f;
+        for (var line : lines) {
+            graphics.drawString(this.font, line, -this.font.width(line) / 2, (int) y, 0xFFFFFF, true);
+            y += this.font.lineHeight;
         }
 
         graphics.pose().popPose();
@@ -305,7 +391,7 @@ public class ContractRevealScreen extends Screen {
         for (OfferedCard card : this.cards) {
             long elapsed = elapsedSince(card.startDelay);
             boolean revealed = elapsed >= SPIN_DURATION_MS + REVEAL_DELAY_MS;
-            if (!revealed) continue;
+            if (!revealed || !meetsThreshold(card.contract)) continue;
 
             if (mouseX >= card.restX - this.cardWidth / 2.0 && mouseX <= card.restX + this.cardWidth / 2.0
                     && mouseY >= card.restY - this.cardHeight / 2.0 && mouseY <= card.restY + this.cardHeight / 2.0) {

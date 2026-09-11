@@ -33,5 +33,11 @@ public class CraftorioRecipeGenerator extends CraftorioRecipeHelper {
 				.requires(Ingredient.of(Items.GOLD_INGOT))
 				.unlockedBy(getHasName(CraftorioBlocks.SINKER.asItem()), has(CraftorioBlocks.SINKER.asItem()))
 				.save(recipeOutput);
+
+		ShapelessRecipeBuilder.shapeless(RecipeCategory.MISC, CraftorioBlocks.VALUE_CONDENSER.asItem())
+				.requires(Ingredient.of(CraftorioBlocks.SINKER.asItem()))
+				.requires(Ingredient.of(Items.ECHO_SHARD))
+				.unlockedBy(getHasName(CraftorioBlocks.SINKER.asItem()), has(CraftorioBlocks.SINKER.asItem()))
+				.save(recipeOutput);
 	}
 }

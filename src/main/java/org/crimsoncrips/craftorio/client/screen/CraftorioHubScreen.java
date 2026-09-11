@@ -22,7 +22,7 @@ public class CraftorioHubScreen extends Screen {
     private static final int BUTTON_WIDTH = 200;
     private static final int BUTTON_HEIGHT = 20;
     private static final int BUTTON_STRIDE = 24;
-    private static final int REGULAR_BUTTON_COUNT = 5;
+    private static final int REGULAR_BUTTON_COUNT = 6;
     private static final int DONE_EXTRA_GAP = 16;
     private static final int LIFT_OFFSET = 20;
 
@@ -69,6 +69,10 @@ public class CraftorioHubScreen extends Screen {
 
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.owned_contracts_button"), b -> this.minecraft.setScreen(new OwnedContractsScreen(this)))
                 .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
+        y += BUTTON_STRIDE;
+
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.skill_tree_button"), b -> this.minecraft.setScreen(new CraftorioSkillTreeScreen()))
+                .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
         y += BUTTON_STRIDE + DONE_EXTRA_GAP;
 
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.done"), b -> this.onClose())
@@ -85,6 +89,7 @@ public class CraftorioHubScreen extends Screen {
         int indicatorX = this.width - ClientEvents.BORDER_MODE_INDICATOR_SIZE - 8;
         ClientEvents.drawBorderModeIndicators(guiGraphics, this.font, indicatorX, 8, mouseX, mouseY);
 
+        ClientEvents.drawMaxPointsAtMeterPosition(guiGraphics);
     }
 
     @Override

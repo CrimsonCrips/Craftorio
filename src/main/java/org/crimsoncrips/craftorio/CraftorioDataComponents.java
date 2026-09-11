@@ -13,12 +13,16 @@ import org.jetbrains.annotations.NotNull;
 
 
 import javax.annotation.Nullable;
+import java.math.BigInteger;
 import java.util.List;
 
 public class CraftorioDataComponents {
 	public static final DeferredRegister<DataComponentType<?>> COMPONENTS = DeferredRegister.createDataComponents(Registries.DATA_COMPONENT_TYPE, Craftorio.MODID);
 
 	public static final DeferredHolder<DataComponentType<?>, DataComponentType<List<CraftorioEffects>>> EFFECTS_STORED = COMPONENTS.register("effects_stored", () -> DataComponentType.<List<CraftorioEffects>>builder().persistent(Codec.list(CraftorioEffects.dispatchCodec())).networkSynchronized(ByteBufCodecs.fromCodec(Codec.list(CraftorioEffects.dispatchCodec()))).build());
+
+	public static final DeferredHolder<DataComponentType<?>, DataComponentType<BigInteger>> CONDENSED_VALUE =
+			register("condensed_value", CraftorioMisc.BIGINT_CODEC(), ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()));
 
 
 

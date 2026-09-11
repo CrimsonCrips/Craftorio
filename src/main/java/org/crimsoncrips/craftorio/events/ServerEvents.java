@@ -24,13 +24,14 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.block.CraftorioBlocks;
-import org.crimsoncrips.craftorio.item.CraftorioItems;
 import org.crimsoncrips.craftorio.networking.EffectTimerPacket;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
 import org.crimsoncrips.craftorio.server.ChunkCollisionHooks;
 import org.crimsoncrips.craftorio.server.CraftorioAdvancementPoints;
+import org.crimsoncrips.craftorio.server.CraftorioAdvancementMultipliers;
 import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
+import org.crimsoncrips.craftorio.server.CraftorioPointsAdvancements;
 import org.crimsoncrips.craftorio.server.CraftorioShop;
 import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
 
@@ -57,6 +58,9 @@ public class ServerEvents {
                 } else {
                     level.setData(NO_BORDERS,Craftorio.SERVER_CONFIG.NO_BORDERS.getAsBoolean());
                 }
+
+                CraftorioMisc.setContractRefreshTime(level, Craftorio.SERVER_CONFIG.CONTRACT_REFRESH_SECONDS.get() * CraftorioMisc.SECONDS_TO_TICKS);
+                CraftorioMisc.setRandomEffectTime(level, Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get());
             }
 
             level.setData(FINALIZED,true);
@@ -99,7 +103,13 @@ public class ServerEvents {
         if (CraftorioMisc.chunkBased(level)){
             CraftorioMisc.ownChunks(CraftorioMisc.startingLocations(level.getChunk(blockPos).getPos()),level,true,player,true);
         } else {
-            List<CraftorioBorder> newBorder = new ArrayList<>(CraftorioMisc.getCraftorioBorders(player));
+            List<CraftorioBorder> existingBorders = CraftorioMisc.getCraftorioBorders(player);
+            boolean alreadyHasBorder = existingBorders.stream().anyMatch(border -> border.getDimension().equals(dimensionLevel));
+            if (CraftorioMisc.universalBased(level) && alreadyHasBorder) {
+                return;
+            }
+
+            List<CraftorioBorder> newBorder = new ArrayList<>(existingBorders);
             newBorder.removeIf(border -> border.getDimension().equals(dimensionLevel));
             newBorder.add(new CraftorioBorder(blockPos,CraftorioMisc.startingLand() * 5,1,10,1,10, dimensionLevel));
             CraftorioMisc.setCraftorioBorders(player,newBorder);
@@ -136,7 +146,17 @@ public class ServerEvents {
 
         if (!player.getData(GIVEN)) {
             player.addItem(CraftorioBlocks.SINKER.get().asItem().getDefaultInstance());
-            CraftorioMisc.setPoints(CraftorioMisc.startingValue(), player);
+
+            boolean sharedProgressAlreadyStarted = CraftorioMisc.universalBased(level) && level.getData(UNIVERSAL_PROGRESS_STARTED);
+            if (!sharedProgressAlreadyStarted) {
+                CraftorioMisc.setPoints(CraftorioMisc.startingValue(), player);
+                if (CraftorioMisc.universalBased(level)) {
+                    level.setData(UNIVERSAL_PROGRESS_STARTED, true);
+                }
+            }
+
+            CraftorioMisc.setContractRefreshTime(player, Craftorio.SERVER_CONFIG.CONTRACT_REFRESH_SECONDS.get() * CraftorioMisc.SECONDS_TO_TICKS);
+            CraftorioMisc.setRandomEffectTime(player, Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get());
 
             List<CraftorioEffects> craftorioEffectsList = new ArrayList<>();
 
@@ -157,9 +177,12 @@ public class ServerEvents {
                    spawnPos = serverLevel.getSharedSpawnPos();
                 }
 
-                List<ResourceKey<Level>> newDimension = new ArrayList<>();
-                newDimension.add(serverPlayer.getRespawnDimension());
-                CraftorioMisc.setDimensionsExplored(player,newDimension);
+                List<ResourceKey<Level>> existingDimensions = CraftorioMisc.getDimensionsExplored(player);
+                if (!existingDimensions.contains(serverPlayer.getRespawnDimension())) {
+                    List<ResourceKey<Level>> newDimensions = new ArrayList<>(existingDimensions);
+                    newDimensions.add(serverPlayer.getRespawnDimension());
+                    CraftorioMisc.setDimensionsExplored(player,newDimensions);
+                }
 
                 setArea(player,spawnPos,serverPlayer.getRespawnDimension());
 
@@ -181,9 +204,20 @@ public class ServerEvents {
             if (player instanceof ServerPlayer serverPlayer) {
                 PacketDistributor.sendToPlayer(serverPlayer, new org.crimsoncrips.craftorio.networking.WelcomeToastPacket());
                 PacketDistributor.sendToPlayer(serverPlayer, new org.crimsoncrips.craftorio.networking.ShopStatusPacket(CraftorioShop.isEnabled()));
+                CraftorioPointsAdvancements.checkAndGrant(serverPlayer, CraftorioMisc.getPoints(player));
             }
 
             player.setData(GIVEN, true);
+        }
+
+        if (player instanceof ServerPlayer serverPlayer) {
+            var registry = player.level().registryAccess().registryOrThrow(org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade.REGISTRY_KEY);
+            for (ResourceLocation upgradeId : CraftorioMisc.getUnlockedUpgrades(player)) {
+                var upgrade = registry.get(upgradeId);
+                if (upgrade != null) {
+                    upgrade.onUnlock(serverPlayer, upgradeId);
+                }
+            }
         }
     }
 
@@ -225,6 +259,17 @@ public class ServerEvents {
     }
 
     @SubscribeEvent
+    public void xpChange(net.neoforged.neoforge.event.entity.player.PlayerXpEvent.XpChange event) {
+        Player player = event.getEntity();
+        double additive = CraftorioMisc.getXpGainModifierSum(player, org.crimsoncrips.craftorio.skill_tree.UpgradeOperation.ADD);
+        double multiplicative = CraftorioMisc.getXpGainModifierSum(player, org.crimsoncrips.craftorio.skill_tree.UpgradeOperation.MULTIPLY);
+        if (additive == 0 && multiplicative == 0) return;
+
+        double result = (event.getAmount() + additive) * (1.0 + multiplicative);
+        event.setAmount((int) Math.max(0, Math.round(result)));
+    }
+
+    @SubscribeEvent
     public void advancementObtained(AdvancementEvent.AdvancementEarnEvent advancementEvent){
         Player player = advancementEvent.getEntity();
         AdvancementHolder advancement = advancementEvent.getAdvancement();
@@ -234,6 +279,11 @@ public class ServerEvents {
 
         BigInteger pointsOwned = CraftorioMisc.getPoints(player);
         CraftorioMisc.setPoints(pointsOwned.add(value),player);
+
+        if (CraftorioMisc.hasModifierGateUnlocked(player, org.crimsoncrips.craftorio.skill_tree.ModifierTarget.ADVANCEMENT_MULTIPLIER_UNLOCK)) {
+            double multiplierBonus = CraftorioAdvancementMultipliers.getMultiplier(id.toString());
+            CraftorioMisc.addAdvancementMultiplierBonus(player, multiplierBonus);
+        }
 
         String string = Component.translatable("misc.craftorio.advancement_value").getString();
 
@@ -295,6 +345,12 @@ public class ServerEvents {
         player.hurt(player.damageSources().outOfBorder(), Float.MAX_VALUE);
     }
 
+    private static final Set<UUID> pendingContractScreenPush = new HashSet<>();
+
+    public static void requestInstantContractRefresh(ServerPlayer player) {
+        pendingContractScreenPush.add(player.getUUID());
+    }
+
     private static final Set<UUID> effectTimerViewers = new HashSet<>();
 
     public static boolean toggleEffectTimerViewer(ServerPlayer player) {
@@ -329,11 +385,13 @@ public class ServerEvents {
 
                 List<ServerPlayer> players = level.players();
                 if (!players.isEmpty()) {
-                    CraftorioEffects rolledEffect = CraftorioMisc.getRandomEffect(level.registryAccess(), level.random);
+                    CraftorioEffects rolledEffect = CraftorioMisc.getRandomAmbientEffect(level.registryAccess(), level.random);
                     CraftorioMisc.grantEffect(players.get(0), rolledEffect.copy());
                 }
 
-                CraftorioMisc.setRandomEffectTime(level, Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get());
+                int effectInterval = players.isEmpty() ? Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get()
+                        : CraftorioMisc.applySpeedUpgrade(players.get(0), org.crimsoncrips.craftorio.skill_tree.ModifierTarget.EFFECT_TIMER_SPEED, Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get());
+                CraftorioMisc.setRandomEffectTime(level, effectInterval);
             } else {
                 for (ServerPlayer player : level.players()) {
                     int timeUntilNextEffect = CraftorioMisc.getRandomEffectTime(player) - 1;
@@ -347,10 +405,11 @@ public class ServerEvents {
                         continue;
                     }
 
-                    CraftorioEffects rolledEffect = CraftorioMisc.getRandomEffect(level.registryAccess(), player.getRandom());
+                    CraftorioEffects rolledEffect = CraftorioMisc.getRandomAmbientEffect(level.registryAccess(), player.getRandom());
                     CraftorioMisc.grantEffect(player, rolledEffect.copy());
 
-                    CraftorioMisc.setRandomEffectTime(player, Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get());
+                    int effectInterval = CraftorioMisc.applySpeedUpgrade(player, org.crimsoncrips.craftorio.skill_tree.ModifierTarget.EFFECT_TIMER_SPEED, Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get());
+                    CraftorioMisc.setRandomEffectTime(player, effectInterval);
                 }
             }
         }
@@ -359,7 +418,7 @@ public class ServerEvents {
     @SubscribeEvent
     public void contractOfferTick(ServerTickEvent.Post event) {
         for (ServerLevel level : event.getServer().getAllLevels()) {
-            int refreshTicks = Craftorio.SERVER_CONFIG.CONTRACT_REFRESH_SECONDS.get() * CraftorioMisc.SECONDS_TO_TICKS;
+            int baseRefreshTicks = Craftorio.SERVER_CONFIG.CONTRACT_REFRESH_SECONDS.get() * CraftorioMisc.SECONDS_TO_TICKS;
 
             if (CraftorioMisc.universalBased(level)) {
                 int timeUntilRefresh = CraftorioMisc.getContractRefreshTime(level) - 1;
@@ -369,15 +428,19 @@ public class ServerEvents {
                     continue;
                 }
 
-                List<ResourceLocation> offer = CraftorioMisc.rollContractOffer(level.registryAccess(), level.random);
+                BigInteger levelHighestPoints = level.players().isEmpty() ? BigInteger.ZERO
+                        : CraftorioMisc.getHighestPoints(level.players().get(0));
+                List<ResourceLocation> offer = CraftorioMisc.rollContractOffer(level.registryAccess(), level.random, levelHighestPoints);
                 level.setData(CraftorioDataAttachments.CONTRACT_OFFER, offer);
                 level.setData(CraftorioDataAttachments.CONTRACT_OFFER_CLAIMED, false);
 
-                for (ServerPlayer player : level.players()) {
-                    notifyNewContracts(player, offer);
-                }
-
+                int refreshTicks = level.players().isEmpty() ? baseRefreshTicks
+                        : CraftorioMisc.applySpeedUpgrade(level.players().get(0), org.crimsoncrips.craftorio.skill_tree.ModifierTarget.CONTRACT_REFRESH_SPEED, baseRefreshTicks);
                 CraftorioMisc.setContractRefreshTime(level, refreshTicks);
+
+                for (ServerPlayer player : level.players()) {
+                    notifyNewContracts(player, offer, refreshTicks);
+                }
             } else {
                 for (ServerPlayer player : level.players()) {
                     int timeUntilRefresh = CraftorioMisc.getContractRefreshTime(player) - 1;
@@ -387,19 +450,25 @@ public class ServerEvents {
                         continue;
                     }
 
-                    List<ResourceLocation> offer = CraftorioMisc.rollContractOffer(player.registryAccess(), player.getRandom());
+                    List<ResourceLocation> offer = CraftorioMisc.rollContractOffer(player.registryAccess(), player.getRandom(), CraftorioMisc.getHighestPoints(player));
                     player.setData(CraftorioDataAttachments.CONTRACT_OFFER, offer);
                     player.setData(CraftorioDataAttachments.CONTRACT_OFFER_CLAIMED, false);
 
-                    notifyNewContracts(player, offer);
-
+                    int refreshTicks = CraftorioMisc.applySpeedUpgrade(player, org.crimsoncrips.craftorio.skill_tree.ModifierTarget.CONTRACT_REFRESH_SPEED, baseRefreshTicks);
                     CraftorioMisc.setContractRefreshTime(player, refreshTicks);
+
+                    notifyNewContracts(player, offer, refreshTicks);
                 }
             }
         }
     }
 
-    private void notifyNewContracts(ServerPlayer player, List<ResourceLocation> offer) {
+    private void notifyNewContracts(ServerPlayer player, List<ResourceLocation> offer, int refreshTicks) {
+        if (pendingContractScreenPush.remove(player.getUUID())) {
+            PacketDistributor.sendToPlayer(player, new org.crimsoncrips.craftorio.networking.OpenContractOfferScreenPacket(offer, refreshTicks));
+            return;
+        }
+
         if (offer.isEmpty()) return;
         PacketDistributor.sendToPlayer(player, new org.crimsoncrips.craftorio.networking.ContractOfferStatusPacket(true));
     }

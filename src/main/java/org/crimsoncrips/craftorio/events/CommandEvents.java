@@ -102,6 +102,7 @@ public class CommandEvents {
     }
 
     private static int runToggleEffectTimer(CommandContext<CommandSourceStack> context) {
+
         ServerPlayer serverPlayer = context.getSource().getPlayer();
         if (serverPlayer == null) return 0;
 

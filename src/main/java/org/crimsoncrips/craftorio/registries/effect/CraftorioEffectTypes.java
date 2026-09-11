@@ -24,9 +24,11 @@ public class CraftorioEffectTypes {
                             Codec.FLOAT.fieldOf("multiplier").forGetter(GeneralMultiplierEffect::getMultiplier),
                             Codec.STRING.fieldOf("name").forGetter(GeneralMultiplierEffect::getNameKey),
                             Codec.INT.fieldOf("seconds").forGetter(effect -> effect.getTime() / CraftorioMisc.SECONDS_TO_TICKS),
-                            ResourceLocation.CODEC.optionalFieldOf("icon").forGetter(effect -> Optional.ofNullable(effect.getIcon()))
-                    ).apply(instance, (multiplier, name, seconds, icon) ->
-                            new GeneralMultiplierEffect(multiplier, name, seconds, icon.orElse(null)))
+                            ResourceLocation.CODEC.optionalFieldOf("icon").forGetter(effect -> Optional.ofNullable(effect.getIcon())),
+                            Codec.INT.optionalFieldOf("weight", 1).forGetter(GeneralMultiplierEffect::getWeight),
+                            Codec.BOOL.optionalFieldOf("ambient", true).forGetter(GeneralMultiplierEffect::isAmbient)
+                    ).apply(instance, (multiplier, name, seconds, icon, weight, ambient) ->
+                            new GeneralMultiplierEffect(multiplier, name, seconds, icon.orElse(null), weight, ambient))
             ));
 
     public static final Supplier<MapCodec<TagMultiplierEffect>> TAG_MULTIPLIER =
@@ -36,9 +38,11 @@ public class CraftorioEffectTypes {
                             Codec.STRING.fieldOf("name").forGetter(TagMultiplierEffect::getNameKey),
                             TagKey.hashedCodec(Registries.ITEM).fieldOf("item_tag").forGetter(TagMultiplierEffect::getItemTag),
                             Codec.INT.fieldOf("seconds").forGetter(effect -> effect.getTime() / CraftorioMisc.SECONDS_TO_TICKS),
-                            ResourceLocation.CODEC.optionalFieldOf("icon").forGetter(effect -> Optional.ofNullable(effect.getIcon()))
-                    ).apply(instance, (multiplier, name, itemTag, seconds, icon) ->
-                            new TagMultiplierEffect(multiplier, name, itemTag, seconds, icon.orElse(null)))
+                            ResourceLocation.CODEC.optionalFieldOf("icon").forGetter(effect -> Optional.ofNullable(effect.getIcon())),
+                            Codec.INT.optionalFieldOf("weight", 1).forGetter(TagMultiplierEffect::getWeight),
+                            Codec.BOOL.optionalFieldOf("ambient", true).forGetter(TagMultiplierEffect::isAmbient)
+                    ).apply(instance, (multiplier, name, itemTag, seconds, icon, weight, ambient) ->
+                            new TagMultiplierEffect(multiplier, name, itemTag, seconds, icon.orElse(null), weight, ambient))
             ));
 
     public static final Supplier<MapCodec<ShopMultiplierEffect>> SHOP_MULTIPLIER =
@@ -47,8 +51,10 @@ public class CraftorioEffectTypes {
                             Codec.FLOAT.fieldOf("multiplier").forGetter(ShopMultiplierEffect::getMultiplier),
                             Codec.STRING.fieldOf("name").forGetter(ShopMultiplierEffect::getNameKey),
                             Codec.INT.fieldOf("seconds").forGetter(effect -> effect.getTime() / CraftorioMisc.SECONDS_TO_TICKS),
-                            ResourceLocation.CODEC.optionalFieldOf("icon").forGetter(effect -> Optional.ofNullable(effect.getIcon()))
-                    ).apply(instance, (multiplier, name, seconds, icon) ->
-                            new ShopMultiplierEffect(multiplier, name, seconds, icon.orElse(null)))
+                            ResourceLocation.CODEC.optionalFieldOf("icon").forGetter(effect -> Optional.ofNullable(effect.getIcon())),
+                            Codec.INT.optionalFieldOf("weight", 1).forGetter(ShopMultiplierEffect::getWeight),
+                            Codec.BOOL.optionalFieldOf("ambient", true).forGetter(ShopMultiplierEffect::isAmbient)
+                    ).apply(instance, (multiplier, name, seconds, icon, weight, ambient) ->
+                            new ShopMultiplierEffect(multiplier, name, seconds, icon.orElse(null), weight, ambient))
             ));
 }

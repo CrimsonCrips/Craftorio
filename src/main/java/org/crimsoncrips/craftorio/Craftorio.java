@@ -24,12 +24,14 @@ import org.crimsoncrips.craftorio.registries.effect.CraftorioEffectTypes;
 import org.crimsoncrips.craftorio.item.CraftorioItems;
 import org.crimsoncrips.craftorio.loot.CraftorioLootModifiers;
 import org.crimsoncrips.craftorio.server.CraftorioAdvancementPoints;
+import org.crimsoncrips.craftorio.server.CraftorioAdvancementMultipliers;
 import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
 import org.crimsoncrips.craftorio.server.CraftorioServerConfig;
 import org.crimsoncrips.craftorio.events.CommandEvents;
 import org.crimsoncrips.craftorio.networking.PacketRegistration;
 import org.crimsoncrips.craftorio.events.ServerEvents;
 import org.crimsoncrips.craftorio.server.unlocks.CraftorioUnlockedItemsManager;
+import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgradeTypes;
 import org.slf4j.Logger;
 
 import java.util.Locale;
@@ -67,6 +69,7 @@ public class Craftorio {
         modEventBus.addListener(CraftorioDatagen::generateData);
 
         NeoForge.EVENT_BUS.addListener((AddReloadListenerEvent event) -> event.addListener(new CraftorioAdvancementPoints()));
+        NeoForge.EVENT_BUS.addListener((AddReloadListenerEvent event) -> event.addListener(new CraftorioAdvancementMultipliers()));
 
         NeoForge.EVENT_BUS.register(new CommandEvents());
         NeoForge.EVENT_BUS.register(new ServerEvents());
@@ -87,6 +90,7 @@ public class Craftorio {
             modEventBus.addListener(CraftorioKeyMappings::register);
             NeoForge.EVENT_BUS.addListener(CraftorioKeyMappings::onClientTick);
             NeoForge.EVENT_BUS.addListener(ClientEvents::tickUniversalProgressDisplay);
+            NeoForge.EVENT_BUS.addListener(ClientEvents::addCraftorioStatsButton);
             ClientEvents.registerConfigScreen(modContainer);
 
             if (ModList.get().isLoaded("xaeroworldmap")) {
@@ -97,6 +101,7 @@ public class Craftorio {
 
         CraftorioLootModifiers.MODIFIERS.register(modEventBus);
         CraftorioEffectTypes.TYPES.register(modEventBus);
+        CraftorioUpgradeTypes.TYPES.register(modEventBus);
         CraftorioBlocks.BLOCKS.register(modEventBus);
         CraftorioBlockEntityTypes.BLOCK_ENTITIES.register(modEventBus);
         CraftorioItems.ITEMS.register(modEventBus);

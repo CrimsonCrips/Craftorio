@@ -20,6 +20,8 @@ public abstract class CraftorioEffects {
     private String name;
     private int time;
     private ResourceLocation icon;
+    private int weight;
+    private boolean ambient;
 
     public static final ResourceKey<Registry<MapCodec<? extends CraftorioEffects>>> TYPE_REGISTRY_KEY =
             ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "craftorio_effect_type"));
@@ -41,10 +43,12 @@ public abstract class CraftorioEffects {
 
     public abstract CraftorioEffects copy();
 
-    public CraftorioEffects(String name, int time, ResourceLocation icon){
+    public CraftorioEffects(String name, int time, ResourceLocation icon, int weight, boolean ambient){
         this.name = name;
         this.time = time;
         this.icon = icon;
+        this.weight = weight;
+        this.ambient = ambient;
     }
 
     public String getNameKey(){
@@ -73,6 +77,22 @@ public abstract class CraftorioEffects {
 
     public void setIcon(ResourceLocation icon) {
         this.icon = icon;
+    }
+
+    public int getWeight() {
+        return weight;
+    }
+
+    public void setWeight(int weight) {
+        this.weight = weight;
+    }
+
+    public boolean isAmbient() {
+        return ambient;
+    }
+
+    public void setAmbient(boolean ambient) {
+        this.ambient = ambient;
     }
 
     public void tick(Player player){

@@ -34,7 +34,10 @@ public class CraftorioShop {
             result = result.add(BigDecimal.valueOf(shopEffect.getMultiplier()));
         }
 
-        return applyCostIncrease ? bigInteger.multiply(result.toBigInteger()) : bigInteger;
+        if (!applyCostIncrease) return bigInteger;
+
+        BigInteger multiplied = bigInteger.multiply(result.toBigInteger());
+        return CraftorioMisc.applyUpgradeModifier(player, org.crimsoncrips.craftorio.skill_tree.ModifierTarget.SHOP_COST, multiplied);
     }
 
     public static void purchase(ServerPlayer player, ResourceLocation key, int quantity) {

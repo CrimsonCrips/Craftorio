@@ -20,9 +20,11 @@ public class GeneralMultiplierEffect extends CraftorioEffects {
                     Codec.FLOAT.fieldOf("multiplier").forGetter(GeneralMultiplierEffect::getMultiplier),
                     Codec.STRING.fieldOf("name").forGetter(GeneralMultiplierEffect::getNameKey),
                     Codec.INT.fieldOf("seconds").forGetter(effect -> effect.getTime() / CraftorioMisc.SECONDS_TO_TICKS),
-                    ResourceLocation.CODEC.optionalFieldOf("icon").forGetter(effect -> Optional.ofNullable(effect.getIcon()))
-            ).apply(instance, (multiplier, name, seconds, icon) ->
-                    new GeneralMultiplierEffect(multiplier, name, seconds, icon.orElse(null)))
+                    ResourceLocation.CODEC.optionalFieldOf("icon").forGetter(effect -> Optional.ofNullable(effect.getIcon())),
+                    Codec.INT.optionalFieldOf("weight", 1).forGetter(GeneralMultiplierEffect::getWeight),
+                    Codec.BOOL.optionalFieldOf("ambient", true).forGetter(GeneralMultiplierEffect::isAmbient)
+            ).apply(instance, (multiplier, name, seconds, icon, weight, ambient) ->
+                    new GeneralMultiplierEffect(multiplier, name, seconds, icon.orElse(null), weight, ambient))
     );
 
     public static final StreamCodec<ByteBuf, GeneralMultiplierEffect> CODEC_STREAM = StreamCodec.composite(
@@ -30,8 +32,10 @@ public class GeneralMultiplierEffect extends CraftorioEffects {
             ByteBufCodecs.STRING_UTF8, GeneralMultiplierEffect::getNameKey,
             ByteBufCodecs.INT, GeneralMultiplierEffect::getTime,
             ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC), effect -> Optional.ofNullable(effect.getIcon()),
-            (multiplier, name, time, icon) -> {
-                GeneralMultiplierEffect effect = new GeneralMultiplierEffect(multiplier, name, time / CraftorioMisc.SECONDS_TO_TICKS, icon.orElse(null));
+            ByteBufCodecs.INT, GeneralMultiplierEffect::getWeight,
+            ByteBufCodecs.BOOL, GeneralMultiplierEffect::isAmbient,
+            (multiplier, name, time, icon, weight, ambient) -> {
+                GeneralMultiplierEffect effect = new GeneralMultiplierEffect(multiplier, name, time / CraftorioMisc.SECONDS_TO_TICKS, icon.orElse(null), weight, ambient);
                 effect.setTime(time);
                 return effect;
             }
@@ -46,14 +50,14 @@ public class GeneralMultiplierEffect extends CraftorioEffects {
         return CraftorioEffectTypes.GENERAL_MULTIPLIER.get();
     }
 
-    public GeneralMultiplierEffect(float multiplier,String key,int seconds, ResourceLocation icon){
-        super(key, seconds * CraftorioMisc.SECONDS_TO_TICKS, icon);
+    public GeneralMultiplierEffect(float multiplier,String key,int seconds, ResourceLocation icon, int weight, boolean ambient){
+        super(key, seconds * CraftorioMisc.SECONDS_TO_TICKS, icon, weight, ambient);
         this.multiplier = multiplier;
     }
 
     @Override
     public GeneralMultiplierEffect copy() {
-        GeneralMultiplierEffect copy = new GeneralMultiplierEffect(getMultiplier(), getNameKey(), getTime() / CraftorioMisc.SECONDS_TO_TICKS, getIcon());
+        GeneralMultiplierEffect copy = new GeneralMultiplierEffect(getMultiplier(), getNameKey(), getTime() / CraftorioMisc.SECONDS_TO_TICKS, getIcon(), getWeight(), isAmbient());
         copy.setTime(getTime());
         return copy;
     }

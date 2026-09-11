@@ -26,9 +26,17 @@ public class TagMultiplierEffect extends CraftorioEffects {
                     Codec.STRING.fieldOf("name").forGetter(TagMultiplierEffect::getNameKey),
                     TagKey.hashedCodec(Registries.ITEM).fieldOf("item_tag").forGetter(TagMultiplierEffect::getItemTag),
                     Codec.INT.fieldOf("seconds").forGetter(effect -> effect.getTime() / CraftorioMisc.SECONDS_TO_TICKS),
-                    ResourceLocation.CODEC.optionalFieldOf("icon").forGetter(effect -> Optional.ofNullable(effect.getIcon()))
-            ).apply(instance, (multiplier, name, itemTag, seconds, icon) ->
-                    new TagMultiplierEffect(multiplier, name, itemTag, seconds, icon.orElse(null)))
+                    ResourceLocation.CODEC.optionalFieldOf("icon").forGetter(effect -> Optional.ofNullable(effect.getIcon())),
+                    Codec.INT.optionalFieldOf("weight", 1).forGetter(TagMultiplierEffect::getWeight),
+                    Codec.BOOL.optionalFieldOf("ambient", true).forGetter(TagMultiplierEffect::isAmbient)
+            ).apply(instance, (multiplier, name, itemTag, seconds, icon, weight, ambient) ->
+                    new TagMultiplierEffect(multiplier, name, itemTag, seconds, icon.orElse(null), weight, ambient))
+    );
+
+    private static final StreamCodec<ByteBuf, WeightAmbient> WEIGHT_AMBIENT_STREAM = StreamCodec.composite(
+            ByteBufCodecs.INT, WeightAmbient::weight,
+            ByteBufCodecs.BOOL, WeightAmbient::ambient,
+            WeightAmbient::new
     );
 
     public static final StreamCodec<ByteBuf, TagMultiplierEffect> CODEC_STREAM = StreamCodec.composite(
@@ -37,15 +45,18 @@ public class TagMultiplierEffect extends CraftorioEffects {
             ByteBufCodecs.fromCodec(TagKey.hashedCodec(Registries.ITEM)), TagMultiplierEffect::getItemTag,
             ByteBufCodecs.INT, TagMultiplierEffect::getTime,
             ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC), effect -> Optional.ofNullable(effect.getIcon()),
-            (multiplier, name, itemTag, time, icon) -> {
-                TagMultiplierEffect effect = new TagMultiplierEffect(multiplier, name, itemTag, time / CraftorioMisc.SECONDS_TO_TICKS, icon.orElse(null));
+            WEIGHT_AMBIENT_STREAM, effect -> new WeightAmbient(effect.getWeight(), effect.isAmbient()),
+            (multiplier, name, itemTag, time, icon, weightAmbient) -> {
+                TagMultiplierEffect effect = new TagMultiplierEffect(multiplier, name, itemTag, time / CraftorioMisc.SECONDS_TO_TICKS, icon.orElse(null), weightAmbient.weight(), weightAmbient.ambient());
                 effect.setTime(time);
                 return effect;
             }
     );
 
-    public TagMultiplierEffect(float multiplier, String key, TagKey<Item> itemTag, int seconds, ResourceLocation icon){
-        super(key, seconds * CraftorioMisc.SECONDS_TO_TICKS, icon);
+    private record WeightAmbient(int weight, boolean ambient) {}
+
+    public TagMultiplierEffect(float multiplier, String key, TagKey<Item> itemTag, int seconds, ResourceLocation icon, int weight, boolean ambient){
+        super(key, seconds * CraftorioMisc.SECONDS_TO_TICKS, icon, weight, ambient);
         this.multiplier = multiplier;
         this.itemTag = itemTag;
     }
@@ -69,7 +80,7 @@ public class TagMultiplierEffect extends CraftorioEffects {
 
     @Override
     public TagMultiplierEffect copy() {
-        TagMultiplierEffect copy = new TagMultiplierEffect(getMultiplier(), getNameKey(), getItemTag(), getTime() / CraftorioMisc.SECONDS_TO_TICKS, getIcon());
+        TagMultiplierEffect copy = new TagMultiplierEffect(getMultiplier(), getNameKey(), getItemTag(), getTime() / CraftorioMisc.SECONDS_TO_TICKS, getIcon(), getWeight(), isAmbient());
         copy.setTime(getTime());
         return copy;
     }

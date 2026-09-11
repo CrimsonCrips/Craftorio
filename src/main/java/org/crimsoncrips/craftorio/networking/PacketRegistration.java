@@ -19,7 +19,10 @@ public class PacketRegistration {
         registrar.playToServer(ClaimContractPacket.TYPE, ClaimContractPacket.STREAM_CODEC, ClaimContractPacket::handle);
         registrar.playToServer(AbandonContractPacket.TYPE, AbandonContractPacket.STREAM_CODEC, AbandonContractPacket::handle);
         registrar.playToServer(ForceContractRefreshPacket.TYPE, ForceContractRefreshPacket.STREAM_CODEC, ForceContractRefreshPacket::handle);
+        registrar.playToServer(RefreshContractOfferPacket.TYPE, RefreshContractOfferPacket.STREAM_CODEC, RefreshContractOfferPacket::handle);
+        registrar.playToServer(UnlockUpgradePacket.TYPE, UnlockUpgradePacket.STREAM_CODEC, UnlockUpgradePacket::handle);
         registrar.playToServer(SetAutoSinkerThresholdPacket.TYPE, SetAutoSinkerThresholdPacket.STREAM_CODEC, SetAutoSinkerThresholdPacket::handle);
+        registrar.playToServer(CondenseValuePacket.TYPE, CondenseValuePacket.STREAM_CODEC, CondenseValuePacket::handle);
 
         registrar.playToClient(OpenShopScreenPacket.TYPE, OpenShopScreenPacket.STREAM_CODEC, OpenShopScreenPacket::handle);
         registrar.playToClient(EffectTimerPacket.TYPE, EffectTimerPacket.STREAM_CODEC, EffectTimerPacket::handle);

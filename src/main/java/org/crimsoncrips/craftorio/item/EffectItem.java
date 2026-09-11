@@ -26,21 +26,23 @@ public class EffectItem extends Item {
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
         ItemStack itemstack = player.getItemInHand(usedHand);
-        for (CraftorioEffects chosenEffect : getContainedEffects(itemstack)){
-            if (chosenEffect instanceof TagMultiplierEffect tagMultiplierEffect) {
-                List<TagMultiplierEffect> effects = new ArrayList<>(CraftorioMisc.getTagEffects(player));
-                effects.add(tagMultiplierEffect);
-                CraftorioMisc.setTagEffects(player,effects);
-            }
-            if (chosenEffect instanceof GeneralMultiplierEffect generalMultiplierEffect) {
-                List<GeneralMultiplierEffect> effects = new ArrayList<>(CraftorioMisc.getGeneralEffects(player));
-                effects.add(generalMultiplierEffect);
-                CraftorioMisc.setGeneralEffects(player,effects);
-            }
-            if (chosenEffect instanceof ShopMultiplierEffect shopMultiplierEffect) {
-                List<ShopMultiplierEffect> effects = new ArrayList<>(CraftorioMisc.getShopEffects(player));
-                effects.add(shopMultiplierEffect);
-                CraftorioMisc.setShopEffects(player,effects);
+        if (getContainedEffects(itemstack) != null) {
+            for (CraftorioEffects chosenEffect : getContainedEffects(itemstack)) {
+                if (chosenEffect instanceof TagMultiplierEffect tagMultiplierEffect) {
+                    List<TagMultiplierEffect> effects = new ArrayList<>(CraftorioMisc.getTagEffects(player));
+                    effects.add(tagMultiplierEffect);
+                    CraftorioMisc.setTagEffects(player, effects);
+                }
+                if (chosenEffect instanceof GeneralMultiplierEffect generalMultiplierEffect) {
+                    List<GeneralMultiplierEffect> effects = new ArrayList<>(CraftorioMisc.getGeneralEffects(player));
+                    effects.add(generalMultiplierEffect);
+                    CraftorioMisc.setGeneralEffects(player, effects);
+                }
+                if (chosenEffect instanceof ShopMultiplierEffect shopMultiplierEffect) {
+                    List<ShopMultiplierEffect> effects = new ArrayList<>(CraftorioMisc.getShopEffects(player));
+                    effects.add(shopMultiplierEffect);
+                    CraftorioMisc.setShopEffects(player, effects);
+                }
             }
         }
         if (!player.isCreative()) {
@@ -52,6 +54,8 @@ public class EffectItem extends Item {
 
     @Override
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
+        if (getContainedEffects(stack) == null)
+            return;
         for (CraftorioEffects chosenEffect : getContainedEffects(stack)) {
             ChatFormatting color = ChatFormatting.BLUE;
             if ((chosenEffect instanceof TagMultiplierEffect tagEffect && tagEffect.getMultiplier() < 0)

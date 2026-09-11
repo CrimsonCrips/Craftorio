@@ -18,7 +18,7 @@ public class CraftorioTagEffectBootstrap {
 
         context.register(
                 key("tag/copper_block_buff"),
-                new TagMultiplierEffect(100F, "registry.copper_block_buff", CraftorioItemTagGen.COPPER, 25, DEFAULT_ICON)
+                new TagMultiplierEffect(100F, "registry.copper_block_buff", CraftorioItemTagGen.COPPER, 25, DEFAULT_ICON, 1, false)
         );
 
     }
@@ -27,7 +27,7 @@ public class CraftorioTagEffectBootstrap {
 
         context.register(
                 key("tag/copper_block_debuff"),
-                new TagMultiplierEffect(-10F, "registry.copper_block_debuff", CraftorioItemTagGen.COPPER, 25, DEFAULT_ICON)
+                new TagMultiplierEffect(-10F, "registry.copper_block_debuff", CraftorioItemTagGen.COPPER, 25, DEFAULT_ICON, 1, false)
         );
     }
 

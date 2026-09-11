@@ -1,0 +1,28 @@
+{
+  "description": "registry.animal_feed.description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "itemBounty": [
+    {
+      "amountRequired": 2,
+      "contract_item": "minecraft:hay_block"
+    },
+    {
+      "amountRequired": 12,
+      "contract_item": "minecraft:potato"
+    },
+    {
+      "amountRequired": 6,
+      "contract_item": "minecraft:carrot"
+    }
+  ],
+  "itemRewards": [
+    {
+      "amountGiving": 1,
+      "rewardingItem": "minecraft:cake"
+    }
+  ],
+  "name": "registry.animal_feed.title",
+  "pointRewards": "300",
+  "seconds": 600,
+  "weight": 1
+}

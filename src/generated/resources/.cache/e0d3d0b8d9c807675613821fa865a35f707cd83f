@@ -1,5 +1,6 @@
-// 1.21.1	2026-09-10T10:17:32.283346219	Data Maps
+// 1.21.1	2026-09-11T18:43:04.936838069	Data Maps
+a984382fa2255d898e7540faafa0916d399cb310 data/craftorio/data_maps/advancement/advancement_multiplier_value.json
 9e81ebba3915a0f08ca037e874198d00151fa3f3 data/craftorio/data_maps/advancement/advancement_point_value.json
 a678f160f6d392da3cc1cdc1f461159c6fbaadd9 data/craftorio/data_maps/enchantment/enchantment_point_value.json
-4d4c18121db4796d7a514e4f2760d37312d45678 data/craftorio/data_maps/item/point_value.json
+d1066a5aa6b60d36d2e23d0f7dffbfd7dc77fae3 data/craftorio/data_maps/item/point_value.json
 7dd7c79677bf33d3fdb11174dc2168e15d839863 data/craftorio/data_maps/mob_effect/effect_point_value.json

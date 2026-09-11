@@ -25,7 +25,7 @@ public class ContractDetailsScreen extends Screen {
     private final CraftorioShipmentContract contract;
 
     public ContractDetailsScreen(Screen parent, CraftorioShipmentContract contract) {
-        super(Component.literal(contract.getName()));
+        super(Component.literal(contract.getActualName()));
         this.parent = parent;
         this.contract = contract;
     }
@@ -48,7 +48,7 @@ public class ContractDetailsScreen extends Screen {
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         super.render(graphics, mouseX, mouseY, partialTick);
 
-        graphics.drawCenteredString(this.font, this.contract.getName(), this.width / 2, 16, 0xFFFFFF);
+        graphics.drawCenteredString(this.font, this.contract.getActualName(), this.width / 2, 16, 0xFFFFFF);
 
         int leftColX = this.width / 4;
         int rightColX = this.width * 3 / 4;

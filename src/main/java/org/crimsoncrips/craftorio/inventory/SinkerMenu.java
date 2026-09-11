@@ -120,6 +120,7 @@ public class SinkerMenu extends AbstractContainerMenu {
 					sinkedItems.add(item);
 
 					pointsToGive = pointsToGive.add(CraftorioMisc.checkValue(item,player,false));
+					CraftorioMisc.recordItemSinked(player, item.getItem(), item.getCount());
 					slot.set(ItemStack.EMPTY);
 				}
 			}

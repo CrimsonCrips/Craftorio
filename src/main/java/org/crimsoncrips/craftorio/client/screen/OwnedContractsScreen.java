@@ -179,7 +179,7 @@ public class OwnedContractsScreen extends Screen {
             y = ICON_SIZE + ICON_GAP;
         }
 
-        for (var line : this.font.split(Component.literal(contract.getName()), wrapWidth)) {
+        for (var line : this.font.split(Component.literal(contract.getActualName()), wrapWidth)) {
             graphics.drawString(this.font, line, -this.font.width(line) / 2, (int) y, 0xFFFFFF, true);
             y += this.font.lineHeight;
         }
@@ -329,7 +329,7 @@ public class OwnedContractsScreen extends Screen {
             }
             this.minecraft.setScreen(this);
         }, Component.translatable("misc.craftorio.abandon_contract_title"),
-                Component.translatable("misc.craftorio.abandon_contract_message", contract.getName())));
+                Component.translatable("misc.craftorio.abandon_contract_message", contract.getActualName())));
     }
 
     @Override

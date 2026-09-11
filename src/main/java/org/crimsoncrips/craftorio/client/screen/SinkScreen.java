@@ -52,7 +52,7 @@ public class SinkScreen extends AbstractContainerScreen<SinkerMenu>{
 		for (int slot = 0; slot < this.menu.getRowCount() * 9; slot++) {
 			ItemStack stack = container.getItem(slot);
 			if (!stack.isEmpty()) {
-				total = total.add(CraftorioMisc.checkValue(stack, this.minecraft.player, false));
+				total = total.add(CraftorioMisc.checkValue(stack, this.minecraft.player, true));
 			}
 		}
 		return total;

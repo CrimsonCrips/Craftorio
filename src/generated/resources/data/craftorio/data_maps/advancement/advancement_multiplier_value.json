@@ -1,0 +1,26 @@
+{
+  "values": {
+    "minecraft:adventure/adventuring_time": "0.12",
+    "minecraft:adventure/kill_all_mobs": "0.15",
+    "minecraft:end/elytra": "0.1",
+    "minecraft:end/kill_dragon": "0.15",
+    "minecraft:husbandry/balanced_diet": "0.1",
+    "minecraft:husbandry/bred_all_animals": "0.08",
+    "minecraft:nether/all_effects": "0.1",
+    "minecraft:nether/all_potions": "0.08",
+    "minecraft:story/cure_zombie_villager": "0.06",
+    "minecraft:story/deflect_arrow": "0.03",
+    "minecraft:story/enchant_item": "0.05",
+    "minecraft:story/enter_the_end": "0.08",
+    "minecraft:story/enter_the_nether": "0.05",
+    "minecraft:story/follow_ender_eye": "0.06",
+    "minecraft:story/form_obsidian": "0.03",
+    "minecraft:story/iron_tools": "0.02",
+    "minecraft:story/lava_bucket": "0.02",
+    "minecraft:story/mine_diamond": "0.05",
+    "minecraft:story/mine_stone": "0.01",
+    "minecraft:story/obtain_armor": "0.02",
+    "minecraft:story/shiny_gear": "0.05",
+    "minecraft:story/smelt_iron": "0.01"
+  }
+}

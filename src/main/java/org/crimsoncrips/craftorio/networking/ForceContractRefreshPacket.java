@@ -28,6 +28,8 @@ public record ForceContractRefreshPacket() implements CustomPacketPayload {
             } else {
                 CraftorioMisc.setContractRefreshTime(serverPlayer, 0);
             }
+
+            org.crimsoncrips.craftorio.events.ServerEvents.requestInstantContractRefresh(serverPlayer);
         });
     }
 }

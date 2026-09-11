@@ -15,6 +15,7 @@ import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioGeneralEffe
 import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioShipmentBootstrap;
 import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioShopBootstrap;
 import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioTagEffectBootstrap;
+import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioUpgradeBootstrap;
 import org.crimsoncrips.craftorio.datagen.language.CraftLangGen;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioPointsDeterminer;
 import org.crimsoncrips.craftorio.datagen.recipe.CraftorioRecipeGenerator;
@@ -22,6 +23,7 @@ import org.crimsoncrips.craftorio.datagen.tags.CraftorioBlockTagGen;
 import org.crimsoncrips.craftorio.datagen.tags.CraftorioItemTagGen;
 import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
+import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
 
 import java.util.List;
 import java.util.Set;
@@ -54,7 +56,8 @@ public class CraftorioDatagen {
                     CraftorioShopBootstrap.buffBootstrap(context);
                     CraftorioShopBootstrap.debuffBootstrap(context);
                 })
-                .add(CraftorioShipmentContract.REGISTRY_KEY, CraftorioShipmentBootstrap::bootstrap);
+                .add(CraftorioShipmentContract.REGISTRY_KEY, CraftorioShipmentBootstrap::bootstrap)
+                .add(CraftorioUpgrade.REGISTRY_KEY, CraftorioUpgradeBootstrap::bootstrap);
 
         generator.addProvider(event.includeServer(),
                 new DatapackBuiltinEntriesProvider(output, provider, registryBuilder, Set.of(Craftorio.MODID)));

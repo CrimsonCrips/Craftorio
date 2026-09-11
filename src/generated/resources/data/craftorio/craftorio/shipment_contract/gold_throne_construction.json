@@ -1,0 +1,30 @@
+{
+  "description": "registry.gold_throne_construction.description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "itemBounty": [
+    {
+      "amountRequired": 28,
+      "contract_item": "minecraft:gold_block"
+    },
+    {
+      "amountRequired": 10,
+      "contract_item": "minecraft:candle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_carpet"
+    }
+  ],
+  "itemRewards": [
+    {
+      "amountGiving": 1,
+      "rewardingItem": "minecraft:diamond_block"
+    }
+  ],
+  "name": "registry.gold_throne_construction.title",
+  "pointRewards": "20000",
+  "point_threshold": "5000",
+  "punishment": "craftorio:shop/kingdom_tariff",
+  "seconds": 3600,
+  "weight": 1
+}

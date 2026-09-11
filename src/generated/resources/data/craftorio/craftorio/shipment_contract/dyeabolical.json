@@ -1,0 +1,81 @@
+{
+  "description": "registry.dyeabolical.description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "itemBounty": [
+    {
+      "amountRequired": 100,
+      "contract_item": "minecraft:white_dye"
+    },
+    {
+      "amountRequired": 100,
+      "contract_item": "minecraft:black_dye"
+    },
+    {
+      "amountRequired": 100,
+      "contract_item": "minecraft:blue_dye"
+    },
+    {
+      "amountRequired": 100,
+      "contract_item": "minecraft:brown_dye"
+    },
+    {
+      "amountRequired": 100,
+      "contract_item": "minecraft:cyan_dye"
+    },
+    {
+      "amountRequired": 100,
+      "contract_item": "minecraft:gray_dye"
+    },
+    {
+      "amountRequired": 100,
+      "contract_item": "minecraft:green_dye"
+    },
+    {
+      "amountRequired": 100,
+      "contract_item": "minecraft:light_blue_dye"
+    },
+    {
+      "amountRequired": 100,
+      "contract_item": "minecraft:light_gray_dye"
+    },
+    {
+      "amountRequired": 100,
+      "contract_item": "minecraft:lime_dye"
+    },
+    {
+      "amountRequired": 100,
+      "contract_item": "minecraft:magenta_dye"
+    },
+    {
+      "amountRequired": 100,
+      "contract_item": "minecraft:orange_dye"
+    },
+    {
+      "amountRequired": 100,
+      "contract_item": "minecraft:pink_dye"
+    },
+    {
+      "amountRequired": 100,
+      "contract_item": "minecraft:purple_dye"
+    },
+    {
+      "amountRequired": 100,
+      "contract_item": "minecraft:red_dye"
+    },
+    {
+      "amountRequired": 100,
+      "contract_item": "minecraft:yellow_dye"
+    }
+  ],
+  "itemRewards": [
+    {
+      "amountGiving": 20,
+      "rewardingItem": "minecraft:experience_bottle"
+    }
+  ],
+  "name": "registry.dyeabolical.title",
+  "pointRewards": "50000",
+  "point_threshold": "10000",
+  "seconds": 7200,
+  "weight": 1
+}

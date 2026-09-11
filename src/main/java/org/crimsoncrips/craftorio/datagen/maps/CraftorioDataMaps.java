@@ -52,6 +52,13 @@ public class CraftorioDataMaps {
             .synced(ExtraCodecs.NON_EMPTY_STRING, false)
             .build();
 
+    public static final DataMapType<Advancement, String> ADVANCEMENT_MULTIPLIER_VALUE = DataMapType.builder(
+                    ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "advancement_multiplier_value"),
+                    Registries.ADVANCEMENT,
+                    ExtraCodecs.NON_EMPTY_STRING)
+            .synced(ExtraCodecs.NON_EMPTY_STRING, false)
+            .build();
+
 
     public static void registerDataMaps(RegisterDataMapTypesEvent event) {
         event.register(POINT_VALUE);

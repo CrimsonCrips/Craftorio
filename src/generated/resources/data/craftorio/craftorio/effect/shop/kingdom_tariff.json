@@ -1,7 +1,9 @@
 {
   "type": "craftorio:shop_multiplier",
+  "ambient": false,
   "icon": "craftorio:textures/gui/default_contract_icon.png",
   "multiplier": -1.25,
-  "name": "registry.0_25_decrease",
-  "seconds": 25
+  "name": "registry.kingdom_tariff",
+  "seconds": 1200,
+  "weight": 0
 }

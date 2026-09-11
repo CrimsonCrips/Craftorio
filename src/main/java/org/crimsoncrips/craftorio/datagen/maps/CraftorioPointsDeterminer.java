@@ -38,6 +38,39 @@ public class CraftorioPointsDeterminer extends DataMapProvider {
         effectMap();
         enchantMap();
         advancementMap();
+        advancementMultiplierMap();
+    }
+
+    protected void advancementMultiplierMap() {
+        Builder<String, Advancement> multiplierValue = this.builder(CraftorioDataMaps.ADVANCEMENT_MULTIPLIER_VALUE);
+
+        addAdvancementMultiplier(multiplierValue, "story/mine_stone", 0.01);
+        addAdvancementMultiplier(multiplierValue, "story/smelt_iron", 0.01);
+        addAdvancementMultiplier(multiplierValue, "story/obtain_armor", 0.02);
+        addAdvancementMultiplier(multiplierValue, "story/lava_bucket", 0.02);
+        addAdvancementMultiplier(multiplierValue, "story/iron_tools", 0.02);
+        addAdvancementMultiplier(multiplierValue, "story/deflect_arrow", 0.03);
+        addAdvancementMultiplier(multiplierValue, "story/form_obsidian", 0.03);
+        addAdvancementMultiplier(multiplierValue, "story/mine_diamond", 0.05);
+        addAdvancementMultiplier(multiplierValue, "story/enter_the_nether", 0.05);
+        addAdvancementMultiplier(multiplierValue, "story/shiny_gear", 0.05);
+        addAdvancementMultiplier(multiplierValue, "story/enchant_item", 0.05);
+        addAdvancementMultiplier(multiplierValue, "story/cure_zombie_villager", 0.06);
+        addAdvancementMultiplier(multiplierValue, "story/follow_ender_eye", 0.06);
+        addAdvancementMultiplier(multiplierValue, "story/enter_the_end", 0.08);
+        addAdvancementMultiplier(multiplierValue, "end/kill_dragon", 0.15);
+        addAdvancementMultiplier(multiplierValue, "end/elytra", 0.1);
+        addAdvancementMultiplier(multiplierValue, "nether/all_effects", 0.1);
+        addAdvancementMultiplier(multiplierValue, "nether/all_potions", 0.08);
+        addAdvancementMultiplier(multiplierValue, "adventure/adventuring_time", 0.12);
+        addAdvancementMultiplier(multiplierValue, "adventure/kill_all_mobs", 0.15);
+        addAdvancementMultiplier(multiplierValue, "husbandry/balanced_diet", 0.1);
+        addAdvancementMultiplier(multiplierValue, "husbandry/bred_all_animals", 0.08);
+    }
+
+    private void addAdvancementMultiplier(Builder<String, Advancement> multiplierValue, String resourceLocation, double value) {
+        ResourceLocation advancementLocation = ResourceLocation.withDefaultNamespace(resourceLocation);
+        multiplierValue.add(advancementLocation, String.valueOf(value), false);
     }
 
     protected void advancementMap() {
@@ -608,7 +641,7 @@ public class CraftorioPointsDeterminer extends DataMapProvider {
         addItemValue(point_value,Items.RAW_GOLD_BLOCK.builtInRegistryHolder(),(gold - 2) * 4,0);
         addItemValue(point_value,Items.RAW_COPPER_BLOCK.builtInRegistryHolder(),(copper_ingot - 2) * 4,0);
 
-        int glowstone_dust = 12;
+        int glowstone_dust = 8;
         addItemValue(point_value,Items.GLOWSTONE_DUST.builtInRegistryHolder(),glowstone_dust,0);
         addItemValue(point_value,Items.GLOWSTONE.builtInRegistryHolder(),(glowstone_dust * 4),1);
 
@@ -1013,9 +1046,10 @@ public class CraftorioPointsDeterminer extends DataMapProvider {
         int bowl = planks * 3;
         addItemValue(point_value,Items.BOWL.builtInRegistryHolder(),bowl,1);
         addItemValue(point_value,Items.MUSHROOM_STEW.builtInRegistryHolder(),bowl + (mushrooms * 2),2);
-        addItemValue(point_value,Items.BEETROOT.builtInRegistryHolder(),bowl + (beetroot * 6),2);
+        addItemValue(point_value,Items.BEETROOT_SOUP.builtInRegistryHolder(),bowl + (beetroot * 6),2);
         addItemValue(point_value,Items.RABBIT_STEW.builtInRegistryHolder(),bowl + carrot + 16 + mushrooms + 14,2);
         addItemValue(point_value,Items.SUSPICIOUS_STEW.builtInRegistryHolder(),bowl + (mushrooms * 2) + 2,2);
+
 
         addItemValue(point_value,Items.OMINOUS_BOTTLE.builtInRegistryHolder(),70,0);
 

@@ -1,5 +1,7 @@
-// 1.21.1	2026-09-10T08:22:56.757508266	Recipes
+// 1.21.1	2026-09-10T21:49:23.689858659	Recipes
 0522172ae189055a5e1aa5a83c8c75cfe835f05e data/craftorio/advancement/recipes/misc/auto_sinker.json
 2f24ace49b24fc3ae9f51b248c16cc97b2200936 data/craftorio/advancement/recipes/misc/sinker.json
+862b257b517fe959cfaa9d5ec5f4adc708a204a8 data/craftorio/advancement/recipes/misc/value_condenser.json
 81a454ff37417cbb0d0a275eacba2dd0309200f6 data/craftorio/recipe/auto_sinker.json
 7a2b58802736a38e952f4ef437a2015e6b632d25 data/craftorio/recipe/sinker.json
+44b94ebe0bab150da251c21089dc19bcaace6114 data/craftorio/recipe/value_condenser.json

@@ -25,6 +25,10 @@ public class CraftorioServerConfig {
 
     public final ModConfigSpec.IntValue MAX_OFFERED_CONTRACTS;
     public final ModConfigSpec.IntValue CONTRACT_REFRESH_SECONDS;
+    public final ModConfigSpec.DoubleValue CONTRACT_REFRESH_COST_PERCENT;
+
+    public final ModConfigSpec.IntValue SINK_VALUE_BONUS_AMOUNT;
+    public final ModConfigSpec.IntValue SINK_VALUE_BONUS_THRESHOLD;
 
     public final ModConfigSpec.BooleanValue INSTANT_DEATH_OUTSIDE_CLAIM;
 
@@ -42,6 +46,9 @@ public class CraftorioServerConfig {
         this.SHOP_COST_MULTIPLIER = buildInt(builder, "SHOP_COST_MULTIPLIER", 10,1,Integer.MAX_VALUE, "Multiplier cost of buying items from shop");
         this.MAX_OFFERED_CONTRACTS = buildInt(builder, "MAX_OFFERED_CONTRACTS", 3,1,5, "Maximum number of shipment contracts offered at once on the contract offer screen");
         this.CONTRACT_REFRESH_SECONDS = buildInt(builder, "CONTRACT_REFRESH_SECONDS", 600, 1, Integer.MAX_VALUE, "Exact number of seconds between shipment contract offer refreshes");
+        this.CONTRACT_REFRESH_COST_PERCENT = buildDouble(builder, "CONTRACT_REFRESH_COST_PERCENT", 5.0, 0, 100, "Percent of a player's highest points charged to manually refresh the contract offer early");
+        this.SINK_VALUE_BONUS_AMOUNT = buildInt(builder, "SINK_VALUE_BONUS_AMOUNT", 100, 0, Integer.MAX_VALUE, "Bonus base value granted per SINK_VALUE_BONUS_THRESHOLD times an item has been sinked (requires the matching skill tree upgrade)");
+        this.SINK_VALUE_BONUS_THRESHOLD = buildInt(builder, "SINK_VALUE_BONUS_THRESHOLD", 100000, 1, Integer.MAX_VALUE, "Number of times an item must be sinked to grant one SINK_VALUE_BONUS_AMOUNT (requires the matching skill tree upgrade)");
         this.INSTANT_DEATH_OUTSIDE_CLAIM = buildBoolean(builder, "INSTANT_DEATH_OUTSIDE_CLAIM", false, "If true, being outside your claimed area (chunk based or border based) instantly kills you via a harmless explosion instead of dealing gradual damage");
 
         MIN_SPAWN_DISTANCE = builder.defineInRange("min_spawn_distance", 500.0, 0.0, 100000.0);

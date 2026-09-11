@@ -62,7 +62,9 @@ public class BorderExpandScreen extends Screen {
 		}
 		guiGraphics.drawString(this.font, Component.literal(String.valueOf(amountClaiming)), i + 7 + (-String.valueOf(amountClaiming).length() * 2), j + 5, 4210752, false);
 
-
+		long borderGrowth = amountClaiming * Craftorio.SERVER_CONFIG.EXPANSION_AMOUNT.getAsInt();
+		String growthText = Component.translatable("misc.craftorio.expand_border_growth", borderGrowth).getString();
+		guiGraphics.drawString(this.font, growthText, i - (growthText.length() * 2), j + 20, 4210752, false);
 	}
 
 

@@ -18,7 +18,7 @@ public class CraftorioShopBootstrap {
 
         context.register(
                 key("shop/0_25_increase"),
-                new ShopMultiplierEffect(1.25F, "registry.0_25_increase", 25, DEFAULT_ICON)
+                new ShopMultiplierEffect(1.25F, "registry.0_25_increase", 25, DEFAULT_ICON, 1, false)
         );
 
     }
@@ -26,8 +26,8 @@ public class CraftorioShopBootstrap {
     public static void debuffBootstrap(BootstrapContext<CraftorioEffects> context) {
 
         context.register(
-                key("shop/0_25_decrease"),
-                new ShopMultiplierEffect(-1.25F, "registry.0_25_decrease", 25, DEFAULT_ICON)
+                key("shop/kingdom_tariff"),
+                new ShopMultiplierEffect(-1.25F, "kingdom_tariff", 1200, DEFAULT_ICON, false)
         );
 
     }

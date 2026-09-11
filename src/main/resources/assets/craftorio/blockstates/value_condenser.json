@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "": {
+      "model": "craftorio:block/value_condenser"
+    }
+  }
+}

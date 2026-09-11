@@ -1,0 +1,33 @@
+{
+  "description": "registry.brewing_materials.description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "itemBounty": [
+    {
+      "amountRequired": 10,
+      "contract_item": "minecraft:blaze_rod"
+    },
+    {
+      "amountRequired": 5,
+      "contract_item": "minecraft:brewing_stand"
+    },
+    {
+      "amountRequired": 64,
+      "contract_item": "minecraft:glass_bottle"
+    },
+    {
+      "amountRequired": 12,
+      "contract_item": "minecraft:nether_wart"
+    }
+  ],
+  "itemRewards": [
+    {
+      "amountGiving": 5,
+      "rewardingItem": "minecraft:experience_bottle"
+    }
+  ],
+  "name": "registry.brewing_materials.title",
+  "pointRewards": "1000",
+  "point_threshold": "1000",
+  "seconds": 1200,
+  "weight": 1
+}

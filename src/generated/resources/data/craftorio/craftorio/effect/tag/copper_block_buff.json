@@ -1,5 +1,6 @@
 {
   "type": "craftorio:tag_multiplier",
+  "ambient": false,
   "icon": "craftorio:textures/gui/locked.png",
   "item_tag": "#craftorio:copper",
   "multiplier": 100.0,

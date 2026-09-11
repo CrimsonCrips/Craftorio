@@ -15,11 +15,14 @@ public class CraftLangGen extends CraftLangProvider {
 	protected void addTranslations() {
 		this.addBlock(CraftorioBlocks.SINKER,"Sinker");
 		this.addBlock(CraftorioBlocks.AUTO_SINKER,"Auto Sinker");
+		this.addBlock(CraftorioBlocks.VALUE_CONDENSER,"Value Condenser");
 		this.addMisc("claim_land", "Claim Land");
 
 		this.addMisc("sinker_button", "Sink Points");
+		this.addMisc("condense_button", "Condense Value");
 		this.addMisc("points_required", "Points Required");
 		this.addMisc("expand_border", "Expand Border");
+		this.addMisc("expand_border_growth", "Border Growth: %s");
 		this.addMisc("too_much_value", "Value exceeds Infinity!");
 		this.addMisc("advancement_value", "Points given for advancement : ");
 
@@ -48,10 +51,39 @@ public class CraftLangGen extends CraftLangProvider {
 		this.addMisc("points_suffix", " points");
 
 		this.addMisc("points_label", "Points : ");
+		this.addMisc("highest_points_label", "Highest Points Achieved: ");
 		this.addMisc("next_effect_in", "Next effect in: ");
 		this.addMisc("locked_suffix", " (Locked)");
 
 		this.addMisc("value_browser_title", "Item Values");
+		this.addMisc("sink_stats_title", "Craftorio Statistics");
+		this.addMisc("sink_stats_button", "Craftorio Statistics");
+
+		this.addMisc("skill_tree_title", "Craftorio Skill Tree");
+		this.addMisc("skill_tree_button", "Skill Tree");
+		this.addMisc("upgrade_cost_tooltip", "Cost: %s points");
+		this.addMisc("upgrade_locked_tooltip", "Requires the previous upgrade");
+		this.addMisc("upgrade_unlocked_tooltip", "Unlocked");
+
+		this.addMisc("upgrade_root", "Craftorio");
+		this.addMisc("upgrade_root_description", "The root of your Craftorio mastery.");
+		this.addMisc("upgrade_health_1", "Vitality I");
+		this.addMisc("upgrade_health_1_description", "+2 max health.");
+		this.addMisc("upgrade_health_2", "Vitality II");
+		this.addMisc("upgrade_health_2_description", "+3 max health.");
+		this.addMisc("upgrade_speed_1", "Swift Steps");
+		this.addMisc("upgrade_speed_1_description", "+0.02 movement speed.");
+		this.addMisc("upgrade_multiplier_1", "Point Mastery");
+		this.addMisc("upgrade_multiplier_1_description", "+0.1 to your Craftorio multiplier.");
+		this.addMisc("upgrade_item_value_1", "Appraisal");
+		this.addMisc("upgrade_item_value_1_description", "+5% base value of all items.");
+		this.addMisc("upgrade_contract_speed_1", "Swift Contracts");
+		this.addMisc("upgrade_contract_speed_1_description", "10% faster contract offer refreshes.");
+		this.addMisc("upgrade_effect_speed_1", "Swift Fortune");
+		this.addMisc("upgrade_effect_speed_1_description", "10% faster random effect rolls.");
+		this.addMisc("upgrade_damage_1", "Iron Fists");
+		this.addMisc("upgrade_damage_1_description", "+1 attack damage.");
+		this.addMisc("times_sinked_suffix", " - Sinked %s times");
 		this.addMisc("sorted_most_valuable", "Sorted: Most Valuable");
 		this.addMisc("sorted_most_valueless", "Sorted: Most Valueless");
 
@@ -65,7 +97,6 @@ public class CraftLangGen extends CraftLangProvider {
 		this.addMisc("format_worded", "Worded");
 
 		this.addMisc("contract_info", "Name:%s  Time:%s");
-		this.addMisc("starter_contract_description", "A basic shipment to get your operation started.");
 		this.addMisc("gave_points", "Gave %s points to %s");
 		this.addMisc("cannot_give_yourself_points", "You cannot give yourself points.");
 		this.addMisc("effect_timer_enabled", "Effect timer display enabled");
@@ -79,6 +110,8 @@ public class CraftLangGen extends CraftLangProvider {
 		this.addMisc("contract_reveal_title", "Shipment Contract");
 		this.addMisc("no_contracts", "You have no active contracts.");
 		this.addMisc("contract_time_remaining", "Time Remaining: %s");
+		this.addMisc("contract_threshold_not_met", "You do not meet the threshold for this contract.");
+		this.addMisc("contract_threshold_required", "Requires %s points.");
 		this.addMisc("contract_bounty", "Items Needed");
 		this.addMisc("contract_item_rewards", "Item Rewards");
 		this.addMisc("contract_point_reward", "Point Reward: %s");
@@ -100,6 +133,8 @@ public class CraftLangGen extends CraftLangProvider {
 		this.addMisc("new_contracts_toast", "New shipment contracts are available!");
 		this.addMisc("skip_claim_animation_label", "Skip Claim Animation: %s");
 		this.addMisc("force_contract_refresh_button", "Force Refresh (Creative)");
+		this.addMisc("refresh_contracts_button", "Refresh Contracts");
+		this.addMisc("refresh_contracts_tooltip", "Cost: %s points");
 		this.addMisc("contract_refresh_time_set", "Contract refresh time set to %s seconds");
 		this.addMisc("effect_timer_time_set", "Random effect timer set to %s seconds");
 
@@ -162,10 +197,19 @@ public class CraftLangGen extends CraftLangProvider {
 		this.addRegistryName("general_multiplier_neg_9", "-9 Multiplier");
 		this.addRegistryName("general_multiplier_neg_10", "-10 Multiplier");
 
-		this.addRegistryName("0_25_increase", "0.25 Increase");
-		this.addRegistryName("0_25_decrease", "0.25 Decrease");
 
-		this.addRegistryName("copper_block_buff", "Copper Block Buff");
-		this.addRegistryName("copper_block_debuff", "Copper Block Debuff");
+
+		this.addContractLang("gold_throne_construction", "Gold Throne Construction","A local king requires the materials for a gold throne");
+		this.addRegistryName("kingdom_tariff", "Kingdom's Tariff");
+
+		this.addContractLang("animal_feed", "Animal Feeds","Requesting some feeds for my animals, I'll bake a nice cake for anyone willing to fullfill");
+		this.addContractLang("brewing_materials", "Brewing Materials","Ran out of supplies for my brewing, Bring me some fresh equipment and materials");
+		this.addContractLang("dyeabolical", "Dyeabolical","I lIke cOLOrs, gIve cOlor!!!");
+		this.addContractLang("archery_shipment", "Archery Shipment","We've been attacked by a horde of zombies, we need to refresh our gear");
+		this.addContractLang("terraforming", "Terraforming","We need to excavate a cave for our underground base");
+		this.addContractLang("care_package", "Care Package","Need a care package for new players on my minecraft server");
+		this.addContractLang("cake_delivery", "Cake Delivery","Mom said I couldn't have cake, i want cake");
+
+
 	}
 }

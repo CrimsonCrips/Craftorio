@@ -1,0 +1,27 @@
+{
+  "description": "registry.archery_shipment.description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "itemBounty": [
+    {
+      "amountRequired": 6,
+      "contract_item": "minecraft:bow"
+    },
+    {
+      "amountRequired": 5,
+      "contract_item": "minecraft:crossbow"
+    },
+    {
+      "amountRequired": 384,
+      "contract_item": "minecraft:arrow"
+    },
+    {
+      "amountRequired": 192,
+      "contract_item": "minecraft:spectral_arrow"
+    }
+  ],
+  "name": "registry.archery_shipment.title",
+  "pointRewards": "300000",
+  "point_threshold": "20000",
+  "seconds": 3600,
+  "weight": 1
+}

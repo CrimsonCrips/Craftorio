@@ -1,0 +1,11 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:root",
+  "cost": "5000",
+  "description": "misc.craftorio.upgrade_multiplier_1_description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "name": "misc.craftorio.upgrade_multiplier_1",
+  "operation": "ADD",
+  "target": "MULTIPLIER",
+  "value": 0.1
+}

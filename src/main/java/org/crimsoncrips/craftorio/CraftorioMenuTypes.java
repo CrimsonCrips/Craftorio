@@ -7,6 +7,7 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.crimsoncrips.craftorio.inventory.AutoSinkerMenu;
 import org.crimsoncrips.craftorio.inventory.SinkerMenu;
+import org.crimsoncrips.craftorio.inventory.ValueCondenserMenu;
 
 public class CraftorioMenuTypes {
 
@@ -17,5 +18,8 @@ public class CraftorioMenuTypes {
 
 	public static final DeferredHolder<MenuType<?>, MenuType<AutoSinkerMenu>> AUTO_SINKER = CONTAINERS.register("auto_sinker_menu",
 		() -> new MenuType<>(AutoSinkerMenu::clientMenu, FeatureFlags.REGISTRY.allFlags()));
+
+	public static final DeferredHolder<MenuType<?>, MenuType<ValueCondenserMenu>> VALUE_CONDENSER = CONTAINERS.register("value_condenser_menu",
+		() -> new MenuType<>(ValueCondenserMenu::clientMenu, FeatureFlags.REGISTRY.allFlags()));
 
 }
