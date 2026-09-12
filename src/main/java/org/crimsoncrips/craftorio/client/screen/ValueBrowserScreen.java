@@ -17,6 +17,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 
 import java.math.BigInteger;
@@ -24,18 +25,26 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 @OnlyIn(Dist.CLIENT)
 public class ValueBrowserScreen extends CatalogScreen<Item> {
 
+    private static final ResourceLocation LOCKED_TEXTURE = Craftorio.getGuiTexture("locked.png");
+
     private static List<Item> baseCatalog;
     private static Map<Item, BigInteger> valueCache;
 
+    private final boolean allUnlocked;
+    private final Set<ResourceLocation> unlockedItems;
+
     private boolean sortByValuable = true;
 
-    public ValueBrowserScreen() {
+    public ValueBrowserScreen(boolean allUnlocked, Set<ResourceLocation> unlockedItems) {
         super(Component.translatable("misc.craftorio.value_browser_title"));
+        this.allUnlocked = allUnlocked;
+        this.unlockedItems = unlockedItems;
     }
 
     private static void ensureCatalogBuilt(Player player) {
@@ -104,10 +113,14 @@ public class ValueBrowserScreen extends CatalogScreen<Item> {
     private class ValueEntryButton extends AbstractButton {
 
         private final ItemStack displayStack;
+        private final ResourceLocation itemId;
+        private final boolean discovered;
 
         ValueEntryButton(int x, int y, Item item) {
             super(x, y, SLOT_SIZE, SLOT_SIZE, CommonComponents.EMPTY);
             this.displayStack = new ItemStack(item);
+            this.itemId = BuiltInRegistries.ITEM.getKey(item);
+            this.discovered = ValueBrowserScreen.this.allUnlocked || ValueBrowserScreen.this.unlockedItems.contains(this.itemId);
 
             BigInteger value = CraftorioMisc.checkValue(this.displayStack, ValueBrowserScreen.this.minecraft.player, false);
             this.setTooltip(Tooltip.create(CraftorioMisc.CraftorioTextEffects.capAwareLine(
@@ -127,6 +140,14 @@ public class ValueBrowserScreen extends CatalogScreen<Item> {
 
             guiGraphics.renderItem(this.displayStack, this.getX() + 1, this.getY() + 1);
             guiGraphics.renderItemDecorations(ValueBrowserScreen.this.font, this.displayStack, this.getX() + 1, this.getY() + 1);
+
+            if (!this.discovered) {
+                int lockSize = SLOT_SIZE - 10;
+                guiGraphics.pose().pushPose();
+                guiGraphics.pose().translate(0.0F, 0.0F, 200.0F);
+                guiGraphics.blit(LOCKED_TEXTURE, this.getX(), this.getY(), 0.0F, 0.0F, lockSize, lockSize, lockSize, lockSize);
+                guiGraphics.pose().popPose();
+            }
         }
 
         @Override

@@ -78,10 +78,11 @@ public class Craftorio {
         modEventBus.addListener(new PacketRegistration()::setupPackets);
         modEventBus.addListener(CraftorioDataMaps::registerDataMaps);
         modEventBus.addListener(CraftorioBlockEntityTypes::registerCapabilities);
+        modEventBus.addListener(CraftorioItems::addCreative);
         if (FMLEnvironment.dist.isClient()) {
             modEventBus.addListener(new ClientEvents()::registerScreens);
+            modEventBus.addListener(new ClientEvents()::registerBlockEntityRenderers);
             modEventBus.addListener(ClientEvents::showPoints);
-            modEventBus.addListener(ClientEvents::showActiveEffects);
             modEventBus.addListener(ClientEvents::showEffectTimer);
             modEventBus.addListener(ClientEvents::showToasts);
             NeoForge.EVENT_BUS.addListener(ClientEvents::renderBorders);
@@ -91,6 +92,7 @@ public class Craftorio {
             NeoForge.EVENT_BUS.addListener(CraftorioKeyMappings::onClientTick);
             NeoForge.EVENT_BUS.addListener(ClientEvents::tickUniversalProgressDisplay);
             NeoForge.EVENT_BUS.addListener(ClientEvents::addCraftorioStatsButton);
+            NeoForge.EVENT_BUS.addListener(ClientEvents::renderUndiscoveredItemLocks);
             ClientEvents.registerConfigScreen(modContainer);
 
             if (ModList.get().isLoaded("xaeroworldmap")) {

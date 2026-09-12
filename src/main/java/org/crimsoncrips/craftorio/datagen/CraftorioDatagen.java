@@ -17,7 +17,8 @@ import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioShopBootstr
 import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioTagEffectBootstrap;
 import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioUpgradeBootstrap;
 import org.crimsoncrips.craftorio.datagen.language.CraftLangGen;
-import org.crimsoncrips.craftorio.datagen.maps.CraftorioPointsDeterminer;
+import org.crimsoncrips.craftorio.datagen.maps.advancement_mult.CraftorioAdvancementMultDeterminer;
+import org.crimsoncrips.craftorio.datagen.maps.points.CraftorioPointsDeterminer;
 import org.crimsoncrips.craftorio.datagen.recipe.CraftorioRecipeGenerator;
 import org.crimsoncrips.craftorio.datagen.tags.CraftorioBlockTagGen;
 import org.crimsoncrips.craftorio.datagen.tags.CraftorioItemTagGen;

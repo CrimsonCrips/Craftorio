@@ -1,0 +1,24 @@
+{
+  "basePointValue": "300",
+  "description": "registry.cake_delivery.description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "itemBounty": [
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cake"
+    }
+  ],
+  "itemRewards": [
+    {
+      "amountGiving": 1,
+      "rewardingItem": {
+        "count": 1,
+        "id": "minecraft:gold_ingot"
+      }
+    }
+  ],
+  "max_point_threshold": "10000",
+  "name": "registry.cake_delivery.title",
+  "seconds": 120,
+  "weight": 1
+}

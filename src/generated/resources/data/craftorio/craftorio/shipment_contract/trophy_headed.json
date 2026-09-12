@@ -1,0 +1,46 @@
+{
+  "basePointValue": "1200",
+  "description": "registry.trophy_headed.description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "itemBounty": [
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:creeper_head"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:zombie_head"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:skeleton_skull"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:wither_skeleton_skull"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dragon_head"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:piglin_head"
+    }
+  ],
+  "itemRewards": [
+    {
+      "amountGiving": 1,
+      "rewardingItem": {
+        "count": 1,
+        "id": "craftorio:mystery_effect_rune"
+      }
+    }
+  ],
+  "max_point_threshold": "100000000000000000000000000000000000000000000000000",
+  "min_point_threshold": "40000",
+  "name": "registry.trophy_headed.title",
+  "point_threshold": "100000",
+  "seconds": 1200,
+  "weight": 1
+}

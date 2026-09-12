@@ -1,6 +1,6 @@
-// 1.21.1	2026-09-10T00:42:44.413362877	ACE Item Tags
+// 1.21.1	2026-09-12T19:13:21.642946545	ACE Item Tags
 446263a96f240d4e474e471d1cec197630f02b30 data/craftorio/tags/item/chiseled_copper.json
-085238f24aca214ce9eb3f57ab02370467990f33 data/craftorio/tags/item/copper.json
+ea6983347626cada3a790a3fedb56c5118122205 data/craftorio/tags/item/copper.json
 d7ac24837f69f46b52d2c7c893c9183a43abf559 data/craftorio/tags/item/copper_bulb.json
 eead159568467477b62e9f2314af15d122a3f48f data/craftorio/tags/item/copper_door.json
 41097dc822cc68e5b0e9530e54080fcd3d6f4ec2 data/craftorio/tags/item/copper_grate.json
@@ -13,4 +13,4 @@ eead159568467477b62e9f2314af15d122a3f48f data/craftorio/tags/item/copper_door.js
 fdf2efba0abe5b25f3d1e59b2a5282c9136cc7c8 data/craftorio/tags/item/dead_coral.json
 5aaf1599752a65d5be0cbbbed0a1b49a3e3a85e6 data/craftorio/tags/item/dead_coral_block.json
 0d91c860420e5c6d47e16f6376dad63806657b0b data/craftorio/tags/item/froglight.json
-8abb16965cccde95c2cde5a0890569a84447784d data/craftorio/tags/item/shop_blacklist.json
+3459b09fc3c96e4d5feec85b742de79860f9f41a data/craftorio/tags/item/shop_blacklist.json

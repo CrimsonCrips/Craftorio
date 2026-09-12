@@ -1,7 +1,11 @@
-// 1.21.1	2026-09-10T21:49:23.689858659	Recipes
+// 1.21.1	2026-09-12T16:13:09.31918926	Recipes
+d4bb1dd36a9fe2b5a6ab9734dbe9c06cc8373d36 data/craftorio/advancement/recipes/misc/area_scanner.json
 0522172ae189055a5e1aa5a83c8c75cfe835f05e data/craftorio/advancement/recipes/misc/auto_sinker.json
+d31241fc38bd24dfe34319a3f3d388ee3f3cd8f4 data/craftorio/advancement/recipes/misc/auto_value_condenser.json
 2f24ace49b24fc3ae9f51b248c16cc97b2200936 data/craftorio/advancement/recipes/misc/sinker.json
 862b257b517fe959cfaa9d5ec5f4adc708a204a8 data/craftorio/advancement/recipes/misc/value_condenser.json
+7cd802cf25f7a37a86450e0bd6ea0dce2be36a82 data/craftorio/recipe/area_scanner.json
 81a454ff37417cbb0d0a275eacba2dd0309200f6 data/craftorio/recipe/auto_sinker.json
+0b614bfe6dd6d0c0bb89033c389ab2737513cf5e data/craftorio/recipe/auto_value_condenser.json
 7a2b58802736a38e952f4ef437a2015e6b632d25 data/craftorio/recipe/sinker.json
 44b94ebe0bab150da251c21089dc19bcaace6114 data/craftorio/recipe/value_condenser.json

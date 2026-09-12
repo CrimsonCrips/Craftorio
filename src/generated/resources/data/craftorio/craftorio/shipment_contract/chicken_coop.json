@@ -1,0 +1,25 @@
+{
+  "basePointValue": "384",
+  "description": "registry.chicken_coop.description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "itemBounty": [
+    {
+      "amountRequired": 16,
+      "contract_item": "minecraft:egg"
+    },
+    {
+      "amountRequired": 32,
+      "contract_item": "minecraft:oak_log"
+    },
+    {
+      "amountRequired": 64,
+      "contract_item": "minecraft:wheat_seeds"
+    }
+  ],
+  "max_point_threshold": "400000",
+  "min_point_threshold": "1000",
+  "name": "registry.chicken_coop.title",
+  "point_threshold": "5000",
+  "seconds": 900,
+  "weight": 1
+}

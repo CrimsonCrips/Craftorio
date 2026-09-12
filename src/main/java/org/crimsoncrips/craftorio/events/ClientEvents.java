@@ -14,11 +14,15 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.achievement.StatsScreen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.Rect2i;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
+import net.minecraft.world.inventory.Slot;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.phys.Vec3;
@@ -33,18 +37,25 @@ import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMenuTypes;
 
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.client.ClientUnlockedItemsState;
 import org.crimsoncrips.craftorio.client.InfinityBurst;
+import org.crimsoncrips.craftorio.client.ItemDiscoveredPopup;
 import org.crimsoncrips.craftorio.client.PointsAnimation;
 import org.crimsoncrips.craftorio.client.PointsPopup;
+import org.crimsoncrips.craftorio.client.AreaScannerBlockEntityRenderer;
+import org.crimsoncrips.craftorio.client.screen.AreaScannerScreen;
 import org.crimsoncrips.craftorio.client.screen.AutoSinkerScreen;
+import org.crimsoncrips.craftorio.client.screen.AutoValueCondenserScreen;
 import org.crimsoncrips.craftorio.client.screen.ContractRevealScreen;
 import org.crimsoncrips.craftorio.client.screen.CraftorioConfigScreen;
 import org.crimsoncrips.craftorio.client.screen.CraftorioSinkStatsScreen;
 import org.crimsoncrips.craftorio.client.screen.ShopScreen;
 import org.crimsoncrips.craftorio.client.screen.SinkScreen;
+import org.crimsoncrips.craftorio.client.screen.ValueBrowserScreen;
 import org.crimsoncrips.craftorio.client.screen.ValueCondenserScreen;
 import org.crimsoncrips.craftorio.networking.OpenContractOfferScreenPacket;
 import org.crimsoncrips.craftorio.networking.OpenShopScreenPacket;
+import org.crimsoncrips.craftorio.networking.OpenValueBrowserScreenPacket;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
@@ -65,6 +76,13 @@ public class ClientEvents {
 		event.register(CraftorioMenuTypes.SINKER.get(), SinkScreen::new);
 		event.register(CraftorioMenuTypes.AUTO_SINKER.get(), AutoSinkerScreen::new);
 		event.register(CraftorioMenuTypes.VALUE_CONDENSER.get(), ValueCondenserScreen::new);
+		event.register(CraftorioMenuTypes.AUTO_VALUE_CONDENSER.get(), AutoValueCondenserScreen::new);
+		event.register(CraftorioMenuTypes.AREA_SCANNER.get(), AreaScannerScreen::new);
+	}
+
+	@SubscribeEvent
+	public void registerBlockEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
+		event.registerBlockEntityRenderer(org.crimsoncrips.craftorio.block.entity.CraftorioBlockEntityTypes.AREA_SCANNER.get(), AreaScannerBlockEntityRenderer::new);
 	}
 
 	public static void registerConfigScreen(ModContainer modContainer) {
@@ -74,6 +92,38 @@ public class ClientEvents {
 
 	public static void openShopScreen(OpenShopScreenPacket message) {
 		Minecraft.getInstance().setScreen(new ShopScreen(message.allUnlocked(), new HashSet<>(message.unlockedItems())));
+	}
+
+	public static void openValueBrowserScreen(OpenValueBrowserScreenPacket message) {
+		Minecraft.getInstance().setScreen(new ValueBrowserScreen(message.allUnlocked(), new HashSet<>(message.unlockedItems())));
+	}
+
+	private static final ResourceLocation UNDISCOVERED_LOCK_TEXTURE = Craftorio.getGuiTexture("locked.png");
+
+	public static void renderUndiscoveredItemLocks(ContainerScreenEvent.Render.Foreground event) {
+		if (!ClientUnlockedItemsState.isAvailable()) return;
+
+		AbstractContainerScreen<?> screen = event.getContainerScreen();
+		GuiGraphics graphics = event.getGuiGraphics();
+		int left = screen.getGuiLeft();
+		int top = screen.getGuiTop();
+		int lockSize = 8;
+
+		for (Slot slot : screen.getMenu().slots) {
+			ItemStack stack = slot.getItem();
+			if (stack.isEmpty()) continue;
+
+			ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+			if (ClientUnlockedItemsState.isUnlocked(id)) continue;
+
+			int x = left + slot.x;
+			int y = top + slot.y;
+
+			graphics.pose().pushPose();
+			graphics.pose().translate(0.0F, 0.0F, 200.0F);
+			graphics.blit(UNDISCOVERED_LOCK_TEXTURE, x, y, 0.0F, 0.0F, lockSize, lockSize, lockSize, lockSize);
+			graphics.pose().popPose();
+		}
 	}
 
 	public static void openContractOfferScreen(OpenContractOfferScreenPacket message) {
@@ -438,6 +488,7 @@ public class ClientEvents {
 
 		PointsPopup.render(graphics, font, pivotX, pivotY);
 		InfinityBurst.render(graphics, font, pivotX, pivotY);
+		ItemDiscoveredPopup.render(graphics, pivotX, pivotY);
 	}
 
 	public static void drawMaxPointsAtMeterPosition(GuiGraphics graphics) {
@@ -478,8 +529,6 @@ public class ClientEvents {
 	}
 
 
-	private static final ResourceLocation activeEffectsLayer = Craftorio.prefix("active_effects");
-
 	@SubscribeEvent
 	public static void tickUniversalProgressDisplay(ClientTickEvent.Post event) {
 		Minecraft minecraft = Minecraft.getInstance();
@@ -499,41 +548,11 @@ public class ClientEvents {
 		}
 	}
 
-	public static void displayActiveEffects(GuiGraphics graphics) {
-		Minecraft minecraft = Minecraft.getInstance();
-
-		if (minecraft.gui.getDebugOverlay().showDebugScreen())
-			return;
-		if (minecraft.player == null)
-			return;
-
-		List<CraftorioEffects> effects = CraftorioMisc.getCraftorioEffects(minecraft.player);
-		if (effects.isEmpty())
-			return;
-
-		Font font = minecraft.font;
-		int leftEdge = 4;
-		int y = 5;
-
-		for (CraftorioEffects effect : effects) {
-			String line = effect.getActualName() + " (" + CraftorioMisc.ticksToTimeString(effect.getTime()) + ")";
-			int color = activeEffectColor(effect);
-
-			graphics.drawString(font, line, leftEdge, y, color, true);
-			y += font.lineHeight + 2;
-		}
-	}
-
-	private static int activeEffectColor(CraftorioEffects effect) {
+	public static int activeEffectColor(CraftorioEffects effect) {
 		boolean negative = (effect instanceof TagMultiplierEffect tagEffect && tagEffect.getMultiplier() < 0)
 				|| (effect instanceof GeneralMultiplierEffect generalEffect && generalEffect.getMultiplier() < 0);
 		Integer color = (negative ? ChatFormatting.RED : ChatFormatting.BLUE).getColor();
 		return color != null ? color : 0xFFFFFF;
-	}
-
-	public static void showActiveEffects(RegisterGuiLayersEvent e) {
-		e.registerBelow(VanillaGuiLayers.EXPERIENCE_BAR, activeEffectsLayer,
-				(graphics, partialTicks) -> ClientEvents.displayActiveEffects(graphics));
 	}
 
 

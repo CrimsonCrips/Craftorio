@@ -15,6 +15,7 @@ import org.crimsoncrips.craftorio.client.ClientShopState;
 import org.crimsoncrips.craftorio.events.ClientEvents;
 import org.crimsoncrips.craftorio.networking.RequestContractOfferPacket;
 import org.crimsoncrips.craftorio.networking.RequestOpenShopPacket;
+import org.crimsoncrips.craftorio.networking.RequestOpenValueBrowserPacket;
 
 @OnlyIn(Dist.CLIENT)
 public class CraftorioHubScreen extends Screen {
@@ -22,7 +23,7 @@ public class CraftorioHubScreen extends Screen {
     private static final int BUTTON_WIDTH = 200;
     private static final int BUTTON_HEIGHT = 20;
     private static final int BUTTON_STRIDE = 24;
-    private static final int REGULAR_BUTTON_COUNT = 6;
+    private static final int REGULAR_BUTTON_COUNT = 7;
     private static final int DONE_EXTRA_GAP = 16;
     private static final int LIFT_OFFSET = 20;
 
@@ -55,7 +56,7 @@ public class CraftorioHubScreen extends Screen {
         }
         y += BUTTON_STRIDE;
 
-        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.value_browser_title"), b -> this.minecraft.setScreen(new ValueBrowserScreen()))
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.value_browser_title"), b -> PacketDistributor.sendToServer(new RequestOpenValueBrowserPacket()))
                 .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
         y += BUTTON_STRIDE;
 
@@ -72,6 +73,10 @@ public class CraftorioHubScreen extends Screen {
         y += BUTTON_STRIDE;
 
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.skill_tree_button"), b -> this.minecraft.setScreen(new CraftorioSkillTreeScreen()))
+                .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
+        y += BUTTON_STRIDE;
+
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.active_effects_button"), b -> this.minecraft.setScreen(new ActiveEffectsScreen(this)))
                 .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
         y += BUTTON_STRIDE + DONE_EXTRA_GAP;
 

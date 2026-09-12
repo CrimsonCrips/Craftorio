@@ -1,0 +1,34 @@
+{
+  "basePointValue": "135000",
+  "description": "registry.copernicium.description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "itemBounty": [
+    {
+      "amountRequired": 1000,
+      "contract_tag": "#craftorio:copper"
+    }
+  ],
+  "itemRewards": [
+    {
+      "amountGiving": 3,
+      "rewardingItem": {
+        "count": 1,
+        "id": "craftorio:mystery_effect_rune"
+      }
+    },
+    {
+      "amountGiving": 1,
+      "rewardingItem": {
+        "count": 1,
+        "id": "craftorio:effect_rune"
+      }
+    }
+  ],
+  "max_point_threshold": "1000000000000000",
+  "min_point_threshold": "70000",
+  "name": "registry.copernicium.title",
+  "point_threshold": "300000",
+  "punishment": "craftorio:tag/copper_deficiency",
+  "seconds": 6000,
+  "weight": 1
+}

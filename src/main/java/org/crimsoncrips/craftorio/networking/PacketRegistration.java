@@ -22,14 +22,22 @@ public class PacketRegistration {
         registrar.playToServer(RefreshContractOfferPacket.TYPE, RefreshContractOfferPacket.STREAM_CODEC, RefreshContractOfferPacket::handle);
         registrar.playToServer(UnlockUpgradePacket.TYPE, UnlockUpgradePacket.STREAM_CODEC, UnlockUpgradePacket::handle);
         registrar.playToServer(SetAutoSinkerThresholdPacket.TYPE, SetAutoSinkerThresholdPacket.STREAM_CODEC, SetAutoSinkerThresholdPacket::handle);
+        registrar.playToServer(SetAutoSinkerOwnerPacket.TYPE, SetAutoSinkerOwnerPacket.STREAM_CODEC, SetAutoSinkerOwnerPacket::handle);
+        registrar.playToServer(ScanAreaPacket.TYPE, ScanAreaPacket.STREAM_CODEC, ScanAreaPacket::handle);
+        registrar.playToServer(SetAreaScannerRegionPacket.TYPE, SetAreaScannerRegionPacket.STREAM_CODEC, SetAreaScannerRegionPacket::handle);
         registrar.playToServer(CondenseValuePacket.TYPE, CondenseValuePacket.STREAM_CODEC, CondenseValuePacket::handle);
+        registrar.playToServer(RequestOpenValueBrowserPacket.TYPE, RequestOpenValueBrowserPacket.STREAM_CODEC, RequestOpenValueBrowserPacket::handle);
 
         registrar.playToClient(OpenShopScreenPacket.TYPE, OpenShopScreenPacket.STREAM_CODEC, OpenShopScreenPacket::handle);
+        registrar.playToClient(OpenValueBrowserScreenPacket.TYPE, OpenValueBrowserScreenPacket.STREAM_CODEC, OpenValueBrowserScreenPacket::handle);
+        registrar.playToClient(ItemDiscoveredPacket.TYPE, ItemDiscoveredPacket.STREAM_CODEC, ItemDiscoveredPacket::handle);
+        registrar.playToClient(UnlockedItemsSyncPacket.TYPE, UnlockedItemsSyncPacket.STREAM_CODEC, UnlockedItemsSyncPacket::handle);
         registrar.playToClient(EffectTimerPacket.TYPE, EffectTimerPacket.STREAM_CODEC, EffectTimerPacket::handle);
         registrar.playToClient(OpenContractOfferScreenPacket.TYPE, OpenContractOfferScreenPacket.STREAM_CODEC, OpenContractOfferScreenPacket::handle);
         registrar.playToClient(PunishmentToastPacket.TYPE, PunishmentToastPacket.STREAM_CODEC, PunishmentToastPacket::handle);
         registrar.playToClient(WelcomeToastPacket.TYPE, WelcomeToastPacket.STREAM_CODEC, WelcomeToastPacket::handle);
         registrar.playToClient(ContractOfferStatusPacket.TYPE, ContractOfferStatusPacket.STREAM_CODEC, ContractOfferStatusPacket::handle);
         registrar.playToClient(ShopStatusPacket.TYPE, ShopStatusPacket.STREAM_CODEC, ShopStatusPacket::handle);
+        registrar.playToClient(UniversalStateSyncPacket.TYPE, UniversalStateSyncPacket.STREAM_CODEC, UniversalStateSyncPacket::handle);
     }
 }

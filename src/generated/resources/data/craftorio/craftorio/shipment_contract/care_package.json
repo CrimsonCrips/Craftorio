@@ -1,4 +1,5 @@
 {
+  "basePointValue": "1200",
   "description": "registry.care_package.description",
   "icon": "craftorio:textures/gui/default_contract_icon.png",
   "itemBounty": [
@@ -27,8 +28,8 @@
       "contract_item": "minecraft:bread"
     }
   ],
+  "max_point_threshold": "200000",
   "name": "registry.care_package.title",
-  "pointRewards": "5000",
   "seconds": 500,
   "weight": 1
 }

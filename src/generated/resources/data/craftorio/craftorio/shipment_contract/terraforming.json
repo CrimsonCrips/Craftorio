@@ -1,4 +1,5 @@
 {
+  "basePointValue": "20000",
   "description": "registry.terraforming.description",
   "icon": "craftorio:textures/gui/default_contract_icon.png",
   "itemBounty": [
@@ -11,9 +12,9 @@
       "contract_item": "minecraft:diamond_pickaxe"
     }
   ],
+  "max_point_threshold": "200000000",
   "name": "registry.terraforming.title",
-  "pointRewards": "900000",
-  "point_threshold": "60000",
+  "point_threshold": "10000",
   "seconds": 3600,
   "weight": 1
 }

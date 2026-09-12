@@ -13,7 +13,7 @@ public class CraftorioLootModifiers {
     public static final DeferredRegister<MapCodec<? extends IGlobalLootModifier>> MODIFIERS =
             DeferredRegister.create(NeoForgeRegistries.Keys.GLOBAL_LOOT_MODIFIER_SERIALIZERS, Craftorio.MODID);
 
-    public static final Supplier<MapCodec<CraftorioEffectLootModifier>> EFFECT_ITEM_LOOT =
-            MODIFIERS.register("effect_item_loot", () -> CraftorioEffectLootModifier.MAP_CODEC);
+    public static final Supplier<MapCodec<CraftorioEffectLootModifier>> EFFECT_RUNE_LOOT =
+            MODIFIERS.register("effect_rune_loot", () -> CraftorioEffectLootModifier.MAP_CODEC);
 
 }

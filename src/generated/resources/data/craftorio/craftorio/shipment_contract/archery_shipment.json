@@ -1,4 +1,5 @@
 {
+  "basePointValue": "7500",
   "description": "registry.archery_shipment.description",
   "icon": "craftorio:textures/gui/default_contract_icon.png",
   "itemBounty": [
@@ -19,8 +20,8 @@
       "contract_item": "minecraft:spectral_arrow"
     }
   ],
+  "max_point_threshold": "90000000",
   "name": "registry.archery_shipment.title",
-  "pointRewards": "300000",
   "point_threshold": "20000",
   "seconds": 3600,
   "weight": 1

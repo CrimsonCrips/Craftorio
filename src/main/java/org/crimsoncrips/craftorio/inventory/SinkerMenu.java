@@ -119,7 +119,7 @@ public class SinkerMenu extends AbstractContainerMenu {
 				if (!item.isEmpty() && !level.isClientSide()){
 					sinkedItems.add(item);
 
-					pointsToGive = pointsToGive.add(CraftorioMisc.checkValue(item,player,false));
+					pointsToGive = pointsToGive.add(CraftorioMisc.checkValue(item,player,true));
 					CraftorioMisc.recordItemSinked(player, item.getItem(), item.getCount());
 					slot.set(ItemStack.EMPTY);
 				}

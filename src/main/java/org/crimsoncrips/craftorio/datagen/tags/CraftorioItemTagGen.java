@@ -12,6 +12,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.crimsoncrips.craftorio.Craftorio;
+import org.crimsoncrips.craftorio.item.CraftorioItems;
 
 
 import java.util.concurrent.CompletableFuture;
@@ -63,7 +64,13 @@ public class CraftorioItemTagGen extends ItemTagsProvider {
 				Items.KNOWLEDGE_BOOK,
 				Items.PETRIFIED_OAK_SLAB,
 				Items.END_PORTAL_FRAME,
-				Items.DRAGON_EGG
+				Items.DRAGON_EGG,
+				Items.POTION,
+				Items.TIPPED_ARROW,
+				Items.ENCHANTED_BOOK,
+				CraftorioItems.EFFECT_RUNE.get(),
+				CraftorioItems.MYSTERY_EFFECT_RUNE.get(),
+				Items.WRITTEN_BOOK
 		);
 
 		tag(FROGLIGHT).add(
@@ -123,7 +130,12 @@ public class CraftorioItemTagGen extends ItemTagsProvider {
 				Blocks.WAXED_COPPER_BLOCK.asItem(),
 				Blocks.WAXED_EXPOSED_COPPER.asItem(),
 				Blocks.WAXED_WEATHERED_COPPER.asItem(),
-				Blocks.WAXED_OXIDIZED_COPPER.asItem()
+				Blocks.WAXED_OXIDIZED_COPPER.asItem(),
+				Items.COPPER_INGOT,
+				Blocks.COPPER_ORE.asItem(),
+				Blocks.DEEPSLATE_COPPER_ORE.asItem(),
+				Items.RAW_COPPER,
+				Blocks.RAW_COPPER_BLOCK.asItem()
 		);
 
 

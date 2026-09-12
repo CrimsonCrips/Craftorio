@@ -74,12 +74,13 @@ public class ServerEvents {
             return;
 
         String pointValue = CraftorioMisc.bigIntFormat(CraftorioMisc.checkValue(itemTooltipEvent.getItemStack(), itemTooltipEvent.getEntity(),true), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
-        String unmultipliedValue = CraftorioMisc.bigIntFormat(CraftorioMisc.checkValue(itemTooltipEvent.getItemStack(), itemTooltipEvent.getEntity(),false), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
-        float multiplierValue = CraftorioMisc.itemMultiplierValue(itemTooltipEvent.getEntity(),itemTooltipEvent.getItemStack());
+        BigInteger unmultipliedBigInt = CraftorioMisc.checkValue(itemTooltipEvent.getItemStack(), itemTooltipEvent.getEntity(),false);
+        String unmultipliedValue = CraftorioMisc.bigIntFormat(unmultipliedBigInt, Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
+        float multiplierValue = CraftorioMisc.overallMultiplierValue(itemTooltipEvent.getEntity(),itemTooltipEvent.getItemStack(), unmultipliedBigInt);
 
         String multiplierText = "";
         if (multiplierValue != 0){
-            multiplierText = " (" + unmultipliedValue + " * " + multiplierValue + ")";
+            multiplierText = " (" + unmultipliedValue + " * " + (multiplierValue + 1) + "x)";
         }
 
         String cappedText = CraftorioMisc.bigIntFormat(CraftorioMisc.pointThreshold(), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
@@ -135,6 +136,8 @@ public class ServerEvents {
             } catch (Exception e) {
                 Craftorio.LOGGER.error("Failed to sync level attachments to {} on dimension change", serverPlayer.getGameProfile().getName(), e);
             }
+
+            syncUniversalState(serverPlayer);
         }
     }
 
@@ -147,11 +150,12 @@ public class ServerEvents {
         if (!player.getData(GIVEN)) {
             player.addItem(CraftorioBlocks.SINKER.get().asItem().getDefaultInstance());
 
-            boolean sharedProgressAlreadyStarted = CraftorioMisc.universalBased(level) && level.getData(UNIVERSAL_PROGRESS_STARTED);
+            Level universalLevel = CraftorioMisc.universalLevel(player);
+            boolean sharedProgressAlreadyStarted = CraftorioMisc.universalBased(level) && universalLevel.getData(UNIVERSAL_PROGRESS_STARTED);
             if (!sharedProgressAlreadyStarted) {
                 CraftorioMisc.setPoints(CraftorioMisc.startingValue(), player);
                 if (CraftorioMisc.universalBased(level)) {
-                    level.setData(UNIVERSAL_PROGRESS_STARTED, true);
+                    universalLevel.setData(UNIVERSAL_PROGRESS_STARTED, true);
                 }
             }
 
@@ -218,6 +222,40 @@ public class ServerEvents {
                     upgrade.onUnlock(serverPlayer, upgradeId);
                 }
             }
+
+            syncUniversalState(serverPlayer);
+
+            PacketDistributor.sendToPlayer(serverPlayer, new org.crimsoncrips.craftorio.networking.UnlockedItemsSyncPacket(
+                    new ArrayList<>(Craftorio.UNLOCKED_ITEMS.getUnlocked(serverPlayer))));
+        }
+    }
+
+    private void syncUniversalState(ServerPlayer player) {
+        if (!CraftorioMisc.universalBased(CraftorioMisc.universalLevel(player))) return;
+
+        PacketDistributor.sendToPlayer(player, new org.crimsoncrips.craftorio.networking.UniversalStateSyncPacket(
+                CraftorioMisc.getPoints(player),
+                CraftorioMisc.getHighestPoints(player),
+                CraftorioMisc.getTempPoints(player),
+                CraftorioMisc.getLandAmount(player),
+                CraftorioMisc.getUnlockedUpgrades(player),
+                CraftorioMisc.getGeneralEffects(player),
+                CraftorioMisc.getTagEffects(player),
+                CraftorioMisc.getShopEffects(player),
+                CraftorioMisc.getAdvancementMultiplierBonus(player),
+                CraftorioMisc.getCraftorioContracts(player),
+                CraftorioMisc.getCraftorioBorders(player)
+        ));
+    }
+
+    @SubscribeEvent
+    public void universalStateSyncTick(ServerTickEvent.Post event) {
+        ServerLevel overworld = event.getServer().overworld();
+        if (!CraftorioMisc.universalBased(overworld)) return;
+        if (overworld.getGameTime() % 20 != 0) return;
+
+        for (ServerPlayer player : event.getServer().getPlayerList().getPlayers()) {
+            syncUniversalState(player);
         }
     }
 
@@ -280,7 +318,7 @@ public class ServerEvents {
         BigInteger pointsOwned = CraftorioMisc.getPoints(player);
         CraftorioMisc.setPoints(pointsOwned.add(value),player);
 
-        if (CraftorioMisc.hasModifierGateUnlocked(player, org.crimsoncrips.craftorio.skill_tree.ModifierTarget.ADVANCEMENT_MULTIPLIER_UNLOCK)) {
+        if (CraftorioMisc.hasUnlockedUpgrade(player, Craftorio.prefix("advancement_multiplier"))) {
             double multiplierBonus = CraftorioAdvancementMultipliers.getMultiplier(id.toString());
             CraftorioMisc.addAdvancementMultiplierBonus(player, multiplierBonus);
         }
@@ -366,100 +404,121 @@ public class ServerEvents {
     public void randomEffectTick(ServerTickEvent.Post event) {
         if (!Craftorio.SERVER_CONFIG.RANDOM_EFFECTS_ENABLED.getAsBoolean()) return;
 
-        for (ServerLevel level : event.getServer().getAllLevels()) {
-            if (CraftorioMisc.universalBased(level)) {
-                int timeUntilNextEffect = CraftorioMisc.getRandomEffectTime(level) - 1;
+        ServerLevel overworld = event.getServer().overworld();
+        if (CraftorioMisc.universalBased(overworld)) {
+            tickUniversalRandomEffect(event.getServer(), overworld);
+        }
 
-                if (!effectTimerViewers.isEmpty() && level.getGameTime() % 20 == 0) {
-                    for (ServerPlayer player : level.players()) {
-                        if (effectTimerViewers.contains(player.getUUID())) {
-                            PacketDistributor.sendToPlayer(player, new EffectTimerPacket(true, Math.max(timeUntilNextEffect, 0)));
-                        }
-                    }
+        for (ServerLevel level : event.getServer().getAllLevels()) {
+            if (CraftorioMisc.universalBased(level)) continue;
+
+            for (ServerPlayer player : level.players()) {
+                int timeUntilNextEffect = CraftorioMisc.getRandomEffectTime(player) - 1;
+
+                if (level.getGameTime() % 20 == 0 && effectTimerViewers.contains(player.getUUID())) {
+                    PacketDistributor.sendToPlayer(player, new EffectTimerPacket(true, Math.max(timeUntilNextEffect, 0)));
                 }
 
                 if (timeUntilNextEffect > 0) {
-                    CraftorioMisc.setRandomEffectTime(level, timeUntilNextEffect);
+                    CraftorioMisc.setRandomEffectTime(player, timeUntilNextEffect);
                     continue;
                 }
 
-                List<ServerPlayer> players = level.players();
-                if (!players.isEmpty()) {
-                    CraftorioEffects rolledEffect = CraftorioMisc.getRandomAmbientEffect(level.registryAccess(), level.random);
-                    CraftorioMisc.grantEffect(players.get(0), rolledEffect.copy());
-                }
+                double betterEffectChance = CraftorioMisc.getUpgradeModifierSum(player, org.crimsoncrips.craftorio.skill_tree.ModifierTarget.BETTER_EFFECT_CHANCE, org.crimsoncrips.craftorio.skill_tree.UpgradeOperation.ADD);
+                CraftorioEffects rolledEffect = CraftorioMisc.getRandomAmbientEffect(level.registryAccess(), player.getRandom(), betterEffectChance);
+                CraftorioMisc.grantEffect(player, rolledEffect.copy());
 
-                int effectInterval = players.isEmpty() ? Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get()
-                        : CraftorioMisc.applySpeedUpgrade(players.get(0), org.crimsoncrips.craftorio.skill_tree.ModifierTarget.EFFECT_TIMER_SPEED, Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get());
-                CraftorioMisc.setRandomEffectTime(level, effectInterval);
-            } else {
-                for (ServerPlayer player : level.players()) {
-                    int timeUntilNextEffect = CraftorioMisc.getRandomEffectTime(player) - 1;
-
-                    if (level.getGameTime() % 20 == 0 && effectTimerViewers.contains(player.getUUID())) {
-                        PacketDistributor.sendToPlayer(player, new EffectTimerPacket(true, Math.max(timeUntilNextEffect, 0)));
-                    }
-
-                    if (timeUntilNextEffect > 0) {
-                        CraftorioMisc.setRandomEffectTime(player, timeUntilNextEffect);
-                        continue;
-                    }
-
-                    CraftorioEffects rolledEffect = CraftorioMisc.getRandomAmbientEffect(level.registryAccess(), player.getRandom());
-                    CraftorioMisc.grantEffect(player, rolledEffect.copy());
-
-                    int effectInterval = CraftorioMisc.applySpeedUpgrade(player, org.crimsoncrips.craftorio.skill_tree.ModifierTarget.EFFECT_TIMER_SPEED, Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get());
-                    CraftorioMisc.setRandomEffectTime(player, effectInterval);
-                }
+                int effectInterval = CraftorioMisc.applySpeedUpgrade(player, org.crimsoncrips.craftorio.skill_tree.ModifierTarget.EFFECT_TIMER_SPEED, Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get());
+                CraftorioMisc.setRandomEffectTime(player, effectInterval);
             }
         }
     }
 
+    private void tickUniversalRandomEffect(net.minecraft.server.MinecraftServer server, ServerLevel overworld) {
+        int timeUntilNextEffect = CraftorioMisc.getRandomEffectTime(overworld) - 1;
+        List<ServerPlayer> allPlayers = server.getPlayerList().getPlayers();
+
+        if (!effectTimerViewers.isEmpty() && overworld.getGameTime() % 20 == 0) {
+            for (ServerPlayer player : allPlayers) {
+                if (effectTimerViewers.contains(player.getUUID())) {
+                    PacketDistributor.sendToPlayer(player, new EffectTimerPacket(true, Math.max(timeUntilNextEffect, 0)));
+                }
+            }
+        }
+
+        if (timeUntilNextEffect > 0) {
+            CraftorioMisc.setRandomEffectTime(overworld, timeUntilNextEffect);
+            return;
+        }
+
+        if (!allPlayers.isEmpty()) {
+            double betterEffectChance = CraftorioMisc.getUpgradeModifierSum(allPlayers.get(0), org.crimsoncrips.craftorio.skill_tree.ModifierTarget.BETTER_EFFECT_CHANCE, org.crimsoncrips.craftorio.skill_tree.UpgradeOperation.ADD);
+            CraftorioEffects rolledEffect = CraftorioMisc.getRandomAmbientEffect(overworld.registryAccess(), overworld.random, betterEffectChance);
+            CraftorioMisc.grantEffect(allPlayers.get(0), rolledEffect.copy());
+        }
+
+        int effectInterval = allPlayers.isEmpty() ? Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get()
+                : CraftorioMisc.applySpeedUpgrade(allPlayers.get(0), org.crimsoncrips.craftorio.skill_tree.ModifierTarget.EFFECT_TIMER_SPEED, Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get());
+        CraftorioMisc.setRandomEffectTime(overworld, effectInterval);
+    }
+
     @SubscribeEvent
     public void contractOfferTick(ServerTickEvent.Post event) {
-        for (ServerLevel level : event.getServer().getAllLevels()) {
-            int baseRefreshTicks = Craftorio.SERVER_CONFIG.CONTRACT_REFRESH_SECONDS.get() * CraftorioMisc.SECONDS_TO_TICKS;
+        int baseRefreshTicks = Craftorio.SERVER_CONFIG.CONTRACT_REFRESH_SECONDS.get() * CraftorioMisc.SECONDS_TO_TICKS;
 
-            if (CraftorioMisc.universalBased(level)) {
-                int timeUntilRefresh = CraftorioMisc.getContractRefreshTime(level) - 1;
+        ServerLevel overworld = event.getServer().overworld();
+        if (CraftorioMisc.universalBased(overworld)) {
+            tickUniversalContractOffer(event.getServer(), overworld, baseRefreshTicks);
+        }
+
+        for (ServerLevel level : event.getServer().getAllLevels()) {
+            if (CraftorioMisc.universalBased(level)) continue;
+
+            for (ServerPlayer player : level.players()) {
+                int timeUntilRefresh = CraftorioMisc.getContractRefreshTime(player) - 1;
 
                 if (timeUntilRefresh > 0) {
-                    CraftorioMisc.setContractRefreshTime(level, timeUntilRefresh);
+                    CraftorioMisc.setContractRefreshTime(player, timeUntilRefresh);
                     continue;
                 }
 
-                BigInteger levelHighestPoints = level.players().isEmpty() ? BigInteger.ZERO
-                        : CraftorioMisc.getHighestPoints(level.players().get(0));
-                List<ResourceLocation> offer = CraftorioMisc.rollContractOffer(level.registryAccess(), level.random, levelHighestPoints);
-                level.setData(CraftorioDataAttachments.CONTRACT_OFFER, offer);
-                level.setData(CraftorioDataAttachments.CONTRACT_OFFER_CLAIMED, false);
+                double betterContractChance = CraftorioMisc.getUpgradeModifierSum(player, org.crimsoncrips.craftorio.skill_tree.ModifierTarget.BETTER_CONTRACT_CHANCE, org.crimsoncrips.craftorio.skill_tree.UpgradeOperation.ADD);
+                List<ResourceLocation> offer = CraftorioMisc.rollContractOffer(player.registryAccess(), player.getRandom(), CraftorioMisc.getHighestPoints(player), betterContractChance);
+                player.setData(CraftorioDataAttachments.CONTRACT_OFFER, offer);
+                player.setData(CraftorioDataAttachments.CONTRACT_OFFER_CLAIMED, false);
 
-                int refreshTicks = level.players().isEmpty() ? baseRefreshTicks
-                        : CraftorioMisc.applySpeedUpgrade(level.players().get(0), org.crimsoncrips.craftorio.skill_tree.ModifierTarget.CONTRACT_REFRESH_SPEED, baseRefreshTicks);
-                CraftorioMisc.setContractRefreshTime(level, refreshTicks);
+                int refreshTicks = CraftorioMisc.applySpeedUpgrade(player, org.crimsoncrips.craftorio.skill_tree.ModifierTarget.CONTRACT_REFRESH_SPEED, baseRefreshTicks);
+                CraftorioMisc.setContractRefreshTime(player, refreshTicks);
 
-                for (ServerPlayer player : level.players()) {
-                    notifyNewContracts(player, offer, refreshTicks);
-                }
-            } else {
-                for (ServerPlayer player : level.players()) {
-                    int timeUntilRefresh = CraftorioMisc.getContractRefreshTime(player) - 1;
-
-                    if (timeUntilRefresh > 0) {
-                        CraftorioMisc.setContractRefreshTime(player, timeUntilRefresh);
-                        continue;
-                    }
-
-                    List<ResourceLocation> offer = CraftorioMisc.rollContractOffer(player.registryAccess(), player.getRandom(), CraftorioMisc.getHighestPoints(player));
-                    player.setData(CraftorioDataAttachments.CONTRACT_OFFER, offer);
-                    player.setData(CraftorioDataAttachments.CONTRACT_OFFER_CLAIMED, false);
-
-                    int refreshTicks = CraftorioMisc.applySpeedUpgrade(player, org.crimsoncrips.craftorio.skill_tree.ModifierTarget.CONTRACT_REFRESH_SPEED, baseRefreshTicks);
-                    CraftorioMisc.setContractRefreshTime(player, refreshTicks);
-
-                    notifyNewContracts(player, offer, refreshTicks);
-                }
+                notifyNewContracts(player, offer, refreshTicks);
             }
+        }
+    }
+
+    private void tickUniversalContractOffer(net.minecraft.server.MinecraftServer server, ServerLevel overworld, int baseRefreshTicks) {
+        int timeUntilRefresh = CraftorioMisc.getContractRefreshTime(overworld) - 1;
+
+        if (timeUntilRefresh > 0) {
+            CraftorioMisc.setContractRefreshTime(overworld, timeUntilRefresh);
+            return;
+        }
+
+        List<ServerPlayer> allPlayers = server.getPlayerList().getPlayers();
+
+        BigInteger highestPoints = allPlayers.isEmpty() ? BigInteger.ZERO
+                : CraftorioMisc.getHighestPoints(allPlayers.get(0));
+        double betterContractChance = allPlayers.isEmpty() ? 0
+                : CraftorioMisc.getUpgradeModifierSum(allPlayers.get(0), org.crimsoncrips.craftorio.skill_tree.ModifierTarget.BETTER_CONTRACT_CHANCE, org.crimsoncrips.craftorio.skill_tree.UpgradeOperation.ADD);
+        List<ResourceLocation> offer = CraftorioMisc.rollContractOffer(overworld.registryAccess(), overworld.random, highestPoints, betterContractChance);
+        overworld.setData(CraftorioDataAttachments.CONTRACT_OFFER, offer);
+        overworld.setData(CraftorioDataAttachments.CONTRACT_OFFER_CLAIMED, false);
+
+        int refreshTicks = allPlayers.isEmpty() ? baseRefreshTicks
+                : CraftorioMisc.applySpeedUpgrade(allPlayers.get(0), org.crimsoncrips.craftorio.skill_tree.ModifierTarget.CONTRACT_REFRESH_SPEED, baseRefreshTicks);
+        CraftorioMisc.setContractRefreshTime(overworld, refreshTicks);
+
+        for (ServerPlayer player : allPlayers) {
+            notifyNewContracts(player, offer, refreshTicks);
         }
     }
 

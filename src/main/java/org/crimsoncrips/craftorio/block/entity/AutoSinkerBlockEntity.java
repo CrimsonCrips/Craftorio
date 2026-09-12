@@ -85,7 +85,7 @@ public class AutoSinkerBlockEntity extends BlockEntity implements Container, Men
             if (stack.isEmpty()) continue;
 
             sinkedItems.add(stack);
-            pointsToGive = pointsToGive.add(CraftorioMisc.checkValue(stack, owner, false));
+            pointsToGive = pointsToGive.add(CraftorioMisc.checkValue(stack, owner, true));
             CraftorioMisc.recordItemSinked(owner, stack.getItem(), stack.getCount());
             items.set(i, ItemStack.EMPTY);
         }

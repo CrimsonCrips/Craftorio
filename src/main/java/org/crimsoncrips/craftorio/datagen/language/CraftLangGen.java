@@ -16,10 +16,20 @@ public class CraftLangGen extends CraftLangProvider {
 		this.addBlock(CraftorioBlocks.SINKER,"Sinker");
 		this.addBlock(CraftorioBlocks.AUTO_SINKER,"Auto Sinker");
 		this.addBlock(CraftorioBlocks.VALUE_CONDENSER,"Value Condenser");
+		this.addBlock(CraftorioBlocks.AUTO_VALUE_CONDENSER,"Auto Value Condenser");
+		this.addBlock(CraftorioBlocks.AREA_SCANNER,"Area Scanner");
 		this.addMisc("claim_land", "Claim Land");
 
 		this.addMisc("sinker_button", "Sink Points");
 		this.addMisc("condense_button", "Condense Value");
+		this.addMisc("set_owner_button", "Set Owner");
+		this.addMisc("scan_area_button", "Scan Area");
+		this.addMisc("scan_offset_label", "Offset (X / Y / Z)");
+		this.addMisc("scan_size_label", "Size (X / Y / Z)");
+		this.addMisc("area_scan_success", "Area scan saved to %s");
+		this.addMisc("area_scan_failed", "Failed to save area scan report.");
+		this.addMisc("auto_sinker_owner_set", "You are now the owner of this Auto Sinker.");
+		this.addMisc("auto_sinker_owner_universal_error", "Cannot change owner while in universal mode.");
 		this.addMisc("points_required", "Points Required");
 		this.addMisc("expand_border", "Expand Border");
 		this.addMisc("expand_border_growth", "Border Growth: %s");
@@ -27,6 +37,9 @@ public class CraftLangGen extends CraftLangProvider {
 		this.addMisc("advancement_value", "Points given for advancement : ");
 
 		this.addMisc("search", "Search");
+		this.addMisc("search_help_title", "Search Tips");
+		this.addMisc("search_help_mod", "@modid - filter by mod");
+		this.addMisc("search_help_tag", "#tag - filter by tag");
 		this.addMisc("quantity", "Quantity");
 		this.addMisc("max_minus", "Max-");
 		this.addMisc("max_plus", "Max+");
@@ -61,6 +74,17 @@ public class CraftLangGen extends CraftLangProvider {
 
 		this.addMisc("skill_tree_title", "Craftorio Skill Tree");
 		this.addMisc("skill_tree_button", "Skill Tree");
+
+		this.addMisc("active_effects_button", "Active Effects");
+		this.addMisc("active_effects_title", "Active Effects");
+		this.addMisc("no_active_effects", "You have no active effects.");
+		this.addMisc("effect_type_label", "Type: %s");
+		this.addMisc("effect_type_general", "General Multiplier");
+		this.addMisc("effect_type_tag", "Tag Multiplier");
+		this.addMisc("effect_type_shop", "Shop Multiplier");
+		this.addMisc("effect_multiplier_label", "Multiplier: %s");
+		this.addMisc("effect_tag_label", "Applies to items tagged: %s");
+		this.addMisc("effect_tag_items_title", "Tagged Items");
 		this.addMisc("upgrade_cost_tooltip", "Cost: %s points");
 		this.addMisc("upgrade_locked_tooltip", "Requires the previous upgrade");
 		this.addMisc("upgrade_unlocked_tooltip", "Unlocked");
@@ -83,6 +107,14 @@ public class CraftLangGen extends CraftLangProvider {
 		this.addMisc("upgrade_effect_speed_1_description", "10% faster random effect rolls.");
 		this.addMisc("upgrade_damage_1", "Iron Fists");
 		this.addMisc("upgrade_damage_1_description", "+1 attack damage.");
+		this.addMisc("upgrade_better_contract_chance_1", "Fortunate Contracts");
+		this.addMisc("upgrade_better_contract_chance_1_description", "Improves your chance of being offered better shipment contracts.");
+		this.addMisc("upgrade_better_effect_chance_1", "Fortunate Effects");
+		this.addMisc("upgrade_better_effect_chance_1_description", "Improves your chance of rolling better random effects.");
+		this.addMisc("upgrade_advancement_multiplier", "Advancement Mastery");
+		this.addMisc("upgrade_advancement_multiplier_description", "Unlocks a permanent multiplier bonus for completing advancements.");
+		this.addMisc("upgrade_sink_value_scaling", "Sink Mastery");
+		this.addMisc("upgrade_sink_value_scaling_description", "Unlocks bonus value scaling for repeatedly sinking the same item.");
 		this.addMisc("times_sinked_suffix", " - Sinked %s times");
 		this.addMisc("sorted_most_valuable", "Sorted: Most Valuable");
 		this.addMisc("sorted_most_valueless", "Sorted: Most Valueless");
@@ -116,6 +148,9 @@ public class CraftLangGen extends CraftLangProvider {
 		this.addMisc("contract_item_rewards", "Item Rewards");
 		this.addMisc("contract_point_reward", "Point Reward: %s");
 		this.addMisc("contract_bounty_line", "%s / %s %s");
+		this.addMisc("contract_show_remaining_button", "Show: Remaining Only");
+		this.addMisc("contract_show_all_button", "Show: All Items");
+		this.addMisc("contract_bounty_complete", "All items fulfilled!");
 		this.addMisc("contract_reward_line", "%sx %s");
 		this.addMisc("claim_contract_button", "Claim");
 		this.addMisc("contract_claimed", "Claimed");
@@ -165,8 +200,8 @@ public class CraftLangGen extends CraftLangProvider {
 		this.add("advancements.craftorio.existential_debt.title", "Existential Debt");
 		this.add("advancements.craftorio.existential_debt.description", "Reach -Infinity");
 
-		this.addItem(CraftorioItems.EFFECT_ITEM,"Effect Item");
-		this.addItem(CraftorioItems.MYSTERY_EFFECT_ITEM,"Mystery Effect Item");
+		this.addItem(CraftorioItems.EFFECT_RUNE,"Effect Rune");
+		this.addItem(CraftorioItems.MYSTERY_EFFECT_RUNE,"Mystery Effect Rune");
 		this.addItem(CraftorioItems.CLAIM_ITEM,"Chunk Claim Item");
 
 		this.addRegistryName("general_1", "General 1");
@@ -209,6 +244,16 @@ public class CraftLangGen extends CraftLangProvider {
 		this.addContractLang("terraforming", "Terraforming","We need to excavate a cave for our underground base");
 		this.addContractLang("care_package", "Care Package","Need a care package for new players on my minecraft server");
 		this.addContractLang("cake_delivery", "Cake Delivery","Mom said I couldn't have cake, i want cake");
+
+		this.addContractLang("kingdoms_feast", "Kingdom's Feast", "The king is holding a feast for a very special occasion. You are to procure its meals");
+		this.addContractLang("chicken_coop", "Chicken Coop", "I want to make a simple chicken coop");
+		this.addContractLang("inquisitors_burning", "Inquisitor's Burning", "The Inquisitor needs materials for his weekly witch burning.");
+		this.addRegistryName("inquisitors_wrath", "Inquisitor's Wrath");
+		this.addContractLang("copernicium", "Copernicium", "We're in need of any copper materials for an ongoing project.");
+		this.addRegistryName("copper_deficiency", "Copper Deficiency");
+		this.addContractLang("trophy_headed", "Trophy Headed", "I want the head of a variety of mobs out there in the wild for my collection");
+		this.addContractLang("multiversal_collection", "Multiversal Collection", "I am Trazyn, I require a piece of everything of your world for my collection.");
+		this.addRegistryName("trazyns_curse", "Trazyn's Curse");
 
 
 	}

@@ -28,10 +28,12 @@ public class CraftorioSkillTreeScreen extends Screen {
     private static final double RADIUS_STEP = 55.0;
     private static final int LINE_THICKNESS = 2;
     private static final long APPEAR_DURATION_MS = 250L;
+    private static final long DEPTH_STAGGER_MS = 150L;
 
     private final Map<ResourceLocation, NodePos> positions = new HashMap<>();
     private final Map<ResourceLocation, CraftorioUpgrade> upgrades = new HashMap<>();
     private final Map<ResourceLocation, ResourceLocation> parents = new HashMap<>();
+    private final Map<ResourceLocation, Integer> depths = new HashMap<>();
     private final Map<ResourceLocation, Long> spawnTimes = new HashMap<>();
     private Set<ResourceLocation> lastUnlockedSnapshot = Set.of();
     private int centerX;
@@ -49,6 +51,7 @@ public class CraftorioSkillTreeScreen extends Screen {
         this.positions.clear();
         this.upgrades.clear();
         this.parents.clear();
+        this.depths.clear();
 
         Player player = this.minecraft.player;
         if (player == null || this.minecraft.level == null) return;
@@ -81,11 +84,19 @@ public class CraftorioSkillTreeScreen extends Screen {
             cursor += sweepPerRoot;
         }
 
+        boolean firstInit = this.spawnTimes.isEmpty();
+        long baseSpawnTime = System.currentTimeMillis();
+
         for (Map.Entry<ResourceLocation, NodePos> entry : this.positions.entrySet()) {
             ResourceLocation id = entry.getKey();
             if (!isVisible(id, player)) continue;
 
-            this.spawnTimes.putIfAbsent(id, System.currentTimeMillis());
+            if (firstInit) {
+                int depth = this.depths.getOrDefault(id, 0);
+                this.spawnTimes.putIfAbsent(id, baseSpawnTime + depth * DEPTH_STAGGER_MS);
+            } else {
+                this.spawnTimes.putIfAbsent(id, baseSpawnTime);
+            }
 
             CraftorioUpgrade upgrade = this.upgrades.get(id);
             NodePos pos = entry.getValue();
@@ -119,6 +130,7 @@ public class CraftorioSkillTreeScreen extends Screen {
         double angle = angleStart + angleSweep / 2;
         double radius = depth * RADIUS_STEP;
         this.positions.put(id, new NodePos(radius * Math.cos(angle), radius * Math.sin(angle)));
+        this.depths.put(id, depth);
 
         List<ResourceLocation> childList = childrenMap.getOrDefault(id, List.of());
         if (childList.isEmpty()) return;

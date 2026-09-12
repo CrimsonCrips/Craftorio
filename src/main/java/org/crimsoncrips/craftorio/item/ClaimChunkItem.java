@@ -30,6 +30,8 @@ public class ClaimChunkItem extends Item {
         Player player = context.getPlayer();
         if (player == null) return InteractionResult.PASS;
 
+        if (!CraftorioMisc.chunkBased(level)) return InteractionResult.PASS;
+
         if (level.isClientSide()) {
             return InteractionResult.SUCCESS;
         }

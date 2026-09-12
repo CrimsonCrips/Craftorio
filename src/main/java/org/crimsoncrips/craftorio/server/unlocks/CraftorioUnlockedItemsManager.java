@@ -7,8 +7,10 @@ import net.minecraft.world.item.Item;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.networking.ItemDiscoveredPacket;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -56,6 +58,8 @@ public class CraftorioUnlockedItemsManager {
         } catch (IOException e) {
             Craftorio.LOGGER.error("Failed to save unlocked items for {}", player.getGameProfile().getName(), e);
         }
+
+        PacketDistributor.sendToPlayer(player, new ItemDiscoveredPacket(id));
 
         return true;
     }

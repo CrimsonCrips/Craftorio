@@ -1,0 +1,50 @@
+{
+  "basePointValue": "7541",
+  "description": "registry.kingdoms_feast.description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "itemBounty": [
+    {
+      "amountRequired": 4,
+      "contract_item": "minecraft:golden_apple"
+    },
+    {
+      "amountRequired": 8,
+      "contract_item": "minecraft:milk_bucket"
+    },
+    {
+      "amountRequired": 16,
+      "contract_item": "minecraft:honey_bottle"
+    },
+    {
+      "amountRequired": 16,
+      "contract_item": "minecraft:cooked_porkchop"
+    },
+    {
+      "amountRequired": 64,
+      "contract_item": "minecraft:cooked_beef"
+    },
+    {
+      "amountRequired": 16,
+      "contract_item": "minecraft:cooked_chicken"
+    },
+    {
+      "amountRequired": 32,
+      "contract_item": "minecraft:cooked_mutton"
+    },
+    {
+      "amountRequired": 8,
+      "contract_item": "minecraft:pumpkin_pie"
+    },
+    {
+      "amountRequired": 9,
+      "contract_item": "minecraft:cake"
+    }
+  ],
+  "max_point_threshold": "1000000",
+  "min_point_threshold": "10000",
+  "name": "registry.kingdoms_feast.title",
+  "point_threshold": "30000",
+  "punishment": "craftorio:shop/kingdom_tariff",
+  "seconds": 5400,
+  "weight": 1
+}

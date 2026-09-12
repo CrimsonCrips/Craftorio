@@ -1,0 +1,4949 @@
+{
+  "basePointValue": "1000000000000000000",
+  "description": "registry.multiversal_collection.description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "itemBounty": [
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stone"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:granite"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_granite"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:diorite"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_diorite"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:andesite"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_andesite"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:deepslate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cobbled_deepslate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_deepslate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:calcite"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:tuff"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:tuff_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:tuff_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:tuff_wall"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:chiseled_tuff"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_tuff"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_tuff_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_tuff_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_tuff_wall"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:tuff_bricks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:tuff_brick_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:tuff_brick_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:tuff_brick_wall"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:chiseled_tuff_bricks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dripstone_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:grass_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dirt"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:coarse_dirt"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:podzol"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:rooted_dirt"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mud"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:crimson_nylium"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:warped_nylium"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cobblestone"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oak_planks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:spruce_planks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:birch_planks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:jungle_planks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:acacia_planks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cherry_planks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dark_oak_planks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mangrove_planks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bamboo_planks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:crimson_planks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:warped_planks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bamboo_mosaic"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oak_sapling"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:spruce_sapling"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:birch_sapling"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:jungle_sapling"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:acacia_sapling"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cherry_sapling"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dark_oak_sapling"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mangrove_propagule"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:sand"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:suspicious_sand"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:suspicious_gravel"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_sand"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:gravel"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:coal_ore"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:deepslate_coal_ore"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:iron_ore"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:deepslate_iron_ore"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:copper_ore"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:deepslate_copper_ore"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:gold_ore"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:deepslate_gold_ore"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:redstone_ore"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:deepslate_redstone_ore"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:emerald_ore"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:deepslate_emerald_ore"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lapis_ore"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:deepslate_lapis_ore"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:diamond_ore"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:deepslate_diamond_ore"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:nether_gold_ore"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:nether_quartz_ore"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:ancient_debris"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:coal_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:raw_iron_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:raw_copper_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:raw_gold_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:heavy_core"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:amethyst_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:budding_amethyst"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:iron_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:copper_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:gold_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:diamond_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:exposed_copper"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:weathered_copper"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oxidized_copper"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:chiseled_copper"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:exposed_chiseled_copper"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:weathered_chiseled_copper"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oxidized_chiseled_copper"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cut_copper"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:exposed_cut_copper"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:weathered_cut_copper"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oxidized_cut_copper"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cut_copper_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:exposed_cut_copper_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:weathered_cut_copper_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oxidized_cut_copper_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cut_copper_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:exposed_cut_copper_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:weathered_cut_copper_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oxidized_cut_copper_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_copper_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_exposed_copper"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_weathered_copper"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_oxidized_copper"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_chiseled_copper"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_exposed_chiseled_copper"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_weathered_chiseled_copper"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_oxidized_chiseled_copper"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_cut_copper"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_exposed_cut_copper"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_weathered_cut_copper"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_oxidized_cut_copper"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_cut_copper_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_exposed_cut_copper_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_weathered_cut_copper_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_oxidized_cut_copper_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_cut_copper_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_exposed_cut_copper_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_weathered_cut_copper_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_oxidized_cut_copper_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oak_log"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:spruce_log"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:birch_log"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:jungle_log"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:acacia_log"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cherry_log"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dark_oak_log"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mangrove_log"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mangrove_roots"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:muddy_mangrove_roots"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:crimson_stem"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:warped_stem"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bamboo_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stripped_oak_log"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stripped_spruce_log"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stripped_birch_log"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stripped_jungle_log"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stripped_acacia_log"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stripped_cherry_log"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stripped_dark_oak_log"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stripped_mangrove_log"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stripped_crimson_stem"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stripped_warped_stem"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stripped_oak_wood"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stripped_spruce_wood"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stripped_birch_wood"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stripped_jungle_wood"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stripped_acacia_wood"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stripped_cherry_wood"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stripped_dark_oak_wood"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stripped_mangrove_wood"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stripped_crimson_hyphae"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stripped_warped_hyphae"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stripped_bamboo_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oak_wood"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:spruce_wood"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:birch_wood"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:jungle_wood"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:acacia_wood"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cherry_wood"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dark_oak_wood"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mangrove_wood"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:crimson_hyphae"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:warped_hyphae"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oak_leaves"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:spruce_leaves"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:birch_leaves"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:jungle_leaves"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:acacia_leaves"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cherry_leaves"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dark_oak_leaves"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mangrove_leaves"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:azalea_leaves"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:flowering_azalea_leaves"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:sponge"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:wet_sponge"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:glass"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:tinted_glass"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lapis_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:sandstone"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:chiseled_sandstone"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cut_sandstone"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cobweb"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:short_grass"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:fern"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:azalea"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:flowering_azalea"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dead_bush"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:seagrass"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:sea_pickle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:white_wool"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:orange_wool"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:magenta_wool"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_blue_wool"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:yellow_wool"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lime_wool"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:pink_wool"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:gray_wool"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_gray_wool"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cyan_wool"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:purple_wool"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:blue_wool"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:brown_wool"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:green_wool"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_wool"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:black_wool"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dandelion"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:poppy"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:blue_orchid"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:allium"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:azure_bluet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_tulip"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:orange_tulip"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:white_tulip"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:pink_tulip"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oxeye_daisy"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cornflower"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lily_of_the_valley"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:wither_rose"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:torchflower"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:pitcher_plant"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:spore_blossom"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:brown_mushroom"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_mushroom"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:crimson_fungus"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:warped_fungus"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:crimson_roots"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:warped_roots"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:nether_sprouts"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:weeping_vines"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:twisting_vines"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:sugar_cane"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:kelp"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:moss_carpet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:pink_petals"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:moss_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:hanging_roots"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:big_dripleaf"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:small_dripleaf"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bamboo"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oak_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:spruce_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:birch_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:jungle_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:acacia_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cherry_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dark_oak_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mangrove_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bamboo_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bamboo_mosaic_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:crimson_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:warped_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stone_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:smooth_stone_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:sandstone_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cut_sandstone_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cobblestone_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:brick_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stone_brick_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mud_brick_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:nether_brick_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:quartz_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_sandstone_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cut_red_sandstone_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:purpur_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:prismarine_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:prismarine_brick_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dark_prismarine_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:smooth_quartz"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:smooth_red_sandstone"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:smooth_sandstone"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:smooth_stone"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bricks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bookshelf"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:chiseled_bookshelf"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:decorated_pot"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mossy_cobblestone"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:obsidian"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:torch"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:end_rod"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:chorus_plant"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:chorus_flower"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:purpur_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:purpur_pillar"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:purpur_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:chest"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:crafting_table"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:farmland"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:furnace"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:ladder"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cobblestone_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:snow"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:ice"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:snow_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cactus"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:clay"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:jukebox"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oak_fence"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:spruce_fence"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:birch_fence"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:jungle_fence"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:acacia_fence"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cherry_fence"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dark_oak_fence"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mangrove_fence"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bamboo_fence"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:crimson_fence"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:warped_fence"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:pumpkin"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:carved_pumpkin"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:jack_o_lantern"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherrack"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:soul_sand"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:soul_soil"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:basalt"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_basalt"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:smooth_basalt"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:soul_torch"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:glowstone"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:infested_stone"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:infested_cobblestone"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:infested_stone_bricks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:infested_mossy_stone_bricks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:infested_cracked_stone_bricks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:infested_chiseled_stone_bricks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:infested_deepslate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stone_bricks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mossy_stone_bricks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cracked_stone_bricks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:chiseled_stone_bricks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:packed_mud"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mud_bricks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:deepslate_bricks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cracked_deepslate_bricks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:deepslate_tiles"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cracked_deepslate_tiles"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:chiseled_deepslate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:brown_mushroom_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_mushroom_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mushroom_stem"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:iron_bars"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:chain"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:glass_pane"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:melon"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:vine"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:glow_lichen"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:brick_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stone_brick_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mud_brick_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mycelium"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lily_pad"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:nether_bricks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cracked_nether_bricks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:chiseled_nether_bricks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:nether_brick_fence"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:nether_brick_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:sculk"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:sculk_vein"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:sculk_catalyst"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:sculk_shrieker"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:enchanting_table"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:end_stone"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:end_stone_bricks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dragon_egg"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:sandstone_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:ender_chest"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:emerald_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oak_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:spruce_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:birch_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:jungle_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:acacia_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cherry_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dark_oak_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mangrove_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bamboo_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bamboo_mosaic_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:crimson_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:warped_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:beacon"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cobblestone_wall"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mossy_cobblestone_wall"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:brick_wall"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:prismarine_wall"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_sandstone_wall"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mossy_stone_brick_wall"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:granite_wall"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stone_brick_wall"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mud_brick_wall"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:nether_brick_wall"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:andesite_wall"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_nether_brick_wall"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:sandstone_wall"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:end_stone_brick_wall"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:diorite_wall"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:blackstone_wall"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_blackstone_wall"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_blackstone_brick_wall"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cobbled_deepslate_wall"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_deepslate_wall"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:deepslate_brick_wall"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:deepslate_tile_wall"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:anvil"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:chipped_anvil"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:damaged_anvil"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:chiseled_quartz_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:quartz_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:quartz_bricks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:quartz_pillar"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:quartz_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:white_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:orange_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:magenta_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_blue_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:yellow_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lime_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:pink_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:gray_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_gray_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cyan_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:purple_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:blue_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:brown_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:green_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:black_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:hay_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:white_carpet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:orange_carpet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:magenta_carpet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_blue_carpet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:yellow_carpet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lime_carpet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:pink_carpet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:gray_carpet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_gray_carpet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cyan_carpet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:purple_carpet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:blue_carpet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:brown_carpet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:green_carpet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_carpet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:black_carpet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:packed_ice"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dirt_path"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:sunflower"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lilac"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:rose_bush"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:peony"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:tall_grass"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:large_fern"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:white_stained_glass"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:orange_stained_glass"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:magenta_stained_glass"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_blue_stained_glass"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:yellow_stained_glass"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lime_stained_glass"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:pink_stained_glass"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:gray_stained_glass"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_gray_stained_glass"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cyan_stained_glass"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:purple_stained_glass"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:blue_stained_glass"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:brown_stained_glass"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:green_stained_glass"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_stained_glass"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:black_stained_glass"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:white_stained_glass_pane"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:orange_stained_glass_pane"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:magenta_stained_glass_pane"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_blue_stained_glass_pane"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:yellow_stained_glass_pane"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lime_stained_glass_pane"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:pink_stained_glass_pane"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:gray_stained_glass_pane"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_gray_stained_glass_pane"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cyan_stained_glass_pane"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:purple_stained_glass_pane"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:blue_stained_glass_pane"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:brown_stained_glass_pane"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:green_stained_glass_pane"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_stained_glass_pane"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:black_stained_glass_pane"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:prismarine"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:prismarine_bricks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dark_prismarine"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:prismarine_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:prismarine_brick_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dark_prismarine_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:sea_lantern"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_sandstone"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:chiseled_red_sandstone"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cut_red_sandstone"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_sandstone_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:magma_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:nether_wart_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:warped_wart_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_nether_bricks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bone_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:shulker_box"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:white_shulker_box"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:orange_shulker_box"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:magenta_shulker_box"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_blue_shulker_box"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:yellow_shulker_box"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lime_shulker_box"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:pink_shulker_box"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:gray_shulker_box"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_gray_shulker_box"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cyan_shulker_box"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:purple_shulker_box"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:blue_shulker_box"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:brown_shulker_box"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:green_shulker_box"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_shulker_box"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:black_shulker_box"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:white_glazed_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:orange_glazed_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:magenta_glazed_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_blue_glazed_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:yellow_glazed_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lime_glazed_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:pink_glazed_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:gray_glazed_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_gray_glazed_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cyan_glazed_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:purple_glazed_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:blue_glazed_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:brown_glazed_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:green_glazed_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_glazed_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:black_glazed_terracotta"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:white_concrete"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:orange_concrete"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:magenta_concrete"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_blue_concrete"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:yellow_concrete"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lime_concrete"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:pink_concrete"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:gray_concrete"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_gray_concrete"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cyan_concrete"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:purple_concrete"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:blue_concrete"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:brown_concrete"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:green_concrete"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_concrete"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:black_concrete"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:white_concrete_powder"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:orange_concrete_powder"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:magenta_concrete_powder"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_blue_concrete_powder"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:yellow_concrete_powder"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lime_concrete_powder"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:pink_concrete_powder"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:gray_concrete_powder"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_gray_concrete_powder"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cyan_concrete_powder"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:purple_concrete_powder"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:blue_concrete_powder"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:brown_concrete_powder"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:green_concrete_powder"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_concrete_powder"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:black_concrete_powder"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:turtle_egg"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:sniffer_egg"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dead_tube_coral_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dead_brain_coral_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dead_bubble_coral_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dead_fire_coral_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dead_horn_coral_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:tube_coral_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:brain_coral_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bubble_coral_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:fire_coral_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:horn_coral_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:tube_coral"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:brain_coral"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bubble_coral"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:fire_coral"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:horn_coral"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dead_brain_coral"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dead_bubble_coral"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dead_fire_coral"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dead_horn_coral"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dead_tube_coral"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:tube_coral_fan"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:brain_coral_fan"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bubble_coral_fan"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:fire_coral_fan"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:horn_coral_fan"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dead_tube_coral_fan"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dead_brain_coral_fan"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dead_bubble_coral_fan"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dead_fire_coral_fan"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dead_horn_coral_fan"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:blue_ice"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:conduit"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_granite_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:smooth_red_sandstone_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mossy_stone_brick_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_diorite_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mossy_cobblestone_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:end_stone_brick_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stone_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:smooth_sandstone_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:smooth_quartz_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:granite_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:andesite_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_nether_brick_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_andesite_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:diorite_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cobbled_deepslate_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_deepslate_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:deepslate_brick_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:deepslate_tile_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_granite_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:smooth_red_sandstone_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mossy_stone_brick_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_diorite_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mossy_cobblestone_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:end_stone_brick_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:smooth_sandstone_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:smooth_quartz_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:granite_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:andesite_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_nether_brick_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_andesite_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:diorite_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cobbled_deepslate_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_deepslate_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:deepslate_brick_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:deepslate_tile_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:scaffolding"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:redstone"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:redstone_torch"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:redstone_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:repeater"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:comparator"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:piston"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:sticky_piston"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:slime_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:honey_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:observer"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:hopper"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dispenser"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dropper"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lectern"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:target"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lever"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lightning_rod"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:daylight_detector"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:sculk_sensor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:calibrated_sculk_sensor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:tripwire_hook"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:trapped_chest"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:tnt"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:redstone_lamp"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:note_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stone_button"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_blackstone_button"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oak_button"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:spruce_button"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:birch_button"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:jungle_button"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:acacia_button"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cherry_button"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dark_oak_button"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mangrove_button"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bamboo_button"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:crimson_button"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:warped_button"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stone_pressure_plate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_blackstone_pressure_plate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_weighted_pressure_plate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:heavy_weighted_pressure_plate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oak_pressure_plate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:spruce_pressure_plate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:birch_pressure_plate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:jungle_pressure_plate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:acacia_pressure_plate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cherry_pressure_plate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dark_oak_pressure_plate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mangrove_pressure_plate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bamboo_pressure_plate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:crimson_pressure_plate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:warped_pressure_plate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:iron_door"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oak_door"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:spruce_door"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:birch_door"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:jungle_door"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:acacia_door"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cherry_door"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dark_oak_door"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mangrove_door"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bamboo_door"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:crimson_door"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:warped_door"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:copper_door"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:exposed_copper_door"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:weathered_copper_door"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oxidized_copper_door"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_copper_door"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_exposed_copper_door"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_weathered_copper_door"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_oxidized_copper_door"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:iron_trapdoor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oak_trapdoor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:spruce_trapdoor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:birch_trapdoor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:jungle_trapdoor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:acacia_trapdoor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cherry_trapdoor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dark_oak_trapdoor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mangrove_trapdoor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bamboo_trapdoor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:crimson_trapdoor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:warped_trapdoor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:copper_trapdoor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:exposed_copper_trapdoor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:weathered_copper_trapdoor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oxidized_copper_trapdoor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_copper_trapdoor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_exposed_copper_trapdoor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_weathered_copper_trapdoor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_oxidized_copper_trapdoor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oak_fence_gate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:spruce_fence_gate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:birch_fence_gate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:jungle_fence_gate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:acacia_fence_gate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cherry_fence_gate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dark_oak_fence_gate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mangrove_fence_gate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bamboo_fence_gate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:crimson_fence_gate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:warped_fence_gate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:powered_rail"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:detector_rail"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:rail"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:activator_rail"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:saddle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:minecart"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:chest_minecart"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:furnace_minecart"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:tnt_minecart"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:hopper_minecart"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:carrot_on_a_stick"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:warped_fungus_on_a_stick"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:elytra"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oak_boat"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oak_chest_boat"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:spruce_boat"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:spruce_chest_boat"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:birch_boat"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:birch_chest_boat"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:jungle_boat"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:jungle_chest_boat"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:acacia_boat"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:acacia_chest_boat"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cherry_boat"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cherry_chest_boat"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dark_oak_boat"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dark_oak_chest_boat"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mangrove_boat"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mangrove_chest_boat"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bamboo_raft"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bamboo_chest_raft"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:turtle_helmet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:turtle_scute"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:armadillo_scute"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:wolf_armor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:flint_and_steel"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bowl"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:apple"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bow"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:arrow"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:coal"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:charcoal"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:diamond"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:emerald"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lapis_lazuli"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:quartz"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:amethyst_shard"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:raw_iron"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:iron_ingot"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:raw_copper"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:copper_ingot"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:raw_gold"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:gold_ingot"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_ingot"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_scrap"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:wooden_sword"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:wooden_shovel"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:wooden_pickaxe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:wooden_axe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:wooden_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stone_sword"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stone_shovel"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stone_pickaxe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stone_axe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stone_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:golden_sword"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:golden_shovel"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:golden_pickaxe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:golden_axe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:golden_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:iron_sword"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:iron_shovel"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:iron_pickaxe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:iron_axe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:iron_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:diamond_sword"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:diamond_shovel"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:diamond_pickaxe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:diamond_axe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:diamond_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_sword"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_shovel"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_pickaxe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_axe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stick"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mushroom_stew"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:string"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:feather"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:gunpowder"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:wheat_seeds"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:wheat"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bread"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:leather_helmet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:leather_chestplate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:leather_leggings"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:leather_boots"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:chainmail_helmet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:chainmail_chestplate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:chainmail_leggings"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:chainmail_boots"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:iron_helmet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:iron_chestplate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:iron_leggings"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:iron_boots"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:diamond_helmet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:diamond_chestplate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:diamond_leggings"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:diamond_boots"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:golden_helmet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:golden_chestplate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:golden_leggings"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:golden_boots"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_helmet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_chestplate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_leggings"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_boots"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:flint"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:porkchop"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cooked_porkchop"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:painting"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:golden_apple"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:enchanted_golden_apple"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oak_sign"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:spruce_sign"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:birch_sign"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:jungle_sign"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:acacia_sign"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cherry_sign"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dark_oak_sign"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mangrove_sign"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bamboo_sign"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:crimson_sign"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:warped_sign"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oak_hanging_sign"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:spruce_hanging_sign"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:birch_hanging_sign"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:jungle_hanging_sign"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:acacia_hanging_sign"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cherry_hanging_sign"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dark_oak_hanging_sign"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mangrove_hanging_sign"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bamboo_hanging_sign"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:crimson_hanging_sign"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:warped_hanging_sign"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bucket"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:water_bucket"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lava_bucket"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:powder_snow_bucket"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:snowball"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:leather"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:milk_bucket"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:pufferfish_bucket"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:salmon_bucket"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cod_bucket"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:tropical_fish_bucket"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:axolotl_bucket"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:tadpole_bucket"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:brick"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:clay_ball"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dried_kelp_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:paper"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:book"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:slime_ball"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:egg"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:compass"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:recovery_compass"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bundle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:fishing_rod"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:clock"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:spyglass"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:glowstone_dust"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cod"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:salmon"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:tropical_fish"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:pufferfish"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cooked_cod"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cooked_salmon"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:ink_sac"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:glow_ink_sac"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cocoa_beans"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:white_dye"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:orange_dye"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:magenta_dye"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_blue_dye"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:yellow_dye"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lime_dye"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:pink_dye"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:gray_dye"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_gray_dye"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cyan_dye"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:purple_dye"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:blue_dye"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:brown_dye"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:green_dye"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_dye"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:black_dye"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bone_meal"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bone"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:sugar"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cake"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:white_bed"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:orange_bed"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:magenta_bed"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_blue_bed"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:yellow_bed"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lime_bed"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:pink_bed"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:gray_bed"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_gray_bed"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cyan_bed"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:purple_bed"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:blue_bed"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:brown_bed"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:green_bed"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_bed"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:black_bed"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cookie"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:crafter"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:filled_map"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:shears"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:melon_slice"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dried_kelp"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:pumpkin_seeds"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:melon_seeds"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:beef"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cooked_beef"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:chicken"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cooked_chicken"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:rotten_flesh"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:ender_pearl"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:blaze_rod"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:ghast_tear"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:gold_nugget"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:nether_wart"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:potion"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:glass_bottle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:spider_eye"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:fermented_spider_eye"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:blaze_powder"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:magma_cream"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:brewing_stand"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cauldron"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:ender_eye"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:glistering_melon_slice"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:experience_bottle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:fire_charge"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:wind_charge"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:writable_book"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:written_book"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mace"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:item_frame"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:glow_item_frame"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:flower_pot"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:carrot"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:potato"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:baked_potato"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:poisonous_potato"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:map"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:golden_carrot"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:skeleton_skull"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:wither_skeleton_skull"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:player_head"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:zombie_head"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:creeper_head"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dragon_head"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:piglin_head"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:nether_star"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:pumpkin_pie"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:firework_rocket"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:firework_star"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:enchanted_book"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:nether_brick"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:prismarine_shard"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:prismarine_crystals"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:rabbit"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cooked_rabbit"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:rabbit_stew"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:rabbit_foot"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:rabbit_hide"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:armor_stand"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:iron_horse_armor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:golden_horse_armor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:diamond_horse_armor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:leather_horse_armor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lead"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:name_tag"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mutton"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cooked_mutton"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:white_banner"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:orange_banner"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:magenta_banner"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_blue_banner"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:yellow_banner"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lime_banner"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:pink_banner"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:gray_banner"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_gray_banner"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cyan_banner"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:purple_banner"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:blue_banner"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:brown_banner"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:green_banner"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_banner"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:black_banner"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:end_crystal"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:chorus_fruit"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:popped_chorus_fruit"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:torchflower_seeds"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:pitcher_pod"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:beetroot"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:beetroot_seeds"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:beetroot_soup"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dragon_breath"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:splash_potion"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:spectral_arrow"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:tipped_arrow"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lingering_potion"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:shield"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:totem_of_undying"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:shulker_shell"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:iron_nugget"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:music_disc_13"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:music_disc_cat"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:music_disc_blocks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:music_disc_chirp"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:music_disc_creator"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:music_disc_creator_music_box"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:music_disc_far"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:music_disc_mall"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:music_disc_mellohi"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:music_disc_stal"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:music_disc_strad"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:music_disc_ward"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:music_disc_11"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:music_disc_wait"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:music_disc_otherside"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:music_disc_relic"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:music_disc_5"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:music_disc_pigstep"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:music_disc_precipice"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:disc_fragment_5"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:trident"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:phantom_membrane"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:nautilus_shell"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:heart_of_the_sea"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:crossbow"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:suspicious_stew"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:loom"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:flower_banner_pattern"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:creeper_banner_pattern"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:skull_banner_pattern"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mojang_banner_pattern"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:globe_banner_pattern"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:piglin_banner_pattern"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:flow_banner_pattern"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:guster_banner_pattern"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:goat_horn"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:composter"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:barrel"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:smoker"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:blast_furnace"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cartography_table"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:fletching_table"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:grindstone"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:smithing_table"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:stonecutter"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bell"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lantern"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:soul_lantern"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:sweet_berries"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:glow_berries"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:campfire"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:soul_campfire"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:shroomlight"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:honeycomb"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bee_nest"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:beehive"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:honey_bottle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:honeycomb_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lodestone"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:crying_obsidian"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:blackstone"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:blackstone_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:blackstone_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:gilded_blackstone"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_blackstone"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_blackstone_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_blackstone_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:chiseled_polished_blackstone"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_blackstone_bricks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_blackstone_brick_slab"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:polished_blackstone_brick_stairs"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cracked_polished_blackstone_bricks"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:respawn_anchor"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:candle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:white_candle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:orange_candle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:magenta_candle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_blue_candle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:yellow_candle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lime_candle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:pink_candle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:gray_candle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:light_gray_candle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:cyan_candle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:purple_candle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:blue_candle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:brown_candle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:green_candle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_candle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:black_candle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:small_amethyst_bud"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:medium_amethyst_bud"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:large_amethyst_bud"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:amethyst_cluster"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:pointed_dripstone"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:ochre_froglight"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:verdant_froglight"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:pearlescent_froglight"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:frogspawn"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:echo_shard"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:brush"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_upgrade_smithing_template"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:sentry_armor_trim_smithing_template"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:dune_armor_trim_smithing_template"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:coast_armor_trim_smithing_template"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:wild_armor_trim_smithing_template"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:ward_armor_trim_smithing_template"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:eye_armor_trim_smithing_template"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:vex_armor_trim_smithing_template"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:tide_armor_trim_smithing_template"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:snout_armor_trim_smithing_template"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:rib_armor_trim_smithing_template"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:spire_armor_trim_smithing_template"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:wayfinder_armor_trim_smithing_template"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:shaper_armor_trim_smithing_template"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:silence_armor_trim_smithing_template"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:raiser_armor_trim_smithing_template"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:host_armor_trim_smithing_template"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:flow_armor_trim_smithing_template"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:bolt_armor_trim_smithing_template"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:angler_pottery_sherd"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:archer_pottery_sherd"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:arms_up_pottery_sherd"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:blade_pottery_sherd"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:brewer_pottery_sherd"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:burn_pottery_sherd"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:danger_pottery_sherd"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:explorer_pottery_sherd"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:flow_pottery_sherd"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:friend_pottery_sherd"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:guster_pottery_sherd"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:heart_pottery_sherd"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:heartbreak_pottery_sherd"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:howl_pottery_sherd"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:miner_pottery_sherd"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:mourner_pottery_sherd"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:plenty_pottery_sherd"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:prize_pottery_sherd"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:scrape_pottery_sherd"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:sheaf_pottery_sherd"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:shelter_pottery_sherd"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:skull_pottery_sherd"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:snort_pottery_sherd"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:copper_grate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:exposed_copper_grate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:weathered_copper_grate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oxidized_copper_grate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_copper_grate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_exposed_copper_grate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_weathered_copper_grate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_oxidized_copper_grate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:copper_bulb"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:exposed_copper_bulb"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:weathered_copper_bulb"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oxidized_copper_bulb"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_copper_bulb"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_exposed_copper_bulb"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_weathered_copper_bulb"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:waxed_oxidized_copper_bulb"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:trial_key"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:ominous_trial_key"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:ominous_bottle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:breeze_rod"
+    }
+  ],
+  "min_point_threshold": "50000000",
+  "name": "registry.multiversal_collection.title",
+  "point_threshold": "1000000000",
+  "punishment": "craftorio:general/trazyns_curse",
+  "seconds": 36000,
+  "weight": 1
+}

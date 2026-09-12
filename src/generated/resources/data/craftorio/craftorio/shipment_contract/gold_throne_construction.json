@@ -1,4 +1,5 @@
 {
+  "basePointValue": "12000",
   "description": "registry.gold_throne_construction.description",
   "icon": "craftorio:textures/gui/default_contract_icon.png",
   "itemBounty": [
@@ -18,11 +19,14 @@
   "itemRewards": [
     {
       "amountGiving": 1,
-      "rewardingItem": "minecraft:diamond_block"
+      "rewardingItem": {
+        "count": 1,
+        "id": "minecraft:diamond_block"
+      }
     }
   ],
+  "max_point_threshold": "5000000",
   "name": "registry.gold_throne_construction.title",
-  "pointRewards": "20000",
   "point_threshold": "5000",
   "punishment": "craftorio:shop/kingdom_tariff",
   "seconds": 3600,

@@ -7,6 +7,7 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.util.Mth;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -30,6 +31,11 @@ public abstract class CatalogScreen<T> extends Screen {
     protected static final int GRID_SIDE_MARGIN = 20;
     protected static final int FOOTER_RESERVED = 64;
 
+    private static final long HELP_ANIM_DURATION_MS = 250L;
+    private static final int HELP_PANEL_WIDTH = 170;
+    private static final int HELP_PANEL_MARGIN = 8;
+    private static final int HELP_BUTTON_SIZE = 20;
+
     private EditBox searchBox;
     private String searchQuery = "";
     protected List<T> filtered = List.of();
@@ -37,6 +43,11 @@ public abstract class CatalogScreen<T> extends Screen {
     protected int cols = MAX_COLS;
     protected int rows = MAX_ROWS;
     protected int pageSize = MAX_COLS * MAX_ROWS;
+
+    private boolean helpVisible = false;
+    private boolean helpAnimOpening = false;
+    private long helpAnimStartMillis = 0L;
+    private float helpAnimFromProgress = 0f;
 
     protected CatalogScreen(Component title) {
         super(title);
@@ -163,7 +174,54 @@ public abstract class CatalogScreen<T> extends Screen {
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.done"), b -> this.onClose())
                 .bounds(centerX - 50, footerY + 26, 100, 20).build());
 
+        this.addRenderableWidget(Button.builder(Component.literal("?"), b -> toggleHelp())
+                .bounds(this.width - HELP_BUTTON_SIZE - 6, 6, HELP_BUTTON_SIZE, HELP_BUTTON_SIZE).build());
+
         addExtraWidgets();
+    }
+
+    private void toggleHelp() {
+        this.helpAnimFromProgress = currentHelpProgress();
+        this.helpVisible = !this.helpVisible;
+        this.helpAnimOpening = this.helpVisible;
+        this.helpAnimStartMillis = System.currentTimeMillis();
+    }
+
+    private float currentHelpProgress() {
+        long elapsed = System.currentTimeMillis() - this.helpAnimStartMillis;
+        float t = Mth.clamp(elapsed / (float) HELP_ANIM_DURATION_MS, 0f, 1f);
+        float eased = easeOutCubic(t);
+        float target = this.helpAnimOpening ? 1f : 0f;
+        return this.helpAnimFromProgress + (target - this.helpAnimFromProgress) * eased;
+    }
+
+    private static float easeOutCubic(float t) {
+        float t1 = t - 1;
+        return t1 * t1 * t1 + 1;
+    }
+
+    private void renderHelpPanel(GuiGraphics graphics, float progress) {
+        List<FormattedCharSequence> lines = new ArrayList<>();
+        lines.addAll(this.font.split(Component.translatable("misc.craftorio.search_help_title"), HELP_PANEL_WIDTH - 12));
+        lines.addAll(this.font.split(Component.translatable("misc.craftorio.search_help_mod"), HELP_PANEL_WIDTH - 12));
+        lines.addAll(this.font.split(Component.translatable("misc.craftorio.search_help_tag"), HELP_PANEL_WIDTH - 12));
+
+        int panelHeight = lines.size() * this.font.lineHeight + 14;
+        int panelY = 30;
+        int onScreenX = this.width - HELP_PANEL_WIDTH - HELP_PANEL_MARGIN;
+        int panelX = (int) Mth.lerp(progress, this.width, onScreenX);
+
+        graphics.fill(panelX, panelY, panelX + HELP_PANEL_WIDTH, panelY + panelHeight, 0xE0101010);
+        graphics.fill(panelX, panelY, panelX + HELP_PANEL_WIDTH, panelY + 1, 0xFFFFFFFF);
+        graphics.fill(panelX, panelY + panelHeight - 1, panelX + HELP_PANEL_WIDTH, panelY + panelHeight, 0xFFFFFFFF);
+        graphics.fill(panelX, panelY, panelX + 1, panelY + panelHeight, 0xFFFFFFFF);
+        graphics.fill(panelX + HELP_PANEL_WIDTH - 1, panelY, panelX + HELP_PANEL_WIDTH, panelY + panelHeight, 0xFFFFFFFF);
+
+        int textY = panelY + 7;
+        for (var line : lines) {
+            graphics.drawString(this.font, line, panelX + 6, textY, 0xFFFFFF, false);
+            textY += this.font.lineHeight;
+        }
     }
 
     protected void setPage(int newPage) {
@@ -180,6 +238,11 @@ public abstract class CatalogScreen<T> extends Screen {
 
         int footerY = footerY();
         guiGraphics.drawCenteredString(this.font, Component.literal((this.page + 1) + " / " + this.totalPages()), centerX, footerY + 6, 0xFFFFFF);
+
+        float helpProgress = currentHelpProgress();
+        if (helpProgress > 0f) {
+            renderHelpPanel(guiGraphics, helpProgress);
+        }
     }
 
     @Override

@@ -1,0 +1,54 @@
+{
+  "basePointValue": "2000",
+  "description": "registry.inquisitors_burning.description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "itemBounty": [
+    {
+      "amountRequired": 64,
+      "contract_item": "minecraft:paper"
+    },
+    {
+      "amountRequired": 64,
+      "contract_item": "minecraft:ink_sac"
+    },
+    {
+      "amountRequired": 64,
+      "contract_item": "minecraft:feather"
+    },
+    {
+      "amountRequired": 32,
+      "contract_item": "minecraft:dark_oak_planks"
+    },
+    {
+      "amountRequired": 10,
+      "contract_item": "minecraft:fire_charge"
+    },
+    {
+      "amountRequired": 32,
+      "contract_item": "minecraft:cooked_chicken"
+    }
+  ],
+  "itemRewards": [
+    {
+      "amountGiving": 1,
+      "rewardingItem": {
+        "count": 1,
+        "id": "craftorio:mystery_effect_rune"
+      }
+    },
+    {
+      "amountGiving": 2,
+      "rewardingItem": {
+        "count": 1,
+        "id": "craftorio:effect_rune"
+      }
+    }
+  ],
+  "max_point_threshold": "1000000000",
+  "min_point_threshold": "10000",
+  "name": "registry.inquisitors_burning.title",
+  "point_threshold": "100000",
+  "punishment": "craftorio:general/inquisitors_wrath",
+  "seconds": 7200,
+  "weight": 1
+}

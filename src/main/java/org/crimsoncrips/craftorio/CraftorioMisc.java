@@ -12,6 +12,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.PlayerRespawnLogic;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -29,8 +30,9 @@ import net.minecraft.world.level.Level;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.phys.Vec3;
+import org.crimsoncrips.craftorio.client.ClientUniversalState;
 import org.crimsoncrips.craftorio.registries.effect.*;
-import org.crimsoncrips.craftorio.skill_tree.upgrade_types.CraftorioModifierUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioModifierUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.ModifierTarget;
 import org.crimsoncrips.craftorio.skill_tree.UpgradeOperation;
@@ -39,7 +41,7 @@ import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
 import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
 import org.crimsoncrips.craftorio.server.CraftorioPointsAdvancements;
 import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
-import org.crimsoncrips.craftorio.skill_tree.upgrade_types.XpGainUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.XpGainUpgrade;
 
 import java.awt.*;
 import java.math.BigDecimal;
@@ -47,6 +49,7 @@ import java.math.BigInteger;
 import java.math.RoundingMode;
 import java.util.*;
 import java.util.List;
+import java.util.function.ToDoubleFunction;
 import java.util.function.ToIntFunction;
 
 import static org.crimsoncrips.craftorio.server.CraftorioDataAttachments.*;
@@ -166,9 +169,15 @@ public class CraftorioMisc {
         return level.getData(UNIVERSAL_BASED);
     }
 
+    public static Level universalLevel(Player player){
+        Level level = player.level();
+        MinecraftServer server = level.getServer();
+        return server != null ? server.overworld() : level;
+    }
 
 
-    public static BigInteger checkValue(ItemStack itemStack,Player player,boolean addBuffAddition){
+
+    public static BigInteger checkValue(ItemStack itemStack,Player player,boolean addBonusValue){
         var valueString = itemStack.getItem().builtInRegistryHolder().getData(CraftorioDataMaps.POINT_VALUE);
         BigDecimal determinedValue;
         determinedValue = valueString != null ? (new BigDecimal(valueString).multiply(BigDecimal.valueOf(itemStack.getCount()))) : BigDecimal.valueOf(0);
@@ -212,36 +221,29 @@ public class CraftorioMisc {
             }
         }
 
-        BigInteger condensedValue = itemStack.get(CraftorioDataComponents.CONDENSED_VALUE);
-        if (condensedValue != null) {
-            baseValue = baseValue.add(condensedValue);
-        }
 
-        if (hasModifierGateUnlocked(player, ModifierTarget.SINK_VALUE_SCALING_UNLOCK)) {
-            ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(itemStack.getItem());
-            long sinkCount = getItemsSinked(player).getOrDefault(itemId, 0L);
-            long threshold = Craftorio.SERVER_CONFIG.SINK_VALUE_BONUS_THRESHOLD.get();
-            long bonusAmount = Craftorio.SERVER_CONFIG.SINK_VALUE_BONUS_AMOUNT.get();
-            long bonusSteps = sinkCount / threshold;
-            if (bonusSteps > 0) {
-                baseValue = baseValue.add(BigInteger.valueOf(bonusSteps * bonusAmount).multiply(BigInteger.valueOf(itemStack.getCount())));
-            }
-        }
+        if (addBonusValue){
+            //Buff Multiplier Addition
 
-        baseValue = applyUpgradeModifier(player, ModifierTarget.ITEM_BASE_VALUE, new BigDecimal(baseValue));
-
-        double tagAdditive = sumModifierUpgrades(player, ModifierTarget.ITEM_TAG_BASE_VALUE, UpgradeOperation.ADD, itemStack);
-        double tagMultiplicative = sumModifierUpgrades(player, ModifierTarget.ITEM_TAG_BASE_VALUE, UpgradeOperation.MULTIPLY, itemStack);
-        if (tagAdditive != 0 || tagMultiplicative != 0) {
-            BigDecimal tagResult = new BigDecimal(baseValue).add(BigDecimal.valueOf(tagAdditive));
-            tagResult = tagResult.multiply(BigDecimal.valueOf(1.0 + tagMultiplicative));
-            baseValue = tagResult.setScale(0, RoundingMode.HALF_UP).toBigInteger();
-        }
-
-        //Buff Multiplier Addition
-        if (addBuffAddition){
             BigDecimal result = new BigDecimal(baseValue).multiply(BigDecimal.valueOf(itemMultiplierValue(player,itemStack)));
             baseValue = baseValue.add(result.toBigInteger());
+
+            BigInteger condensedValue = itemStack.get(CraftorioDataComponents.CONDENSED_VALUE);
+            if (condensedValue != null) {
+                baseValue = baseValue.add(condensedValue);
+            }
+
+            baseValue = baseValue.add(getSinkValueBonus(player, itemStack));
+
+            baseValue = applyUpgradeModifier(player, ModifierTarget.ITEM_BASE_VALUE, new BigDecimal(baseValue));
+
+            double tagAdditive = sumModifierUpgrades(player, ModifierTarget.ITEM_TAG_BASE_VALUE, UpgradeOperation.ADD, itemStack);
+            double tagMultiplicative = sumModifierUpgrades(player, ModifierTarget.ITEM_TAG_BASE_VALUE, UpgradeOperation.MULTIPLY, itemStack);
+            if (tagAdditive != 0 || tagMultiplicative != 0) {
+                BigDecimal tagResult = new BigDecimal(baseValue).add(BigDecimal.valueOf(tagAdditive));
+                tagResult = tagResult.multiply(BigDecimal.valueOf(1.0 + tagMultiplicative));
+                baseValue = tagResult.setScale(0, RoundingMode.HALF_UP).toBigInteger();
+            }
         }
 
 
@@ -253,6 +255,30 @@ public class CraftorioMisc {
         for (TagMultiplierEffect tagEffect : getTagEffects(player)) {
             multiplier += tagEffect.getTagMultiplier(itemStack);
         }
+        return multiplier;
+    }
+
+    public static BigInteger getSinkValueBonus(Player player, ItemStack itemStack) {
+        if (!hasUnlockedUpgrade(player, Craftorio.prefix("sink_value_scaling"))) return BigInteger.ZERO;
+
+        ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(itemStack.getItem());
+        long sinkCount = getItemsSinked(player).getOrDefault(itemId, 0L);
+        long threshold = Craftorio.SERVER_CONFIG.SINK_VALUE_BONUS_THRESHOLD.get();
+        long bonusAmount = Craftorio.SERVER_CONFIG.SINK_VALUE_BONUS_AMOUNT.get();
+        long bonusSteps = sinkCount / threshold;
+        if (bonusSteps <= 0) return BigInteger.ZERO;
+
+        return BigInteger.valueOf(bonusSteps * bonusAmount).multiply(BigInteger.valueOf(itemStack.getCount()));
+    }
+
+    public static float overallMultiplierValue(Player player, ItemStack itemStack, BigInteger unmultipliedValue) {
+        float multiplier = itemMultiplierValue(player, itemStack);
+
+        BigInteger sinkBonus = getSinkValueBonus(player, itemStack);
+        if (sinkBonus.signum() != 0 && unmultipliedValue.signum() != 0) {
+            multiplier += sinkBonus.doubleValue() / unmultipliedValue.doubleValue();
+        }
+
         return multiplier;
     }
 
@@ -268,8 +294,11 @@ public class CraftorioMisc {
     }
 
     public static double getAdvancementMultiplierBonus(Player player){
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)){
+            if (level.isClientSide() && ClientUniversalState.isAvailable()) {
+                return ClientUniversalState.getAdvancementMultiplierBonus();
+            }
             return level.getData(CraftorioDataAttachments.ADVANCEMENT_MULTIPLIER_BONUS);
         } else {
             return player.getData(CraftorioDataAttachments.ADVANCEMENT_MULTIPLIER_BONUS);
@@ -279,7 +308,7 @@ public class CraftorioMisc {
     public static void addAdvancementMultiplierBonus(Player player, double amount){
         if (amount == 0) return;
         double updated = getAdvancementMultiplierBonus(player) + amount;
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)){
             level.setData(CraftorioDataAttachments.ADVANCEMENT_MULTIPLIER_BONUS, updated);
         } else {
@@ -288,8 +317,11 @@ public class CraftorioMisc {
     }
 
     public static Set<ResourceLocation> getUnlockedUpgrades(Player player){
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)){
+            if (level.isClientSide() && ClientUniversalState.isAvailable()) {
+                return ClientUniversalState.getUnlockedUpgrades();
+            }
             return level.getData(CraftorioDataAttachments.UNLOCKED_UPGRADES);
         } else {
             return player.getData(CraftorioDataAttachments.UNLOCKED_UPGRADES);
@@ -304,7 +336,7 @@ public class CraftorioMisc {
         Set<ResourceLocation> updated = new HashSet<>(getUnlockedUpgrades(player));
         if (!updated.add(id)) return;
 
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)){
             level.setData(CraftorioDataAttachments.UNLOCKED_UPGRADES, updated);
         } else {
@@ -494,8 +526,11 @@ public class CraftorioMisc {
     //Highest Points Achieved
 
     public static BigInteger getHighestPoints(Player player){
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)){
+            if (level.isClientSide() && ClientUniversalState.isAvailable()) {
+                return ClientUniversalState.getHighestPoints();
+            }
             return level.getData(HIGHEST_REACHED_POINTS);
         } else {
             return player.getData(HIGHEST_REACHED_POINTS);
@@ -503,7 +538,7 @@ public class CraftorioMisc {
     }
 
     public static void setHighestPoints(BigInteger points, Player player){
-        Level level = player.level();
+        Level level = universalLevel(player);
         BigInteger assigningPoints = points.compareTo(getHighestPoints(player)) > 0 ? points : getHighestPoints(player);
         if (universalBased(level)) {
             level.setData(HIGHEST_REACHED_POINTS,assigningPoints);
@@ -515,8 +550,11 @@ public class CraftorioMisc {
 
     //Points
     public static BigInteger getPoints(Player player){
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)){
+            if (level.isClientSide() && ClientUniversalState.isAvailable()) {
+                return ClientUniversalState.getPoints();
+            }
             return level.getData(POINTS);
         } else {
             return player.getData(POINTS);
@@ -524,7 +562,7 @@ public class CraftorioMisc {
     }
     
     public static void setPoints(BigInteger points,Player player){
-        Level level = player.level();
+        Level level = universalLevel(player);
         setTempPoints(getPoints(player),player);
         setHighestPoints(points,player);
         BigInteger assigningPoints = points.compareTo(pointThreshold()) > 0 ? pointThreshold() : points;
@@ -541,8 +579,11 @@ public class CraftorioMisc {
 
     //Temporary Points
     public static BigInteger getTempPoints(Player player){
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)){
+            if (level.isClientSide() && ClientUniversalState.isAvailable()) {
+                return ClientUniversalState.getTempPoints();
+            }
             return level.getData(TEMP_POINTS);
         } else {
             return player.getData(TEMP_POINTS);
@@ -551,7 +592,7 @@ public class CraftorioMisc {
 
 
     public static void setTempPoints(BigInteger points,Player player){
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)) {
             level.setData(TEMP_POINTS,points);
         } else {
@@ -634,8 +675,11 @@ public class CraftorioMisc {
 
     //Land
     public static long getLandAmount(Player player){
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)){
+            if (level.isClientSide() && ClientUniversalState.isAvailable()) {
+                return ClientUniversalState.getLandAmount();
+            }
             return level.getData(AMOUNT_OF_LAND);
         } else {
             return player.getData(AMOUNT_OF_LAND);
@@ -643,7 +687,7 @@ public class CraftorioMisc {
     }
     
     public static void setLandAmount(long amount,Player player){
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)) {
             level.setData(AMOUNT_OF_LAND,amount);
         } else {
@@ -954,8 +998,11 @@ public class CraftorioMisc {
     }
 
     public static List<ShopMultiplierEffect> getShopEffects(Player player){
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)){
+            if (level.isClientSide() && ClientUniversalState.isAvailable()) {
+                return ClientUniversalState.getShopEffects();
+            }
             return level.getData(SHOP_MULTIPLIER_EFFECTS);
         } else {
             return player.getData(SHOP_MULTIPLIER_EFFECTS);
@@ -963,8 +1010,11 @@ public class CraftorioMisc {
     }
 
     public static List<TagMultiplierEffect> getTagEffects(Player player){
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)){
+            if (level.isClientSide() && ClientUniversalState.isAvailable()) {
+                return ClientUniversalState.getTagEffects();
+            }
             return level.getData(TAG_MULTIPLIER_EFFECTS);
         } else {
             return player.getData(TAG_MULTIPLIER_EFFECTS);
@@ -972,8 +1022,11 @@ public class CraftorioMisc {
     }
 
     public static List<GeneralMultiplierEffect> getGeneralEffects(Player player){
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)){
+            if (level.isClientSide() && ClientUniversalState.isAvailable()) {
+                return ClientUniversalState.getGeneralEffects();
+            }
             return level.getData(GENERAL_MULTIPLIER_EFFECTS);
         } else {
             return player.getData(GENERAL_MULTIPLIER_EFFECTS);
@@ -981,7 +1034,7 @@ public class CraftorioMisc {
     }
 
     public static void setShopEffects(Player player, List<ShopMultiplierEffect> effects){
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)){
             level.setData(SHOP_MULTIPLIER_EFFECTS,effects);
         } else {
@@ -990,7 +1043,7 @@ public class CraftorioMisc {
     }
 
     public static void setTagEffects(Player player,List<TagMultiplierEffect> effects){
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)){
             level.setData(TAG_MULTIPLIER_EFFECTS,effects);
         } else {
@@ -999,7 +1052,7 @@ public class CraftorioMisc {
     }
 
     public static void setGeneralEffects(Player player,List<GeneralMultiplierEffect> effects){
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)){
             level.setData(GENERAL_MULTIPLIER_EFFECTS,effects);
         } else {
@@ -1007,7 +1060,7 @@ public class CraftorioMisc {
         }
     }
 
-    public static void giveEffectItem(Item item, ServerPlayer player, List<CraftorioEffects> craftorioEffects) {
+    public static void giveEffectRune(Item item, ServerPlayer player, List<CraftorioEffects> craftorioEffects) {
         ItemStack stack = new ItemStack(item);
         stack.set(CraftorioDataComponents.EFFECTS_STORED.get(),craftorioEffects);
 
@@ -1142,8 +1195,11 @@ public class CraftorioMisc {
 
     //Contract Checks
     public static List<CraftorioShipmentContract> getCraftorioContracts(Player player){
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)){
+            if (level.isClientSide() && ClientUniversalState.isAvailable()) {
+                return ClientUniversalState.getContracts();
+            }
             return level.getData(SHIPMENT_CONTRACTS);
         } else {
             return player.getData(SHIPMENT_CONTRACTS);
@@ -1151,7 +1207,7 @@ public class CraftorioMisc {
     }
 
     public static void setCraftorioContracts(Player player,List<CraftorioShipmentContract> contracts){
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)){
             level.setData(SHIPMENT_CONTRACTS,contracts);
         } else {
@@ -1169,8 +1225,11 @@ public class CraftorioMisc {
 
 
     public static List<CraftorioBorder> getCraftorioBorders(Player player){
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)){
+            if (level.isClientSide() && ClientUniversalState.isAvailable()) {
+                return ClientUniversalState.getBorders();
+            }
             return level.getData(PLAYER_BORDERS);
         } else {
             return player.getData(PLAYER_BORDERS);
@@ -1178,7 +1237,7 @@ public class CraftorioMisc {
     }
 
     public static void setCraftorioBorders(Player player, List<CraftorioBorder> borders){
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)){
             level.setData(PLAYER_BORDERS, borders);
         } else {
@@ -1200,7 +1259,7 @@ public class CraftorioMisc {
     }
 
     public static Map<ResourceLocation, Long> getItemsSinked(Player player){
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)){
             return level.getData(CraftorioDataAttachments.ITEMS_SINKED);
         } else {
@@ -1210,7 +1269,7 @@ public class CraftorioMisc {
 
     public static void recordItemSinked(Player player, Item item, long amount){
         if (amount <= 0) return;
-        Level level = player.level();
+        Level level = universalLevel(player);
         ResourceLocation id = BuiltInRegistries.ITEM.getKey(item);
 
         Map<ResourceLocation, Long> updated = new HashMap<>(getItemsSinked(player));
@@ -1227,8 +1286,10 @@ public class CraftorioMisc {
         return registryAccess.registryOrThrow(CraftorioShipmentContract.REGISTRY_KEY).holders().toList();
     }
 
-    public static List<ResourceLocation> rollContractOffer(RegistryAccess registryAccess, RandomSource random, BigInteger playerHighestPoints) {
-        Collection<Holder.Reference<CraftorioShipmentContract>> all = getAllContracts(registryAccess);
+    public static List<ResourceLocation> rollContractOffer(RegistryAccess registryAccess, RandomSource random, BigInteger playerHighestPoints, double betterContractChance) {
+        List<Holder.Reference<CraftorioShipmentContract>> all = getAllContracts(registryAccess).stream()
+                .filter(holder -> holder.value().isModAvailable())
+                .toList();
 
         List<Holder.Reference<CraftorioShipmentContract>> eligible = all.stream()
                 .filter(holder -> playerHighestPoints.compareTo(holder.value().getMinPointThreshold()) >= 0
@@ -1242,7 +1303,8 @@ public class CraftorioMisc {
         List<ResourceLocation> offered = new ArrayList<>();
         if (!eligible.isEmpty()) {
             for (int i = 0; i < max; i++) {
-                offered.add(pickWeighted(eligible, random, CraftorioShipmentContract::getWeight).key().location());
+                offered.add(pickBetter(eligible, random, CraftorioShipmentContract::getWeight,
+                        contract -> new BigDecimal(contract.getBasePointValue()).doubleValue(), betterContractChance).key().location());
             }
         }
         return offered;
@@ -1272,8 +1334,35 @@ public class CraftorioMisc {
         return pool.get(pool.size() - 1);
     }
 
+    private static <T> Holder.Reference<T> pickBetter(Collection<Holder.Reference<T>> holders, RandomSource random,
+            ToIntFunction<T> weightFunction, ToDoubleFunction<T> qualityFunction, double betterChance) {
+        Holder.Reference<T> best = pickWeighted(holders, random, weightFunction);
+
+        int extraRolls = (int) Math.floor(betterChance);
+        double fractionalChance = betterChance - extraRolls;
+        if (fractionalChance > 0 && random.nextDouble() < fractionalChance) {
+            extraRolls++;
+        }
+
+        for (int i = 0; i < extraRolls; i++) {
+            Holder.Reference<T> candidate = pickWeighted(holders, random, weightFunction);
+            if (qualityFunction.applyAsDouble(candidate.value()) > qualityFunction.applyAsDouble(best.value())) {
+                best = candidate;
+            }
+        }
+
+        return best;
+    }
+
+    private static double effectQuality(CraftorioEffects effect) {
+        if (effect instanceof GeneralMultiplierEffect generalEffect) return generalEffect.getMultiplier();
+        if (effect instanceof TagMultiplierEffect tagEffect) return tagEffect.getMultiplier();
+        if (effect instanceof ShopMultiplierEffect shopEffect) return shopEffect.getMultiplier();
+        return 0;
+    }
+
     public static List<ResourceLocation> getContractOffer(Player player){
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)){
             return level.getData(CraftorioDataAttachments.CONTRACT_OFFER);
         } else {
@@ -1282,7 +1371,7 @@ public class CraftorioMisc {
     }
 
     public static void setContractOffer(Player player, List<ResourceLocation> offer){
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)){
             level.setData(CraftorioDataAttachments.CONTRACT_OFFER, offer);
         } else {
@@ -1291,7 +1380,7 @@ public class CraftorioMisc {
     }
 
     public static boolean isContractOfferClaimed(Player player){
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)){
             return level.getData(CraftorioDataAttachments.CONTRACT_OFFER_CLAIMED);
         } else {
@@ -1300,7 +1389,7 @@ public class CraftorioMisc {
     }
 
     public static void setContractOfferClaimed(Player player, boolean claimed){
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)){
             level.setData(CraftorioDataAttachments.CONTRACT_OFFER_CLAIMED, claimed);
         } else {
@@ -1341,7 +1430,7 @@ public class CraftorioMisc {
         return pickWeighted(all, random, CraftorioEffects::getWeight).value().copy();
     }
 
-    public static CraftorioEffects getRandomAmbientEffect(RegistryAccess registryAccess, RandomSource random) {
+    public static CraftorioEffects getRandomAmbientEffect(RegistryAccess registryAccess, RandomSource random, double betterEffectChance) {
         List<Holder.Reference<CraftorioEffects>> ambient = getAllEffects(registryAccess).stream()
                 .filter(holder -> holder.value().isAmbient())
                 .toList();
@@ -1349,7 +1438,7 @@ public class CraftorioMisc {
             throw new IllegalStateException("No ambient effects are registered");
         }
 
-        return pickWeighted(ambient, random, CraftorioEffects::getWeight).value().copy();
+        return pickBetter(ambient, random, CraftorioEffects::getWeight, CraftorioMisc::effectQuality, betterEffectChance).value().copy();
     }
 
     public static CraftorioShipmentContract getRandomShipment(RegistryAccess registryAccess, RandomSource random) {
@@ -1362,7 +1451,7 @@ public class CraftorioMisc {
     }
 
     public static List<ResourceKey<Level>> getDimensionsExplored(Player player){
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)){
             return level.getData(DIMENSIONS_EXPLORED);
         } else {
@@ -1371,7 +1460,7 @@ public class CraftorioMisc {
     }
 
     public static void setDimensionsExplored(Player player, List<ResourceKey<Level>> dimensionsExplored){
-        Level level = player.level();
+        Level level = universalLevel(player);
         if (universalBased(level)){
             level.setData(DIMENSIONS_EXPLORED, dimensionsExplored);
         } else {

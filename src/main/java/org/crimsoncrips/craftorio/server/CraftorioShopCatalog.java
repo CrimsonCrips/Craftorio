@@ -20,6 +20,7 @@ public class CraftorioShopCatalog {
 
     private static final String ENCHANT_BOOK_PREFIX = "enchant_book/";
     private static final String POTION_PREFIX = "potion/";
+    private static final String TIPPED_ARROW_PREFIX = "tipped_arrow/";
 
     public static ResourceLocation enchantBookKey(ResourceLocation enchantmentId) {
         return ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, ENCHANT_BOOK_PREFIX + enchantmentId.getNamespace() + "/" + enchantmentId.getPath());
@@ -27,6 +28,10 @@ public class CraftorioShopCatalog {
 
     public static ResourceLocation potionKey(ResourceLocation potionId) {
         return ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, POTION_PREFIX + potionId.getNamespace() + "/" + potionId.getPath());
+    }
+
+    public static ResourceLocation tippedArrowKey(ResourceLocation potionId) {
+        return ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, TIPPED_ARROW_PREFIX + potionId.getNamespace() + "/" + potionId.getPath());
     }
 
     public static Optional<ItemStack> resolve(RegistryAccess registryAccess, ResourceLocation key) {
@@ -42,12 +47,18 @@ public class CraftorioShopCatalog {
                     .map(holder -> PotionContents.createItemStack(Items.POTION, holder));
         }
 
+        if (key.getNamespace().equals(Craftorio.MODID) && key.getPath().startsWith(TIPPED_ARROW_PREFIX)) {
+            ResourceLocation potionId = parseEmbeddedId(key.getPath().substring(TIPPED_ARROW_PREFIX.length()));
+            return registryAccess.registryOrThrow(Registries.POTION).getHolder(potionId)
+                    .map(holder -> PotionContents.createItemStack(Items.TIPPED_ARROW, holder));
+        }
+
         return BuiltInRegistries.ITEM.getOptional(key).map(ItemStack::new);
     }
 
     public static boolean isVariantKey(ResourceLocation key) {
         return key.getNamespace().equals(Craftorio.MODID)
-                && (key.getPath().startsWith(ENCHANT_BOOK_PREFIX) || key.getPath().startsWith(POTION_PREFIX));
+                && (key.getPath().startsWith(ENCHANT_BOOK_PREFIX) || key.getPath().startsWith(POTION_PREFIX) || key.getPath().startsWith(TIPPED_ARROW_PREFIX));
     }
 
     private static ResourceLocation parseEmbeddedId(String remainder) {
@@ -71,6 +82,14 @@ public class CraftorioShopCatalog {
         return keys;
     }
 
+    public static List<ResourceLocation> allTippedArrowKeys(RegistryAccess registryAccess) {
+        List<ResourceLocation> keys = new ArrayList<>();
+        for (ResourceLocation id : registryAccess.registryOrThrow(Registries.POTION).keySet()) {
+            keys.add(tippedArrowKey(id));
+        }
+        return keys;
+    }
+
     public record CatalogEntry(ResourceLocation key, ItemStack stack) {}
 
     public static List<CatalogEntry> buildFullCatalog(RegistryAccess registryAccess) {
@@ -80,6 +99,16 @@ public class CraftorioShopCatalog {
             if (item == Items.AIR) continue;
             if (item.builtInRegistryHolder().is(org.crimsoncrips.craftorio.datagen.tags.CraftorioItemTagGen.SHOP_BLACKLIST)) continue;
             entries.add(new CatalogEntry(BuiltInRegistries.ITEM.getKey(item), new ItemStack(item)));
+        }
+
+        for (ResourceLocation key : allEnchantBookKeys(registryAccess)) {
+            resolve(registryAccess, key).ifPresent(stack -> entries.add(new CatalogEntry(key, stack)));
+        }
+        for (ResourceLocation key : allPotionKeys(registryAccess)) {
+            resolve(registryAccess, key).ifPresent(stack -> entries.add(new CatalogEntry(key, stack)));
+        }
+        for (ResourceLocation key : allTippedArrowKeys(registryAccess)) {
+            resolve(registryAccess, key).ifPresent(stack -> entries.add(new CatalogEntry(key, stack)));
         }
 
         return entries;

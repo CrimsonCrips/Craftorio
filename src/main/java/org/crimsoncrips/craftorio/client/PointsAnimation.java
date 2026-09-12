@@ -111,7 +111,12 @@ public final class PointsAnimation {
         double signedLogTo = signedLog10(animTo);
         double interpolated = signedLogFrom + (signedLogTo - signedLogFrom) * eased;
 
-        return fromSignedLog10(interpolated);
+        BigInteger result = fromSignedLog10(interpolated);
+        BigInteger low = animFrom.min(animTo);
+        BigInteger high = animFrom.max(animTo);
+        if (result.compareTo(low) < 0) return low;
+        if (result.compareTo(high) > 0) return high;
+        return result;
     }
 
     private static double signedLog10(BigInteger val) {
@@ -208,7 +213,7 @@ public final class PointsAnimation {
         if (abs.signum() == 0) return 0.0;
         String digits = abs.toString();
         int length = digits.length();
-        String mantissaDigits = length <= 17 ? digits : digits.substring(0, 17);
+        String mantissaDigits = length <= 14 ? digits : digits.substring(0, 14);
         double mantissa = Double.parseDouble(mantissaDigits);
         return Math.log10(mantissa) + (length - mantissaDigits.length());
     }

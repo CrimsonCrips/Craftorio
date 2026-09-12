@@ -5,6 +5,7 @@ import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -45,10 +46,12 @@ public class ShopScreen extends CatalogScreen<CatalogEntry> {
     }
 
     private boolean isUnlocked(CatalogEntry entry) {
+        if (this.allUnlocked) return true;
+
         if (CraftorioShopCatalog.isVariantKey(entry.key())) {
-            return true;
+            return this.unlockedItems.contains(BuiltInRegistries.ITEM.getKey(entry.stack().getItem()));
         }
-        return this.allUnlocked || this.unlockedItems.contains(entry.key());
+        return this.unlockedItems.contains(entry.key());
     }
 
     @Override
@@ -125,9 +128,14 @@ public class ShopScreen extends CatalogScreen<CatalogEntry> {
         }
 
         private MutableComponent buildTooltipComponent() {
-            MutableComponent tooltipComponent = CraftorioMisc.CraftorioTextEffects.capAwareLine(
-                    this.entry.stack().getHoverName().getString() + " - ", this.price, " (", this.unmodifiedPrice, " * " + this.shopMultiplier + ")"
-            );
+            MutableComponent tooltipComponent = Component.empty();
+            for (Component line : net.minecraft.client.gui.screens.Screen.getTooltipFromItem(ShopScreen.this.minecraft, this.entry.stack())) {
+                tooltipComponent.append(line).append("\n");
+            }
+
+            tooltipComponent.append(CraftorioMisc.CraftorioTextEffects.capAwareLine(
+                    "", this.price, " (", this.unmodifiedPrice, " * " + this.shopMultiplier + ")"
+            ));
             if (this.locked) {
                 tooltipComponent.append(Component.translatable("misc.craftorio.locked_suffix"));
             }

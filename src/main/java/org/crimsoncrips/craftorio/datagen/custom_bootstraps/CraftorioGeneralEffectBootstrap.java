@@ -29,6 +29,16 @@ public class CraftorioGeneralEffectBootstrap {
                     new GeneralMultiplierEffect(-multiplier, "registry.general_multiplier_neg_" + pathSuffix(multiplier), DURATION_SECONDS, DEFAULT_ICON, 1, true)
             );
         }
+
+        context.register(
+                key("general/inquisitors_wrath"),
+                new GeneralMultiplierEffect(-10F, "registry.inquisitors_wrath", 3600, DEFAULT_ICON, 1, false)
+        );
+
+        context.register(
+                key("general/trazyns_curse"),
+                new GeneralMultiplierEffect(-10000F, "registry.trazyns_curse", 18000, DEFAULT_ICON, 1, false)
+        );
     }
 
     private static String pathSuffix(float multiplier) {

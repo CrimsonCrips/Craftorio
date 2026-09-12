@@ -23,7 +23,7 @@ public class CraftorioEffectLootModifier extends LootModifier {
     public static final MapCodec<CraftorioEffectLootModifier> MAP_CODEC = RecordCodecBuilder.mapCodec(instance ->
             codecStart(instance).apply(instance, CraftorioEffectLootModifier::new));
 
-    private static final float SPAWN_CHANCE = 0.03f;
+    private static final float SPAWN_CHANCE = 0.003f;
 
     public CraftorioEffectLootModifier(LootItemCondition[] conditions) {
         super(conditions);
@@ -31,7 +31,7 @@ public class CraftorioEffectLootModifier extends LootModifier {
 
     @Override
     public MapCodec<? extends IGlobalLootModifier> codec() {
-        return CraftorioLootModifiers.EFFECT_ITEM_LOOT.get();
+        return CraftorioLootModifiers.EFFECT_RUNE_LOOT.get();
     }
 
     @Override
@@ -52,7 +52,7 @@ public class CraftorioEffectLootModifier extends LootModifier {
             chosen.add(CraftorioMisc.getRandomEffect(context.getLevel().registryAccess(), random));
         }
 
-        ItemStack stack = new ItemStack(random.nextBoolean() ? CraftorioItems.EFFECT_ITEM.get() : CraftorioItems.MYSTERY_EFFECT_ITEM);
+        ItemStack stack = new ItemStack(random.nextBoolean() ? CraftorioItems.EFFECT_RUNE.get() : CraftorioItems.MYSTERY_EFFECT_RUNE);
         stack.set(CraftorioDataComponents.EFFECTS_STORED.get(), chosen);
         generatedLoot.add(stack);
 

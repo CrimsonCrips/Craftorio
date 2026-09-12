@@ -29,6 +29,11 @@ public class CraftorioTagEffectBootstrap {
                 key("tag/copper_block_debuff"),
                 new TagMultiplierEffect(-10F, "registry.copper_block_debuff", CraftorioItemTagGen.COPPER, 25, DEFAULT_ICON, 1, false)
         );
+
+        context.register(
+                key("tag/copper_deficiency"),
+                new TagMultiplierEffect(-80F, "registry.copper_deficiency", CraftorioItemTagGen.COPPER, 5400, DEFAULT_ICON, 1, false)
+        );
     }
 
     private static ResourceKey<CraftorioEffects> key(String path) {

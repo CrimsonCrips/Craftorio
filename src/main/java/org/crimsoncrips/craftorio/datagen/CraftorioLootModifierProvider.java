@@ -17,6 +17,6 @@ public class CraftorioLootModifierProvider extends GlobalLootModifierProvider {
 
     @Override
     protected void start() {
-        add("effect_item_loot", new CraftorioEffectLootModifier(new LootItemCondition[0]));
+        add("effect_rune_loot", new CraftorioEffectLootModifier(new LootItemCondition[0]));
     }
 }

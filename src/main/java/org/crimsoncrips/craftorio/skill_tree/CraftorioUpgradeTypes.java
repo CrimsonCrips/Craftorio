@@ -3,7 +3,9 @@ package org.crimsoncrips.craftorio.skill_tree;
 import com.mojang.serialization.MapCodec;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.crimsoncrips.craftorio.Craftorio;
-import org.crimsoncrips.craftorio.skill_tree.upgrade_types.*;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.*;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.manual.AdvancementMultiplierUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.manual.SinkValueScalingUpgrade;
 
 import java.util.function.Supplier;
 
@@ -38,4 +40,10 @@ public class CraftorioUpgradeTypes {
 
     public static final Supplier<MapCodec<ResistanceUpgrade>> RESISTANCE =
             TYPES.register("resistance", () -> ResistanceUpgrade.CODEC);
+
+    public static final Supplier<MapCodec<AdvancementMultiplierUpgrade>> ADVANCEMENT_MULTIPLIER =
+            TYPES.register("advancement_multiplier", () -> AdvancementMultiplierUpgrade.CODEC);
+
+    public static final Supplier<MapCodec<SinkValueScalingUpgrade>> SINK_VALUE_SCALING =
+            TYPES.register("sink_value_scaling", () -> SinkValueScalingUpgrade.CODEC);
 }

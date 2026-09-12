@@ -11,6 +11,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.inventory.AutoSinkerMenu;
+import org.crimsoncrips.craftorio.networking.SetAutoSinkerOwnerPacket;
 import org.crimsoncrips.craftorio.networking.SetAutoSinkerThresholdPacket;
 
 @OnlyIn(Dist.CLIENT)
@@ -50,8 +51,15 @@ public class AutoSinkerScreen extends AbstractContainerScreen<AutoSinkerMenu> {
         this.addRenderableWidget(Button.builder(Component.literal("+1"), b -> nudge(1))
                 .bounds(centerX + SLIDER_WIDTH / 2 + 2, sliderY, SMALL_BUTTON_WIDTH, SMALL_BUTTON_HEIGHT).build());
 
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.set_owner_button"), b -> setOwner())
+                .bounds(centerX - 50, this.topPos + 100, 100, 20).build());
+
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.done"), b -> this.onClose())
                 .bounds(centerX - 50, this.topPos + this.imageHeight - 26, 100, 20).build());
+    }
+
+    private void setOwner() {
+        PacketDistributor.sendToServer(new SetAutoSinkerOwnerPacket());
     }
 
     @Override

@@ -1,0 +1,11 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:root",
+  "cost": "6000",
+  "description": "misc.craftorio.upgrade_better_effect_chance_1_description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "name": "misc.craftorio.upgrade_better_effect_chance_1",
+  "operation": "ADD",
+  "target": "BETTER_EFFECT_CHANCE",
+  "value": 0.25
+}

@@ -18,6 +18,12 @@
     "minecraft:knowledge_book",
     "minecraft:petrified_oak_slab",
     "minecraft:end_portal_frame",
-    "minecraft:dragon_egg"
+    "minecraft:dragon_egg",
+    "minecraft:potion",
+    "minecraft:tipped_arrow",
+    "minecraft:enchanted_book",
+    "craftorio:effect_rune",
+    "craftorio:mystery_effect_rune",
+    "minecraft:written_book"
   ]
 }

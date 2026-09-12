@@ -5,10 +5,12 @@ import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.resources.ResourceLocation;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.skill_tree.*;
-import org.crimsoncrips.craftorio.skill_tree.upgrade_types.CraftorioModifierUpgrade;
-import org.crimsoncrips.craftorio.skill_tree.upgrade_types.DamageUpgrade;
-import org.crimsoncrips.craftorio.skill_tree.upgrade_types.HealthUpgrade;
-import org.crimsoncrips.craftorio.skill_tree.upgrade_types.SpeedUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioModifierUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.DamageUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.HealthUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.SpeedUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.manual.AdvancementMultiplierUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.manual.SinkValueScalingUpgrade;
 
 public class CraftorioUpgradeBootstrap {
 
@@ -85,6 +87,38 @@ public class CraftorioUpgradeBootstrap {
                 .description("misc.craftorio.upgrade_damage_1_description")
                 .cost(3000)
                 .save(context, id("damage_1"), b -> DamageUpgrade.of(b, UpgradeOperation.ADD, 1.0));
+
+        CraftorioUpgrade.builder()
+                .name("misc.craftorio.upgrade_better_contract_chance_1")
+                .icon(DEFAULT_ICON)
+                .parent(root)
+                .description("misc.craftorio.upgrade_better_contract_chance_1_description")
+                .cost(6000)
+                .save(context, id("better_contract_chance_1"), b -> CraftorioModifierUpgrade.of(b, ModifierTarget.BETTER_CONTRACT_CHANCE, UpgradeOperation.ADD, 0.25));
+
+        CraftorioUpgrade.builder()
+                .name("misc.craftorio.upgrade_better_effect_chance_1")
+                .icon(DEFAULT_ICON)
+                .parent(root)
+                .description("misc.craftorio.upgrade_better_effect_chance_1_description")
+                .cost(6000)
+                .save(context, id("better_effect_chance_1"), b -> CraftorioModifierUpgrade.of(b, ModifierTarget.BETTER_EFFECT_CHANCE, UpgradeOperation.ADD, 0.25));
+
+        CraftorioUpgrade.builder()
+                .name("misc.craftorio.upgrade_advancement_multiplier")
+                .icon(DEFAULT_ICON)
+                .parent(root)
+                .description("misc.craftorio.upgrade_advancement_multiplier_description")
+                .cost(10000)
+                .save(context, id("advancement_multiplier"), AdvancementMultiplierUpgrade::of);
+
+        CraftorioUpgrade.builder()
+                .name("misc.craftorio.upgrade_sink_value_scaling")
+                .icon(DEFAULT_ICON)
+                .parent(root)
+                .description("misc.craftorio.upgrade_sink_value_scaling_description")
+                .cost(10000)
+                .save(context, id("sink_value_scaling"), SinkValueScalingUpgrade::of);
     }
 
     private static ResourceLocation id(String path) {

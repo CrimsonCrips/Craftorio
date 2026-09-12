@@ -2,8 +2,8 @@ package org.crimsoncrips.craftorio.registries.shipment;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
-import io.netty.buffer.ByteBuf;
 import net.minecraft.core.Registry;
+import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -15,6 +15,7 @@ import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
@@ -29,7 +30,7 @@ public class CraftorioShipmentContract {
     private String name;
     private String description;
     private int time;
-    private BigInteger pointRewards;
+    private BigInteger basePointValue;
     private List<CraftorioShipmentItemReward> rewards;
     private ResourceLocation icon;
     private ResourceLocation punishment;
@@ -38,6 +39,7 @@ public class CraftorioShipmentContract {
     private BigInteger pointThreshold;
     private BigInteger minPointThreshold;
     private BigInteger maxPointThreshold;
+    private String requiredModId;
 
     public static final ResourceKey<Registry<CraftorioShipmentContract>> REGISTRY_KEY =
             ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "shipment_contract"));
@@ -50,25 +52,26 @@ public class CraftorioShipmentContract {
                     Codec.STRING.fieldOf("name").forGetter(CraftorioShipmentContract::getActualName),
                     Codec.STRING.fieldOf("description").forGetter(CraftorioShipmentContract::getDescription),
                     Codec.INT.fieldOf("seconds").forGetter(contract -> contract.getTime() / SECONDS_TO_TICKS),
-                    BIGINT_CODEC().optionalFieldOf("pointRewards", BigInteger.ZERO).forGetter(CraftorioShipmentContract::getPointRewards),
+                    BIGINT_CODEC().optionalFieldOf("basePointValue", BigInteger.ZERO).forGetter(CraftorioShipmentContract::getBasePointValue),
                     Codec.list(CraftorioShipmentItemReward.CODEC).optionalFieldOf("itemRewards", List.of()).forGetter(CraftorioShipmentContract::getRewards),
                     ResourceLocation.CODEC.optionalFieldOf("icon").forGetter(contract -> Optional.ofNullable(contract.getIcon())),
                     ResourceLocation.CODEC.optionalFieldOf("punishment").forGetter(contract -> Optional.ofNullable(contract.getPunishment())),
                     Codec.INT.fieldOf("weight").forGetter(CraftorioShipmentContract::getWeight),
                     SCIENTIFIC_BIGINT_CODEC().optionalFieldOf("point_threshold", BigInteger.ZERO).forGetter(CraftorioShipmentContract::getPointThreshold),
                     SCIENTIFIC_BIGINT_CODEC().optionalFieldOf("min_point_threshold", BigInteger.ZERO).forGetter(CraftorioShipmentContract::getMinPointThreshold),
-                    SCIENTIFIC_BIGINT_CODEC().optionalFieldOf("max_point_threshold", CraftorioMisc.pointThreshold()).forGetter(CraftorioShipmentContract::getMaxPointThreshold)
-            ).apply(instance, (itemBounty, name, description, seconds, pointRewards, rewards, icon, punishment, weight, pointThreshold, minPointThreshold, maxPointThreshold) ->
-                    new CraftorioShipmentContract(itemBounty, name, description, seconds, pointRewards, rewards, icon.orElse(null), punishment, weight, pointThreshold, minPointThreshold, maxPointThreshold))
+                    SCIENTIFIC_BIGINT_CODEC().optionalFieldOf("max_point_threshold", CraftorioMisc.pointThreshold()).forGetter(CraftorioShipmentContract::getMaxPointThreshold),
+                    Codec.STRING.optionalFieldOf("required_mod_id").forGetter(contract -> Optional.ofNullable(contract.getRequiredModId()))
+            ).apply(instance, (itemBounty, name, description, seconds, basePointValue, rewards, icon, punishment, weight, pointThreshold, minPointThreshold, maxPointThreshold, requiredModId) ->
+                    new CraftorioShipmentContract(itemBounty, name, description, seconds, basePointValue, rewards, icon.orElse(null), punishment, weight, pointThreshold, minPointThreshold, maxPointThreshold, requiredModId))
     );
 
-    public static final StreamCodec<ByteBuf, CraftorioShipmentContract> CODEC_STREAM = StreamCodec.of(
+    public static final StreamCodec<RegistryFriendlyByteBuf, CraftorioShipmentContract> CODEC_STREAM = StreamCodec.of(
             (buffer, contract) -> {
                 CraftorioShipmentItem.CODEC_STREAM.apply(ByteBufCodecs.list()).encode(buffer, contract.getItemBounty());
                 ByteBufCodecs.STRING_UTF8.encode(buffer, contract.getActualName());
                 ByteBufCodecs.STRING_UTF8.encode(buffer, contract.getDescription());
                 ByteBufCodecs.INT.encode(buffer, contract.getTime());
-                ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).encode(buffer, contract.getPointRewards());
+                ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).encode(buffer, contract.getBasePointValue());
                 CraftorioShipmentItemReward.CODEC_STREAM.apply(ByteBufCodecs.list()).encode(buffer, contract.getRewards());
                 ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC).encode(buffer, Optional.ofNullable(contract.getIcon()));
                 ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC).encode(buffer, Optional.ofNullable(contract.getPunishment()));
@@ -77,13 +80,14 @@ public class CraftorioShipmentContract {
                 ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).encode(buffer, contract.getPointThreshold());
                 ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).encode(buffer, contract.getMinPointThreshold());
                 ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).encode(buffer, contract.getMaxPointThreshold());
+                ByteBufCodecs.optional(ByteBufCodecs.STRING_UTF8).encode(buffer, Optional.ofNullable(contract.getRequiredModId()));
             },
             buffer -> {
                 List<CraftorioShipmentItem> itemBounty = CraftorioShipmentItem.CODEC_STREAM.apply(ByteBufCodecs.list()).decode(buffer);
                 String name = ByteBufCodecs.STRING_UTF8.decode(buffer);
                 String description = ByteBufCodecs.STRING_UTF8.decode(buffer);
                 int time = ByteBufCodecs.INT.decode(buffer);
-                BigInteger pointRewards = ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).decode(buffer);
+                BigInteger basePointValue = ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).decode(buffer);
                 List<CraftorioShipmentItemReward> rewards = CraftorioShipmentItemReward.CODEC_STREAM.apply(ByteBufCodecs.list()).decode(buffer);
                 ResourceLocation icon = ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC).decode(buffer).orElse(null);
                 Optional<ResourceLocation> punishment = ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC).decode(buffer);
@@ -92,18 +96,19 @@ public class CraftorioShipmentContract {
                 BigInteger pointThreshold = ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).decode(buffer);
                 BigInteger minPointThreshold = ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).decode(buffer);
                 BigInteger maxPointThreshold = ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).decode(buffer);
-                CraftorioShipmentContract contract = new CraftorioShipmentContract(itemBounty, name, description, time / SECONDS_TO_TICKS, pointRewards, rewards, icon, punishment, weight, pointThreshold, minPointThreshold, maxPointThreshold);
+                Optional<String> requiredModId = ByteBufCodecs.optional(ByteBufCodecs.STRING_UTF8).decode(buffer);
+                CraftorioShipmentContract contract = new CraftorioShipmentContract(itemBounty, name, description, time / SECONDS_TO_TICKS, basePointValue, rewards, icon, punishment, weight, pointThreshold, minPointThreshold, maxPointThreshold, requiredModId);
                 contract.setTime(time);
                 return contract;
             }
     );
 
-    public CraftorioShipmentContract(List<CraftorioShipmentItem> itemBounty, String name, String description, int seconds, BigInteger pointRewards, List<CraftorioShipmentItemReward> rewards, ResourceLocation icon, Optional<ResourceLocation> punishment, int weight, BigInteger pointThreshold, BigInteger minPointThreshold, BigInteger maxPointThreshold){
+    public CraftorioShipmentContract(List<CraftorioShipmentItem> itemBounty, String name, String description, int seconds, BigInteger basePointValue, List<CraftorioShipmentItemReward> rewards, ResourceLocation icon, Optional<ResourceLocation> punishment, int weight, BigInteger pointThreshold, BigInteger minPointThreshold, BigInteger maxPointThreshold, Optional<String> requiredModId){
         this.itemBounty = itemBounty;
         this.name = name;
         this.description = description;
         this.time = seconds * SECONDS_TO_TICKS;
-        this.pointRewards = pointRewards != null ? pointRewards : BigInteger.ZERO;
+        this.basePointValue = basePointValue != null ? basePointValue : BigInteger.ZERO;
         this.rewards = rewards != null ? rewards : List.of();
         this.icon = icon;
         this.punishment = punishment.orElse(null);
@@ -112,10 +117,11 @@ public class CraftorioShipmentContract {
         this.pointThreshold = pointThreshold;
         this.minPointThreshold = minPointThreshold != null ? minPointThreshold : BigInteger.ZERO;
         this.maxPointThreshold = maxPointThreshold != null ? maxPointThreshold : CraftorioMisc.pointThreshold();
+        this.requiredModId = requiredModId != null ? requiredModId.orElse(null) : null;
     }
 
-    public CraftorioShipmentContract(List<CraftorioShipmentItem> itemBounty, String langKey, int seconds, BigInteger pointRewards, List<CraftorioShipmentItemReward> rewards, ResourceLocation icon, Optional<ResourceLocation> punishment, int weight, BigInteger pointThreshold, BigInteger minPointThreshold, BigInteger maxPointThreshold){
-        this(itemBounty, "registry." + langKey + ".title", "registry." + langKey + ".description", seconds, pointRewards, rewards, icon, punishment, weight, pointThreshold, minPointThreshold, maxPointThreshold);
+    public CraftorioShipmentContract(List<CraftorioShipmentItem> itemBounty, String langKey, int seconds, BigInteger basePointValue, List<CraftorioShipmentItemReward> rewards, ResourceLocation icon, Optional<ResourceLocation> punishment, int weight, BigInteger pointThreshold, BigInteger minPointThreshold, BigInteger maxPointThreshold, Optional<String> requiredModId){
+        this(itemBounty, "registry." + langKey + ".title", "registry." + langKey + ".description", seconds, basePointValue, rewards, icon, punishment, weight, pointThreshold, minPointThreshold, maxPointThreshold, requiredModId);
     }
 
     public boolean isComplete(){
@@ -133,7 +139,7 @@ public class CraftorioShipmentContract {
         for (CraftorioShipmentItem item : itemBounty) {
             copiedItems.add(item.copy());
         }
-        CraftorioShipmentContract copy = new CraftorioShipmentContract(copiedItems, getActualName(), getDescription(), getTime() / SECONDS_TO_TICKS, getPointRewards(), getRewards(), getIcon(), Optional.ofNullable(getPunishment()), getWeight(), getPointThreshold(), getMinPointThreshold(), getMaxPointThreshold());
+        CraftorioShipmentContract copy = new CraftorioShipmentContract(copiedItems, getActualName(), getDescription(), getTime() / SECONDS_TO_TICKS, getBasePointValue(), getRewards(), getIcon(), Optional.ofNullable(getPunishment()), getWeight(), getPointThreshold(), getMinPointThreshold(), getMaxPointThreshold(), Optional.ofNullable(getRequiredModId()));
         copy.setTime(getTime());
         return copy;
     }
@@ -192,12 +198,18 @@ public class CraftorioShipmentContract {
         this.time = time;
     }
 
-    public BigInteger getPointRewards() {
-        return pointRewards;
+    public BigInteger getBasePointValue() {
+        return basePointValue;
     }
 
-    public void setPointRewards(BigInteger pointRewards) {
-        this.pointRewards = pointRewards;
+    public void setBasePointValue(BigInteger basePointValue) {
+        this.basePointValue = basePointValue;
+    }
+
+    public BigInteger getMultipliedPointValue(Player player) {
+        float multiplier = CraftorioMisc.getCraftorioMultiplier(player);
+        BigDecimal result = new BigDecimal(basePointValue).multiply(BigDecimal.valueOf(multiplier));
+        return basePointValue.add(result.toBigInteger());
     }
 
     public List<CraftorioShipmentItemReward> getRewards() {
@@ -264,6 +276,18 @@ public class CraftorioShipmentContract {
         this.maxPointThreshold = maxPointThreshold;
     }
 
+    public String getRequiredModId() {
+        return requiredModId;
+    }
+
+    public void setRequiredModId(String requiredModId) {
+        this.requiredModId = requiredModId;
+    }
+
+    public boolean isModAvailable() {
+        return requiredModId == null || net.neoforged.fml.ModList.get().isLoaded(requiredModId);
+    }
+
     public void abandon() {
         this.abandoned = true;
         setTime(0);
@@ -273,7 +297,7 @@ public class CraftorioShipmentContract {
         setTime(time - 1);
         if (shouldEnd()){
             if (isComplete()){
-                CraftorioMisc.setPoints(getPointRewards().add(CraftorioMisc.getPoints(player)),player);
+                CraftorioMisc.setPoints(getMultipliedPointValue(player).add(CraftorioMisc.getPoints(player)),player);
                 for (CraftorioShipmentItemReward itemReward : getRewards()){
                     itemReward.giveItems(player);
                 }

@@ -1,4 +1,5 @@
 {
+  "basePointValue": "7000",
   "description": "registry.dyeabolical.description",
   "icon": "craftorio:textures/gui/default_contract_icon.png",
   "itemBounty": [
@@ -70,11 +71,14 @@
   "itemRewards": [
     {
       "amountGiving": 20,
-      "rewardingItem": "minecraft:experience_bottle"
+      "rewardingItem": {
+        "count": 1,
+        "id": "minecraft:experience_bottle"
+      }
     }
   ],
+  "max_point_threshold": "5000000",
   "name": "registry.dyeabolical.title",
-  "pointRewards": "50000",
   "point_threshold": "10000",
   "seconds": 7200,
   "weight": 1

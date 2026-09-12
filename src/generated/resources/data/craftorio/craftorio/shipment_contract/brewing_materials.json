@@ -1,4 +1,5 @@
 {
+  "basePointValue": "700",
   "description": "registry.brewing_materials.description",
   "icon": "craftorio:textures/gui/default_contract_icon.png",
   "itemBounty": [
@@ -22,11 +23,14 @@
   "itemRewards": [
     {
       "amountGiving": 5,
-      "rewardingItem": "minecraft:experience_bottle"
+      "rewardingItem": {
+        "count": 1,
+        "id": "minecraft:experience_bottle"
+      }
     }
   ],
+  "max_point_threshold": "200000",
   "name": "registry.brewing_materials.title",
-  "pointRewards": "1000",
   "point_threshold": "1000",
   "seconds": 1200,
   "weight": 1
