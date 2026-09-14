@@ -38,8 +38,10 @@ import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
@@ -128,11 +130,7 @@ public class ServerEvents {
 
         if (player instanceof ServerPlayer serverPlayer) {
             if (!CraftorioMisc.getDimensionsExplored(player).contains(dimensionEvent.getTo())) {
-                setArea(player,serverPlayer.getOnPos(),dimensionEvent.getTo());
-
-                List<ResourceKey<Level>> newDimensions = new ArrayList<>(CraftorioMisc.getDimensionsExplored(player));
-                newDimensions.add(dimensionEvent.getTo());
-                CraftorioMisc.setDimensionsExplored(player,newDimensions);
+                pendingDimensionAreaSetup.put(player.getUUID(), dimensionEvent.getTo());
             }
 
 
@@ -343,6 +341,22 @@ public class ServerEvents {
 
     @SubscribeEvent
     public void serverTick(ServerTickEvent.Post event) {
+        if (!pendingDimensionAreaSetup.isEmpty()) {
+            for (ServerPlayer player : event.getServer().getPlayerList().getPlayers()) {
+                ResourceKey<Level> pendingDimension = pendingDimensionAreaSetup.remove(player.getUUID());
+                if (pendingDimension == null) continue;
+                if (!player.level().dimension().equals(pendingDimension)) continue;
+
+                setArea(player, player.getOnPos(), pendingDimension);
+
+                List<ResourceKey<Level>> newDimensions = new ArrayList<>(CraftorioMisc.getDimensionsExplored(player));
+                if (!newDimensions.contains(pendingDimension)) {
+                    newDimensions.add(pendingDimension);
+                    CraftorioMisc.setDimensionsExplored(player, newDimensions);
+                }
+            }
+        }
+
         for (ServerPlayer player : event.getServer().getPlayerList().getPlayers()) {
             List<CraftorioBorder> borders = CraftorioMisc.getCraftorioBorders(player);
 
@@ -384,6 +398,8 @@ public class ServerEvents {
         player.serverLevel().explode(player, player.getX(), player.getY(), player.getZ(), 3.0F, Level.ExplosionInteraction.NONE);
         player.hurt(player.damageSources().outOfBorder(), Float.MAX_VALUE);
     }
+
+    private static final Map<UUID, ResourceKey<Level>> pendingDimensionAreaSetup = new HashMap<>();
 
     private static final Set<UUID> pendingContractScreenPush = new HashSet<>();
 

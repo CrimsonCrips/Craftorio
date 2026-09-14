@@ -283,7 +283,16 @@ public class CraftorioMisc {
         return multiplier;
     }
 
+    private record CachedMultiplier(int tick, float value) {}
+
+    private static final Map<Player, CachedMultiplier> CRAFTORIO_MULTIPLIER_CACHE = new WeakHashMap<>();
+
     public static float getCraftorioMultiplier(Player player){
+        CachedMultiplier cached = CRAFTORIO_MULTIPLIER_CACHE.get(player);
+        if (cached != null && cached.tick() == player.tickCount) {
+            return cached.value();
+        }
+
         float multiplier = 0;
         for (GeneralMultiplierEffect effect : getGeneralEffects(player)) {
             multiplier += effect.getMultiplier();
@@ -292,7 +301,10 @@ public class CraftorioMisc {
         multiplier += getContractCompletionMultiplierBonus(player);
         multiplier += getUpgradeModifierSum(player, ModifierTarget.MULTIPLIER, UpgradeOperation.ADD);
         float multiplyFactor = (float) (1.0 + getUpgradeModifierSum(player, ModifierTarget.MULTIPLIER, UpgradeOperation.MULTIPLY));
-        return multiplier * multiplyFactor;
+        float result = multiplier * multiplyFactor;
+
+        CRAFTORIO_MULTIPLIER_CACHE.put(player, new CachedMultiplier(player.tickCount, result));
+        return result;
     }
 
     public static double getContractCompletionMultiplierBonus(Player player){

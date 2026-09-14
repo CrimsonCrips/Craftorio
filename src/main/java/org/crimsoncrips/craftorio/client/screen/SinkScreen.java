@@ -59,6 +59,7 @@ public class SinkScreen extends AbstractContainerScreen<SinkerMenu>{
 	private BigInteger pendingRefund = BigInteger.ZERO;
 
 	private BigInteger displayedEscrow = BigInteger.ZERO;
+	private BigInteger cachedSinkerValue = BigInteger.ZERO;
 	private int winStreak = 0;
 
 	private final List<ShoweringItem> fallingIngots = new ArrayList<>();
@@ -101,7 +102,7 @@ public class SinkScreen extends AbstractContainerScreen<SinkerMenu>{
 		} else {
 			BigInteger valueShown = this.state == GambleState.WON || this.state == GambleState.LOST
 					? this.displayedEscrow
-					: computeSinkerValue();
+					: this.cachedSinkerValue;
 			CraftorioMisc.CraftorioTextEffects.drawCenteredLineFit(guiGraphics, this.font, centerX, j - 46, true, 0xFFAA00, maxPointsWidth, valueShown, pointsSuffix);
 		}
 
@@ -111,8 +112,9 @@ public class SinkScreen extends AbstractContainerScreen<SinkerMenu>{
 	@Override
 	protected void containerTick() {
 		super.containerTick();
+		this.cachedSinkerValue = computeSinkerValue();
 		if (this.doubleOrNothingButton != null) {
-			boolean canBet = this.state != GambleState.IDLE || computeSinkerValue().signum() != 0;
+			boolean canBet = this.state != GambleState.IDLE || this.cachedSinkerValue.signum() != 0;
 			this.doubleOrNothingButton.active = canBet;
 			this.forceHeadsButton.active = canBet;
 		}
@@ -153,6 +155,7 @@ public class SinkScreen extends AbstractContainerScreen<SinkerMenu>{
 	protected void init() {
 		super.init();
 
+		this.cachedSinkerValue = computeSinkerValue();
 		this.showeringItemTextures = resolveShoweringItemTextures();
 
 		int panelLeft = (this.width - this.imageWidth) / 2;

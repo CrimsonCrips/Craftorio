@@ -193,10 +193,15 @@ public class SkillTreeCreatorScreen extends Screen {
             }
         }
 
+        Map<Integer, Double> leafCounts = new HashMap<>();
+        for (DraftNode root : roots) {
+            computeTreeLeafCounts(root, childrenByParent, leafCounts);
+        }
+
         double sweepPerRoot = roots.isEmpty() ? 0 : (2 * Math.PI / roots.size());
         double cursor = 0;
         for (DraftNode root : roots) {
-            layoutTree(root, cursor, sweepPerRoot, 0, 0.0, childrenByParent);
+            layoutTree(root, cursor, sweepPerRoot, 0, 0.0, childrenByParent, leafCounts);
             cursor += sweepPerRoot;
         }
 
@@ -206,15 +211,24 @@ public class SkillTreeCreatorScreen extends Screen {
                 .orElse("yourmodid");
     }
 
-    private static double treeLeafCount(DraftNode node, Map<Integer, List<DraftNode>> childrenByParent) {
+    private static double computeTreeLeafCounts(DraftNode node, Map<Integer, List<DraftNode>> childrenByParent, Map<Integer, Double> leafCounts) {
+        Double cached = leafCounts.get(node.localId);
+        if (cached != null) return cached;
+
         List<DraftNode> childList = childrenByParent.getOrDefault(node.localId, List.of());
-        if (childList.isEmpty()) return 1;
-        double sum = 0;
-        for (DraftNode child : childList) sum += treeLeafCount(child, childrenByParent);
-        return sum;
+        double result;
+        if (childList.isEmpty()) {
+            result = 1;
+        } else {
+            double sum = 0;
+            for (DraftNode child : childList) sum += computeTreeLeafCounts(child, childrenByParent, leafCounts);
+            result = sum;
+        }
+        leafCounts.put(node.localId, result);
+        return result;
     }
 
-    private static void layoutTree(DraftNode node, double angleStart, double angleSweep, int depth, double parentRadius, Map<Integer, List<DraftNode>> childrenByParent) {
+    private static void layoutTree(DraftNode node, double angleStart, double angleSweep, int depth, double parentRadius, Map<Integer, List<DraftNode>> childrenByParent, Map<Integer, Double> leafCounts) {
         double angle = angleStart + angleSweep / 2;
 
         double radius;
@@ -237,11 +251,11 @@ public class SkillTreeCreatorScreen extends Screen {
         List<DraftNode> childList = childrenByParent.getOrDefault(node.localId, List.of());
         if (childList.isEmpty()) return;
 
-        double totalLeaves = treeLeafCount(node, childrenByParent);
+        double totalLeaves = leafCounts.get(node.localId);
         double cursor = angleStart;
         for (DraftNode child : childList) {
-            double childSweep = angleSweep * (treeLeafCount(child, childrenByParent) / totalLeaves);
-            layoutTree(child, cursor, childSweep, depth + 1, radius, childrenByParent);
+            double childSweep = angleSweep * (leafCounts.get(child.localId) / totalLeaves);
+            layoutTree(child, cursor, childSweep, depth + 1, radius, childrenByParent, leafCounts);
             cursor += childSweep;
         }
     }

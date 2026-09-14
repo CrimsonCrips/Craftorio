@@ -90,10 +90,15 @@ public class CraftorioSkillTreeScreen extends Screen {
             }
         }
 
+        Map<ResourceLocation, Double> leafCounts = new HashMap<>();
+        for (ResourceLocation root : roots) {
+            computeLeafCounts(root, children, leafCounts);
+        }
+
         double sweepPerRoot = roots.isEmpty() ? 0 : (2 * Math.PI / roots.size());
         double cursor = 0;
         for (ResourceLocation root : roots) {
-            layout(root, cursor, sweepPerRoot, 0, 0.0, children);
+            layout(root, cursor, sweepPerRoot, 0, 0.0, children, leafCounts);
             cursor += sweepPerRoot;
         }
 
@@ -192,15 +197,24 @@ public class CraftorioSkillTreeScreen extends Screen {
         return parent == null || CraftorioMisc.hasUnlockedUpgrade(player, parent);
     }
 
-    private double leafCount(ResourceLocation id, Map<ResourceLocation, List<ResourceLocation>> childrenMap) {
+    private double computeLeafCounts(ResourceLocation id, Map<ResourceLocation, List<ResourceLocation>> childrenMap, Map<ResourceLocation, Double> leafCounts) {
+        Double cached = leafCounts.get(id);
+        if (cached != null) return cached;
+
         List<ResourceLocation> childList = childrenMap.getOrDefault(id, List.of());
-        if (childList.isEmpty()) return 1;
-        double sum = 0;
-        for (ResourceLocation child : childList) sum += leafCount(child, childrenMap);
-        return sum;
+        double result;
+        if (childList.isEmpty()) {
+            result = 1;
+        } else {
+            double sum = 0;
+            for (ResourceLocation child : childList) sum += computeLeafCounts(child, childrenMap, leafCounts);
+            result = sum;
+        }
+        leafCounts.put(id, result);
+        return result;
     }
 
-    private void layout(ResourceLocation id, double angleStart, double angleSweep, int depth, double parentRadius, Map<ResourceLocation, List<ResourceLocation>> childrenMap) {
+    private void layout(ResourceLocation id, double angleStart, double angleSweep, int depth, double parentRadius, Map<ResourceLocation, List<ResourceLocation>> childrenMap, Map<ResourceLocation, Double> leafCounts) {
         double angle = angleStart + angleSweep / 2;
 
         double radius;
@@ -227,11 +241,11 @@ public class CraftorioSkillTreeScreen extends Screen {
         List<ResourceLocation> childList = childrenMap.getOrDefault(id, List.of());
         if (childList.isEmpty()) return;
 
-        double totalLeaves = leafCount(id, childrenMap);
+        double totalLeaves = leafCounts.get(id);
         double cursor = angleStart;
         for (ResourceLocation child : childList) {
-            double childSweep = angleSweep * (leafCount(child, childrenMap) / totalLeaves);
-            layout(child, cursor, childSweep, depth + 1, radius, childrenMap);
+            double childSweep = angleSweep * (leafCounts.get(child) / totalLeaves);
+            layout(child, cursor, childSweep, depth + 1, radius, childrenMap, leafCounts);
             cursor += childSweep;
         }
     }

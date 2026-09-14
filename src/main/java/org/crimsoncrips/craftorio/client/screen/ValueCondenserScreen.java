@@ -23,11 +23,19 @@ import java.util.List;
 
 public class ValueCondenserScreen extends AbstractContainerScreen<ValueCondenserMenu> {
 
+	private BigInteger cachedCondenserValue = BigInteger.ZERO;
+
 	public ValueCondenserScreen(ValueCondenserMenu menu, Inventory playerInventory, Component title) {
 		super(menu, playerInventory, title);
 		this.imageWidth = 176;
 		this.imageHeight = 222;
 		this.inventoryLabelY = this.imageHeight - 94;
+	}
+
+	@Override
+	protected void containerTick() {
+		super.containerTick();
+		this.cachedCondenserValue = computeCondenserValue();
 	}
 
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
@@ -36,7 +44,7 @@ public class ValueCondenserScreen extends AbstractContainerScreen<ValueCondenser
 		int j = (this.height - this.imageHeight) / 2;
 		int maxPointsWidth = (int) (this.width * 0.7);
 		String pointsSuffix = Component.translatable("misc.craftorio.points_suffix").getString();
-		CraftorioMisc.CraftorioTextEffects.drawCenteredLineFit(guiGraphics, this.font, this.width / 2, j - 46, true, 0xFFAA00, maxPointsWidth, computeCondenserValue(), pointsSuffix);
+		CraftorioMisc.CraftorioTextEffects.drawCenteredLineFit(guiGraphics, this.font, this.width / 2, j - 46, true, 0xFFAA00, maxPointsWidth, this.cachedCondenserValue, pointsSuffix);
 
 		this.renderTooltip(guiGraphics, mouseX, mouseY);
 	}
@@ -99,6 +107,7 @@ public class ValueCondenserScreen extends AbstractContainerScreen<ValueCondenser
 
 	protected void init() {
 		super.init();
+		this.cachedCondenserValue = computeCondenserValue();
 		this.condenseButtons.clear();
 		int i = (this.width) / 2;
 		int j = (this.height - this.imageHeight) / 2;
