@@ -1,0 +1,13 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:contract_refresh_3",
+  "cost": "7000000000000000000000000000000",
+  "description": "misc.craftorio.upgrade_rarer_contract_6_description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "name": "misc.craftorio.upgrade_rarer_contract_6",
+  "operation": "MULTIPLY",
+  "target": "RARER_CONTRACT_CHANCE",
+  "value": 3.0,
+  "x": 395.67076953967455,
+  "y": 326.75490655414575
+}

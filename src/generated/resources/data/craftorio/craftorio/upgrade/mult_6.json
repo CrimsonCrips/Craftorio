@@ -1,0 +1,13 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:mult_5",
+  "cost": "1000000000000000",
+  "description": "misc.craftorio.upgrade_mult_6_description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "name": "misc.craftorio.upgrade_mult_6",
+  "operation": "MULTIPLY",
+  "target": "MULTIPLIER",
+  "value": 2.0,
+  "x": 236.21205981385617,
+  "y": -553.9050753357576
+}

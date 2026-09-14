@@ -15,8 +15,9 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.networking.AbandonContractPacket;
+import org.crimsoncrips.craftorio.networking.ForceCompleteContractPacket;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
-import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
+import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,10 +47,14 @@ public class OwnedContractsScreen extends Screen {
     private static final int ABANDON_BUTTON_WIDTH = 60;
     private static final int ABANDON_BUTTON_HEIGHT = 14;
     private static final int ABANDON_BUTTON_GAP = 6;
+    private static final int FORCE_COMPLETE_BUTTON_WIDTH = 60;
+    private static final int FORCE_COMPLETE_BUTTON_HEIGHT = 14;
+    private static final int FORCE_COMPLETE_BUTTON_GAP = 4;
 
     private final Screen parent;
-    private final List<CraftorioShipmentContract> contracts = new ArrayList<>();
+    private final List<CraftorioContract> contracts = new ArrayList<>();
     private final List<Float> hoverScales = new ArrayList<>();
+    private boolean creative;
 
     private int cardWidth = BASE_CARD_WIDTH;
     private int cardHeight = BASE_CARD_HEIGHT;
@@ -74,6 +79,7 @@ public class OwnedContractsScreen extends Screen {
     @Override
     protected void init() {
         Player player = this.minecraft.player;
+        this.creative = player != null && player.isCreative();
         this.contracts.clear();
         if (player != null) {
             this.contracts.addAll(CraftorioMisc.getCraftorioContracts(player));
@@ -91,21 +97,26 @@ public class OwnedContractsScreen extends Screen {
 
         float aspect = (float) BASE_CARD_WIDTH / BASE_CARD_HEIGHT;
         float hoverOverflow = (HOVER_SCALE - 1f) / 2f;
-        int abandonArea = ABANDON_BUTTON_GAP + ABANDON_BUTTON_HEIGHT;
+        int abandonArea = ABANDON_BUTTON_GAP + ABANDON_BUTTON_HEIGHT
+                + (this.creative ? FORCE_COMPLETE_BUTTON_GAP + FORCE_COMPLETE_BUTTON_HEIGHT : 0);
         int availableHeight = Math.max(MIN_CARD_HEIGHT, (int) ((this.viewportBottom - this.viewportTop - abandonArea) / (1f + hoverOverflow)));
         this.cardHeight = Math.min(BASE_CARD_HEIGHT, availableHeight);
         this.cardWidth = Math.round(this.cardHeight * aspect);
 
         this.cardCenterY = this.viewportTop + this.cardHeight / 2;
 
+        recomputeScrollBounds();
+
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.back"), b -> this.minecraft.setScreen(this.parent))
+                .bounds(this.width / 2 - 50, this.height - 26, 100, 20).build());
+    }
+
+    private void recomputeScrollBounds() {
         int viewportWidth = Math.max(0, this.viewportRight - this.viewportLeft);
         int contentWidth = this.contracts.isEmpty() ? 0
                 : this.contracts.size() * this.cardWidth + (this.contracts.size() - 1) * CARD_GAP;
         this.maxScroll = Math.max(0, contentWidth - viewportWidth);
         this.scrollX = Mth.clamp(this.scrollX, 0, this.maxScroll);
-
-        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.back"), b -> this.minecraft.setScreen(this.parent))
-                .bounds(this.width / 2 - 50, this.height - 26, 100, 20).build());
     }
 
     @Override
@@ -135,7 +146,7 @@ public class OwnedContractsScreen extends Screen {
         }
     }
 
-    private void renderCard(GuiGraphics graphics, CraftorioShipmentContract contract, int index, int left, int mouseX, int mouseY) {
+    private void renderCard(GuiGraphics graphics, CraftorioContract contract, int index, int left, int mouseX, int mouseY) {
         if (left + this.cardWidth < this.viewportLeft || left > this.viewportRight) return;
 
         int centerX = left + this.cardWidth / 2;
@@ -206,11 +217,16 @@ public class OwnedContractsScreen extends Screen {
         graphics.pose().popPose();
 
         if (!contract.isAbandoned()) {
-            renderAbandonButton(graphics, contract, centerX, top + this.cardHeight + ABANDON_BUTTON_GAP, mouseX, mouseY);
+            int abandonY = top + this.cardHeight + ABANDON_BUTTON_GAP;
+            renderAbandonButton(graphics, contract, centerX, abandonY, mouseX, mouseY);
+            if (this.creative) {
+                int completeY = abandonY + ABANDON_BUTTON_HEIGHT + FORCE_COMPLETE_BUTTON_GAP;
+                renderForceCompleteButton(graphics, centerX, completeY, mouseX, mouseY);
+            }
         }
     }
 
-    private Component punishmentLine(CraftorioShipmentContract contract) {
+    private Component punishmentLine(CraftorioContract contract) {
         ResourceLocation punishmentId = contract.getPunishment();
         if (punishmentId == null || this.minecraft.level == null) {
             return Component.empty();
@@ -222,7 +238,7 @@ public class OwnedContractsScreen extends Screen {
                 .orElse(Component.empty());
     }
 
-    private void renderAbandonButton(GuiGraphics graphics, CraftorioShipmentContract contract, int centerX, int y, int mouseX, int mouseY) {
+    private void renderAbandonButton(GuiGraphics graphics, CraftorioContract contract, int centerX, int y, int mouseX, int mouseY) {
         int left = centerX - ABANDON_BUTTON_WIDTH / 2;
         boolean hovered = mouseX >= left && mouseX <= left + ABANDON_BUTTON_WIDTH
                 && mouseY >= y && mouseY <= y + ABANDON_BUTTON_HEIGHT
@@ -231,6 +247,17 @@ public class OwnedContractsScreen extends Screen {
         int background = hovered ? 0xC0AA3333 : 0xA0552222;
         graphics.fill(left, y, left + ABANDON_BUTTON_WIDTH, y + ABANDON_BUTTON_HEIGHT, background);
         graphics.drawCenteredString(this.font, Component.translatable("misc.craftorio.abandon_contract_button"), centerX, y + 3, 0xFFFFFF);
+    }
+
+    private void renderForceCompleteButton(GuiGraphics graphics, int centerX, int y, int mouseX, int mouseY) {
+        int left = centerX - FORCE_COMPLETE_BUTTON_WIDTH / 2;
+        boolean hovered = mouseX >= left && mouseX <= left + FORCE_COMPLETE_BUTTON_WIDTH
+                && mouseY >= y && mouseY <= y + FORCE_COMPLETE_BUTTON_HEIGHT
+                && mouseX >= this.viewportLeft && mouseX <= this.viewportRight;
+
+        int background = hovered ? 0xC033AA33 : 0xA0225522;
+        graphics.fill(left, y, left + FORCE_COMPLETE_BUTTON_WIDTH, y + FORCE_COMPLETE_BUTTON_HEIGHT, background);
+        graphics.drawCenteredString(this.font, Component.translatable("misc.craftorio.force_complete_contract_button"), centerX, y + 3, 0xFFFFFF);
     }
 
     private void renderScrollbar(GuiGraphics graphics) {
@@ -299,16 +326,25 @@ public class OwnedContractsScreen extends Screen {
     private void clickAt(double mouseX, double mouseY) {
         int top = this.cardCenterY - this.cardHeight / 2;
         int abandonY = top + this.cardHeight + ABANDON_BUTTON_GAP;
+        int completeY = abandonY + ABANDON_BUTTON_HEIGHT + FORCE_COMPLETE_BUTTON_GAP;
         int x = this.viewportLeft - Math.round(this.scrollX);
 
         for (int i = 0; i < this.contracts.size(); i++) {
-            CraftorioShipmentContract contract = this.contracts.get(i);
+            CraftorioContract contract = this.contracts.get(i);
             int centerX = x + this.cardWidth / 2;
 
-            if (!contract.isAbandoned() && mouseX >= centerX - ABANDON_BUTTON_WIDTH / 2.0 && mouseX <= centerX + ABANDON_BUTTON_WIDTH / 2.0
-                    && mouseY >= abandonY && mouseY <= abandonY + ABANDON_BUTTON_HEIGHT) {
-                promptAbandon(i, contract);
-                return;
+            if (!contract.isAbandoned()) {
+                if (mouseX >= centerX - ABANDON_BUTTON_WIDTH / 2.0 && mouseX <= centerX + ABANDON_BUTTON_WIDTH / 2.0
+                        && mouseY >= abandonY && mouseY <= abandonY + ABANDON_BUTTON_HEIGHT) {
+                    promptAbandon(i, contract);
+                    return;
+                }
+
+                if (this.creative && mouseX >= centerX - FORCE_COMPLETE_BUTTON_WIDTH / 2.0 && mouseX <= centerX + FORCE_COMPLETE_BUTTON_WIDTH / 2.0
+                        && mouseY >= completeY && mouseY <= completeY + FORCE_COMPLETE_BUTTON_HEIGHT) {
+                    forceComplete(i);
+                    return;
+                }
             }
 
             if (mouseX >= x && mouseX <= x + this.cardWidth && mouseY >= top && mouseY <= top + this.cardHeight) {
@@ -320,7 +356,14 @@ public class OwnedContractsScreen extends Screen {
         }
     }
 
-    private void promptAbandon(int index, CraftorioShipmentContract contract) {
+    private void forceComplete(int index) {
+        PacketDistributor.sendToServer(new ForceCompleteContractPacket(index));
+        this.contracts.remove(index);
+        this.hoverScales.remove(index);
+        recomputeScrollBounds();
+    }
+
+    private void promptAbandon(int index, CraftorioContract contract) {
         this.minecraft.setScreen(new ConfirmScreen(confirmed -> {
             if (confirmed) {
                 PacketDistributor.sendToServer(new AbandonContractPacket(index));

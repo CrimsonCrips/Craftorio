@@ -11,18 +11,15 @@ import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import net.neoforged.neoforge.data.event.GatherDataEvent;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.datagen.advancement.CraftorioAdvancementProvider;
-import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioGeneralEffectBootstrap;
-import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioShipmentBootstrap;
-import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioShopBootstrap;
-import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioTagEffectBootstrap;
+import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioEffectBootstrap;
+import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioContractBootstrap;
 import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioUpgradeBootstrap;
 import org.crimsoncrips.craftorio.datagen.language.CraftLangGen;
-import org.crimsoncrips.craftorio.datagen.maps.advancement_mult.CraftorioAdvancementMultDeterminer;
 import org.crimsoncrips.craftorio.datagen.maps.points.CraftorioPointsDeterminer;
 import org.crimsoncrips.craftorio.datagen.recipe.CraftorioRecipeGenerator;
 import org.crimsoncrips.craftorio.datagen.tags.CraftorioBlockTagGen;
 import org.crimsoncrips.craftorio.datagen.tags.CraftorioItemTagGen;
-import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
+import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
 
@@ -50,14 +47,10 @@ public class CraftorioDatagen {
 
         RegistrySetBuilder registryBuilder = new RegistrySetBuilder()
                 .add(CraftorioEffects.REGISTRY_KEY, context -> {
-                    CraftorioTagEffectBootstrap.buffBootstrap(context);
-                    CraftorioTagEffectBootstrap.debuffBootstrap(context);
-                    CraftorioGeneralEffectBootstrap.buffBootstrap(context);
-                    CraftorioGeneralEffectBootstrap.debuffBootstrap(context);
-                    CraftorioShopBootstrap.buffBootstrap(context);
-                    CraftorioShopBootstrap.debuffBootstrap(context);
+                    CraftorioEffectBootstrap.buffBootstrap(context);
+                    CraftorioEffectBootstrap.debuffBootstrap(context);
                 })
-                .add(CraftorioShipmentContract.REGISTRY_KEY, CraftorioShipmentBootstrap::bootstrap)
+                .add(CraftorioContract.REGISTRY_KEY, CraftorioContractBootstrap::bootstrap)
                 .add(CraftorioUpgrade.REGISTRY_KEY, CraftorioUpgradeBootstrap::bootstrap);
 
         generator.addProvider(event.includeServer(),

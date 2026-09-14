@@ -26,9 +26,9 @@ public class CraftorioEffectTypes {
                             Codec.INT.fieldOf("seconds").forGetter(effect -> effect.getTime() / CraftorioMisc.SECONDS_TO_TICKS),
                             ResourceLocation.CODEC.optionalFieldOf("icon").forGetter(effect -> Optional.ofNullable(effect.getIcon())),
                             Codec.INT.optionalFieldOf("weight", 1).forGetter(GeneralMultiplierEffect::getWeight),
-                            Codec.BOOL.optionalFieldOf("ambient", true).forGetter(GeneralMultiplierEffect::isAmbient)
-                    ).apply(instance, (multiplier, name, seconds, icon, weight, ambient) ->
-                            new GeneralMultiplierEffect(multiplier, name, seconds, icon.orElse(null), weight, ambient))
+                            Codec.BOOL.optionalFieldOf("unobtainable", false).forGetter(GeneralMultiplierEffect::isUnobtainable)
+                    ).apply(instance, (multiplier, name, seconds, icon, weight, unobtainable) ->
+                            new GeneralMultiplierEffect(multiplier, name, seconds, icon.orElse(null), weight, unobtainable))
             ));
 
     public static final Supplier<MapCodec<TagMultiplierEffect>> TAG_MULTIPLIER =
@@ -40,9 +40,9 @@ public class CraftorioEffectTypes {
                             Codec.INT.fieldOf("seconds").forGetter(effect -> effect.getTime() / CraftorioMisc.SECONDS_TO_TICKS),
                             ResourceLocation.CODEC.optionalFieldOf("icon").forGetter(effect -> Optional.ofNullable(effect.getIcon())),
                             Codec.INT.optionalFieldOf("weight", 1).forGetter(TagMultiplierEffect::getWeight),
-                            Codec.BOOL.optionalFieldOf("ambient", true).forGetter(TagMultiplierEffect::isAmbient)
-                    ).apply(instance, (multiplier, name, itemTag, seconds, icon, weight, ambient) ->
-                            new TagMultiplierEffect(multiplier, name, itemTag, seconds, icon.orElse(null), weight, ambient))
+                            Codec.BOOL.optionalFieldOf("unobtainable", false).forGetter(TagMultiplierEffect::isUnobtainable)
+                    ).apply(instance, (multiplier, name, itemTag, seconds, icon, weight, unobtainable) ->
+                            new TagMultiplierEffect(multiplier, name, itemTag, seconds, icon.orElse(null), weight, unobtainable))
             ));
 
     public static final Supplier<MapCodec<ShopMultiplierEffect>> SHOP_MULTIPLIER =
@@ -53,8 +53,8 @@ public class CraftorioEffectTypes {
                             Codec.INT.fieldOf("seconds").forGetter(effect -> effect.getTime() / CraftorioMisc.SECONDS_TO_TICKS),
                             ResourceLocation.CODEC.optionalFieldOf("icon").forGetter(effect -> Optional.ofNullable(effect.getIcon())),
                             Codec.INT.optionalFieldOf("weight", 1).forGetter(ShopMultiplierEffect::getWeight),
-                            Codec.BOOL.optionalFieldOf("ambient", true).forGetter(ShopMultiplierEffect::isAmbient)
-                    ).apply(instance, (multiplier, name, seconds, icon, weight, ambient) ->
-                            new ShopMultiplierEffect(multiplier, name, seconds, icon.orElse(null), weight, ambient))
+                            Codec.BOOL.optionalFieldOf("unobtainable", false).forGetter(ShopMultiplierEffect::isUnobtainable)
+                    ).apply(instance, (multiplier, name, seconds, icon, weight, unobtainable) ->
+                            new ShopMultiplierEffect(multiplier, name, seconds, icon.orElse(null), weight, unobtainable))
             ));
 }

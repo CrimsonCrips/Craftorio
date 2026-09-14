@@ -23,6 +23,8 @@ public abstract class CraftorioUpgrade {
     private final ResourceLocation parent;
     private final String description;
     private final BigInteger cost;
+    private double x = 0.0;
+    private double y = 0.0;
 
     public static final ResourceKey<Registry<MapCodec<? extends CraftorioUpgrade>>> TYPE_REGISTRY_KEY =
             ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "craftorio_upgrade_type"));
@@ -78,6 +80,19 @@ public abstract class CraftorioUpgrade {
         return cost;
     }
 
+    public double getX() {
+        return x;
+    }
+
+    public double getY() {
+        return y;
+    }
+
+    public void setPosition(double x, double y) {
+        this.x = x;
+        this.y = y;
+    }
+
     public void onUnlock(ServerPlayer player, ResourceLocation id) {
     }
 
@@ -91,6 +106,8 @@ public abstract class CraftorioUpgrade {
         private ResourceLocation parent;
         private String description;
         private BigInteger cost = BigInteger.ZERO;
+        private double x = 0.0;
+        private double y = 0.0;
 
         public Builder name(String name) {
             this.name = name;
@@ -127,6 +144,12 @@ public abstract class CraftorioUpgrade {
             return this;
         }
 
+        public Builder position(double x, double y) {
+            this.x = x;
+            this.y = y;
+            return this;
+        }
+
         public String getName() {
             return name;
         }
@@ -147,9 +170,19 @@ public abstract class CraftorioUpgrade {
             return cost;
         }
 
+        public double getX() {
+            return x;
+        }
+
+        public double getY() {
+            return y;
+        }
+
         public Holder.Reference<CraftorioUpgrade> save(BootstrapContext<CraftorioUpgrade> context, ResourceLocation id, Function<Builder, ? extends CraftorioUpgrade> factory) {
             ResourceKey<CraftorioUpgrade> key = ResourceKey.create(REGISTRY_KEY, id);
-            return context.register(key, factory.apply(this));
+            CraftorioUpgrade upgrade = factory.apply(this);
+            upgrade.setPosition(this.x, this.y);
+            return context.register(key, upgrade);
         }
     }
 }

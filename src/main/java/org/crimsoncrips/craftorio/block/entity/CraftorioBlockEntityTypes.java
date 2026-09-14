@@ -28,9 +28,6 @@ public class CraftorioBlockEntityTypes {
 	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AutoValueCondenserBlockEntity>> AUTO_VALUE_CONDENSER = BLOCK_ENTITIES.register("auto_value_condenser", () ->
 			BlockEntityType.Builder.of(AutoValueCondenserBlockEntity::new, CraftorioBlocks.AUTO_VALUE_CONDENSER.get()).build(null));
 
-	public static final DeferredHolder<BlockEntityType<?>, BlockEntityType<AreaScannerBlockEntity>> AREA_SCANNER = BLOCK_ENTITIES.register("area_scanner", () ->
-			BlockEntityType.Builder.of(AreaScannerBlockEntity::new, CraftorioBlocks.AREA_SCANNER.get()).build(null));
-
 	public static void registerCapabilities(RegisterCapabilitiesEvent event) {
 		event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, SINKER.get(), (be, side) -> new InvWrapper(be));
 		event.registerBlockEntity(Capabilities.ItemHandler.BLOCK, AUTO_SINKER.get(), (be, side) -> new InvWrapper(be));

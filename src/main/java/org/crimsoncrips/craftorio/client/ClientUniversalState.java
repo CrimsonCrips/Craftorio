@@ -6,7 +6,7 @@ import net.neoforged.api.distmarker.OnlyIn;
 import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.effect.ShopMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
-import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
+import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
 
 import java.math.BigInteger;
@@ -26,7 +26,7 @@ public class ClientUniversalState {
     private static List<TagMultiplierEffect> tagEffects = List.of();
     private static List<ShopMultiplierEffect> shopEffects = List.of();
     private static double advancementMultiplierBonus = 0.0;
-    private static List<CraftorioShipmentContract> contracts = List.of();
+    private static List<CraftorioContract> contracts = List.of();
     private static List<CraftorioBorder> borders = List.of();
 
     private ClientUniversalState() {
@@ -38,7 +38,7 @@ public class ClientUniversalState {
                                List<TagMultiplierEffect> tagEffects,
                                List<ShopMultiplierEffect> shopEffects,
                                double advancementMultiplierBonus,
-                               List<CraftorioShipmentContract> contracts,
+                               List<CraftorioContract> contracts,
                                List<CraftorioBorder> borders) {
         available = true;
         ClientUniversalState.points = points;
@@ -98,7 +98,7 @@ public class ClientUniversalState {
         return advancementMultiplierBonus;
     }
 
-    public static List<CraftorioShipmentContract> getContracts() {
+    public static List<CraftorioContract> getContracts() {
         return contracts;
     }
 

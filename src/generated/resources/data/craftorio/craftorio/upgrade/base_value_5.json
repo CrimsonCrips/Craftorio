@@ -1,0 +1,13 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:base_value_4",
+  "cost": "700000000",
+  "description": "misc.craftorio.upgrade_base_value_5_description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "name": "misc.craftorio.upgrade_base_value_5",
+  "operation": "ADD",
+  "target": "ITEM_BASE_VALUE",
+  "value": 120.0,
+  "x": -162.10517879309842,
+  "y": -507.9351164337295
+}

@@ -35,6 +35,10 @@ public class CraftorioItemTagGen extends ItemTagsProvider {
 	public static final TagKey<Item> CORAL = create("coral");
 	public static final TagKey<Item> DEAD_CORAL = create("dead_coral");
 	public static final TagKey<Item> FROGLIGHT = create("froglight");
+	public static final TagKey<Item> SHOWERING_ITEM = create("showering_item");
+	public static final TagKey<Item> REDSTONE_RELATED = create("redstone_related");
+	public static final TagKey<Item> ARCHERY_SEASON = create("archery_season");
+	public static final TagKey<Item> VALUABLES = create("valuables");
 
 	public CraftorioItemTagGen(PackOutput output, CompletableFuture<HolderLookup.Provider> future, CompletableFuture<TagLookup<Block>> provider, ExistingFileHelper helper) {
         super(output, future, provider, Craftorio.MODID, helper);
@@ -44,6 +48,30 @@ public class CraftorioItemTagGen extends ItemTagsProvider {
 	@SuppressWarnings("unchecked")
     @Override
 	protected void addTags(HolderLookup.Provider provider) {
+
+		tag(ARCHERY_SEASON).add(
+				Items.BOW,
+				Items.CROSSBOW,
+				Items.ARROW,
+				Items.SPECTRAL_ARROW,
+				Items.TIPPED_ARROW
+		);
+
+		tag(VALUABLES).add(
+				Items.DIAMOND,
+				Items.DIAMOND_BLOCK,
+				Items.NETHERITE_INGOT,
+				Items.GOLD_INGOT,
+				Items.GOLD_BLOCK,
+				Items.ANCIENT_DEBRIS,
+				Items.NETHER_STAR,
+				Items.NETHERITE_BLOCK,
+				Items.HEAVY_CORE,
+				Items.MACE,
+				Items.DRAGON_EGG,
+				Items.ANCIENT_DEBRIS,
+				Items.HEART_OF_THE_SEA
+		);
 
 		tag(SHOP_BLACKLIST).add(
 				Items.BEDROCK,
@@ -70,7 +98,8 @@ public class CraftorioItemTagGen extends ItemTagsProvider {
 				Items.ENCHANTED_BOOK,
 				CraftorioItems.EFFECT_RUNE.get(),
 				CraftorioItems.MYSTERY_EFFECT_RUNE.get(),
-				Items.WRITTEN_BOOK
+				Items.WRITTEN_BOOK,
+				CraftorioItems.SCANNER_STICK.get()
 		);
 
 		tag(FROGLIGHT).add(
@@ -78,6 +107,78 @@ public class CraftorioItemTagGen extends ItemTagsProvider {
 				Blocks.PEARLESCENT_FROGLIGHT.asItem(),
 				Blocks.VERDANT_FROGLIGHT.asItem()
 
+		);
+
+		tag(SHOWERING_ITEM).add(
+				Items.GOLD_INGOT
+		);
+
+		tag(REDSTONE_RELATED).add(
+				Items.REDSTONE,
+				Items.REDSTONE_BLOCK,
+				Items.REDSTONE_TORCH,
+				Items.REDSTONE_LAMP,
+				Items.REDSTONE_ORE,
+				Items.DEEPSLATE_REDSTONE_ORE,
+				Items.REPEATER,
+				Items.COMPARATOR,
+				Items.PISTON,
+				Items.STICKY_PISTON,
+				Items.DISPENSER,
+				Items.DROPPER,
+				Items.HOPPER,
+				Items.OBSERVER,
+				Items.NOTE_BLOCK,
+				Items.TARGET,
+				Items.LEVER,
+				Items.TRIPWIRE_HOOK,
+				Items.DAYLIGHT_DETECTOR,
+				Items.CRAFTER,
+				Items.SCULK_SENSOR,
+				Items.CALIBRATED_SCULK_SENSOR,
+				Items.TNT,
+				Items.TRAPPED_CHEST,
+				Items.IRON_DOOR,
+				Items.IRON_TRAPDOOR,
+				Items.POWERED_RAIL,
+				Items.DETECTOR_RAIL,
+				Items.ACTIVATOR_RAIL,
+				Items.OAK_BUTTON,
+				Items.SPRUCE_BUTTON,
+				Items.BIRCH_BUTTON,
+				Items.JUNGLE_BUTTON,
+				Items.ACACIA_BUTTON,
+				Items.DARK_OAK_BUTTON,
+				Items.MANGROVE_BUTTON,
+				Items.CHERRY_BUTTON,
+				Items.BAMBOO_BUTTON,
+				Items.CRIMSON_BUTTON,
+				Items.WARPED_BUTTON,
+				Items.STONE_BUTTON,
+				Items.POLISHED_BLACKSTONE_BUTTON,
+				Items.OAK_PRESSURE_PLATE,
+				Items.SPRUCE_PRESSURE_PLATE,
+				Items.BIRCH_PRESSURE_PLATE,
+				Items.JUNGLE_PRESSURE_PLATE,
+				Items.ACACIA_PRESSURE_PLATE,
+				Items.DARK_OAK_PRESSURE_PLATE,
+				Items.MANGROVE_PRESSURE_PLATE,
+				Items.CHERRY_PRESSURE_PLATE,
+				Items.BAMBOO_PRESSURE_PLATE,
+				Items.CRIMSON_PRESSURE_PLATE,
+				Items.WARPED_PRESSURE_PLATE,
+				Items.STONE_PRESSURE_PLATE,
+				Items.POLISHED_BLACKSTONE_PRESSURE_PLATE,
+				Items.LIGHT_WEIGHTED_PRESSURE_PLATE,
+				Items.HEAVY_WEIGHTED_PRESSURE_PLATE,
+				Blocks.COPPER_BULB.asItem(),
+				Blocks.EXPOSED_COPPER_BULB.asItem(),
+				Blocks.WEATHERED_COPPER_BULB.asItem(),
+				Blocks.OXIDIZED_COPPER_BULB.asItem(),
+				Blocks.WAXED_COPPER_BULB.asItem(),
+				Blocks.WAXED_EXPOSED_COPPER_BULB.asItem(),
+				Blocks.WAXED_WEATHERED_COPPER_BULB.asItem(),
+				Blocks.WAXED_OXIDIZED_COPPER_BULB.asItem()
 		);
 
 		tag(CORAL_BLOCKS).add(

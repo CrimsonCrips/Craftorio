@@ -1,0 +1,32 @@
+{
+  "basePointValue": "350",
+  "description": "registry.animal_feed.description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "itemBounty": [
+    {
+      "amountRequired": 2,
+      "contract_item": "minecraft:hay_block"
+    },
+    {
+      "amountRequired": 12,
+      "contract_item": "minecraft:potato"
+    },
+    {
+      "amountRequired": 6,
+      "contract_item": "minecraft:carrot"
+    }
+  ],
+  "itemRewards": [
+    {
+      "amountGiving": 1,
+      "rewardingItem": {
+        "count": 1,
+        "id": "minecraft:cake"
+      }
+    }
+  ],
+  "max_point_threshold": "20000",
+  "name": "registry.animal_feed.title",
+  "seconds": 300,
+  "weight": 10
+}

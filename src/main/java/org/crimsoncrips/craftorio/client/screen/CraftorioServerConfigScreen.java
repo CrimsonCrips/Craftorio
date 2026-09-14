@@ -114,6 +114,7 @@ public class CraftorioServerConfigScreen extends Screen {
         this.addRenderableWidget(new FieldLabel(x, y, label));
 
         EditBox box = new EditBox(this.font, x + LABEL_WIDTH, y, FIELD_WIDTH, WIDGET_HEIGHT, Component.literal(label));
+        box.setMaxLength(256);
         box.setValue(String.valueOf(value.get()));
         box.setResponder(text -> {
             try {
@@ -131,6 +132,7 @@ public class CraftorioServerConfigScreen extends Screen {
         this.addRenderableWidget(new FieldLabel(x, y, label));
 
         EditBox box = new EditBox(this.font, x + LABEL_WIDTH, y, FIELD_WIDTH, WIDGET_HEIGHT, Component.literal(label));
+        box.setMaxLength(256);
         box.setValue(String.valueOf(value.get()));
         box.setResponder(text -> {
             try {
@@ -148,6 +150,7 @@ public class CraftorioServerConfigScreen extends Screen {
         this.addRenderableWidget(new FieldLabel(x, y, label));
 
         EditBox box = new EditBox(this.font, x + LABEL_WIDTH, y, FIELD_WIDTH, WIDGET_HEIGHT, Component.literal(label));
+        box.setMaxLength(256);
         box.setValue(value.get());
         box.setResponder(value::set);
         this.addRenderableWidget(box);

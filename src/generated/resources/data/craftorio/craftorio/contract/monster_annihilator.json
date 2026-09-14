@@ -1,0 +1,131 @@
+{
+  "basePointValue": "500000000",
+  "description": "registry.monster_annihilator.description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "itemBounty": [
+    {
+      "amountRequired": 64,
+      "contract_item": "minecraft:gunpowder"
+    },
+    {
+      "amountRequired": 64,
+      "contract_item": "minecraft:emerald"
+    },
+    {
+      "amountRequired": 64,
+      "contract_item": "minecraft:slime_ball"
+    },
+    {
+      "amountRequired": 64,
+      "contract_item": "minecraft:prismarine_shard"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:totem_of_undying"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:totem_of_undying"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:totem_of_undying"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:totem_of_undying"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:totem_of_undying"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:totem_of_undying"
+    },
+    {
+      "amountRequired": 64,
+      "contract_item": "minecraft:ghast_tear"
+    },
+    {
+      "amountRequired": 64,
+      "contract_item": "minecraft:rotten_flesh"
+    },
+    {
+      "amountRequired": 64,
+      "contract_item": "minecraft:magma_cream"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:saddle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:saddle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:saddle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:saddle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:saddle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:saddle"
+    },
+    {
+      "amountRequired": 64,
+      "contract_item": "minecraft:breeze_rod"
+    },
+    {
+      "amountRequired": 16,
+      "contract_item": "minecraft:ender_pearl"
+    },
+    {
+      "amountRequired": 64,
+      "contract_item": "minecraft:shulker_shell"
+    },
+    {
+      "amountRequired": 64,
+      "contract_item": "minecraft:blaze_rod"
+    },
+    {
+      "amountRequired": 64,
+      "contract_item": "minecraft:phantom_membrane"
+    },
+    {
+      "amountRequired": 16,
+      "contract_item": "minecraft:sculk_catalyst"
+    },
+    {
+      "amountRequired": 16,
+      "contract_item": "minecraft:wither_skeleton_skull"
+    },
+    {
+      "amountRequired": 64,
+      "contract_item": "minecraft:bone"
+    }
+  ],
+  "itemRewards": [
+    {
+      "amountGiving": 1,
+      "randomEffectCount": 7,
+      "rewardingItem": {
+        "count": 1,
+        "id": "craftorio:mystery_effect_rune"
+      }
+    }
+  ],
+  "max_point_threshold": "300000000000000000000",
+  "min_point_threshold": "50000000",
+  "name": "registry.monster_annihilator.title",
+  "point_threshold": "100000000",
+  "seconds": 16000,
+  "weight": 10
+}

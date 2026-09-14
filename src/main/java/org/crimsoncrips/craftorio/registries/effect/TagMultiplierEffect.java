@@ -28,15 +28,15 @@ public class TagMultiplierEffect extends CraftorioEffects {
                     Codec.INT.fieldOf("seconds").forGetter(effect -> effect.getTime() / CraftorioMisc.SECONDS_TO_TICKS),
                     ResourceLocation.CODEC.optionalFieldOf("icon").forGetter(effect -> Optional.ofNullable(effect.getIcon())),
                     Codec.INT.optionalFieldOf("weight", 1).forGetter(TagMultiplierEffect::getWeight),
-                    Codec.BOOL.optionalFieldOf("ambient", true).forGetter(TagMultiplierEffect::isAmbient)
-            ).apply(instance, (multiplier, name, itemTag, seconds, icon, weight, ambient) ->
-                    new TagMultiplierEffect(multiplier, name, itemTag, seconds, icon.orElse(null), weight, ambient))
+                    Codec.BOOL.optionalFieldOf("unobtainable", false).forGetter(TagMultiplierEffect::isUnobtainable)
+            ).apply(instance, (multiplier, name, itemTag, seconds, icon, weight, unobtainable) ->
+                    new TagMultiplierEffect(multiplier, name, itemTag, seconds, icon.orElse(null), weight, unobtainable))
     );
 
-    private static final StreamCodec<ByteBuf, WeightAmbient> WEIGHT_AMBIENT_STREAM = StreamCodec.composite(
-            ByteBufCodecs.INT, WeightAmbient::weight,
-            ByteBufCodecs.BOOL, WeightAmbient::ambient,
-            WeightAmbient::new
+    private static final StreamCodec<ByteBuf, WeightUnobtainable> WEIGHT_UNOBTAINABLE_STREAM = StreamCodec.composite(
+            ByteBufCodecs.INT, WeightUnobtainable::weight,
+            ByteBufCodecs.BOOL, WeightUnobtainable::unobtainable,
+            WeightUnobtainable::new
     );
 
     public static final StreamCodec<ByteBuf, TagMultiplierEffect> CODEC_STREAM = StreamCodec.composite(
@@ -45,18 +45,18 @@ public class TagMultiplierEffect extends CraftorioEffects {
             ByteBufCodecs.fromCodec(TagKey.hashedCodec(Registries.ITEM)), TagMultiplierEffect::getItemTag,
             ByteBufCodecs.INT, TagMultiplierEffect::getTime,
             ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC), effect -> Optional.ofNullable(effect.getIcon()),
-            WEIGHT_AMBIENT_STREAM, effect -> new WeightAmbient(effect.getWeight(), effect.isAmbient()),
-            (multiplier, name, itemTag, time, icon, weightAmbient) -> {
-                TagMultiplierEffect effect = new TagMultiplierEffect(multiplier, name, itemTag, time / CraftorioMisc.SECONDS_TO_TICKS, icon.orElse(null), weightAmbient.weight(), weightAmbient.ambient());
+            WEIGHT_UNOBTAINABLE_STREAM, effect -> new WeightUnobtainable(effect.getWeight(), effect.isUnobtainable()),
+            (multiplier, name, itemTag, time, icon, weightUnobtainable) -> {
+                TagMultiplierEffect effect = new TagMultiplierEffect(multiplier, name, itemTag, time / CraftorioMisc.SECONDS_TO_TICKS, icon.orElse(null), weightUnobtainable.weight(), weightUnobtainable.unobtainable());
                 effect.setTime(time);
                 return effect;
             }
     );
 
-    private record WeightAmbient(int weight, boolean ambient) {}
+    private record WeightUnobtainable(int weight, boolean unobtainable) {}
 
-    public TagMultiplierEffect(float multiplier, String key, TagKey<Item> itemTag, int seconds, ResourceLocation icon, int weight, boolean ambient){
-        super(key, seconds * CraftorioMisc.SECONDS_TO_TICKS, icon, weight, ambient);
+    public TagMultiplierEffect(float multiplier, String key, TagKey<Item> itemTag, int seconds, ResourceLocation icon, int weight, boolean unobtainable){
+        super(key, seconds * CraftorioMisc.SECONDS_TO_TICKS, icon, weight, unobtainable);
         this.multiplier = multiplier;
         this.itemTag = itemTag;
     }
@@ -80,7 +80,7 @@ public class TagMultiplierEffect extends CraftorioEffects {
 
     @Override
     public TagMultiplierEffect copy() {
-        TagMultiplierEffect copy = new TagMultiplierEffect(getMultiplier(), getNameKey(), getItemTag(), getTime() / CraftorioMisc.SECONDS_TO_TICKS, getIcon(), getWeight(), isAmbient());
+        TagMultiplierEffect copy = new TagMultiplierEffect(getMultiplier(), getNameKey(), getItemTag(), getTime() / CraftorioMisc.SECONDS_TO_TICKS, getIcon(), getWeight(), isUnobtainable());
         copy.setTime(getTime());
         return copy;
     }

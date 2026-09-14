@@ -5,6 +5,8 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.neoforged.neoforge.network.PacketDistributor;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.crimsoncrips.craftorio.Craftorio;
@@ -36,6 +38,7 @@ public record ClaimContractPacket(ResourceLocation contractId) implements Custom
 
             CraftorioMisc.setContractOfferClaimed(serverPlayer, true);
             CraftorioMisc.grantContract(serverPlayer, message.contractId());
+            serverPlayer.playNotifySound(SoundEvents.VILLAGER_WORK_CARTOGRAPHER, SoundSource.PLAYERS, 1.0F, 1.0F);
 
             if (CraftorioMisc.universalBased(serverPlayer.level())) {
                 for (ServerPlayer other : serverPlayer.serverLevel().players()) {

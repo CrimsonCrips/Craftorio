@@ -8,7 +8,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
-import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
+import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 
 import java.util.List;
 
@@ -29,10 +29,10 @@ public record AbandonContractPacket(int index) implements CustomPacketPayload {
         ctx.enqueueWork(() -> {
             if (!(ctx.player() instanceof ServerPlayer serverPlayer)) return;
 
-            List<CraftorioShipmentContract> contracts = CraftorioMisc.getCraftorioContracts(serverPlayer);
+            List<CraftorioContract> contracts = CraftorioMisc.getCraftorioContracts(serverPlayer);
             if (message.index() < 0 || message.index() >= contracts.size()) return;
 
-            CraftorioShipmentContract contract = contracts.get(message.index());
+            CraftorioContract contract = contracts.get(message.index());
             if (contract.isAbandoned()) return;
 
             contract.abandon();

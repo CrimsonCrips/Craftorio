@@ -1,0 +1,8 @@
+{
+  "type": "craftorio:shop_multiplier",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "multiplier": -5.0,
+  "name": "registry.oversupplied",
+  "seconds": 7200,
+  "weight": 6
+}

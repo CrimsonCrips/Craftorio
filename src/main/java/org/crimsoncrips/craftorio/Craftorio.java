@@ -22,6 +22,7 @@ import org.crimsoncrips.craftorio.datagen.CraftorioDatagen;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffectTypes;
 import org.crimsoncrips.craftorio.item.CraftorioItems;
+import org.crimsoncrips.craftorio.item.ScannerStickItem;
 import org.crimsoncrips.craftorio.loot.CraftorioLootModifiers;
 import org.crimsoncrips.craftorio.server.CraftorioAdvancementPoints;
 import org.crimsoncrips.craftorio.server.CraftorioAdvancementMultipliers;
@@ -74,6 +75,7 @@ public class Craftorio {
         NeoForge.EVENT_BUS.register(new CommandEvents());
         NeoForge.EVENT_BUS.register(new ServerEvents());
         NeoForge.EVENT_BUS.register(UNLOCKED_ITEMS);
+        NeoForge.EVENT_BUS.addListener(ScannerStickItem::onLeftClickBlock);
 
         modEventBus.addListener(new PacketRegistration()::setupPackets);
         modEventBus.addListener(CraftorioDataMaps::registerDataMaps);
@@ -81,10 +83,10 @@ public class Craftorio {
         modEventBus.addListener(CraftorioItems::addCreative);
         if (FMLEnvironment.dist.isClient()) {
             modEventBus.addListener(new ClientEvents()::registerScreens);
-            modEventBus.addListener(new ClientEvents()::registerBlockEntityRenderers);
             modEventBus.addListener(ClientEvents::showPoints);
             modEventBus.addListener(ClientEvents::showEffectTimer);
             modEventBus.addListener(ClientEvents::showToasts);
+            NeoForge.EVENT_BUS.addListener(ClientEvents::renderScanBox);
             NeoForge.EVENT_BUS.addListener(ClientEvents::renderBorders);
             NeoForge.EVENT_BUS.addListener(ClientEvents::renderClaimedChunkBorders);
             NeoForge.EVENT_BUS.addListener(ClientEvents::renderPauseMenuIndicators);
@@ -92,7 +94,6 @@ public class Craftorio {
             NeoForge.EVENT_BUS.addListener(CraftorioKeyMappings::onClientTick);
             NeoForge.EVENT_BUS.addListener(ClientEvents::tickUniversalProgressDisplay);
             NeoForge.EVENT_BUS.addListener(ClientEvents::addCraftorioStatsButton);
-            NeoForge.EVENT_BUS.addListener(ClientEvents::renderUndiscoveredItemLocks);
             ClientEvents.registerConfigScreen(modContainer);
 
             if (ModList.get().isLoaded("xaeroworldmap")) {

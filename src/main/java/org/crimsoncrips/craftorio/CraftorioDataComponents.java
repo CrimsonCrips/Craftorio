@@ -1,6 +1,7 @@
 package org.crimsoncrips.craftorio;
 
 import com.mojang.serialization.Codec;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -23,6 +24,12 @@ public class CraftorioDataComponents {
 
 	public static final DeferredHolder<DataComponentType<?>, DataComponentType<BigInteger>> CONDENSED_VALUE =
 			register("condensed_value", CraftorioMisc.BIGINT_CODEC(), ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()));
+
+	public static final DeferredHolder<DataComponentType<?>, DataComponentType<BlockPos>> SCAN_POS_1 =
+			register("scan_pos_1", BlockPos.CODEC, ByteBufCodecs.fromCodec(BlockPos.CODEC));
+
+	public static final DeferredHolder<DataComponentType<?>, DataComponentType<BlockPos>> SCAN_POS_2 =
+			register("scan_pos_2", BlockPos.CODEC, ByteBufCodecs.fromCodec(BlockPos.CODEC));
 
 
 

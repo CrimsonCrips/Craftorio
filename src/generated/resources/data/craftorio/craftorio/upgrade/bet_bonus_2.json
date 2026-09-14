@@ -1,0 +1,13 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:double_or_nothing_unlock",
+  "cost": "320000000000000000000000000",
+  "description": "misc.craftorio.upgrade_bet_bonus_2_description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "name": "misc.craftorio.upgrade_bet_bonus_2",
+  "operation": "ADD",
+  "target": "BET_BONUS",
+  "value": 0.3,
+  "x": 571.5683916925362,
+  "y": 25.54235920302036
+}

@@ -5,9 +5,9 @@ import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.inventory.MenuType;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
-import org.crimsoncrips.craftorio.inventory.AreaScannerMenu;
 import org.crimsoncrips.craftorio.inventory.AutoSinkerMenu;
 import org.crimsoncrips.craftorio.inventory.AutoValueCondenserMenu;
+import org.crimsoncrips.craftorio.inventory.ContractCreatorMenu;
 import org.crimsoncrips.craftorio.inventory.SinkerMenu;
 import org.crimsoncrips.craftorio.inventory.ValueCondenserMenu;
 
@@ -27,7 +27,7 @@ public class CraftorioMenuTypes {
 	public static final DeferredHolder<MenuType<?>, MenuType<AutoValueCondenserMenu>> AUTO_VALUE_CONDENSER = CONTAINERS.register("auto_value_condenser_menu",
 		() -> new MenuType<>(AutoValueCondenserMenu::clientMenu, FeatureFlags.REGISTRY.allFlags()));
 
-	public static final DeferredHolder<MenuType<?>, MenuType<AreaScannerMenu>> AREA_SCANNER = CONTAINERS.register("area_scanner_menu",
-		() -> new MenuType<>(AreaScannerMenu::clientMenu, FeatureFlags.REGISTRY.allFlags()));
+	public static final DeferredHolder<MenuType<?>, MenuType<ContractCreatorMenu>> CONTRACT_CREATOR = CONTAINERS.register("contract_creator_menu",
+		() -> new MenuType<>(ContractCreatorMenu::contractCreatorMenu, FeatureFlags.REGISTRY.allFlags()));
 
 }

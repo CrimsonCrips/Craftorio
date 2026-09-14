@@ -38,9 +38,14 @@ public class CraftorioModifierUpgrade extends CraftorioUpgrade {
                     TARGET_CODEC.fieldOf("target").forGetter(CraftorioModifierUpgrade::getTarget),
                     OPERATION_CODEC.fieldOf("operation").forGetter(CraftorioModifierUpgrade::getOperation),
                     Codec.DOUBLE.fieldOf("value").forGetter(CraftorioModifierUpgrade::getValue),
-                    TagKey.hashedCodec(Registries.ITEM).optionalFieldOf("item_tag").forGetter(CraftorioModifierUpgrade::getItemTag)
-            ).apply(instance, (name, icon, parent, description, cost, target, operation, value, itemTag) ->
-                    new CraftorioModifierUpgrade(name, icon, parent.orElse(null), description, cost, target, operation, value, itemTag.orElse(null)))
+                    TagKey.hashedCodec(Registries.ITEM).optionalFieldOf("item_tag").forGetter(CraftorioModifierUpgrade::getItemTag),
+                    Codec.DOUBLE.optionalFieldOf("x", 0.0).forGetter(CraftorioModifierUpgrade::getX),
+                    Codec.DOUBLE.optionalFieldOf("y", 0.0).forGetter(CraftorioModifierUpgrade::getY)
+            ).apply(instance, (name, icon, parent, description, cost, target, operation, value, itemTag, x, y) -> {
+                    CraftorioModifierUpgrade upgrade = new CraftorioModifierUpgrade(name, icon, parent.orElse(null), description, cost, target, operation, value, itemTag.orElse(null));
+                    upgrade.setPosition(x, y);
+                    return upgrade;
+            })
     );
 
     public CraftorioModifierUpgrade(String name, ResourceLocation icon, ResourceLocation parent, String description, BigInteger cost,

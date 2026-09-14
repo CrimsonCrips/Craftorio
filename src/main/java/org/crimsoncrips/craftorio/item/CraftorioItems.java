@@ -28,6 +28,7 @@ public class CraftorioItems {
     public static final DeferredItem<Item> EFFECT_RUNE = ITEMS.register("effect_rune", () -> new EffectRune(new Item.Properties()));
     public static final DeferredItem<Item> MYSTERY_EFFECT_RUNE = ITEMS.register("mystery_effect_rune", () -> new MysteryEffectRune(new Item.Properties()));
     public static final DeferredItem<Item> CLAIM_ITEM = ITEMS.register("claim_item", () -> new ClaimChunkItem(new Item.Properties()));
+    public static final DeferredItem<Item> SCANNER_STICK = ITEMS.register("scanner_stick", () -> new ScannerStickItem(new Item.Properties()));
 
     public static void addCreative(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {

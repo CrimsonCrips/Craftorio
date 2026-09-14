@@ -44,7 +44,8 @@ public class EffectRune extends Item {
         for (CraftorioEffects chosenEffect : getContainedEffects(stack)) {
             ChatFormatting color = ChatFormatting.BLUE;
             if ((chosenEffect instanceof TagMultiplierEffect tagEffect && tagEffect.getMultiplier() < 0)
-                    || (chosenEffect instanceof GeneralMultiplierEffect generalEffect && generalEffect.getMultiplier() < 0)) {
+                    || (chosenEffect instanceof GeneralMultiplierEffect generalEffect && generalEffect.getMultiplier() < 0)
+                    || (chosenEffect instanceof ShopMultiplierEffect shopEffect && shopEffect.getMultiplier() < 0)) {
                 color = ChatFormatting.RED;
             }
 

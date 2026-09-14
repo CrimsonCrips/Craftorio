@@ -8,7 +8,7 @@ import net.neoforged.neoforge.registries.DataPackRegistryEvent;
 import net.neoforged.neoforge.registries.NewRegistryEvent;
 import net.neoforged.neoforge.registries.RegistryBuilder;
 import org.crimsoncrips.craftorio.Craftorio;
-import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
+import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
 
@@ -32,7 +32,7 @@ public class CraftorioRegistries {
     @SubscribeEvent
     static void newDataPackRegistry(DataPackRegistryEvent.NewRegistry event) {
         event.dataPackRegistry(CraftorioEffects.REGISTRY_KEY, CraftorioEffects.dispatchCodec(), CraftorioEffects.dispatchCodec());
-        event.dataPackRegistry(CraftorioShipmentContract.REGISTRY_KEY, CraftorioShipmentContract.CODEC, CraftorioShipmentContract.CODEC);
+        event.dataPackRegistry(CraftorioContract.REGISTRY_KEY, CraftorioContract.CODEC, CraftorioContract.CODEC);
         event.dataPackRegistry(CraftorioUpgrade.REGISTRY_KEY, CraftorioUpgrade.dispatchCodec(), CraftorioUpgrade.dispatchCodec());
     }
 }

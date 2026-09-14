@@ -1,0 +1,13 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:effect_timer_2",
+  "cost": "60000000000000000000000",
+  "description": "misc.craftorio.upgrade_rarer_effect_4_description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "name": "misc.craftorio.upgrade_rarer_effect_4",
+  "operation": "ADD",
+  "target": "RARER_EFFECT_CHANCE",
+  "value": 0.5,
+  "x": -307.98275301375514,
+  "y": -151.3967829258773
+}

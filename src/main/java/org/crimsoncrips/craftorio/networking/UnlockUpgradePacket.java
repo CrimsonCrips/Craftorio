@@ -8,6 +8,7 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
@@ -45,7 +46,7 @@ public record UnlockUpgradePacket(ResourceLocation upgradeId) implements CustomP
             BigInteger cost = upgrade.getCost();
             BigInteger points = CraftorioMisc.getPoints(player);
             if (points.compareTo(cost) < 0) {
-                player.sendSystemMessage(Component.translatable("misc.craftorio.not_enough_points").withStyle(ChatFormatting.RED));
+                PacketDistributor.sendToPlayer(player, new UnlockUpgradeFailedPacket("not_enough_points"));
                 return;
             }
 

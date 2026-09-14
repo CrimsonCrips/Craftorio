@@ -12,7 +12,7 @@ import org.crimsoncrips.craftorio.client.ClientUniversalState;
 import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.effect.ShopMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
-import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
+import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
 
 import java.math.BigInteger;
@@ -29,7 +29,7 @@ public record UniversalStateSyncPacket(
         List<TagMultiplierEffect> tagEffects,
         List<ShopMultiplierEffect> shopEffects,
         double advancementMultiplierBonus,
-        List<CraftorioShipmentContract> contracts,
+        List<CraftorioContract> contracts,
         List<CraftorioBorder> borders
 ) implements CustomPacketPayload {
 
@@ -46,7 +46,7 @@ public record UniversalStateSyncPacket(
                 TagMultiplierEffect.CODEC_STREAM.apply(ByteBufCodecs.list()).encode(buffer, packet.tagEffects());
                 ShopMultiplierEffect.CODEC_STREAM.apply(ByteBufCodecs.list()).encode(buffer, packet.shopEffects());
                 ByteBufCodecs.DOUBLE.encode(buffer, packet.advancementMultiplierBonus());
-                CraftorioShipmentContract.CODEC_STREAM.apply(ByteBufCodecs.list()).encode(buffer, packet.contracts());
+                CraftorioContract.CODEC_STREAM.apply(ByteBufCodecs.list()).encode(buffer, packet.contracts());
                 CraftorioBorder.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buffer, packet.borders());
             },
             buffer -> {
@@ -59,7 +59,7 @@ public record UniversalStateSyncPacket(
                 List<TagMultiplierEffect> tagEffects = TagMultiplierEffect.CODEC_STREAM.apply(ByteBufCodecs.list()).decode(buffer);
                 List<ShopMultiplierEffect> shopEffects = ShopMultiplierEffect.CODEC_STREAM.apply(ByteBufCodecs.list()).decode(buffer);
                 double advancementMultiplierBonus = ByteBufCodecs.DOUBLE.decode(buffer);
-                List<CraftorioShipmentContract> contracts = CraftorioShipmentContract.CODEC_STREAM.apply(ByteBufCodecs.list()).decode(buffer);
+                List<CraftorioContract> contracts = CraftorioContract.CODEC_STREAM.apply(ByteBufCodecs.list()).decode(buffer);
                 List<CraftorioBorder> borders = CraftorioBorder.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buffer);
                 return new UniversalStateSyncPacket(points, highestPoints, tempPoints, landAmount, Set.copyOf(unlockedUpgrades),
                         generalEffects, tagEffects, shopEffects, advancementMultiplierBonus, contracts, borders);

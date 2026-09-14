@@ -7,14 +7,13 @@ import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.Container;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.inventory.ValueCondenserMenu;
 import org.crimsoncrips.craftorio.networking.CondenseValuePacket;
@@ -23,7 +22,6 @@ import java.math.BigInteger;
 import java.util.List;
 
 public class ValueCondenserScreen extends AbstractContainerScreen<ValueCondenserMenu> {
-	private static final ResourceLocation CONDENSER_SCREEN = Craftorio.getGuiTexture("value_condenser_screen.png");
 
 	public ValueCondenserScreen(ValueCondenserMenu menu, Inventory playerInventory, Component title) {
 		super(menu, playerInventory, title);
@@ -58,12 +56,21 @@ public class ValueCondenserScreen extends AbstractContainerScreen<ValueCondenser
 	protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
 		int i = (this.width - this.imageWidth) / 2;
 		int j = (this.height - this.imageHeight) / 2;
-		guiGraphics.blit(CONDENSER_SCREEN, i, j, 0, 0, this.imageWidth, this.imageHeight);
+
+		guiGraphics.fill(i, j, i + this.imageWidth, j + this.imageHeight, 0xE0202020);
+		guiGraphics.renderOutline(i, j, this.imageWidth, this.imageHeight, 0xFF808080);
+
+		for (Slot slot : this.menu.slots) {
+			int slotX = i + slot.x - 1;
+			int slotY = j + slot.y - 1;
+			guiGraphics.fill(slotX, slotY, slotX + 18, slotY + 18, 0xFF404040);
+			guiGraphics.renderOutline(slotX, slotY, 18, 18, 0xFF808080);
+		}
 	}
 
 	@Override
 	protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-		guiGraphics.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY - 10, 4210752, false);
+		guiGraphics.drawString(this.font, this.playerInventoryTitle, this.inventoryLabelX, this.inventoryLabelY, 4210752, false);
 	}
 
 	private final List<CondenseButton> condenseButtons = Lists.newArrayList();

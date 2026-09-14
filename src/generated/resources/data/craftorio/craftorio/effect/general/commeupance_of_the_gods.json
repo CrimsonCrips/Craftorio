@@ -1,0 +1,9 @@
+{
+  "type": "craftorio:general_multiplier",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "multiplier": -5000.0,
+  "name": "registry.commeupance_of_the_gods",
+  "seconds": 14400,
+  "unobtainable": true,
+  "weight": 10
+}

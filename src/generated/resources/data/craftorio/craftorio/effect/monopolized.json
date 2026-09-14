@@ -1,0 +1,8 @@
+{
+  "type": "craftorio:shop_multiplier",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "multiplier": -20.0,
+  "name": "registry.monopolized",
+  "seconds": 5400,
+  "weight": 3
+}

@@ -16,7 +16,6 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.networking.EffectTimerPacket;
-import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
 
 import java.math.BigInteger;
 

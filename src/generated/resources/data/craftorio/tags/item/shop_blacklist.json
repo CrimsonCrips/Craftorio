@@ -24,6 +24,7 @@
     "minecraft:enchanted_book",
     "craftorio:effect_rune",
     "craftorio:mystery_effect_rune",
-    "minecraft:written_book"
+    "minecraft:written_book",
+    "craftorio:scanner_stick"
   ]
 }

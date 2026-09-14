@@ -1,0 +1,13 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:contract_refresh_2",
+  "cost": "1000000000000000000000",
+  "description": "misc.craftorio.upgrade_contract_refresh_3_description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "name": "misc.craftorio.upgrade_contract_refresh_3",
+  "operation": "MULTIPLY",
+  "target": "CONTRACT_REFRESH_SPEED",
+  "value": 1.5,
+  "x": 415.8275362571488,
+  "y": 222.17813604314523
+}

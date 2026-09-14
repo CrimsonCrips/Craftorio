@@ -1,0 +1,8 @@
+{
+  "type": "craftorio:general_multiplier",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "multiplier": 3.5,
+  "name": "registry.productive",
+  "seconds": 1620,
+  "weight": 8
+}

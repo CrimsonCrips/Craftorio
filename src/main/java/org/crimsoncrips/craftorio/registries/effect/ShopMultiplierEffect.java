@@ -22,9 +22,9 @@ public class ShopMultiplierEffect extends CraftorioEffects {
                     Codec.INT.fieldOf("seconds").forGetter(effect -> effect.getTime() / CraftorioMisc.SECONDS_TO_TICKS),
                     ResourceLocation.CODEC.optionalFieldOf("icon").forGetter(effect -> Optional.ofNullable(effect.getIcon())),
                     Codec.INT.optionalFieldOf("weight", 1).forGetter(ShopMultiplierEffect::getWeight),
-                    Codec.BOOL.optionalFieldOf("ambient", true).forGetter(ShopMultiplierEffect::isAmbient)
-            ).apply(instance, (multiplier, name, seconds, icon, weight, ambient) ->
-                    new ShopMultiplierEffect(multiplier, name, seconds, icon.orElse(null), weight, ambient))
+                    Codec.BOOL.optionalFieldOf("unobtainable", false).forGetter(ShopMultiplierEffect::isUnobtainable)
+            ).apply(instance, (multiplier, name, seconds, icon, weight, unobtainable) ->
+                    new ShopMultiplierEffect(multiplier, name, seconds, icon.orElse(null), weight, unobtainable))
     );
 
     public static final StreamCodec<ByteBuf, ShopMultiplierEffect> CODEC_STREAM = StreamCodec.composite(
@@ -33,9 +33,9 @@ public class ShopMultiplierEffect extends CraftorioEffects {
             ByteBufCodecs.INT, ShopMultiplierEffect::getTime,
             ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC), effect -> Optional.ofNullable(effect.getIcon()),
             ByteBufCodecs.INT, ShopMultiplierEffect::getWeight,
-            ByteBufCodecs.BOOL, ShopMultiplierEffect::isAmbient,
-            (multiplier, name, time, icon, weight, ambient) -> {
-                ShopMultiplierEffect effect = new ShopMultiplierEffect(multiplier, name, time / CraftorioMisc.SECONDS_TO_TICKS, icon.orElse(null), weight, ambient);
+            ByteBufCodecs.BOOL, ShopMultiplierEffect::isUnobtainable,
+            (multiplier, name, time, icon, weight, unobtainable) -> {
+                ShopMultiplierEffect effect = new ShopMultiplierEffect(multiplier, name, time / CraftorioMisc.SECONDS_TO_TICKS, icon.orElse(null), weight, unobtainable);
                 effect.setTime(time);
                 return effect;
             }
@@ -51,22 +51,22 @@ public class ShopMultiplierEffect extends CraftorioEffects {
         return CraftorioEffectTypes.SHOP_MULTIPLIER.get();
     }
 
-    public ShopMultiplierEffect(float multiplier, String key, int seconds, ResourceLocation icon, boolean ambient){
-        this(multiplier, "registry." + key, seconds, icon, 0, ambient);
+    public ShopMultiplierEffect(float multiplier, String key, int seconds, ResourceLocation icon, boolean unobtainable){
+        this(multiplier, "registry." + key, seconds, icon, 0, unobtainable);
     }
 
     public ShopMultiplierEffect(float multiplier, String key, int seconds, ResourceLocation icon, int weight){
-        this(multiplier, "registry." + key, seconds, icon, weight, true);
+        this(multiplier, "registry." + key, seconds, icon, weight, false);
     }
 
-    public ShopMultiplierEffect(float multiplier, String name, int seconds, ResourceLocation icon, int weight, boolean ambient){
-        super(name, seconds * CraftorioMisc.SECONDS_TO_TICKS, icon, weight, ambient);
+    public ShopMultiplierEffect(float multiplier, String name, int seconds, ResourceLocation icon, int weight, boolean unobtainable){
+        super(name, seconds * CraftorioMisc.SECONDS_TO_TICKS, icon, weight, unobtainable);
         this.multiplier = multiplier;
     }
 
     @Override
     public ShopMultiplierEffect copy() {
-        ShopMultiplierEffect copy = new ShopMultiplierEffect(getMultiplier(), getNameKey(), getTime() / CraftorioMisc.SECONDS_TO_TICKS, getIcon(), getWeight(), isAmbient());
+        ShopMultiplierEffect copy = new ShopMultiplierEffect(getMultiplier(), getNameKey(), getTime() / CraftorioMisc.SECONDS_TO_TICKS, getIcon(), getWeight(), isUnobtainable());
         copy.setTime(getTime());
         return copy;
     }

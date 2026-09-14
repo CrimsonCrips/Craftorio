@@ -8,9 +8,7 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -18,6 +16,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.networking.BorderExpandPacket;
+import org.crimsoncrips.craftorio.skill_tree.ModifierTarget;
 import org.jetbrains.annotations.Nullable;
 
 import java.math.BigInteger;
@@ -25,46 +24,76 @@ import java.util.List;
 
 @OnlyIn(Dist.CLIENT)
 public class BorderExpandScreen extends Screen {
-	private static final ResourceLocation EXPAND_SCREEN = Craftorio.getGuiTexture("expand_screen.png");
+
+	private static final int PANEL_WIDTH = 176;
+	private static final int PANEL_PADDING = 12;
+	private static final int EXPAND_BUTTON_WIDTH = 100;
+	private static final int EXPAND_BUTTON_HEIGHT = 20;
+	private static final int AMOUNT_BUTTON_SIZE = 22;
+	private static final int AMOUNT_BUTTON_GAP = 4;
+	private static final int AMOUNT_NUMBER_HALF_GAP = 26;
+	private static final int CANCEL_BUTTON_WIDTH = 100;
+	private static final int CANCEL_BUTTON_HEIGHT = 20;
+	private static final int GAP_AFTER_EXPAND = 14;
+	private static final int GAP_AFTER_AMOUNT_ROW = 8;
+	private static final int GAP_AFTER_GROWTH = 14;
+	private static final int GAP_AFTER_LABEL = 4;
+	private static final int GAP_TO_CANCEL = 10;
 
 	long amountClaiming = 0;
 	BorderExpandScreen borderExpandScreen;
+
+	private int panelTop;
+	private int panelHeight;
+	private int expandButtonY;
+	private int amountRowY;
+	private int growthTextY;
+	private int pointsLabelY;
+	private int pointsValueY;
+	private int cancelY;
 
 	public BorderExpandScreen() {
 		super(Component.translatable("misc.craftorio.expand_border"));
 		this.borderExpandScreen = this;
 	}
 
+	private void computeLayout() {
+		int lineHeight = this.font.lineHeight;
+		this.panelHeight = PANEL_PADDING + EXPAND_BUTTON_HEIGHT + GAP_AFTER_EXPAND + AMOUNT_BUTTON_SIZE + GAP_AFTER_AMOUNT_ROW
+				+ lineHeight + GAP_AFTER_GROWTH + lineHeight + GAP_AFTER_LABEL + lineHeight + PANEL_PADDING;
+
+		int totalHeight = this.panelHeight + GAP_TO_CANCEL + CANCEL_BUTTON_HEIGHT;
+		this.panelTop = (this.height - totalHeight) / 2;
+
+		this.expandButtonY = this.panelTop + PANEL_PADDING;
+		this.amountRowY = this.expandButtonY + EXPAND_BUTTON_HEIGHT + GAP_AFTER_EXPAND;
+		this.growthTextY = this.amountRowY + AMOUNT_BUTTON_SIZE + GAP_AFTER_AMOUNT_ROW;
+		this.pointsLabelY = this.growthTextY + lineHeight + GAP_AFTER_GROWTH;
+		this.pointsValueY = this.pointsLabelY + lineHeight + GAP_AFTER_LABEL;
+		this.cancelY = this.panelTop + this.panelHeight + GAP_TO_CANCEL;
+	}
+
 	@Override
 	public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
 		super.render(guiGraphics, mouseX, mouseY, partialTick);
 
-		int i = (this.width) / 2;
-		int j = (this.height) / 2 - 10;
+		int centerX = this.width / 2;
 		Player player = Minecraft.getInstance().player;
 		if (player == null)
 			return;
 
-		long landAmount = CraftorioMisc.getLandAmount(player);
-		String pointsToExpand = CraftorioMisc.bigIntFormat(CraftorioMisc.pointsToExpand(amountClaiming,landAmount),Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
-		String string = Component.translatable("misc.craftorio.points_required").getString();
-
-		String INFINITY_TEXT = CraftorioMisc.bigIntFormat(CraftorioMisc.pointThreshold(), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
-		String NEG_INFINITY_TEXT = "-" + CraftorioMisc.bigIntFormat(CraftorioMisc.pointThreshold(), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
-
-		guiGraphics.drawString(this.font, string, i - 25, j - 40 + (-string.length() * 2), 4210752, false);
-		if (pointsToExpand.equals(INFINITY_TEXT)) {
-			CraftorioMisc.CraftorioTextEffects.drawFancy(guiGraphics, font, pointsToExpand, i + 9 + (-pointsToExpand.length() * 2), j - 30, true,0);
-		} else if (pointsToExpand.equals(NEG_INFINITY_TEXT)) {
-			CraftorioMisc.CraftorioTextEffects.drawFancy(guiGraphics, font, pointsToExpand, i + 9 + (-pointsToExpand.length() * 2), j - 30, true,1);
-		} else {
-			guiGraphics.drawString(font, pointsToExpand, i + 9 + (-pointsToExpand.length() * 2), j - 30, 16759552, true);
-		}
-		guiGraphics.drawString(this.font, Component.literal(String.valueOf(amountClaiming)), i + 7 + (-String.valueOf(amountClaiming).length() * 2), j + 5, 4210752, false);
+		guiGraphics.drawCenteredString(this.font, String.valueOf(amountClaiming), centerX,
+				this.amountRowY + (AMOUNT_BUTTON_SIZE - this.font.lineHeight) / 2, 4210752);
 
 		long borderGrowth = amountClaiming * Craftorio.SERVER_CONFIG.EXPANSION_AMOUNT.getAsInt();
-		String growthText = Component.translatable("misc.craftorio.expand_border_growth", borderGrowth).getString();
-		guiGraphics.drawString(this.font, growthText, i - (growthText.length() * 2), j + 20, 4210752, false);
+		guiGraphics.drawCenteredString(this.font, Component.translatable("misc.craftorio.expand_border_growth", borderGrowth), centerX, this.growthTextY, 4210752);
+
+		guiGraphics.drawCenteredString(this.font, Component.translatable("misc.craftorio.points_required"), centerX, this.pointsLabelY, 4210752);
+
+		long landAmount = CraftorioMisc.getLandAmount(player);
+		BigInteger rawCost = CraftorioMisc.pointsToExpand(amountClaiming, landAmount);
+		BigInteger pointsToExpand = CraftorioMisc.applyUpgradeModifier(player, ModifierTarget.EXPANSION_COST, rawCost).max(BigInteger.ZERO);
+		CraftorioMisc.CraftorioTextEffects.drawCenteredLineFit(guiGraphics, this.font, centerX, this.pointsValueY, true, 16759552, Integer.MAX_VALUE, pointsToExpand);
 	}
 
 
@@ -77,34 +106,39 @@ public class BorderExpandScreen extends Screen {
 	protected void init() {
 		super.init();
 		this.borderButtons.clear();
+		computeLayout();
 
-		int i = (this.width) / 2;
-		int j = (this.height) / 2 - 10;
+		int centerX = this.width / 2;
 
-		this.addButton(new BorderExpandAmount(i + 30, j, 22, 22,false,true));
-		this.addButton(new BorderExpandAmount(i - 30, j, 22, 22,false,false));
-		this.addButton(new BorderExpandAmount(i + 60, j, 22, 22,true, true));
-		this.addButton(new BorderExpandAmount(i - 60, j, 22, 22,true,false));
-		this.addButton(new ExpandBorder(i, j - 100, 22, 22));
+		int minus1X = centerX - AMOUNT_NUMBER_HALF_GAP - AMOUNT_BUTTON_SIZE;
+		int plus1X = centerX + AMOUNT_NUMBER_HALF_GAP;
+		int maxMinusX = minus1X - AMOUNT_BUTTON_GAP - AMOUNT_BUTTON_SIZE;
+		int maxPlusX = plus1X + AMOUNT_BUTTON_SIZE + AMOUNT_BUTTON_GAP;
+
+		this.addButton(new BorderExpandAmount(maxMinusX, this.amountRowY, AMOUNT_BUTTON_SIZE, AMOUNT_BUTTON_SIZE, true, false));
+		this.addButton(new BorderExpandAmount(minus1X, this.amountRowY, AMOUNT_BUTTON_SIZE, AMOUNT_BUTTON_SIZE, false, false));
+		this.addButton(new BorderExpandAmount(plus1X, this.amountRowY, AMOUNT_BUTTON_SIZE, AMOUNT_BUTTON_SIZE, false, true));
+		this.addButton(new BorderExpandAmount(maxPlusX, this.amountRowY, AMOUNT_BUTTON_SIZE, AMOUNT_BUTTON_SIZE, true, true));
+		this.addButton(new ExpandBorder(centerX - EXPAND_BUTTON_WIDTH / 2, this.expandButtonY, EXPAND_BUTTON_WIDTH, EXPAND_BUTTON_HEIGHT));
 
 		this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.cancel"), b -> this.onClose())
-				.bounds(i - 50, j + 40, 100, 20).build());
+				.bounds(centerX - CANCEL_BUTTON_WIDTH / 2, this.cancelY, CANCEL_BUTTON_WIDTH, CANCEL_BUTTON_HEIGHT).build());
 	}
 
 	@Override
 	public void renderBackground(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
 		super.renderBackground(guiGraphics, mouseX, mouseY, partialTick);
-		int i = (this.width) / 2 ;
-		int j = (this.height) / 2 - 40;
-		guiGraphics.blit(EXPAND_SCREEN, i - 75, j - 80, 0, 0, 176, 140);
+		int panelX = this.width / 2 - PANEL_WIDTH / 2;
+		guiGraphics.fill(panelX, this.panelTop, panelX + PANEL_WIDTH, this.panelTop + this.panelHeight, 0xE0202020);
+		guiGraphics.renderOutline(panelX, this.panelTop, PANEL_WIDTH, this.panelHeight, 0xFF808080);
 	}
 
 	private final List<ExpansionButtons> borderButtons = Lists.newArrayList();
 
 	@OnlyIn(Dist.CLIENT)
 	class ExpansionButtons extends AbstractButton  {
-		public ExpansionButtons(int x, int y, int width, int height) {
-			super(x, y, width, height, CommonComponents.EMPTY);
+		public ExpansionButtons(int x, int y, int width, int height, Component message) {
+			super(x, y, width, height, message);
 		}
 
 		public void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
@@ -119,7 +153,7 @@ public class BorderExpandScreen extends Screen {
 
 	class ExpandBorder extends ExpansionButtons {
 		public ExpandBorder(int x, int y, int width, int height){
-			super(x,y,width,height);
+			super(x,y,width,height, Component.translatable("misc.craftorio.expand_border"));
 			Tooltip tooltip = Tooltip.create(Component.translatable("misc.craftorio.expand_border"));
 			this.setTooltip(tooltip);
 		}
@@ -137,17 +171,18 @@ public class BorderExpandScreen extends Screen {
 		boolean positive;
 
 		public BorderExpandAmount(int x, int y, int width, int height, boolean maxer, boolean positive){
-			super(x,y,width,height);
+			super(x,y,width,height, labelFor(maxer, positive));
 			this.maxer = maxer;
 			this.positive = positive;
-			Component text;
-			if (maxer){
-				text = positive ? Component.translatable("misc.craftorio.max_plus") : Component.translatable("misc.craftorio.max_minus");
-			} else {
-				text = positive ? Component.literal("+1") : Component.literal("-1");
-			}
-			Tooltip tooltip = Tooltip.create(text);
+			Tooltip tooltip = Tooltip.create(this.getMessage());
 			this.setTooltip(tooltip);
+		}
+
+		private static Component labelFor(boolean maxer, boolean positive) {
+			if (maxer){
+				return positive ? Component.translatable("misc.craftorio.max_plus") : Component.translatable("misc.craftorio.max_minus");
+			}
+			return positive ? Component.literal("+1") : Component.literal("-1");
 		}
 
 		@Override

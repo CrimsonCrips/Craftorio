@@ -1009,7 +1009,7 @@ public class CraftorioPointsDeterminer extends DataMapProvider {
 
         int sugar = sugar_cane + 2;
         addItemValue(point_value,Items.SUGAR.builtInRegistryHolder(),sugar,1);
-        addItemValue(point_value,Items.CAKE.builtInRegistryHolder(),(bucket * 3) + (wheat * 3) + (sugar * 2) + egg,2);
+        addItemValue(point_value,Items.CAKE.builtInRegistryHolder(),((bucket / 3) * 3) + (wheat * 3) + (sugar * 2) + egg,2);
         addItemValue(point_value,Items.PUMPKIN_PIE.builtInRegistryHolder(),pumpkin + sugar + egg,2);
 
         addItemValue(point_value,Items.ROTTEN_FLESH.builtInRegistryHolder(),11,0);

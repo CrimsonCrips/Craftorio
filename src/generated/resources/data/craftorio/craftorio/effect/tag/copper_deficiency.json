@@ -1,9 +1,10 @@
 {
   "type": "craftorio:tag_multiplier",
-  "ambient": false,
-  "icon": "craftorio:textures/gui/locked.png",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
   "item_tag": "#craftorio:copper",
   "multiplier": -80.0,
   "name": "registry.copper_deficiency",
-  "seconds": 5400
+  "seconds": 5400,
+  "unobtainable": true,
+  "weight": 10
 }

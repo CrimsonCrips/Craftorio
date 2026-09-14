@@ -40,6 +40,7 @@ public abstract class QuantityPurchaseScreen extends Screen {
         int centerY = this.height / 2;
 
         this.quantityBox = new EditBox(this.font, centerX - 50, centerY + 6, 100, 20, Component.translatable("misc.craftorio.quantity"));
+        this.quantityBox.setMaxLength(256);
         this.quantityBox.setValue(String.valueOf(quantity));
         this.quantityBox.setFilter(s -> s.isEmpty() || s.chars().allMatch(Character::isDigit));
         this.quantityBox.setResponder(this::onQuantityTyped);

@@ -26,7 +26,7 @@ import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.block.CraftorioBlocks;
 import org.crimsoncrips.craftorio.networking.EffectTimerPacket;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
-import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
+import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 import org.crimsoncrips.craftorio.server.ChunkCollisionHooks;
 import org.crimsoncrips.craftorio.server.CraftorioAdvancementPoints;
 import org.crimsoncrips.craftorio.server.CraftorioAdvancementMultipliers;
@@ -60,11 +60,16 @@ public class ServerEvents {
                 }
 
                 CraftorioMisc.setContractRefreshTime(level, Craftorio.SERVER_CONFIG.CONTRACT_REFRESH_SECONDS.get() * CraftorioMisc.SECONDS_TO_TICKS);
-                CraftorioMisc.setRandomEffectTime(level, Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get());
+                CraftorioMisc.setRandomEffectTime(level, Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get() * CraftorioMisc.SECONDS_TO_TICKS);
             }
 
             level.setData(FINALIZED,true);
         }
+    }
+
+    @SubscribeEvent
+    public void serverStopping(net.neoforged.neoforge.event.server.ServerStoppingEvent event) {
+        org.crimsoncrips.craftorio.server.CraftorioContractDraftStore.clearAll();
     }
 
 
@@ -160,7 +165,7 @@ public class ServerEvents {
             }
 
             CraftorioMisc.setContractRefreshTime(player, Craftorio.SERVER_CONFIG.CONTRACT_REFRESH_SECONDS.get() * CraftorioMisc.SECONDS_TO_TICKS);
-            CraftorioMisc.setRandomEffectTime(player, Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get());
+            CraftorioMisc.setRandomEffectTime(player, Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get() * CraftorioMisc.SECONDS_TO_TICKS);
 
             List<CraftorioEffects> craftorioEffectsList = new ArrayList<>();
 
@@ -224,9 +229,6 @@ public class ServerEvents {
             }
 
             syncUniversalState(serverPlayer);
-
-            PacketDistributor.sendToPlayer(serverPlayer, new org.crimsoncrips.craftorio.networking.UnlockedItemsSyncPacket(
-                    new ArrayList<>(Craftorio.UNLOCKED_ITEMS.getUnlocked(serverPlayer))));
         }
     }
 
@@ -290,7 +292,7 @@ public class ServerEvents {
         }
 
         if (!CraftorioMisc.getCraftorioContracts(player).isEmpty()) {
-            for (CraftorioShipmentContract contract : ImmutableList.copyOf(CraftorioMisc.getCraftorioContracts(player))) {
+            for (CraftorioContract contract : ImmutableList.copyOf(CraftorioMisc.getCraftorioContracts(player))) {
                 contract.tick(player);
             }
         }
@@ -424,11 +426,12 @@ public class ServerEvents {
                     continue;
                 }
 
-                double betterEffectChance = CraftorioMisc.getUpgradeModifierSum(player, org.crimsoncrips.craftorio.skill_tree.ModifierTarget.BETTER_EFFECT_CHANCE, org.crimsoncrips.craftorio.skill_tree.UpgradeOperation.ADD);
-                CraftorioEffects rolledEffect = CraftorioMisc.getRandomAmbientEffect(level.registryAccess(), player.getRandom(), betterEffectChance);
+                double rarerEffectChance = CraftorioMisc.getUpgradeModifierSum(player, org.crimsoncrips.craftorio.skill_tree.ModifierTarget.RARER_EFFECT_CHANCE, org.crimsoncrips.craftorio.skill_tree.UpgradeOperation.ADD);
+                CraftorioEffects rolledEffect = CraftorioMisc.getRandomObtainableEffect(level.registryAccess(), player.getRandom(), rarerEffectChance);
                 CraftorioMisc.grantEffect(player, rolledEffect.copy());
 
-                int effectInterval = CraftorioMisc.applySpeedUpgrade(player, org.crimsoncrips.craftorio.skill_tree.ModifierTarget.EFFECT_TIMER_SPEED, Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get());
+                int baseEffectTicks = Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get() * CraftorioMisc.SECONDS_TO_TICKS;
+                int effectInterval = CraftorioMisc.applySpeedUpgrade(player, org.crimsoncrips.craftorio.skill_tree.ModifierTarget.EFFECT_TIMER_SPEED, baseEffectTicks);
                 CraftorioMisc.setRandomEffectTime(player, effectInterval);
             }
         }
@@ -452,13 +455,14 @@ public class ServerEvents {
         }
 
         if (!allPlayers.isEmpty()) {
-            double betterEffectChance = CraftorioMisc.getUpgradeModifierSum(allPlayers.get(0), org.crimsoncrips.craftorio.skill_tree.ModifierTarget.BETTER_EFFECT_CHANCE, org.crimsoncrips.craftorio.skill_tree.UpgradeOperation.ADD);
-            CraftorioEffects rolledEffect = CraftorioMisc.getRandomAmbientEffect(overworld.registryAccess(), overworld.random, betterEffectChance);
+            double rarerEffectChance = CraftorioMisc.getUpgradeModifierSum(allPlayers.get(0), org.crimsoncrips.craftorio.skill_tree.ModifierTarget.RARER_EFFECT_CHANCE, org.crimsoncrips.craftorio.skill_tree.UpgradeOperation.ADD);
+            CraftorioEffects rolledEffect = CraftorioMisc.getRandomObtainableEffect(overworld.registryAccess(), overworld.random, rarerEffectChance);
             CraftorioMisc.grantEffect(allPlayers.get(0), rolledEffect.copy());
         }
 
-        int effectInterval = allPlayers.isEmpty() ? Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get()
-                : CraftorioMisc.applySpeedUpgrade(allPlayers.get(0), org.crimsoncrips.craftorio.skill_tree.ModifierTarget.EFFECT_TIMER_SPEED, Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get());
+        int baseEffectTicks = Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get() * CraftorioMisc.SECONDS_TO_TICKS;
+        int effectInterval = allPlayers.isEmpty() ? baseEffectTicks
+                : CraftorioMisc.applySpeedUpgrade(allPlayers.get(0), org.crimsoncrips.craftorio.skill_tree.ModifierTarget.EFFECT_TIMER_SPEED, baseEffectTicks);
         CraftorioMisc.setRandomEffectTime(overworld, effectInterval);
     }
 
@@ -482,8 +486,8 @@ public class ServerEvents {
                     continue;
                 }
 
-                double betterContractChance = CraftorioMisc.getUpgradeModifierSum(player, org.crimsoncrips.craftorio.skill_tree.ModifierTarget.BETTER_CONTRACT_CHANCE, org.crimsoncrips.craftorio.skill_tree.UpgradeOperation.ADD);
-                List<ResourceLocation> offer = CraftorioMisc.rollContractOffer(player.registryAccess(), player.getRandom(), CraftorioMisc.getHighestPoints(player), betterContractChance);
+                double rarerContractChance = CraftorioMisc.getUpgradeModifierSum(player, org.crimsoncrips.craftorio.skill_tree.ModifierTarget.RARER_CONTRACT_CHANCE, org.crimsoncrips.craftorio.skill_tree.UpgradeOperation.ADD);
+                List<ResourceLocation> offer = CraftorioMisc.rollContractOffer(player.registryAccess(), player.getRandom(), CraftorioMisc.getHighestPoints(player), rarerContractChance);
                 player.setData(CraftorioDataAttachments.CONTRACT_OFFER, offer);
                 player.setData(CraftorioDataAttachments.CONTRACT_OFFER_CLAIMED, false);
 
@@ -507,9 +511,9 @@ public class ServerEvents {
 
         BigInteger highestPoints = allPlayers.isEmpty() ? BigInteger.ZERO
                 : CraftorioMisc.getHighestPoints(allPlayers.get(0));
-        double betterContractChance = allPlayers.isEmpty() ? 0
-                : CraftorioMisc.getUpgradeModifierSum(allPlayers.get(0), org.crimsoncrips.craftorio.skill_tree.ModifierTarget.BETTER_CONTRACT_CHANCE, org.crimsoncrips.craftorio.skill_tree.UpgradeOperation.ADD);
-        List<ResourceLocation> offer = CraftorioMisc.rollContractOffer(overworld.registryAccess(), overworld.random, highestPoints, betterContractChance);
+        double rarerContractChance = allPlayers.isEmpty() ? 0
+                : CraftorioMisc.getUpgradeModifierSum(allPlayers.get(0), org.crimsoncrips.craftorio.skill_tree.ModifierTarget.RARER_CONTRACT_CHANCE, org.crimsoncrips.craftorio.skill_tree.UpgradeOperation.ADD);
+        List<ResourceLocation> offer = CraftorioMisc.rollContractOffer(overworld.registryAccess(), overworld.random, highestPoints, rarerContractChance);
         overworld.setData(CraftorioDataAttachments.CONTRACT_OFFER, offer);
         overworld.setData(CraftorioDataAttachments.CONTRACT_OFFER_CLAIMED, false);
 

@@ -14,14 +14,14 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.achievement.StatsScreen;
-import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.renderer.GameRenderer;
+import net.minecraft.client.renderer.LevelRenderer;
+import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.Rect2i;
-import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.client.renderer.RenderType;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
-import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.chunk.ChunkAccess;
@@ -34,32 +34,38 @@ import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import org.crimsoncrips.craftorio.Craftorio;
+import org.crimsoncrips.craftorio.CraftorioDataComponents;
 import org.crimsoncrips.craftorio.CraftorioMenuTypes;
 
 import org.crimsoncrips.craftorio.CraftorioMisc;
-import org.crimsoncrips.craftorio.client.ClientUnlockedItemsState;
 import org.crimsoncrips.craftorio.client.InfinityBurst;
 import org.crimsoncrips.craftorio.client.ItemDiscoveredPopup;
 import org.crimsoncrips.craftorio.client.PointsAnimation;
+import org.crimsoncrips.craftorio.client.PointsRateTracker;
 import org.crimsoncrips.craftorio.client.PointsPopup;
-import org.crimsoncrips.craftorio.client.AreaScannerBlockEntityRenderer;
-import org.crimsoncrips.craftorio.client.screen.AreaScannerScreen;
 import org.crimsoncrips.craftorio.client.screen.AutoSinkerScreen;
 import org.crimsoncrips.craftorio.client.screen.AutoValueCondenserScreen;
+import org.crimsoncrips.craftorio.client.screen.ContractCreatorBountyScreen;
 import org.crimsoncrips.craftorio.client.screen.ContractRevealScreen;
 import org.crimsoncrips.craftorio.client.screen.CraftorioConfigScreen;
 import org.crimsoncrips.craftorio.client.screen.CraftorioSinkStatsScreen;
+import org.crimsoncrips.craftorio.client.screen.CraftorioSkillTreeScreen;
 import org.crimsoncrips.craftorio.client.screen.ShopScreen;
 import org.crimsoncrips.craftorio.client.screen.SinkScreen;
+import org.crimsoncrips.craftorio.client.screen.SkillTreeCreatorScreen;
 import org.crimsoncrips.craftorio.client.screen.ValueBrowserScreen;
 import org.crimsoncrips.craftorio.client.screen.ValueCondenserScreen;
+import org.crimsoncrips.craftorio.item.ScannerStickItem;
 import org.crimsoncrips.craftorio.networking.OpenContractOfferScreenPacket;
 import org.crimsoncrips.craftorio.networking.OpenShopScreenPacket;
 import org.crimsoncrips.craftorio.networking.OpenValueBrowserScreenPacket;
+import org.crimsoncrips.craftorio.networking.SkillTreeGenerateResultPacket;
+import org.crimsoncrips.craftorio.networking.UnlockUpgradeFailedPacket;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
+import org.crimsoncrips.craftorio.registries.effect.ShopMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
-import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
+import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
 
 import java.math.BigInteger;
@@ -72,17 +78,17 @@ import java.util.Set;
 public class ClientEvents {
 
 	@SubscribeEvent
+	public void loggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
+		org.crimsoncrips.craftorio.client.ClientContractCreatorDraftState.clear();
+	}
+
+	@SubscribeEvent
 	public void registerScreens(RegisterMenuScreensEvent event) {
 		event.register(CraftorioMenuTypes.SINKER.get(), SinkScreen::new);
 		event.register(CraftorioMenuTypes.AUTO_SINKER.get(), AutoSinkerScreen::new);
 		event.register(CraftorioMenuTypes.VALUE_CONDENSER.get(), ValueCondenserScreen::new);
 		event.register(CraftorioMenuTypes.AUTO_VALUE_CONDENSER.get(), AutoValueCondenserScreen::new);
-		event.register(CraftorioMenuTypes.AREA_SCANNER.get(), AreaScannerScreen::new);
-	}
-
-	@SubscribeEvent
-	public void registerBlockEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
-		event.registerBlockEntityRenderer(org.crimsoncrips.craftorio.block.entity.CraftorioBlockEntityTypes.AREA_SCANNER.get(), AreaScannerBlockEntityRenderer::new);
+		event.register(CraftorioMenuTypes.CONTRACT_CREATOR.get(), ContractCreatorBountyScreen::new);
 	}
 
 	public static void registerConfigScreen(ModContainer modContainer) {
@@ -98,31 +104,15 @@ public class ClientEvents {
 		Minecraft.getInstance().setScreen(new ValueBrowserScreen(message.allUnlocked(), new HashSet<>(message.unlockedItems())));
 	}
 
-	private static final ResourceLocation UNDISCOVERED_LOCK_TEXTURE = Craftorio.getGuiTexture("locked.png");
+	public static void handleSkillTreeGenerateResult(SkillTreeGenerateResultPacket message) {
+		if (Minecraft.getInstance().screen instanceof SkillTreeCreatorScreen screen) {
+			screen.showGenerateResult(message.success(), Component.translatable("misc.craftorio." + message.messageKey(), message.arg()));
+		}
+	}
 
-	public static void renderUndiscoveredItemLocks(ContainerScreenEvent.Render.Foreground event) {
-		if (!ClientUnlockedItemsState.isAvailable()) return;
-
-		AbstractContainerScreen<?> screen = event.getContainerScreen();
-		GuiGraphics graphics = event.getGuiGraphics();
-		int left = screen.getGuiLeft();
-		int top = screen.getGuiTop();
-		int lockSize = 8;
-
-		for (Slot slot : screen.getMenu().slots) {
-			ItemStack stack = slot.getItem();
-			if (stack.isEmpty()) continue;
-
-			ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
-			if (ClientUnlockedItemsState.isUnlocked(id)) continue;
-
-			int x = left + slot.x;
-			int y = top + slot.y;
-
-			graphics.pose().pushPose();
-			graphics.pose().translate(0.0F, 0.0F, 200.0F);
-			graphics.blit(UNDISCOVERED_LOCK_TEXTURE, x, y, 0.0F, 0.0F, lockSize, lockSize, lockSize, lockSize);
-			graphics.pose().popPose();
+	public static void handleUnlockUpgradeFailed(UnlockUpgradeFailedPacket message) {
+		if (Minecraft.getInstance().screen instanceof CraftorioSkillTreeScreen screen) {
+			screen.showStatusMessage(Component.translatable("misc.craftorio." + message.messageKey()));
 		}
 	}
 
@@ -137,7 +127,43 @@ public class ClientEvents {
 
 	private static final ResourceLocation FORCEFIELD_TEXTURE = Craftorio.prefix("textures/forcefield.png");
 
+	@SubscribeEvent
+	public static void renderScanBox(RenderLevelStageEvent event) {
+		if (event.getStage() != RenderLevelStageEvent.Stage.AFTER_PARTICLES) return;
 
+		Minecraft mc = Minecraft.getInstance();
+		if (mc.player == null || mc.level == null) return;
+
+		ItemStack stack = mc.player.getMainHandItem();
+		if (!(stack.getItem() instanceof ScannerStickItem)) {
+			stack = mc.player.getOffhandItem();
+			if (!(stack.getItem() instanceof ScannerStickItem)) return;
+		}
+
+		BlockPos pos1 = stack.get(CraftorioDataComponents.SCAN_POS_1.get());
+		BlockPos pos2 = stack.get(CraftorioDataComponents.SCAN_POS_2.get());
+		if (pos1 == null && pos2 == null) return;
+
+		BlockPos min = pos1 != null && pos2 != null
+				? new BlockPos(Math.min(pos1.getX(), pos2.getX()), Math.min(pos1.getY(), pos2.getY()), Math.min(pos1.getZ(), pos2.getZ()))
+				: (pos1 != null ? pos1 : pos2);
+		BlockPos max = pos1 != null && pos2 != null
+				? new BlockPos(Math.max(pos1.getX(), pos2.getX()), Math.max(pos1.getY(), pos2.getY()), Math.max(pos1.getZ(), pos2.getZ()))
+				: (pos1 != null ? pos1 : pos2);
+
+		Vec3 camPos = event.getCamera().getPosition();
+		PoseStack poseStack = event.getPoseStack();
+
+		MultiBufferSource.BufferSource bufferSource = mc.renderBuffers().bufferSource();
+		VertexConsumer vertexconsumer = bufferSource.getBuffer(RenderType.lines());
+
+		LevelRenderer.renderLineBox(poseStack, vertexconsumer,
+				min.getX() - camPos.x, min.getY() - camPos.y, min.getZ() - camPos.z,
+				max.getX() + 1 - camPos.x, max.getY() + 1 - camPos.y, max.getZ() + 1 - camPos.z,
+				0.9F, 0.9F, 0.9F, 1.0F, 0.5F, 0.5F, 0.5F);
+
+		bufferSource.endBatch(RenderType.lines());
+	}
 
 	@SubscribeEvent
 	public static void renderBorders(RenderLevelStageEvent event) {
@@ -424,6 +450,33 @@ public class ClientEvents {
 	//From Improved Mobs
 	private static final ResourceLocation pointBar = Craftorio.getGuiTexture("textures/gui/points_bar.png");
 
+	private static final ResourceLocation POINTS_BADGE_TEXTURE = Craftorio.getGuiTexture("points_texture/points.png");
+	private static final ResourceLocation POINTS_MULT_BADGE_TEXTURE = Craftorio.getGuiTexture("points_texture/points_mult.png");
+	private static final ResourceLocation POINTS_PER_MIN_BADGE_TEXTURE = Craftorio.getGuiTexture("points_texture/points_per_min.png");
+	private static final ResourceLocation POINTS_BADGE_FILL_TEXTURE = Craftorio.getGuiTexture("points_texture/points_transparent.png");
+	private static final ResourceLocation POINTS_MULT_BADGE_FILL_TEXTURE = Craftorio.getGuiTexture("points_texture/points_mult_transparent.png");
+	private static final ResourceLocation POINTS_PER_MIN_BADGE_FILL_TEXTURE = Craftorio.getGuiTexture("points_texture/points_per_min_transparent.png");
+
+	private static final int BADGE_TEXTURE_NATIVE_WIDTH = 120;
+	private static final int BADGE_TEXTURE_NATIVE_HEIGHT = 39;
+	private static final float BADGE_FILL_ALPHA = 0.3f;
+
+	private static final int BADGE_WIDTH = 78;
+	private static final int BADGE_HEIGHT = 25;
+	private static final int BADGE_GAP = 4;
+	private static final int BADGE_TOP = 5;
+	private static final int BADGE_ROW_WIDTH = BADGE_WIDTH * 3 + BADGE_GAP * 2;
+
+	private static void drawBadge(GuiGraphics graphics, ResourceLocation fillTexture, ResourceLocation borderTexture, int x, int y) {
+		RenderSystem.enableBlend();
+		RenderSystem.defaultBlendFunc();
+		graphics.setColor(1f, 1f, 1f, BADGE_FILL_ALPHA);
+		graphics.blit(fillTexture, x, y, BADGE_WIDTH, BADGE_HEIGHT, 0, 0, BADGE_TEXTURE_NATIVE_WIDTH, BADGE_TEXTURE_NATIVE_HEIGHT, BADGE_TEXTURE_NATIVE_WIDTH, BADGE_TEXTURE_NATIVE_HEIGHT);
+		graphics.setColor(1f, 1f, 1f, 1f);
+		RenderSystem.disableBlend();
+		graphics.blit(borderTexture, x, y, BADGE_WIDTH, BADGE_HEIGHT, 0, 0, BADGE_TEXTURE_NATIVE_WIDTH, BADGE_TEXTURE_NATIVE_HEIGHT, BADGE_TEXTURE_NATIVE_WIDTH, BADGE_TEXTURE_NATIVE_HEIGHT);
+	}
+
 	public static void displayPoints(GuiGraphics graphics) {
 		Minecraft minecraft = Minecraft.getInstance();
 
@@ -438,23 +491,45 @@ public class ClientEvents {
 		BigInteger tempPoints = CraftorioMisc.getTempPoints(minecraft.player);
 
 		PointsAnimation.tick(actualPoints, tempPoints);
+		PointsRateTracker.tick(actualPoints);
 
 		BigInteger displayValue = PointsAnimation.getDisplayValue();
 		String pointsString = CraftorioMisc.bigIntFormat(displayValue, Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
 		String INFINITY_TEXT = CraftorioMisc.bigIntFormat(CraftorioMisc.pointThreshold(), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
 		String NEG_INFINITY_TEXT = "-" + CraftorioMisc.bigIntFormat(CraftorioMisc.pointThreshold(), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
 
-		int width = font.width(pointsString);
 		int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
-		int y = 5;
-
 		int centerX = screenWidth / 2;
-		int x = centerX - width / 2;
+
+		int rowLeft = centerX - BADGE_ROW_WIDTH / 2;
+		int ppmBadgeX = rowLeft;
+		int pointsBadgeX = ppmBadgeX + BADGE_WIDTH + BADGE_GAP;
+		int multBadgeX = pointsBadgeX + BADGE_WIDTH + BADGE_GAP;
+
+		int textY = BADGE_TOP + BADGE_HEIGHT / 2 - font.lineHeight / 2;
+
+		drawBadge(graphics, POINTS_PER_MIN_BADGE_FILL_TEXTURE, POINTS_PER_MIN_BADGE_TEXTURE, ppmBadgeX, BADGE_TOP);
+		drawBadge(graphics, POINTS_BADGE_FILL_TEXTURE, POINTS_BADGE_TEXTURE, pointsBadgeX, BADGE_TOP);
+		drawBadge(graphics, POINTS_MULT_BADGE_FILL_TEXTURE, POINTS_MULT_BADGE_TEXTURE, multBadgeX, BADGE_TOP);
+
+		BigInteger pointsPerSecond = PointsRateTracker.getPointsPerSecond();
+		String ppmSign = pointsPerSecond.signum() > 0 ? "+" : "";
+		String ppmString = ppmSign + CraftorioMisc.bigIntFormat(pointsPerSecond, Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt())
+				+ Component.translatable("misc.craftorio.points_per_second_suffix").getString();
+		int ppmColor = 0xAAAAAA;
+		graphics.drawString(font, ppmString, ppmBadgeX + BADGE_WIDTH / 2 - font.width(ppmString) / 2, textY, ppmColor, true);
+
+		float craftorioMultiplier = CraftorioMisc.getCraftorioMultiplier(minecraft.player);
+		String multiplierString = "x" + String.format("%.2f", 1.0 + craftorioMultiplier);
+		graphics.drawString(font, multiplierString, multBadgeX + BADGE_WIDTH / 2 - font.width(multiplierString) / 2, textY, 0x55FF55, true);
+
+		int pointsCenterX = pointsBadgeX + BADGE_WIDTH / 2;
+		int width = font.width(pointsString);
 
 		boolean rawFormat = Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt() == 0;
 		float fitScale = 1.0f;
 		if (rawFormat) {
-			int maxRawWidth = (int) (screenWidth * 0.6);
+			int maxRawWidth = (int) (BADGE_WIDTH * 0.85);
 			if (width > maxRawWidth) {
 				fitScale = Math.max(0.5f, maxRawWidth / (float) width);
 			}
@@ -463,9 +538,10 @@ public class ClientEvents {
 		float scale = PointsAnimation.getScale() * fitScale;
 		float[] shake = PointsAnimation.getShakeOffset();
 
+		float pivotX = pointsCenterX;
+		float pivotY = BADGE_TOP + BADGE_HEIGHT / 2f;
 
-		float pivotX = centerX;
-		float pivotY = y + 4 + 5;
+		int x = pointsCenterX - width / 2;
 
 		graphics.pose().pushPose();
 		graphics.pose().translate(pivotX + shake[0], pivotY + shake[1], 0);
@@ -473,18 +549,14 @@ public class ClientEvents {
 		graphics.pose().translate(-pivotX, -pivotY, 0);
 
 		if (pointsString.equals(INFINITY_TEXT)) {
-			CraftorioMisc.CraftorioTextEffects.drawFancy(graphics, font, pointsString, x, y + 5, true, 0);
+			CraftorioMisc.CraftorioTextEffects.drawFancy(graphics, font, pointsString, x, textY, true, 0);
 		} else if (pointsString.equals(NEG_INFINITY_TEXT)) {
-			CraftorioMisc.CraftorioTextEffects.drawFancy(graphics, font, pointsString, x, y + 5, true, 1);
+			CraftorioMisc.CraftorioTextEffects.drawFancy(graphics, font, pointsString, x, textY, true, 1);
 		} else {
-			graphics.drawString(font, pointsString, x, y + 5, 16759552, true);
+			graphics.drawString(font, pointsString, x, textY, 16759552, true);
 		}
 
 		graphics.pose().popPose();
-
-		float craftorioMultiplier = CraftorioMisc.getCraftorioMultiplier(minecraft.player);
-		String multiplierString = "x" + String.format("%.2f", 1.0 + craftorioMultiplier);
-		graphics.drawString(font, multiplierString, x + width + 6, y + 5, 0x55FF55, true);
 
 		PointsPopup.render(graphics, font, pivotX, pivotY);
 		InfinityBurst.render(graphics, font, pivotX, pivotY);
@@ -511,21 +583,14 @@ public class ClientEvents {
 				(graphics, partialTicks) -> ClientEvents.displayPoints(graphics));
 	}
 
-	private static final int POINTS_BAR_HEIGHT = 24;
-
 	public static Rect2i getPointsBarScreenRect() {
 		Minecraft minecraft = Minecraft.getInstance();
 		if (minecraft.player == null) return null;
 
-		Font font = minecraft.font;
-		String pointsString = CraftorioMisc.bigIntFormat(PointsAnimation.getDisplayValue(), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
-
 		int screenWidth = minecraft.getWindow().getGuiScaledWidth();
-		int padding = 8;
-		int rectWidth = font.width(pointsString) + padding * 2;
-		int x = screenWidth / 2 - rectWidth / 2;
+		int x = screenWidth / 2 - BADGE_ROW_WIDTH / 2;
 
-		return new Rect2i(x, 0, rectWidth, POINTS_BAR_HEIGHT);
+		return new Rect2i(x, 0, BADGE_ROW_WIDTH, BADGE_TOP + BADGE_HEIGHT);
 	}
 
 
@@ -541,7 +606,7 @@ public class ClientEvents {
 			}
 		}
 
-		for (CraftorioShipmentContract contract : CraftorioMisc.getCraftorioContracts(minecraft.player)) {
+		for (CraftorioContract contract : CraftorioMisc.getCraftorioContracts(minecraft.player)) {
 			if (contract.getTime() > 0) {
 				contract.setTime(contract.getTime() - 1);
 			}
@@ -550,7 +615,8 @@ public class ClientEvents {
 
 	public static int activeEffectColor(CraftorioEffects effect) {
 		boolean negative = (effect instanceof TagMultiplierEffect tagEffect && tagEffect.getMultiplier() < 0)
-				|| (effect instanceof GeneralMultiplierEffect generalEffect && generalEffect.getMultiplier() < 0);
+				|| (effect instanceof GeneralMultiplierEffect generalEffect && generalEffect.getMultiplier() < 0)
+				|| (effect instanceof ShopMultiplierEffect shopEffect && shopEffect.getMultiplier() < 0);
 		Integer color = (negative ? ChatFormatting.RED : ChatFormatting.BLUE).getColor();
 		return color != null ? color : 0xFFFFFF;
 	}

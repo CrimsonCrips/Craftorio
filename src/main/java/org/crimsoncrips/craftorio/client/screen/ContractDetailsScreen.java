@@ -11,9 +11,9 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
-import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
-import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentItem;
-import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentItemReward;
+import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
+import org.crimsoncrips.craftorio.registries.contract.CraftorioContractItem;
+import org.crimsoncrips.craftorio.registries.contract.CraftorioContractItemReward;
 
 import java.math.BigInteger;
 import java.util.List;
@@ -28,7 +28,7 @@ public class ContractDetailsScreen extends Screen {
     private static final int SCROLLBAR_WIDTH = 4;
 
     private final Screen parent;
-    private final CraftorioShipmentContract contract;
+    private final CraftorioContract contract;
 
     private int bountyScroll = 0;
     private int rewardScroll = 0;
@@ -41,7 +41,7 @@ public class ContractDetailsScreen extends Screen {
     private boolean showRemainingOnly = false;
     private Button remainingToggleButton;
 
-    public ContractDetailsScreen(Screen parent, CraftorioShipmentContract contract) {
+    public ContractDetailsScreen(Screen parent, CraftorioContract contract) {
         super(Component.literal(contract.getActualName()));
         this.parent = parent;
         this.contract = contract;
@@ -68,8 +68,8 @@ public class ContractDetailsScreen extends Screen {
                 : "misc.craftorio.contract_show_remaining_button");
     }
 
-    private List<CraftorioShipmentItem> bountyRows() {
-        List<CraftorioShipmentItem> bounty = this.contract.getItemBounty();
+    private List<CraftorioContractItem> bountyRows() {
+        List<CraftorioContractItem> bounty = this.contract.getItemBounty();
         if (!this.showRemainingOnly) return bounty;
         return bounty.stream().filter(item -> !item.isComplete()).toList();
     }
@@ -242,7 +242,7 @@ public class ContractDetailsScreen extends Screen {
 
         ItemStack hovered = null;
         int y = top - this.bountyScroll;
-        for (CraftorioShipmentItem item : bounty) {
+        for (CraftorioContractItem item : bounty) {
             if (y + ROW_HEIGHT >= top && y <= bottom) {
                 ItemStack stack = item.getIconStack();
                 graphics.renderItem(stack, iconX, y);
@@ -276,7 +276,7 @@ public class ContractDetailsScreen extends Screen {
 
         ItemStack hovered = null;
         int y = top - this.rewardScroll;
-        for (CraftorioShipmentItemReward reward : rewards) {
+        for (CraftorioContractItemReward reward : rewards) {
             if (y + ROW_HEIGHT >= top && y <= bottom) {
                 ItemStack stack = reward.getRewardingStack();
                 graphics.renderItem(stack, iconX, y);

@@ -12,11 +12,16 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.*;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.CraftorioMenuTypes;
-import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
+import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
+import org.crimsoncrips.craftorio.skill_tree.ModifierTarget;
+import org.crimsoncrips.craftorio.skill_tree.UpgradeOperation;
 
+import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,6 +30,12 @@ public class SinkerMenu extends AbstractContainerMenu {
 	private final Container container;
 	private final int containerRows;
 	private final Player player;
+
+	private boolean gambling = false;
+	private BigInteger escrowPoints = BigInteger.ZERO;
+	private int winStreak = 0;
+	private BigInteger lastLossRefund = BigInteger.ZERO;
+	private BigInteger pendingLossRefund = BigInteger.ZERO;
 
 
 	private SinkerMenu(MenuType<?> type, int containerId, Inventory playerInventory, int rows) {
@@ -102,6 +113,15 @@ public class SinkerMenu extends AbstractContainerMenu {
 
 	public void removed(Player player) {
 		super.removed(player);
+		if (!player.level().isClientSide()) {
+			if (this.gambling) {
+				cashOutDoubleOrNothing();
+			}
+			if (this.pendingLossRefund.signum() > 0) {
+				CraftorioMisc.setPoints(CraftorioMisc.getPoints(player).add(this.pendingLossRefund), player);
+				this.pendingLossRefund = BigInteger.ZERO;
+			}
+		}
 		this.container.stopOpen(player);
 	}
 
@@ -127,7 +147,7 @@ public class SinkerMenu extends AbstractContainerMenu {
 		}
 		CraftorioMisc.setPoints(CraftorioMisc.getPoints(player).add(pointsToGive),player);
 
-		for (CraftorioShipmentContract contract : new ArrayList<>(CraftorioMisc.getCraftorioContracts(player))){
+		for (CraftorioContract contract : new ArrayList<>(CraftorioMisc.getCraftorioContracts(player))){
 			contract.addSinkedListValue(sinkedItems,player);
 		}
 	}
@@ -138,5 +158,84 @@ public class SinkerMenu extends AbstractContainerMenu {
 
 	public int getRowCount() {
 		return this.containerRows;
+	}
+
+	public boolean isGambling() {
+		return gambling;
+	}
+
+	public BigInteger getEscrowPoints() {
+		return escrowPoints;
+	}
+
+	public int getWinStreak() {
+		return winStreak;
+	}
+
+	public BigInteger getLastLossRefund() {
+		return lastLossRefund;
+	}
+
+	public BigInteger computeContainerValue() {
+		BigInteger total = BigInteger.ZERO;
+		for (int slot = 0; slot < this.containerRows * 9; slot++) {
+			ItemStack stack = container.getItem(slot);
+			if (!stack.isEmpty()) {
+				total = total.add(CraftorioMisc.checkValue(stack, player, true));
+			}
+		}
+		return total;
+	}
+
+	public Boolean flipDoubleOrNothing(boolean forceHeads) {
+		if (!gambling) {
+			if (!CraftorioMisc.hasUnlockedUpgrade(player, Craftorio.prefix("double_or_nothing_unlock"))) return null;
+
+			BigInteger value = computeContainerValue();
+			if (value.signum() == 0) return null;
+
+			container.clearContent();
+			gambling = true;
+			escrowPoints = value;
+			winStreak = 0;
+		}
+
+		lastLossRefund = BigInteger.ZERO;
+
+		double headsChance = CraftorioMisc.applyUpgradeModifier(player, ModifierTarget.BET_ODDS, 0.5);
+		boolean heads = forceHeads || player.getRandom().nextDouble() < headsChance;
+
+		if (heads) {
+			double headsBonusMultiplier = CraftorioMisc.applyUpgradeModifier(player, ModifierTarget.BET_BONUS, 2.0);
+			escrowPoints = new BigDecimal(escrowPoints).multiply(BigDecimal.valueOf(headsBonusMultiplier))
+					.setScale(0, RoundingMode.HALF_UP).toBigInteger();
+			winStreak++;
+		} else {
+			double refundFraction = CraftorioMisc.getUpgradeModifierSum(player, ModifierTarget.LOST_BET_REFUND, UpgradeOperation.ADD);
+			if (refundFraction > 0) {
+				BigInteger refund = new BigDecimal(escrowPoints).multiply(BigDecimal.valueOf(refundFraction))
+						.setScale(0, RoundingMode.HALF_UP).toBigInteger();
+				if (refund.signum() > 0) {
+					pendingLossRefund = pendingLossRefund.add(refund);
+					lastLossRefund = refund;
+				}
+			}
+
+			escrowPoints = BigInteger.ZERO;
+			gambling = false;
+		}
+		return heads;
+	}
+
+	public void cashOutDoubleOrNothing() {
+		if (!gambling) return;
+		CraftorioMisc.setPoints(CraftorioMisc.getPoints(player).add(escrowPoints), player);
+		resetGamble();
+	}
+
+	public void resetGamble() {
+		gambling = false;
+		escrowPoints = BigInteger.ZERO;
+		winStreak = 0;
 	}
 }

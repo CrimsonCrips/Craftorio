@@ -1,0 +1,13 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:lost_bet_refund_1",
+  "cost": "86000000000000000000000000000000000000",
+  "description": "misc.craftorio.upgrade_lost_bet_refund_2_description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "name": "misc.craftorio.upgrade_lost_bet_refund_2",
+  "operation": "ADD",
+  "target": "LOST_BET_REFUND",
+  "value": 0.3,
+  "x": 457.2603581883347,
+  "y": -200.63977049472592
+}

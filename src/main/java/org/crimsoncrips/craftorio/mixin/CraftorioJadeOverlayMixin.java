@@ -12,6 +12,8 @@ import snownee.jade.impl.ui.BoxElement;
 @Mixin(value = BoxElement.class, remap = false)
 public abstract class CraftorioJadeOverlayMixin {
 
+    private static final int PUSH_DOWN_PADDING = 10;
+
     @Inject(method = "updateExpectedRect", at = @At("TAIL"))
     private void craftorioPushBelowPointsBar(TooltipRect rect, CallbackInfo ci) {
         Rect2i pointsBarRect = ClientEvents.getPointsBarScreenRect();
@@ -21,7 +23,7 @@ public abstract class CraftorioJadeOverlayMixin {
 
         Rect2i expected = rect.expectedRect;
         if (overlaps(expected, pointsBarRect)) {
-            expected.setY(pointsBarRect.getY() + pointsBarRect.getHeight());
+            expected.setY(pointsBarRect.getY() + pointsBarRect.getHeight() + PUSH_DOWN_PADDING);
         }
     }
 

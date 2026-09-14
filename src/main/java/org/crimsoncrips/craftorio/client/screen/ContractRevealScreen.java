@@ -19,7 +19,7 @@ import org.crimsoncrips.craftorio.networking.ClaimContractPacket;
 import org.crimsoncrips.craftorio.networking.ForceContractRefreshPacket;
 import org.crimsoncrips.craftorio.networking.RefreshContractOfferPacket;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
-import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
+import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -156,6 +156,10 @@ public class ContractRevealScreen extends Screen {
             this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.force_contract_refresh_button"),
                             b -> PacketDistributor.sendToServer(new ForceContractRefreshPacket()))
                     .bounds(this.width - 130, 6, 120, 16).build());
+
+            this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.view_all_contracts_button"),
+                            b -> this.minecraft.setScreen(new AllContractsScreen(this)))
+                    .bounds(10, 6, 120, 16).build());
         }
     }
 
@@ -281,7 +285,7 @@ public class ContractRevealScreen extends Screen {
         }
     }
 
-    private boolean meetsThreshold(CraftorioShipmentContract contract) {
+    private boolean meetsThreshold(CraftorioContract contract) {
         Player player = this.minecraft.player;
         if (player == null) return true;
         return CraftorioMisc.getHighestPoints(player).compareTo(contract.getPointThreshold()) >= 0;
@@ -298,9 +302,9 @@ public class ContractRevealScreen extends Screen {
         int wrapWidth = (int) (innerWidth / textScale);
         float textTop = centerY - this.cardHeight / 2f + 14;
 
-        int nameColor = locked ? 0x707070 : 0xFFFFFF;
+        int nameColor = locked ? 0x707070 : 0xa9a9a9;
         int timeColor = locked ? 0x555555 : 0xAAAAAA;
-        int descColor = locked ? 0x707070 : 0xFFFFFF;
+        int descColor = locked ? 0x707070 : 0xa9a9a9;
         int punishmentColor = locked ? 0x707070 : 0xFFFFFF;
 
         graphics.pose().pushPose();
@@ -372,7 +376,7 @@ public class ContractRevealScreen extends Screen {
         graphics.pose().popPose();
     }
 
-    private Component punishmentLine(CraftorioShipmentContract contract) {
+    private Component punishmentLine(CraftorioContract contract) {
         ResourceLocation punishmentId = contract.getPunishment();
         if (punishmentId == null || this.minecraft.level == null) {
             return Component.empty();
@@ -422,7 +426,7 @@ public class ContractRevealScreen extends Screen {
 
     private static class OfferedCard {
         final ResourceLocation id;
-        final CraftorioShipmentContract contract;
+        final CraftorioContract contract;
         final long startDelay;
         final int restX;
         final int restY;
@@ -431,7 +435,7 @@ public class ContractRevealScreen extends Screen {
         float hoverScale = 1.0f;
         Button claimButton;
 
-        OfferedCard(ResourceLocation id, CraftorioShipmentContract contract, long startDelay, int restX, int restY) {
+        OfferedCard(ResourceLocation id, CraftorioContract contract, long startDelay, int restX, int restY) {
             this.id = id;
             this.contract = contract;
             this.startDelay = startDelay;

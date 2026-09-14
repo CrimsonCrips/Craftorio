@@ -25,19 +25,31 @@ public class CraftorioSkillTreeScreen extends Screen {
 
     private static final ResourceLocation LINE_TEXTURE = Craftorio.getGuiTexture("skill_tree_line.png");
     private static final int NODE_SIZE = 24;
-    private static final double RADIUS_STEP = 55.0;
+    private static final double RADIUS_STEP = 90.0;
+    private static final double NODE_ARC_MARGIN = 40.0;
     private static final int LINE_THICKNESS = 2;
     private static final long APPEAR_DURATION_MS = 250L;
     private static final long DEPTH_STAGGER_MS = 150L;
+    private static final double MIN_ZOOM = 0.2;
+    private static final double MAX_ZOOM = 3.5;
 
     private final Map<ResourceLocation, NodePos> positions = new HashMap<>();
     private final Map<ResourceLocation, CraftorioUpgrade> upgrades = new HashMap<>();
     private final Map<ResourceLocation, ResourceLocation> parents = new HashMap<>();
     private final Map<ResourceLocation, Integer> depths = new HashMap<>();
     private final Map<ResourceLocation, Long> spawnTimes = new HashMap<>();
+    private final Map<ResourceLocation, UpgradeNodeButton> buttons = new HashMap<>();
     private Set<ResourceLocation> lastUnlockedSnapshot = Set.of();
     private int centerX;
     private int centerY;
+    private double zoom = 1.0;
+    private double panX = 0.0;
+    private double panY = 0.0;
+    private boolean panning;
+    private double panStartMouseX, panStartMouseY, panStartX, panStartY;
+    private Component statusMessage;
+    private long statusMessageExpireMillis;
+    private static final long STATUS_MESSAGE_DURATION_MS = 3000L;
 
     public CraftorioSkillTreeScreen() {
         super(Component.translatable("misc.craftorio.skill_tree_title"));
@@ -52,6 +64,7 @@ public class CraftorioSkillTreeScreen extends Screen {
         this.upgrades.clear();
         this.parents.clear();
         this.depths.clear();
+        this.buttons.clear();
 
         Player player = this.minecraft.player;
         if (player == null || this.minecraft.level == null) return;
@@ -80,7 +93,7 @@ public class CraftorioSkillTreeScreen extends Screen {
         double sweepPerRoot = roots.isEmpty() ? 0 : (2 * Math.PI / roots.size());
         double cursor = 0;
         for (ResourceLocation root : roots) {
-            layout(root, cursor, sweepPerRoot, 0, children);
+            layout(root, cursor, sweepPerRoot, 0, 0.0, children);
             cursor += sweepPerRoot;
         }
 
@@ -100,17 +113,78 @@ public class CraftorioSkillTreeScreen extends Screen {
 
             CraftorioUpgrade upgrade = this.upgrades.get(id);
             NodePos pos = entry.getValue();
+            int size = (int) Math.round(NODE_SIZE * zoom);
 
             UpgradeNodeButton button = new UpgradeNodeButton(
-                    this.centerX + (int) pos.x - NODE_SIZE / 2,
-                    this.centerY + (int) pos.y - NODE_SIZE / 2,
-                    id, upgrade
+                    this.centerX + (int) Math.round(pos.x * zoom + panX) - size / 2,
+                    this.centerY + (int) Math.round(pos.y * zoom + panY) - size / 2,
+                    size, id, upgrade
             );
             this.addRenderableWidget(button);
+            this.buttons.put(id, button);
         }
 
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.done"), b -> this.onClose())
                 .bounds(this.width / 2 - 50, this.height - 28, 100, 20).build());
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (scrollY != 0) {
+            double factor = scrollY > 0 ? 1.1 : (1.0 / 1.1);
+            double newZoom = Mth.clamp(this.zoom * factor, MIN_ZOOM, MAX_ZOOM);
+            if (newZoom != this.zoom) {
+                this.zoom = newZoom;
+                this.rebuildWidgets();
+            }
+            return true;
+        }
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (super.mouseClicked(mouseX, mouseY, button)) return true;
+        if (button == 1) {
+            this.panning = true;
+            this.panStartMouseX = mouseX;
+            this.panStartMouseY = mouseY;
+            this.panStartX = this.panX;
+            this.panStartY = this.panY;
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        if (this.panning) {
+            this.panX = this.panStartX + (mouseX - this.panStartMouseX);
+            this.panY = this.panStartY + (mouseY - this.panStartMouseY);
+            repositionButtons();
+            return true;
+        }
+        return super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        if (this.panning && button == 1) {
+            this.panning = false;
+            return true;
+        }
+        return super.mouseReleased(mouseX, mouseY, button);
+    }
+
+    private void repositionButtons() {
+        int size = (int) Math.round(NODE_SIZE * zoom);
+        for (Map.Entry<ResourceLocation, UpgradeNodeButton> entry : this.buttons.entrySet()) {
+            NodePos pos = this.positions.get(entry.getKey());
+            if (pos == null) continue;
+            UpgradeNodeButton button = entry.getValue();
+            button.setX(this.centerX + (int) Math.round(pos.x * zoom + panX) - size / 2);
+            button.setY(this.centerY + (int) Math.round(pos.y * zoom + panY) - size / 2);
+        }
     }
 
     private boolean isVisible(ResourceLocation id, Player player) {
@@ -126,10 +200,28 @@ public class CraftorioSkillTreeScreen extends Screen {
         return sum;
     }
 
-    private void layout(ResourceLocation id, double angleStart, double angleSweep, int depth, Map<ResourceLocation, List<ResourceLocation>> childrenMap) {
+    private void layout(ResourceLocation id, double angleStart, double angleSweep, int depth, double parentRadius, Map<ResourceLocation, List<ResourceLocation>> childrenMap) {
         double angle = angleStart + angleSweep / 2;
-        double radius = depth * RADIUS_STEP;
-        this.positions.put(id, new NodePos(radius * Math.cos(angle), radius * Math.sin(angle)));
+
+        double radius;
+        if (depth == 0) {
+            radius = 0;
+        } else {
+            double minArcLength = NODE_SIZE + NODE_ARC_MARGIN;
+            double minRadiusForSweep = angleSweep > 1.0E-6 ? minArcLength / angleSweep : parentRadius + RADIUS_STEP;
+            radius = Math.max(parentRadius + RADIUS_STEP, minRadiusForSweep);
+        }
+
+        if (depth == 0) {
+            this.positions.put(id, new NodePos(0.0, 0.0));
+        } else {
+            CraftorioUpgrade upgrade = this.upgrades.get(id);
+            if (upgrade != null && (upgrade.getX() != 0.0 || upgrade.getY() != 0.0)) {
+                this.positions.put(id, new NodePos(upgrade.getX(), upgrade.getY()));
+            } else {
+                this.positions.put(id, new NodePos(radius * Math.cos(angle), radius * Math.sin(angle)));
+            }
+        }
         this.depths.put(id, depth);
 
         List<ResourceLocation> childList = childrenMap.getOrDefault(id, List.of());
@@ -139,7 +231,7 @@ public class CraftorioSkillTreeScreen extends Screen {
         double cursor = angleStart;
         for (ResourceLocation child : childList) {
             double childSweep = angleSweep * (leafCount(child, childrenMap) / totalLeaves);
-            layout(child, cursor, childSweep, depth + 1, childrenMap);
+            layout(child, cursor, childSweep, depth + 1, radius, childrenMap);
             cursor += childSweep;
         }
     }
@@ -166,8 +258,8 @@ public class CraftorioSkillTreeScreen extends Screen {
 
             boolean unlocked = CraftorioMisc.hasUnlockedUpgrade(player, childId);
             int lineColor = unlocked ? 0xFF55FF55 : 0xFFFFFFFF;
-            drawLine(graphics, this.centerX + (int) parent.x, this.centerY + (int) parent.y,
-                    this.centerX + (int) child.x, this.centerY + (int) child.y, lineColor);
+            drawLine(graphics, this.centerX + (int) Math.round(parent.x * zoom + panX), this.centerY + (int) Math.round(parent.y * zoom + panY),
+                    this.centerX + (int) Math.round(child.x * zoom + panX), this.centerY + (int) Math.round(child.y * zoom + panY), lineColor);
         }
 
         super.render(graphics, mouseX, mouseY, partialTick);
@@ -177,6 +269,19 @@ public class CraftorioSkillTreeScreen extends Screen {
                     + CraftorioMisc.bigIntFormat(CraftorioMisc.getPoints(player), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
             graphics.drawCenteredString(this.font, pointsLine, this.width / 2, 8, 0xFFFF55);
         }
+
+        if (this.statusMessage != null) {
+            if (System.currentTimeMillis() >= this.statusMessageExpireMillis) {
+                this.statusMessage = null;
+            } else {
+                graphics.drawCenteredString(this.font, this.statusMessage, this.width / 2, this.height - 40, 0xFFFF5555);
+            }
+        }
+    }
+
+    public void showStatusMessage(Component message) {
+        this.statusMessage = message;
+        this.statusMessageExpireMillis = System.currentTimeMillis() + STATUS_MESSAGE_DURATION_MS;
     }
 
     private void drawLine(GuiGraphics graphics, int x1, int y1, int x2, int y2, int color) {
@@ -218,8 +323,8 @@ public class CraftorioSkillTreeScreen extends Screen {
         private final ResourceLocation id;
         private final CraftorioUpgrade upgrade;
 
-        UpgradeNodeButton(int x, int y, ResourceLocation id, CraftorioUpgrade upgrade) {
-            super(x, y, NODE_SIZE, NODE_SIZE, Component.translatable(upgrade.getNameKey()));
+        UpgradeNodeButton(int x, int y, int size, ResourceLocation id, CraftorioUpgrade upgrade) {
+            super(x, y, size, size, Component.translatable(upgrade.getNameKey()));
             this.id = id;
             this.upgrade = upgrade;
             updateTooltip();
@@ -259,30 +364,31 @@ public class CraftorioSkillTreeScreen extends Screen {
             long elapsed = System.currentTimeMillis() - CraftorioSkillTreeScreen.this.spawnTimes.getOrDefault(id, System.currentTimeMillis());
             float t = Mth.clamp(elapsed / (float) APPEAR_DURATION_MS, 0f, 1f);
             float scale = Mth.clamp(easeOutBack(t), 0f, 1.3f);
+            boolean animating = scale != 1f;
 
             int pivotX = this.getX() + this.getWidth() / 2;
             int pivotY = this.getY() + this.getHeight() / 2;
 
-            double floatPhase = (id.hashCode() & 0xFFFF) * 0.01;
-            double time = System.currentTimeMillis() / 600.0;
-            int floatX = (int) Math.round(Math.sin(time + floatPhase) * 1.5);
-            int floatY = (int) Math.round(Math.cos(time * 0.8 + floatPhase) * 1.5);
-
-            guiGraphics.pose().pushPose();
-            guiGraphics.pose().translate(pivotX, pivotY, 0);
-            guiGraphics.pose().scale(scale, scale, 1f);
-            guiGraphics.pose().translate(-pivotX, -pivotY, 0);
-            guiGraphics.pose().translate(floatX, floatY, 0);
+            if (animating) {
+                guiGraphics.pose().pushPose();
+                guiGraphics.pose().translate(pivotX, pivotY, 0);
+                guiGraphics.pose().scale(scale, scale, 1f);
+                guiGraphics.pose().translate(-pivotX, -pivotY, 0);
+            }
 
             guiGraphics.fill(this.getX() - 1, this.getY() - 1, this.getX() + this.getWidth() + 1, this.getY() + this.getHeight() + 1, borderColor);
             guiGraphics.fill(this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(), unlocked ? 0xFF203020 : 0xFF202020);
-            guiGraphics.blit(upgrade.getIcon(), this.getX() + 3, this.getY() + 3, 0, 0, NODE_SIZE - 6, NODE_SIZE - 6, NODE_SIZE - 6, NODE_SIZE - 6);
+            int inset = Math.max(2, this.getWidth() / 8);
+            int iconSize = this.getWidth() - inset * 2;
+            guiGraphics.blit(upgrade.getIcon(), this.getX() + inset, this.getY() + inset, 0, 0, iconSize, iconSize, iconSize, iconSize);
 
             if (this.isHovered()) {
                 guiGraphics.fill(this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(), 0x40FFFFFF);
             }
 
-            guiGraphics.pose().popPose();
+            if (animating) {
+                guiGraphics.pose().popPose();
+            }
         }
 
         @Override

@@ -1,0 +1,35 @@
+{
+  "basePointValue": "1200",
+  "description": "registry.care_package.description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "itemBounty": [
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:iron_helmet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:iron_chestplate"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:iron_leggings"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:iron_boots"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:iron_sword"
+    },
+    {
+      "amountRequired": 16,
+      "contract_item": "minecraft:bread"
+    }
+  ],
+  "max_point_threshold": "200000",
+  "name": "registry.care_package.title",
+  "seconds": 500,
+  "weight": 10
+}

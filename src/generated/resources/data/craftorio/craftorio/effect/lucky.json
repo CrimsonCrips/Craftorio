@@ -1,0 +1,8 @@
+{
+  "type": "craftorio:general_multiplier",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "multiplier": 2.0,
+  "name": "registry.lucky",
+  "seconds": 2100,
+  "weight": 10
+}

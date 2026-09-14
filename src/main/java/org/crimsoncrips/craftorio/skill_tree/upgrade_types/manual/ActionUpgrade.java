@@ -26,7 +26,7 @@ public abstract class ActionUpgrade extends CraftorioUpgrade {
         activateFunction();
     }
 
-    public record Common(String name, ResourceLocation icon, Optional<ResourceLocation> parent, String description, BigInteger cost) {
+    public record Common(String name, ResourceLocation icon, Optional<ResourceLocation> parent, String description, BigInteger cost, double x, double y) {
 
         public static final MapCodec<Common> CODEC = RecordCodecBuilder.mapCodec(instance ->
                 instance.group(
@@ -34,7 +34,9 @@ public abstract class ActionUpgrade extends CraftorioUpgrade {
                         ResourceLocation.CODEC.fieldOf("icon").forGetter(Common::icon),
                         ResourceLocation.CODEC.optionalFieldOf("parent").forGetter(Common::parent),
                         Codec.STRING.fieldOf("description").forGetter(Common::description),
-                        CraftorioMisc.SCIENTIFIC_BIGINT_CODEC().fieldOf("cost").forGetter(Common::cost)
+                        CraftorioMisc.SCIENTIFIC_BIGINT_CODEC().fieldOf("cost").forGetter(Common::cost),
+                        Codec.DOUBLE.optionalFieldOf("x", 0.0).forGetter(Common::x),
+                        Codec.DOUBLE.optionalFieldOf("y", 0.0).forGetter(Common::y)
                 ).apply(instance, Common::new)
         );
     }

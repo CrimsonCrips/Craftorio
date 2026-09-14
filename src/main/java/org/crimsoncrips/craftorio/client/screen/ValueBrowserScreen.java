@@ -21,17 +21,12 @@ import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 
 import java.math.BigInteger;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 @OnlyIn(Dist.CLIENT)
 public class ValueBrowserScreen extends CatalogScreen<Item> {
 
-    private static final ResourceLocation LOCKED_TEXTURE = Craftorio.getGuiTexture("locked.png");
 
     private static List<Item> baseCatalog;
     private static Map<Item, BigInteger> valueCache;
@@ -69,7 +64,7 @@ public class ValueBrowserScreen extends CatalogScreen<Item> {
         List<Item> sorted = new ArrayList<>(baseCatalog);
         sorted.sort(sortByValuable
                 ? (a, b) -> valueCache.get(b).compareTo(valueCache.get(a))
-                : (a, b) -> valueCache.get(a).compareTo(valueCache.get(b)));
+                : Comparator.comparing((Item a) -> valueCache.get(a)));
         return sorted;
     }
 
@@ -140,14 +135,6 @@ public class ValueBrowserScreen extends CatalogScreen<Item> {
 
             guiGraphics.renderItem(this.displayStack, this.getX() + 1, this.getY() + 1);
             guiGraphics.renderItemDecorations(ValueBrowserScreen.this.font, this.displayStack, this.getX() + 1, this.getY() + 1);
-
-            if (!this.discovered) {
-                int lockSize = SLOT_SIZE - 10;
-                guiGraphics.pose().pushPose();
-                guiGraphics.pose().translate(0.0F, 0.0F, 200.0F);
-                guiGraphics.blit(LOCKED_TEXTURE, this.getX(), this.getY(), 0.0F, 0.0F, lockSize, lockSize, lockSize, lockSize);
-                guiGraphics.pose().popPose();
-            }
         }
 
         @Override

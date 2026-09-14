@@ -1,0 +1,13 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:root",
+  "cost": "7000000000000",
+  "description": "misc.craftorio.upgrade_expansion_cost_1_description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "name": "misc.craftorio.upgrade_expansion_cost_1",
+  "operation": "MULTIPLY",
+  "target": "EXPANSION_COST",
+  "value": -0.1,
+  "x": 267.3897041911375,
+  "y": -140.39923781967815
+}

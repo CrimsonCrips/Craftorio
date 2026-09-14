@@ -1,33 +1,55 @@
 package org.crimsoncrips.craftorio.datagen.language;
 
 import net.minecraft.data.PackOutput;
+import net.neoforged.neoforge.common.data.LanguageProvider;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.block.CraftorioBlocks;
 import org.crimsoncrips.craftorio.item.CraftorioItems;
 
-public class CraftLangGen extends CraftLangProvider {
+public class CraftLangGen extends LanguageProvider {
 
 	public CraftLangGen(PackOutput output) {
 		super(output, Craftorio.MODID,"en_us");
 	}
 
+	public void addMisc(String subtitleKey,String text) {
+		this.add("misc.craftorio." + subtitleKey,text);
+	}
+
+	public void addContractLang(String subtitleKey,String title,String description) {
+		this.add("registry." + subtitleKey + ".title",title);
+		this.add("registry." + subtitleKey + ".description",description);
+	}
+
+	public void addRegistryName(String subtitleKey,String title) {
+		this.add("registry." + subtitleKey,title);
+	}
 
 	protected void addTranslations() {
 		this.addBlock(CraftorioBlocks.SINKER,"Sinker");
 		this.addBlock(CraftorioBlocks.AUTO_SINKER,"Auto Sinker");
 		this.addBlock(CraftorioBlocks.VALUE_CONDENSER,"Value Condenser");
 		this.addBlock(CraftorioBlocks.AUTO_VALUE_CONDENSER,"Auto Value Condenser");
-		this.addBlock(CraftorioBlocks.AREA_SCANNER,"Area Scanner");
 		this.addMisc("claim_land", "Claim Land");
 
-		this.addMisc("sinker_button", "Sink Points");
+		this.addMisc("double_or_nothing_button", "Double Or Nothing");
+		this.addMisc("force_heads_button", "Force Heads (Debug)");
+		this.addMisc("sink_button_label", "Sink");
+		this.addMisc("coin_flip_heads", "Heads...");
+		this.addMisc("coin_flip_tails", "Tails...");
 		this.addMisc("condense_button", "Condense Value");
 		this.addMisc("set_owner_button", "Set Owner");
-		this.addMisc("scan_area_button", "Scan Area");
-		this.addMisc("scan_offset_label", "Offset (X / Y / Z)");
-		this.addMisc("scan_size_label", "Size (X / Y / Z)");
 		this.addMisc("area_scan_success", "Area scan saved to %s");
 		this.addMisc("area_scan_failed", "Failed to save area scan report.");
+		this.addItem(CraftorioItems.SCANNER_STICK, "Scanner Stick");
+		this.addMisc("scan_stick_tooltip", "Scans the area between two positions, tallying block counts and their total sink value into a report file");
+		this.addMisc("scan_stick_tooltip_usage", "Left-click to set position 1, right-click to set position 2");
+		this.addMisc("scan_pos_1_set", "Scanner Stick position 1 set to %s, %s, %s");
+		this.addMisc("scan_pos_2_set", "Scanner Stick position 2 set to %s, %s, %s");
+		this.addMisc("scan_pos_1_label", "Position 1: %s, %s, %s");
+		this.addMisc("scan_pos_2_label", "Position 2: %s, %s, %s");
+		this.addMisc("scan_positions_not_set", "Set both positions with the Scanner Stick before scanning.");
+		this.addMisc("scan_area_large_warning", "Warning: scanning %s blocks (recommended max %s), this may cause lag.");
 		this.addMisc("auto_sinker_owner_set", "You are now the owner of this Auto Sinker.");
 		this.addMisc("auto_sinker_owner_universal_error", "Cannot change owner while in universal mode.");
 		this.addMisc("points_required", "Points Required");
@@ -62,6 +84,7 @@ public class CraftLangGen extends CraftLangProvider {
 		this.addMisc("points_each_suffix", " points each");
 		this.addMisc("points_total_suffix", " points total");
 		this.addMisc("points_suffix", " points");
+		this.addMisc("points_per_second_suffix", "/sec");
 
 		this.addMisc("points_label", "Points : ");
 		this.addMisc("highest_points_label", "Highest Points Achieved: ");
@@ -78,6 +101,7 @@ public class CraftLangGen extends CraftLangProvider {
 		this.addMisc("active_effects_button", "Active Effects");
 		this.addMisc("active_effects_title", "Active Effects");
 		this.addMisc("no_active_effects", "You have no active effects.");
+		this.addMisc("clear_effects_button", "Clear Effects");
 		this.addMisc("effect_type_label", "Type: %s");
 		this.addMisc("effect_type_general", "General Multiplier");
 		this.addMisc("effect_type_tag", "Tag Multiplier");
@@ -89,32 +113,100 @@ public class CraftLangGen extends CraftLangProvider {
 		this.addMisc("upgrade_locked_tooltip", "Requires the previous upgrade");
 		this.addMisc("upgrade_unlocked_tooltip", "Unlocked");
 
-		this.addMisc("upgrade_root", "Craftorio");
-		this.addMisc("upgrade_root_description", "The root of your Craftorio mastery.");
-		this.addMisc("upgrade_health_1", "Vitality I");
-		this.addMisc("upgrade_health_1_description", "+2 max health.");
-		this.addMisc("upgrade_health_2", "Vitality II");
-		this.addMisc("upgrade_health_2_description", "+3 max health.");
-		this.addMisc("upgrade_speed_1", "Swift Steps");
-		this.addMisc("upgrade_speed_1_description", "+0.02 movement speed.");
-		this.addMisc("upgrade_multiplier_1", "Point Mastery");
-		this.addMisc("upgrade_multiplier_1_description", "+0.1 to your Craftorio multiplier.");
-		this.addMisc("upgrade_item_value_1", "Appraisal");
-		this.addMisc("upgrade_item_value_1_description", "+5% base value of all items.");
-		this.addMisc("upgrade_contract_speed_1", "Swift Contracts");
-		this.addMisc("upgrade_contract_speed_1_description", "10% faster contract offer refreshes.");
-		this.addMisc("upgrade_effect_speed_1", "Swift Fortune");
-		this.addMisc("upgrade_effect_speed_1_description", "10% faster random effect rolls.");
-		this.addMisc("upgrade_damage_1", "Iron Fists");
-		this.addMisc("upgrade_damage_1_description", "+1 attack damage.");
-		this.addMisc("upgrade_better_contract_chance_1", "Fortunate Contracts");
-		this.addMisc("upgrade_better_contract_chance_1_description", "Improves your chance of being offered better shipment contracts.");
-		this.addMisc("upgrade_better_effect_chance_1", "Fortunate Effects");
-		this.addMisc("upgrade_better_effect_chance_1_description", "Improves your chance of rolling better random effects.");
-		this.addMisc("upgrade_advancement_multiplier", "Advancement Mastery");
-		this.addMisc("upgrade_advancement_multiplier_description", "Unlocks a permanent multiplier bonus for completing advancements.");
-		this.addMisc("upgrade_sink_value_scaling", "Sink Mastery");
-		this.addMisc("upgrade_sink_value_scaling_description", "Unlocks bonus value scaling for repeatedly sinking the same item.");
+		this.add("misc.craftorio.upgrade_bet_bonus_1", "Bet Bonus");
+		this.add("misc.craftorio.upgrade_bet_bonus_1_description", "Increase bet bonus by 10%");
+		this.add("misc.craftorio.upgrade_bet_bonus_2", "Bet Bonus");
+		this.add("misc.craftorio.upgrade_bet_bonus_2_description", "Increase bet bonus by 30%");
+		this.add("misc.craftorio.upgrade_bet_bonus_3", "Bet Bonus");
+		this.add("misc.craftorio.upgrade_bet_bonus_3_description", "Increase bet bonus by 90%");
+		this.add("misc.craftorio.upgrade_lost_bet_refund_1", "Refund Bet");
+		this.add("misc.craftorio.upgrade_lost_bet_refund_1_description", "Refunds 10% of betted value if lost");
+		this.add("misc.craftorio.upgrade_lost_bet_refund_2", "Refund Bet");
+		this.add("misc.craftorio.upgrade_lost_bet_refund_2_description", "Refunds 30% of betted value if lost");
+		this.add("misc.craftorio.upgrade_root", "Craftorio");
+		this.add("misc.craftorio.upgrade_root_description", "Adds 0.1 to mult");
+		this.add("misc.craftorio.upgrade_contract_refresh_1", "Contract Refresh");
+		this.add("misc.craftorio.upgrade_contract_refresh_1_description", "Reduces contract refresh timer for 10%");
+		this.add("misc.craftorio.upgrade_contract_refresh_2", "Contract Refresh");
+		this.add("misc.craftorio.upgrade_contract_refresh_2_description", "Reduces contract refresh timer for 30%");
+		this.add("misc.craftorio.upgrade_contract_refresh_3", "Contract Refresh");
+		this.add("misc.craftorio.upgrade_contract_refresh_3_description", "Reduces contract refresh timer for 50%");
+		this.add("misc.craftorio.upgrade_double_or_nothing_unlock", "Double Or Nothing");
+		this.add("misc.craftorio.upgrade_double_or_nothing_unlock_description", "Unlock the double or nothing feature in the sinker, allowing you to double the points of items");
+		this.add("misc.craftorio.upgrade_effect_timer_1", "Effect Timer Speed");
+		this.add("misc.craftorio.upgrade_effect_timer_1_description", "Reduces effect refresh timer for 5%");
+		this.add("misc.craftorio.upgrade_effect_timer_2", "Effect Timer Speed");
+		this.add("misc.craftorio.upgrade_effect_timer_2_description", "Reduces effect refresh timer for 7%");
+		this.add("misc.craftorio.upgrade_effect_timer_3", "Effect Timer Speed");
+		this.add("misc.craftorio.upgrade_effect_timer_3_description", "Reduces effect refresh timer for 12%");
+		this.add("misc.craftorio.upgrade_effect_timer_4", "Effect Timer Speed");
+		this.add("misc.craftorio.upgrade_effect_timer_4_description", "Reduces effect refresh timer for 40%");
+		this.add("misc.craftorio.upgrade_expansion_cost_1", "Expansion Reduction");
+		this.add("misc.craftorio.upgrade_expansion_cost_1_description", "Reduces expansion cost by 10%");
+		this.add("misc.craftorio.upgrade_expansion_cost_2", "Expansion Reduction");
+		this.add("misc.craftorio.upgrade_expansion_cost_2_description", "Reduces expansion cost by 30%");
+		this.add("misc.craftorio.upgrade_mult_1", "Add Multiplier");
+		this.add("misc.craftorio.upgrade_mult_1_description", "Adds 0.2 to mult");
+		this.add("misc.craftorio.upgrade_mult_2", "Add Multiplier");
+		this.add("misc.craftorio.upgrade_mult_2_description", "Adds 0.5 to mult");
+		this.add("misc.craftorio.upgrade_mult_3", "Add Multiplier");
+		this.add("misc.craftorio.upgrade_mult_3_description", "Adds 0.8 to mult");
+		this.add("misc.craftorio.upgrade_mult_4", "Add Multiplier");
+		this.add("misc.craftorio.upgrade_mult_4_description", "Adds 1.0 to mult");
+		this.add("misc.craftorio.upgrade_mult_5", "Add Multiplier");
+		this.add("misc.craftorio.upgrade_mult_5_description", "Adds 2.0 to mult");
+		this.add("misc.craftorio.upgrade_mult_6", "Multiply Multiplier");
+		this.add("misc.craftorio.upgrade_mult_6_description", "Multiplies mult by 2x");
+		this.add("misc.craftorio.upgrade_punishment_duration_1", "Punishment Duration");
+		this.add("misc.craftorio.upgrade_punishment_duration_1_description", "Reduce punishment duration by 25%");
+		this.add("misc.craftorio.upgrade_rarer_contract_1", "Rarer Contract Chance");
+		this.add("misc.craftorio.upgrade_rarer_contract_1_description", "Get rarer contracts by 2%");
+		this.add("misc.craftorio.upgrade_rarer_contract_2", "Rarer Contract Chance");
+		this.add("misc.craftorio.upgrade_rarer_contract_2_description", "Get rarer contracts by 5%");
+		this.add("misc.craftorio.upgrade_rarer_contract_3", "Rarer Contract Chance");
+		this.add("misc.craftorio.upgrade_rarer_contract_3_description", "Get rarer contracts by 10%");
+		this.add("misc.craftorio.upgrade_rarer_contract_4", "Rarer Contract Chance");
+		this.add("misc.craftorio.upgrade_rarer_contract_4_description", "Get rarer contracts by 50%");
+		this.add("misc.craftorio.upgrade_rarer_contract_5", "Rarer Contract Chance");
+		this.add("misc.craftorio.upgrade_rarer_contract_5_description", "Get rarer contracts by 100%");
+		this.add("misc.craftorio.upgrade_rarer_contract_6", "Rarer Contract Chance");
+		this.add("misc.craftorio.upgrade_rarer_contract_6_description", "Multiply rarer contract chance by x3");
+		this.add("misc.craftorio.upgrade_rarer_effect_1", "Rarer Effects");
+		this.add("misc.craftorio.upgrade_rarer_effect_1_description", "Increases rarer effects by 2%");
+		this.add("misc.craftorio.upgrade_rarer_effect_2", "Rarer Effects");
+		this.add("misc.craftorio.upgrade_rarer_effect_2_description", "Increases rarer effects by 5%");
+		this.add("misc.craftorio.upgrade_rarer_effect_3", "Rarer Effects");
+		this.add("misc.craftorio.upgrade_rarer_effect_3_description", "Increases rarer effects by 10%");
+		this.add("misc.craftorio.upgrade_rarer_effect_4", "Rarer Effects");
+		this.add("misc.craftorio.upgrade_rarer_effect_4_description", "Increases rarer effects by 50%");
+		this.add("misc.craftorio.upgrade_rarer_effect_5", "Rarer Effects");
+		this.add("misc.craftorio.upgrade_rarer_effect_5_description", "Increases rarer effects by 2%");
+		this.add("misc.craftorio.upgrade_refresh_cost_1", "Refresh Cost");
+		this.add("misc.craftorio.upgrade_refresh_cost_1_description", "Contract refresh cost reduced by 12%");
+		this.add("misc.craftorio.upgrade_refresh_cost_2", "Refresh Cost");
+		this.add("misc.craftorio.upgrade_refresh_cost_2_description", "Contract refresh cost reduced by 28%");
+		this.add("misc.craftorio.upgrade_base_value_1", "Add Base Value");
+		this.add("misc.craftorio.upgrade_base_value_1_description", "Adds 10 to item base value");
+		this.add("misc.craftorio.upgrade_base_value_2", "Add Base Value");
+		this.add("misc.craftorio.upgrade_base_value_2_description", "Adds 13 to item base value");
+		this.add("misc.craftorio.upgrade_base_value_3", "Add Base Value");
+		this.add("misc.craftorio.upgrade_base_value_3_description", "Adds 15 to item base value");
+		this.add("misc.craftorio.upgrade_base_value_4", "Add Base Value");
+		this.add("misc.craftorio.upgrade_base_value_4_description", "Adds 50 to item base value");
+		this.add("misc.craftorio.upgrade_base_value_5", "Add Base Value");
+		this.add("misc.craftorio.upgrade_base_value_5_description", "Adds 120 to item base value");
+		this.add("misc.craftorio.upgrade_base_value_6", "Add Base Value");
+		this.add("misc.craftorio.upgrade_base_value_6_description", "Adds 130 to item base value");
+		this.add("misc.craftorio.upgrade_base_value_7", "Add Base Value");
+		this.add("misc.craftorio.upgrade_base_value_7_description", "Adds 135 to item base value");
+		this.add("misc.craftorio.upgrade_base_value_8", "Mult Base Value");
+		this.add("misc.craftorio.upgrade_base_value_8_description", "Multiplies item base value by 2");
+		this.add("misc.craftorio.upgrade_effect_duration_1", "Effect Duration");
+		this.add("misc.craftorio.upgrade_effect_duration_1_description", "Add effect duration by 50%");
+		this.add("misc.craftorio.upgrade_effect_duration_2", "Effect Duration");
+		this.add("misc.craftorio.upgrade_effect_duration_2_description", "Add effect duration by 100%");
+
+
 		this.addMisc("times_sinked_suffix", " - Sinked %s times");
 		this.addMisc("sorted_most_valuable", "Sorted: Most Valuable");
 		this.addMisc("sorted_most_valueless", "Sorted: Most Valueless");
@@ -136,10 +228,88 @@ public class CraftLangGen extends CraftLangProvider {
 
 		this.addMisc("hub_title", "Craftorio Menu");
 		this.addMisc("hub_shop", "Item Shop");
+
+		this.addMisc("dev_tools_title", "Dev Tools");
+		this.addMisc("dev_tools_create_contract", "Create Contract");
+		this.addMisc("dev_tools_create_effect", "Create Effect");
+		this.addMisc("dev_tools_create_upgrade", "Create Upgrade");
+		this.addMisc("dev_tools_create_skill_tree", "Create Skill Tree");
+		this.addMisc("dev_tools_edit_skill_tree", "Edit Skill Tree");
+		this.addMisc("dev_tools_get_scanner_stick", "Get Scanner Stick");
+		this.addMisc("dev_tools_generate", "Generate");
+		this.addMisc("dev_tools_next", "Next");
+		this.addMisc("contract_creator_bounty_title", "Contract Creator - Bounty");
+		this.addMisc("contract_creator_reward_title", "Contract Creator - Rewards");
+		this.addMisc("contract_creator_details_title", "Contract Creator - Details");
+		this.addMisc("dev_tools_copy_from_inventory", "Copy From Inventory");
+		this.addMisc("dev_tools_browse_items", "Browse Items");
+		this.addMisc("dev_tools_clear", "Clear");
+		this.addMisc("dev_tools_destroy_slot", "Trash");
+		this.addMisc("dev_tools_bounty_items", "Bounty Items");
+		this.addMisc("dev_tools_rewards", "Rewards");
+		this.addMisc("dev_tools_reward_rolls_info", "Rolls this many random effects onto each reward item (0 = plain item). Only meaningful for items that read rolled effects, like Effect Runes.");
+		this.addMisc("dev_tools_help_location", "Generated files are saved to the 'craftorio_dev_tools' folder, next to your config, saves, and mods folders.");
+		this.addMisc("dev_tools_help_export", "Use the Export button to switch between Java code and JSON output.");
+		this.addMisc("dev_tools_time_convert_button", "hms");
+		this.addMisc("dev_tools_time_convert_apply", "Convert to Seconds");
+		this.addMisc("dev_tools_export_code", "Export: Code");
+		this.addMisc("dev_tools_export_json", "Export: JSON");
+
+		this.addMisc("dev_tools_label_type", "Type");
+		this.addMisc("dev_tools_label_id", "Effect Id");
+		this.addMisc("dev_tools_label_mod_id", "Mod Id");
+		this.addMisc("dev_tools_label_multiplier", "Multiplier");
+		this.addMisc("dev_tools_label_seconds", "Seconds");
+		this.addMisc("dev_tools_label_weight", "Weight");
+		this.addMisc("dev_tools_label_unobtainable", "Unobtainable");
+		this.addMisc("dev_tools_label_item_tag", "Item Tag");
+		this.addMisc("dev_tools_label_description", "Description");
+		this.addMisc("dev_tools_label_cost", "Cost");
+		this.addMisc("dev_tools_label_parent", "Parent");
+		this.addMisc("dev_tools_label_target", "Target (modifier)");
+		this.addMisc("dev_tools_label_target_attribute", "Target (attribute)");
+		this.addMisc("dev_tools_label_operation", "Operation");
+		this.addMisc("dev_tools_label_value", "Value");
+		this.addMisc("dev_tools_label_item_tag_target", "Item Tag (tag target)");
+		this.addMisc("dev_tools_label_include_lang", "Include Lang Values");
+		this.addMisc("dev_tools_label_name", "Name");
+		this.addMisc("dev_tools_label_title", "Title");
+		this.addMisc("dev_tools_label_reward_points", "Reward Points");
+		this.addMisc("dev_tools_label_claim_threshold", "Claim Threshold");
+		this.addMisc("dev_tools_label_offer_min", "Offer Min");
+		this.addMisc("dev_tools_label_offer_max", "Offer Max");
+		this.addMisc("dev_tools_label_punishment", "Punishment Path");
+		this.addMisc("dev_tools_label_required_mod", "Required Mod Id");
+		this.addMisc("dev_tools_label_reward_rolls", "Reward Rolls");
+		this.addMisc("dev_tools_generate_success", "Generated %s");
+		this.addMisc("dev_tools_generate_failed", "Failed to generate code - check the id field and server logs.");
+		this.addMisc("dev_tools_effect_tag_required", "Tag effects need an Item Tag value.");
+		this.addMisc("dev_tools_effect_tag_not_allowed", "General/Shop effects can't have an Item Tag value - clear it or switch Type to tag.");
+		this.addMisc("dev_tools_skill_tree_title", "Skill Tree Creator");
+		this.addMisc("dev_tools_skill_tree_new_node", "New Node");
+		this.addMisc("dev_tools_skill_tree_duplicate", "Duplicate");
+		this.addMisc("dev_tools_skill_tree_delete", "Delete");
+		this.addMisc("dev_tools_skill_tree_unlink", "Unlink Parent");
+		this.addMisc("dev_tools_skill_tree_hint_select", "Select or create a node");
+		this.addMisc("dev_tools_skill_tree_linked_to", "Linked to: %s");
+		this.addMisc("dev_tools_skill_tree_help_1", "Left-click drag a node to move it. Drag from the dot below a node onto another node to set that node as its parent.");
+		this.addMisc("dev_tools_skill_tree_help_2", "Right-click drag empty space to pan the canvas. Use New Node/Duplicate/Delete below the canvas, then Generate to export.");
+		this.addMisc("dev_tools_skill_tree_help_3", "Scroll the mouse wheel over the canvas to zoom in and out. A node with no parent link (shown in blue, marked R) is a root.");
+		this.addMisc("dev_tools_skill_tree_help_4", "Manual upgrades export as placeholders only: swap the code's TODO factory for your real class, or the JSON's TODO type for your upgrade's registered type, before use.");
+		this.addMisc("dev_tools_skill_tree_generated_json", "Generated %s JSON file(s).");
+		this.addMisc("dev_tools_skill_tree_generated_code", "Generated Java code with %s node(s).");
+		this.addMisc("dev_tools_skill_tree_multiple_roots", "Warning: %s root nodes detected - most trees should have exactly one.");
+		this.addMisc("dev_tools_skill_tree_manual_reminder", "This tree has manual upgrades - their exported code/JSON needs manual intervention before use.");
+		this.addMisc("dev_tools_skill_tree_manual_upgrade_1", "'%s' is a manual upgrade (hand-written Java).");
+		this.addMisc("dev_tools_skill_tree_manual_upgrade_2", "Category/Target/Operation/Value are fixed.");
+		this.addMisc("dev_tools_skill_tree_manual_upgrade_3", "Export needs manual intervention: swap the TODO factory/type for the real one.");
+		this.addMisc("contract_creator_title", "Contract Creator");
+		this.addMisc("effect_creator_title", "Effect Creator");
+		this.addMisc("upgrade_creator_title", "Upgrade Creator");
 		this.addMisc("reveal_contract_button", "Available Contracts");
 		this.addMisc("owned_contracts_button", "My Contracts");
 
-		this.addMisc("contract_reveal_title", "Shipment Contract");
+		this.addMisc("contract_reveal_title", "Contract");
 		this.addMisc("no_contracts", "You have no active contracts.");
 		this.addMisc("contract_time_remaining", "Time Remaining: %s");
 		this.addMisc("contract_threshold_not_met", "You do not meet the threshold for this contract.");
@@ -161,13 +331,16 @@ public class CraftLangGen extends CraftLangProvider {
 		this.addMisc("contract_punishment_received", "Contract \"%s\" failed! You have been punished with %s");
 		this.addMisc("contract_abandoned", "[ABANDONED]");
 		this.addMisc("abandon_contract_button", "Abandon");
+		this.addMisc("force_complete_contract_button", "Complete");
 		this.addMisc("abandon_contract_title", "Abandon Contract?");
 		this.addMisc("abandon_contract_message", "Are you sure you want to abandon \"%s\"? This cannot be undone and may result in punishment.");
 		this.addMisc("contract_refresh_timer", "Next refresh: %s");
 		this.addMisc("welcome_toast_message", "Welcome to Craftorio! Press %s to open the Craftorio menu.");
-		this.addMisc("new_contracts_toast", "New shipment contracts are available!");
+		this.addMisc("new_contracts_toast", "New contracts are available!");
 		this.addMisc("skip_claim_animation_label", "Skip Claim Animation: %s");
 		this.addMisc("force_contract_refresh_button", "Force Refresh (Creative)");
+		this.addMisc("view_all_contracts_button", "View All Contracts (Creative)");
+		this.addMisc("all_contracts_title", "All Registered Contracts");
 		this.addMisc("refresh_contracts_button", "Refresh Contracts");
 		this.addMisc("refresh_contracts_tooltip", "Cost: %s points");
 		this.addMisc("contract_refresh_time_set", "Contract refresh time set to %s seconds");
@@ -178,6 +351,14 @@ public class CraftLangGen extends CraftLangProvider {
 		this.addMisc("no_borders_based_label", "No Borders: %s");
 
 		this.add("key.craftorio.open_hub", "Open Craftorio Menu");
+		this.add("key.craftorio.print_scan", "Print Scanner Stick Report");
+		this.add("key.craftorio.open_active_effects", "Open Active Effects");
+		this.add("key.craftorio.open_skill_tree", "Open Skill Tree");
+		this.add("key.craftorio.open_my_contracts", "Open My Contracts");
+		this.add("key.craftorio.open_available_contracts", "Open Available Contracts");
+		this.add("key.craftorio.open_item_values", "Open Item Values");
+		this.add("key.craftorio.open_expand_border_or_claim", "Open Expand Border / Claim Item Purchase");
+		this.add("key.craftorio.open_item_shop", "Open Item Shop");
 		this.add("key.categories.craftorio", "Craftorio");
 
 		this.add("advancements.craftorio.root.title", "Craftorio");
@@ -204,33 +385,6 @@ public class CraftLangGen extends CraftLangProvider {
 		this.addItem(CraftorioItems.MYSTERY_EFFECT_RUNE,"Mystery Effect Rune");
 		this.addItem(CraftorioItems.CLAIM_ITEM,"Chunk Claim Item");
 
-		this.addRegistryName("general_1", "General 1");
-		this.addRegistryName("general_2", "General 2");
-		this.addRegistryName("general_3", "General 3");
-		this.addRegistryName("general_4", "General 4");
-		this.addRegistryName("general_5", "General 5");
-
-		this.addRegistryName("general_multiplier_1_5", "1.5 Multiplier");
-		this.addRegistryName("general_multiplier_2", "2 Multiplier");
-		this.addRegistryName("general_multiplier_3", "3 Multiplier");
-		this.addRegistryName("general_multiplier_4", "4 Multiplier");
-		this.addRegistryName("general_multiplier_5", "5 Multiplier");
-		this.addRegistryName("general_multiplier_6", "6 Multiplier");
-		this.addRegistryName("general_multiplier_7", "7 Multiplier");
-		this.addRegistryName("general_multiplier_8", "8 Multiplier");
-		this.addRegistryName("general_multiplier_9", "9 Multiplier");
-		this.addRegistryName("general_multiplier_10", "10 Multiplier");
-
-		this.addRegistryName("general_multiplier_neg_1_5", "-1.5 Multiplier");
-		this.addRegistryName("general_multiplier_neg_2", "-2 Multiplier");
-		this.addRegistryName("general_multiplier_neg_3", "-3 Multiplier");
-		this.addRegistryName("general_multiplier_neg_4", "-4 Multiplier");
-		this.addRegistryName("general_multiplier_neg_5", "-5 Multiplier");
-		this.addRegistryName("general_multiplier_neg_6", "-6 Multiplier");
-		this.addRegistryName("general_multiplier_neg_7", "-7 Multiplier");
-		this.addRegistryName("general_multiplier_neg_8", "-8 Multiplier");
-		this.addRegistryName("general_multiplier_neg_9", "-9 Multiplier");
-		this.addRegistryName("general_multiplier_neg_10", "-10 Multiplier");
 
 
 
@@ -240,7 +394,7 @@ public class CraftLangGen extends CraftLangProvider {
 		this.addContractLang("animal_feed", "Animal Feeds","Requesting some feeds for my animals, I'll bake a nice cake for anyone willing to fullfill");
 		this.addContractLang("brewing_materials", "Brewing Materials","Ran out of supplies for my brewing, Bring me some fresh equipment and materials");
 		this.addContractLang("dyeabolical", "Dyeabolical","I lIke cOLOrs, gIve cOlor!!!");
-		this.addContractLang("archery_shipment", "Archery Shipment","We've been attacked by a horde of zombies, we need to refresh our gear");
+		this.addContractLang("archery_resupply", "Archery Resupply","We've been attacked by a horde of zombies, we need to refresh our gear");
 		this.addContractLang("terraforming", "Terraforming","We need to excavate a cave for our underground base");
 		this.addContractLang("care_package", "Care Package","Need a care package for new players on my minecraft server");
 		this.addContractLang("cake_delivery", "Cake Delivery","Mom said I couldn't have cake, i want cake");
@@ -254,7 +408,26 @@ public class CraftLangGen extends CraftLangProvider {
 		this.addContractLang("trophy_headed", "Trophy Headed", "I want the head of a variety of mobs out there in the wild for my collection");
 		this.addContractLang("multiversal_collection", "Multiversal Collection", "I am Trazyn, I require a piece of everything of your world for my collection.");
 		this.addRegistryName("trazyns_curse", "Trazyn's Curse");
+		this.addContractLang("hephaestus_vault", "Hephaestus's Vault", "The Gods of Olympus demand a worthy prison for the entity Gaia, You are to supply Hephaestus with the materials");
+		this.addRegistryName("commeupance_of_the_gods", "Commeupance of the Gods");
+		this.addContractLang("monster_annihilator", "Monster Annihilator", "To prove your strength, You are to slay and retrieve the remains of the hostiles of this world");
+		this.addContractLang("executed_escapee", "Executed Escapee", "I'm in need of some tools to help me cheat death tonight.");
 
+		this.addRegistryName("economic_boom", "Economic Boom");
+		this.addRegistryName("lucky", "Lucky!");
+		this.addRegistryName("strait_to_deficits", "Strait To Deficits");
+		this.addRegistryName("productive", "Productive");
+		this.addRegistryName("redstone_mania", "Redstone Mania");
+		this.addRegistryName("music_fest", "Productive");
+		this.addRegistryName("archery_season", "Archery Season");
+		this.addRegistryName("universal_demand", "Universal Demand");
 
+		this.addRegistryName("black_holdover", "Black Holdover");
+		this.addRegistryName("monopolized", "Monopolized");
+		this.addRegistryName("oversupplied", "Oversupplied");
+		this.addRegistryName("dense_traffic", "Dense Traffic");
+		this.addRegistryName("rugpulled", "Rugpulled");
+
+		this.addRegistryName("inflated_valuables", "Inflated Valuables");
 	}
 }

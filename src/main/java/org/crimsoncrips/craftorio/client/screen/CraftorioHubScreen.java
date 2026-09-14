@@ -82,6 +82,12 @@ public class CraftorioHubScreen extends Screen {
 
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.done"), b -> this.onClose())
                 .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
+
+        if (this.minecraft.player != null && this.minecraft.player.isCreative()) {
+            int devToolsWidth = 100;
+            this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_title"), b -> this.minecraft.setScreen(new DevToolsScreen(this)))
+                    .bounds(this.width - devToolsWidth - 8, this.height - BUTTON_HEIGHT - 8, devToolsWidth, BUTTON_HEIGHT).build());
+        }
     }
 
     @Override

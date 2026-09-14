@@ -1,0 +1,20 @@
+{
+  "basePointValue": "1200",
+  "description": "registry.executed_escapee.description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "itemBounty": [
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:totem_of_undying"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:diamond_pickaxe"
+    }
+  ],
+  "max_point_threshold": "1000000",
+  "name": "registry.executed_escapee.title",
+  "point_threshold": "1000",
+  "seconds": 600,
+  "weight": 10
+}

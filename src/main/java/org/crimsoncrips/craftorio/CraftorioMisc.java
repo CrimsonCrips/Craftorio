@@ -36,12 +36,13 @@ import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioModi
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.ModifierTarget;
 import org.crimsoncrips.craftorio.skill_tree.UpgradeOperation;
-import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
+import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
 import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
 import org.crimsoncrips.craftorio.server.CraftorioPointsAdvancements;
 import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
-import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.XpGainUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.AttributeTarget;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioAttributeUpgrade;
 
 import java.awt.*;
 import java.math.BigDecimal;
@@ -111,7 +112,7 @@ public class CraftorioMisc {
         } else {
             long claimed_amount = getLandAmount(player);
             BigInteger points = getPoints(player);
-            BigInteger amountToClaim = applyUpgradeModifier(player, ModifierTarget.CLAIM_CHUNK_COST, CraftorioMisc.pointsToExpand(chunkPos.size(),claimed_amount));
+            BigInteger amountToClaim = applyUpgradeModifier(player, ModifierTarget.EXPANSION_COST, CraftorioMisc.pointsToExpand(chunkPos.size(),claimed_amount));
             if (!(points.compareTo(amountToClaim) >= 0))
                 return;
 
@@ -143,7 +144,7 @@ public class CraftorioMisc {
         if (level == null) return;
         long claimed_amount = getLandAmount(player);
         BigInteger points = getPoints(player);
-        BigInteger amountToClaim = applyUpgradeModifier(player, ModifierTarget.BORDER_EXPANSION_COST, CraftorioMisc.pointsToExpand(expandAmount,claimed_amount));
+        BigInteger amountToClaim = applyUpgradeModifier(player, ModifierTarget.EXPANSION_COST, CraftorioMisc.pointsToExpand(expandAmount,claimed_amount));
         expandAmount *= Craftorio.SERVER_CONFIG.EXPANSION_AMOUNT.getAsInt();
         CraftorioBorder border = getCraftorioBorder(player,player.level().dimension());
         if (border == null)
@@ -236,14 +237,14 @@ public class CraftorioMisc {
             baseValue = baseValue.add(getSinkValueBonus(player, itemStack));
 
             baseValue = applyUpgradeModifier(player, ModifierTarget.ITEM_BASE_VALUE, new BigDecimal(baseValue));
+        }
 
-            double tagAdditive = sumModifierUpgrades(player, ModifierTarget.ITEM_TAG_BASE_VALUE, UpgradeOperation.ADD, itemStack);
-            double tagMultiplicative = sumModifierUpgrades(player, ModifierTarget.ITEM_TAG_BASE_VALUE, UpgradeOperation.MULTIPLY, itemStack);
-            if (tagAdditive != 0 || tagMultiplicative != 0) {
-                BigDecimal tagResult = new BigDecimal(baseValue).add(BigDecimal.valueOf(tagAdditive));
-                tagResult = tagResult.multiply(BigDecimal.valueOf(1.0 + tagMultiplicative));
-                baseValue = tagResult.setScale(0, RoundingMode.HALF_UP).toBigInteger();
-            }
+        double tagAdditive = sumModifierUpgrades(player, ModifierTarget.ITEM_TAG_BASE_VALUE, UpgradeOperation.ADD, itemStack);
+        double tagMultiplicative = sumModifierUpgrades(player, ModifierTarget.ITEM_TAG_BASE_VALUE, UpgradeOperation.MULTIPLY, itemStack);
+        if (tagAdditive != 0 || tagMultiplicative != 0) {
+            BigDecimal tagResult = new BigDecimal(baseValue).add(BigDecimal.valueOf(tagAdditive));
+            tagResult = tagResult.multiply(BigDecimal.valueOf(1.0 + tagMultiplicative));
+            baseValue = tagResult.setScale(0, RoundingMode.HALF_UP).toBigInteger();
         }
 
 
@@ -288,9 +289,22 @@ public class CraftorioMisc {
             multiplier += effect.getMultiplier();
         }
         multiplier += getAdvancementMultiplierBonus(player);
+        multiplier += getContractCompletionMultiplierBonus(player);
         multiplier += getUpgradeModifierSum(player, ModifierTarget.MULTIPLIER, UpgradeOperation.ADD);
         float multiplyFactor = (float) (1.0 + getUpgradeModifierSum(player, ModifierTarget.MULTIPLIER, UpgradeOperation.MULTIPLY));
         return multiplier * multiplyFactor;
+    }
+
+    public static double getContractCompletionMultiplierBonus(Player player){
+        if (!hasUnlockedUpgrade(player, Craftorio.prefix("contract_completion_scaling"))) return 0;
+
+        int contractsCompleted = getContractsCompleted(player);
+        if (contractsCompleted <= 0) return 0;
+
+        double perContract = Craftorio.SERVER_CONFIG.MULT_PER_CONTRACT_DONE.get()
+                + getUpgradeModifierSum(player, ModifierTarget.MULT_PER_CONTRACT_DONE, UpgradeOperation.ADD);
+
+        return contractsCompleted * perContract;
     }
 
     public static double getAdvancementMultiplierBonus(Player player){
@@ -398,8 +412,10 @@ public class CraftorioMisc {
         double sum = 0;
         for (ResourceLocation id : getUnlockedUpgrades(player)) {
             CraftorioUpgrade upgrade = registry.get(id);
-            if (upgrade instanceof XpGainUpgrade xpUpgrade && xpUpgrade.getOperation() == operation) {
-                sum += xpUpgrade.getValue();
+            if (upgrade instanceof CraftorioAttributeUpgrade attributeUpgrade
+                    && attributeUpgrade.getTarget() == AttributeTarget.XP_GAIN
+                    && attributeUpgrade.getOperation() == operation) {
+                sum += attributeUpgrade.getValue();
             }
         }
         return sum;
@@ -793,6 +809,13 @@ public class CraftorioMisc {
 
     public static class CraftorioTextEffects{
 
+        public static void drawEditBoxHint(GuiGraphics graphics, Font font, net.minecraft.client.gui.components.EditBox box, String hint) {
+            if (!box.getValue().isEmpty() || box.isFocused()) return;
+            int x = box.getX() + 4;
+            int y = box.getY() + (box.getHeight() - 8) / 2;
+            graphics.drawString(font, hint, x, y, 0x707070, false);
+        }
+
         public static void drawFancy(GuiGraphics graphics, Font font, String text,int x, int y, boolean dropShadow, int mode){
             switch (mode) {
                 case 0 -> drawRainbowWave(graphics, font, text, x, y, dropShadow);
@@ -1069,17 +1092,17 @@ public class CraftorioMisc {
 
 
 
-    public static Optional<CraftorioShipmentContract> getContractTemplate(Level level, ResourceLocation id) {
-        Registry<CraftorioShipmentContract> registry = level.registryAccess().registryOrThrow(CraftorioShipmentContract.REGISTRY_KEY);
+    public static Optional<CraftorioContract> getContractTemplate(Level level, ResourceLocation id) {
+        Registry<CraftorioContract> registry = level.registryAccess().registryOrThrow(CraftorioContract.REGISTRY_KEY);
         return registry.getOptional(id);
     }
 
     public static void grantContract(Player player, ResourceLocation id) {
         getContractTemplate(player.level(), id).ifPresentOrElse(template -> {
-            List<CraftorioShipmentContract> playerContract = new ArrayList<>(getCraftorioContracts(player));
+            List<CraftorioContract> playerContract = new ArrayList<>(getCraftorioContracts(player));
             playerContract.add(template.copy());
             setCraftorioContracts(player,playerContract);
-        }, () -> Craftorio.LOGGER.warn("Tried to grant unknown shipment contract {} to {}", id, player.getName().getString()));
+        }, () -> Craftorio.LOGGER.warn("Tried to grant unknown contract {} to {}", id, player.getName().getString()));
     }
 
     public static void grantEffect(Player player, ResourceLocation id) {
@@ -1092,7 +1115,7 @@ public class CraftorioMisc {
     }
 
     public static void grantEffect(Player player, CraftorioEffects effect, boolean isPunishment) {
-        ModifierTarget durationTarget = isPunishment ? ModifierTarget.PUNISHMENT_EFFECT_DURATION : ModifierTarget.EFFECT_DURATION;
+        ModifierTarget durationTarget = isPunishment ? ModifierTarget.PUNISHMENT_DURATION : ModifierTarget.EFFECT_DURATION;
         int adjustedTime = (int) applyUpgradeModifier(player, durationTarget, (double) effect.getTime());
         effect.setTime(Math.max(0, adjustedTime));
 
@@ -1111,7 +1134,7 @@ public class CraftorioMisc {
         }
     }
 
-    public static void punishContractFailure(Player player, CraftorioShipmentContract contract, ResourceLocation punishmentId) {
+    public static void punishContractFailure(Player player, CraftorioContract contract, ResourceLocation punishmentId) {
         Registry<CraftorioEffects> registry = player.level().registryAccess().registryOrThrow(CraftorioEffects.REGISTRY_KEY);
         registry.getOptional(punishmentId).ifPresent(effect -> {
             CraftorioEffects granted = effect.copy();
@@ -1194,24 +1217,24 @@ public class CraftorioMisc {
     }
 
     //Contract Checks
-    public static List<CraftorioShipmentContract> getCraftorioContracts(Player player){
+    public static List<CraftorioContract> getCraftorioContracts(Player player){
         Level level = universalLevel(player);
         if (universalBased(level)){
             if (level.isClientSide() && ClientUniversalState.isAvailable()) {
                 return ClientUniversalState.getContracts();
             }
-            return level.getData(SHIPMENT_CONTRACTS);
+            return level.getData(CONTRACTS);
         } else {
-            return player.getData(SHIPMENT_CONTRACTS);
+            return player.getData(CONTRACTS);
         }
     }
 
-    public static void setCraftorioContracts(Player player,List<CraftorioShipmentContract> contracts){
+    public static void setCraftorioContracts(Player player,List<CraftorioContract> contracts){
         Level level = universalLevel(player);
         if (universalBased(level)){
-            level.setData(SHIPMENT_CONTRACTS,contracts);
+            level.setData(CONTRACTS,contracts);
         } else {
-            player.setData(SHIPMENT_CONTRACTS,contracts);
+            player.setData(CONTRACTS,contracts);
         }
     }
 
@@ -1282,16 +1305,35 @@ public class CraftorioMisc {
         }
     }
 
-    public static Collection<Holder.Reference<CraftorioShipmentContract>> getAllContracts(RegistryAccess registryAccess) {
-        return registryAccess.registryOrThrow(CraftorioShipmentContract.REGISTRY_KEY).holders().toList();
+    public static Collection<Holder.Reference<CraftorioContract>> getAllContracts(RegistryAccess registryAccess) {
+        return registryAccess.registryOrThrow(CraftorioContract.REGISTRY_KEY).holders().toList();
     }
 
-    public static List<ResourceLocation> rollContractOffer(RegistryAccess registryAccess, RandomSource random, BigInteger playerHighestPoints, double betterContractChance) {
-        List<Holder.Reference<CraftorioShipmentContract>> all = getAllContracts(registryAccess).stream()
+    public static int getContractsCompleted(Player player){
+        Level level = universalLevel(player);
+        if (universalBased(level)){
+            return level.getData(CraftorioDataAttachments.CONTRACTS_COMPLETED);
+        } else {
+            return player.getData(CraftorioDataAttachments.CONTRACTS_COMPLETED);
+        }
+    }
+
+    public static void recordContractCompleted(Player player){
+        Level level = universalLevel(player);
+        int updated = getContractsCompleted(player) + 1;
+        if (universalBased(level)) {
+            level.setData(CraftorioDataAttachments.CONTRACTS_COMPLETED, updated);
+        } else {
+            player.setData(CraftorioDataAttachments.CONTRACTS_COMPLETED, updated);
+        }
+    }
+
+    public static List<ResourceLocation> rollContractOffer(RegistryAccess registryAccess, RandomSource random, BigInteger playerHighestPoints, double rarerContractChance) {
+        List<Holder.Reference<CraftorioContract>> all = getAllContracts(registryAccess).stream()
                 .filter(holder -> holder.value().isModAvailable())
                 .toList();
 
-        List<Holder.Reference<CraftorioShipmentContract>> eligible = all.stream()
+        List<Holder.Reference<CraftorioContract>> eligible = all.stream()
                 .filter(holder -> playerHighestPoints.compareTo(holder.value().getMinPointThreshold()) >= 0
                         && playerHighestPoints.compareTo(holder.value().getMaxPointThreshold()) <= 0)
                 .toList();
@@ -1303,8 +1345,8 @@ public class CraftorioMisc {
         List<ResourceLocation> offered = new ArrayList<>();
         if (!eligible.isEmpty()) {
             for (int i = 0; i < max; i++) {
-                offered.add(pickBetter(eligible, random, CraftorioShipmentContract::getWeight,
-                        contract -> new BigDecimal(contract.getBasePointValue()).doubleValue(), betterContractChance).key().location());
+                offered.add(pickBetter(eligible, random, CraftorioContract::getWeight,
+                        contract -> new BigDecimal(contract.getBasePointValue()).doubleValue(), rarerContractChance).key().location());
             }
         }
         return offered;
@@ -1422,32 +1464,34 @@ public class CraftorioMisc {
 
 
     public static CraftorioEffects getRandomEffect(RegistryAccess registryAccess, RandomSource random) {
-        Collection<Holder.Reference<CraftorioEffects>> all = getAllEffects(registryAccess);
-        if (all.isEmpty()) {
-            throw new IllegalStateException("No effects are registered");
-        }
-
-        return pickWeighted(all, random, CraftorioEffects::getWeight).value().copy();
-    }
-
-    public static CraftorioEffects getRandomAmbientEffect(RegistryAccess registryAccess, RandomSource random, double betterEffectChance) {
-        List<Holder.Reference<CraftorioEffects>> ambient = getAllEffects(registryAccess).stream()
-                .filter(holder -> holder.value().isAmbient())
+        List<Holder.Reference<CraftorioEffects>> obtainable = getAllEffects(registryAccess).stream()
+                .filter(holder -> !holder.value().isUnobtainable())
                 .toList();
-        if (ambient.isEmpty()) {
-            throw new IllegalStateException("No ambient effects are registered");
+        if (obtainable.isEmpty()) {
+            throw new IllegalStateException("No obtainable effects are registered");
         }
 
-        return pickBetter(ambient, random, CraftorioEffects::getWeight, CraftorioMisc::effectQuality, betterEffectChance).value().copy();
+        return pickWeighted(obtainable, random, CraftorioEffects::getWeight).value().copy();
     }
 
-    public static CraftorioShipmentContract getRandomShipment(RegistryAccess registryAccess, RandomSource random) {
-        Collection<Holder.Reference<CraftorioShipmentContract>> all = getAllContracts(registryAccess);
-        if (all.isEmpty()) {
-            throw new IllegalStateException("No shipment contracts are registered");
+    public static CraftorioEffects getRandomObtainableEffect(RegistryAccess registryAccess, RandomSource random, double rarerEffectChance) {
+        List<Holder.Reference<CraftorioEffects>> obtainable = getAllEffects(registryAccess).stream()
+                .filter(holder -> !holder.value().isUnobtainable())
+                .toList();
+        if (obtainable.isEmpty()) {
+            throw new IllegalStateException("No obtainable effects are registered");
         }
 
-        return pickWeighted(all, random, CraftorioShipmentContract::getWeight).value().copy();
+        return pickBetter(obtainable, random, CraftorioEffects::getWeight, CraftorioMisc::effectQuality, rarerEffectChance).value().copy();
+    }
+
+    public static CraftorioContract getRandomContract(RegistryAccess registryAccess, RandomSource random) {
+        Collection<Holder.Reference<CraftorioContract>> all = getAllContracts(registryAccess);
+        if (all.isEmpty()) {
+            throw new IllegalStateException("No contracts are registered");
+        }
+
+        return pickWeighted(all, random, CraftorioContract::getWeight).value().copy();
     }
 
     public static List<ResourceKey<Level>> getDimensionsExplored(Player player){
@@ -1470,6 +1514,10 @@ public class CraftorioMisc {
 
     public static BigInteger scientificToInt(String scientificNotation){
         return new BigDecimal(scientificNotation).toBigInteger();
+    }
+
+    public static Item toItem(String itemId){
+        return BuiltInRegistries.ITEM.get(ResourceLocation.parse(itemId));
     }
 
 

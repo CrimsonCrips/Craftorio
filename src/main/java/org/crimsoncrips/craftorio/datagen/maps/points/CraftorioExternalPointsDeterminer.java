@@ -1,16 +1,42 @@
 package org.crimsoncrips.craftorio.datagen.maps.points;
 
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Item;
-import net.neoforged.neoforge.common.data.DataMapProvider;
 
-public final class CraftorioExternalPointsDeterminer {
+import net.minecraft.advancements.Advancement;
+import net.minecraft.core.Holder;
+import net.minecraft.core.HolderLookup;
+import net.minecraft.data.PackOutput;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.tags.ItemTags;
+import net.minecraft.tags.TagKey;
+import net.minecraft.world.effect.MobEffect;
+import net.minecraft.world.effect.MobEffects;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.Enchantment;
+import net.minecraft.world.item.enchantment.Enchantments;
+import net.neoforged.neoforge.common.Tags;
+import net.neoforged.neoforge.common.data.DataMapProvider;
+import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
+import org.crimsoncrips.craftorio.datagen.maps.advancement_mult.CraftorioAdvancementMultDeterminer;
+import org.crimsoncrips.craftorio.datagen.tags.CraftorioItemTagGen;
+
+import java.util.concurrent.CompletableFuture;
+
+import static java.lang.Math.round;
+
+@SuppressWarnings("Deprecated")
+public class CraftorioExternalPointsDeterminer extends DataMapProvider {
+
+    //From Androsa (Gaia Dimension)
+    public CraftorioExternalPointsDeterminer(PackOutput packOutput, CompletableFuture<HolderLookup.Provider> lookupProvider) {
+        super(packOutput, lookupProvider);
+    }
+
 
     private static final String CREATE_MODID = "create";
 
-    private CraftorioExternalPointsDeterminer() {}
-
-    public static void addExternalValues(DataMapProvider.Builder<String, Item> point_value) {
+    public static void addExternalValues(Builder<String, Item> point_value) {
 //        addCreateItemValue(point_value, "acacia_window",1 , 1);
 //        addCreateItemValue(point_value, "acacia_window_pane",1 , 1);
 //        addCreateItemValue(point_value, "adjustable_chain_gearshift",1 , 1);
@@ -712,8 +738,8 @@ public final class CraftorioExternalPointsDeterminer {
 //        addCreateItemValue(point_value, "zinc_ore",1 , 1);
     }
 
-    private static void addCreateItemValue(DataMapProvider.Builder<String, Item> pointValue, String path, int value, int multiplier) {
+    private static void addCreateItemValue(Builder<String, Item> pointValue, String path, int value, int multiplier) {
         pointValue.add(ResourceLocation.fromNamespaceAndPath(CREATE_MODID, path), String.valueOf((int) (value * (1 + (multiplier * 0.10)))), false);
     }
-    
+
 }

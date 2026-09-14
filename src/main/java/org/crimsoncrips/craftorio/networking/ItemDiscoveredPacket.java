@@ -6,7 +6,6 @@ import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.crimsoncrips.craftorio.Craftorio;
-import org.crimsoncrips.craftorio.client.ClientUnlockedItemsState;
 import org.crimsoncrips.craftorio.client.ItemDiscoveredPopup;
 
 public record ItemDiscoveredPacket(ResourceLocation itemId) implements CustomPacketPayload {
@@ -23,9 +22,6 @@ public record ItemDiscoveredPacket(ResourceLocation itemId) implements CustomPac
     }
 
     public static void handle(ItemDiscoveredPacket message, IPayloadContext ctx) {
-        ctx.enqueueWork(() -> {
-            ClientUnlockedItemsState.add(message.itemId());
-            ItemDiscoveredPopup.spawn(message.itemId());
-        });
+        ctx.enqueueWork(() -> ItemDiscoveredPopup.spawn(message.itemId()));
     }
 }

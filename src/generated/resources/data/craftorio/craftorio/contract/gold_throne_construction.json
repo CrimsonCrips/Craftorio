@@ -1,0 +1,35 @@
+{
+  "basePointValue": "12000",
+  "description": "registry.gold_throne_construction.description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "itemBounty": [
+    {
+      "amountRequired": 28,
+      "contract_item": "minecraft:gold_block"
+    },
+    {
+      "amountRequired": 10,
+      "contract_item": "minecraft:candle"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:red_carpet"
+    }
+  ],
+  "itemRewards": [
+    {
+      "amountGiving": 1,
+      "rewardingItem": {
+        "count": 1,
+        "id": "minecraft:diamond_block"
+      }
+    }
+  ],
+  "max_point_threshold": "5000000",
+  "min_point_threshold": "13000",
+  "name": "registry.gold_throne_construction.title",
+  "point_threshold": "5000",
+  "punishment": "craftorio:shop/kingdom_tariff",
+  "seconds": 3600,
+  "weight": 10
+}

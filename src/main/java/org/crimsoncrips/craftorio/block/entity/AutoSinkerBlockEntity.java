@@ -18,7 +18,7 @@ import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.inventory.AutoSinkerMenu;
-import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
+import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -92,7 +92,7 @@ public class AutoSinkerBlockEntity extends BlockEntity implements Container, Men
 
         CraftorioMisc.setPoints(CraftorioMisc.getPoints(owner).add(pointsToGive), owner);
 
-        for (CraftorioShipmentContract contract : new ArrayList<>(CraftorioMisc.getCraftorioContracts(owner))) {
+        for (CraftorioContract contract : new ArrayList<>(CraftorioMisc.getCraftorioContracts(owner))) {
             contract.addSinkedListValue(sinkedItems, owner);
         }
     }

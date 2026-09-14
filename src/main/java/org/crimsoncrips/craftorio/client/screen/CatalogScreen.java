@@ -127,6 +127,7 @@ public abstract class CatalogScreen<T> extends Screen {
         this.page = Mth.clamp(this.page, 0, this.totalPages() - 1);
 
         this.searchBox = new EditBox(this.font, this.width / 2 - 70, 28, 140, 16, Component.translatable("misc.craftorio.search"));
+        this.searchBox.setMaxLength(256);
         this.searchBox.setValue(this.searchQuery);
         this.searchBox.setResponder(this::onSearchChanged);
 

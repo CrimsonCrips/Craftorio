@@ -7,6 +7,7 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.item.CraftorioItems;
+import org.crimsoncrips.craftorio.skill_tree.ModifierTarget;
 
 import java.math.BigInteger;
 
@@ -15,7 +16,8 @@ public final class CraftorioClaimItemShop {
     private CraftorioClaimItemShop() {}
 
     public static BigInteger getCost(Player player, long quantity) {
-        return CraftorioMisc.pointsToExpand(quantity, CraftorioMisc.getLandAmount(player));
+        BigInteger rawCost = CraftorioMisc.pointsToExpand(quantity, CraftorioMisc.getLandAmount(player));
+        return CraftorioMisc.applyUpgradeModifier(player, ModifierTarget.EXPANSION_COST, rawCost).max(BigInteger.ZERO);
     }
 
     public static void purchase(ServerPlayer player, int quantity) {

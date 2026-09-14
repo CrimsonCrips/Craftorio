@@ -8,9 +8,11 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.client.CraftorioToastManager;
 import org.crimsoncrips.craftorio.events.ClientEvents;
+import org.crimsoncrips.craftorio.networking.ClearEffectsPacket;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 
 import java.util.ArrayList;
@@ -63,8 +65,24 @@ public class ActiveEffectsScreen extends Screen {
         this.maxScroll = Math.max(0, contentHeight - viewportHeight);
         this.scrollY = Mth.clamp(this.scrollY, 0, this.maxScroll);
 
-        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.back"), b -> this.onClose())
-                .bounds(this.width / 2 - 50, this.height - 26, 100, 20).build());
+        int centerX = this.width / 2;
+        int buttonY = this.height - 26;
+        boolean creative = player != null && player.isCreative();
+        if (creative) {
+            this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.clear_effects_button"), b -> {
+                        PacketDistributor.sendToServer(new ClearEffectsPacket());
+                        this.effects.clear();
+                        this.scrollY = 0f;
+                        this.maxScroll = 0;
+                    })
+                    .bounds(centerX - 110, buttonY, 100, 20).build());
+
+            this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.back"), b -> this.onClose())
+                    .bounds(centerX + 10, buttonY, 100, 20).build());
+        } else {
+            this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.back"), b -> this.onClose())
+                    .bounds(centerX - 50, buttonY, 100, 20).build());
+        }
     }
 
     @Override

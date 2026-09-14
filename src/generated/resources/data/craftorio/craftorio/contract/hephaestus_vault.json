@@ -1,0 +1,543 @@
+{
+  "basePointValue": "500000000",
+  "description": "registry.hephaestus_vault.description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "itemBounty": [
+    {
+      "amountRequired": 211179,
+      "contract_item": "minecraft:andesite"
+    },
+    {
+      "amountRequired": 87,
+      "contract_item": "minecraft:anvil"
+    },
+    {
+      "amountRequired": 49,
+      "contract_item": "minecraft:barrel"
+    },
+    {
+      "amountRequired": 4123,
+      "contract_item": "minecraft:beacon"
+    },
+    {
+      "amountRequired": 40,
+      "contract_item": "minecraft:birch_sign"
+    },
+    {
+      "amountRequired": 6,
+      "contract_item": "minecraft:black_bed"
+    },
+    {
+      "amountRequired": 626,
+      "contract_item": "minecraft:black_stained_glass"
+    },
+    {
+      "amountRequired": 238178,
+      "contract_item": "minecraft:blackstone"
+    },
+    {
+      "amountRequired": 31,
+      "contract_item": "minecraft:blackstone_wall"
+    },
+    {
+      "amountRequired": 235,
+      "contract_item": "minecraft:chain"
+    },
+    {
+      "amountRequired": 139,
+      "contract_item": "minecraft:chest"
+    },
+    {
+      "amountRequired": 116,
+      "contract_item": "minecraft:chiseled_polished_blackstone"
+    },
+    {
+      "amountRequired": 2110,
+      "contract_item": "minecraft:clay"
+    },
+    {
+      "amountRequired": 81563,
+      "contract_item": "minecraft:coal_block"
+    },
+    {
+      "amountRequired": 865,
+      "contract_item": "minecraft:coarse_dirt"
+    },
+    {
+      "amountRequired": 162993,
+      "contract_item": "minecraft:cobblestone"
+    },
+    {
+      "amountRequired": 80,
+      "contract_item": "minecraft:cobblestone_stairs"
+    },
+    {
+      "amountRequired": 208,
+      "contract_item": "minecraft:comparator"
+    },
+    {
+      "amountRequired": 9,
+      "contract_item": "minecraft:composter"
+    },
+    {
+      "amountRequired": 2277382,
+      "contract_item": "minecraft:crying_obsidian"
+    },
+    {
+      "amountRequired": 9,
+      "contract_item": "minecraft:cut_sandstone"
+    },
+    {
+      "amountRequired": 262777,
+      "contract_item": "minecraft:cyan_terracotta"
+    },
+    {
+      "amountRequired": 16,
+      "contract_item": "minecraft:dark_oak_fence"
+    },
+    {
+      "amountRequired": 40,
+      "contract_item": "minecraft:dark_oak_log"
+    },
+    {
+      "amountRequired": 15,
+      "contract_item": "minecraft:dark_oak_planks"
+    },
+    {
+      "amountRequired": 60,
+      "contract_item": "minecraft:dark_oak_slab"
+    },
+    {
+      "amountRequired": 40,
+      "contract_item": "minecraft:dark_oak_stairs"
+    },
+    {
+      "amountRequired": 7,
+      "contract_item": "minecraft:dark_oak_trapdoor"
+    },
+    {
+      "amountRequired": 30800,
+      "contract_item": "minecraft:dark_prismarine"
+    },
+    {
+      "amountRequired": 800,
+      "contract_item": "minecraft:dark_prismarine_stairs"
+    },
+    {
+      "amountRequired": 44,
+      "contract_item": "minecraft:daylight_detector"
+    },
+    {
+      "amountRequired": 16,
+      "contract_item": "minecraft:dead_fire_coral_block"
+    },
+    {
+      "amountRequired": 29,
+      "contract_item": "minecraft:dead_tube_coral_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:diamond_block"
+    },
+    {
+      "amountRequired": 50420,
+      "contract_item": "minecraft:dirt"
+    },
+    {
+      "amountRequired": 47,
+      "contract_item": "minecraft:dispenser"
+    },
+    {
+      "amountRequired": 169,
+      "contract_item": "minecraft:dropper"
+    },
+    {
+      "amountRequired": 2664,
+      "contract_item": "minecraft:emerald_block"
+    },
+    {
+      "amountRequired": 31,
+      "contract_item": "minecraft:enchanting_table"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:end_stone_brick_slab"
+    },
+    {
+      "amountRequired": 4,
+      "contract_item": "minecraft:end_stone_brick_stairs"
+    },
+    {
+      "amountRequired": 167,
+      "contract_item": "minecraft:ender_chest"
+    },
+    {
+      "amountRequired": 44,
+      "contract_item": "minecraft:glass"
+    },
+    {
+      "amountRequired": 11,
+      "contract_item": "minecraft:glowstone"
+    },
+    {
+      "amountRequired": 2,
+      "contract_item": "minecraft:gold_block"
+    },
+    {
+      "amountRequired": 2642,
+      "contract_item": "minecraft:grass_block"
+    },
+    {
+      "amountRequired": 24857,
+      "contract_item": "minecraft:gravel"
+    },
+    {
+      "amountRequired": 2056,
+      "contract_item": "minecraft:green_stained_glass"
+    },
+    {
+      "amountRequired": 2,
+      "contract_item": "minecraft:hay_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:heavy_weighted_pressure_plate"
+    },
+    {
+      "amountRequired": 6,
+      "contract_item": "minecraft:honey_block"
+    },
+    {
+      "amountRequired": 294,
+      "contract_item": "minecraft:hopper"
+    },
+    {
+      "amountRequired": 186,
+      "contract_item": "minecraft:iron_bars"
+    },
+    {
+      "amountRequired": 78,
+      "contract_item": "minecraft:iron_block"
+    },
+    {
+      "amountRequired": 4463,
+      "contract_item": "minecraft:iron_trapdoor"
+    },
+    {
+      "amountRequired": 37,
+      "contract_item": "minecraft:jungle_sign"
+    },
+    {
+      "amountRequired": 34,
+      "contract_item": "minecraft:ladder"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lapis_block"
+    },
+    {
+      "amountRequired": 94353,
+      "contract_item": "minecraft:lava_bucket"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:lectern"
+    },
+    {
+      "amountRequired": 50,
+      "contract_item": "minecraft:lever"
+    },
+    {
+      "amountRequired": 20,
+      "contract_item": "minecraft:light_gray_shulker_box"
+    },
+    {
+      "amountRequired": 2,
+      "contract_item": "minecraft:light_weighted_pressure_plate"
+    },
+    {
+      "amountRequired": 123,
+      "contract_item": "minecraft:lime_carpet"
+    },
+    {
+      "amountRequired": 2919,
+      "contract_item": "minecraft:lime_concrete"
+    },
+    {
+      "amountRequired": 82379,
+      "contract_item": "minecraft:lime_stained_glass"
+    },
+    {
+      "amountRequired": 1897,
+      "contract_item": "minecraft:magma_block"
+    },
+    {
+      "amountRequired": 1506,
+      "contract_item": "minecraft:netherite_block"
+    },
+    {
+      "amountRequired": 15783,
+      "contract_item": "minecraft:note_block"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oak_button"
+    },
+    {
+      "amountRequired": 8,
+      "contract_item": "minecraft:oak_fence"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oak_leaves"
+    },
+    {
+      "amountRequired": 15,
+      "contract_item": "minecraft:oak_log"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:oak_pressure_plate"
+    },
+    {
+      "amountRequired": 16,
+      "contract_item": "minecraft:oak_sign"
+    },
+    {
+      "amountRequired": 3,
+      "contract_item": "minecraft:oak_slab"
+    },
+    {
+      "amountRequired": 433,
+      "contract_item": "minecraft:oak_sign"
+    },
+    {
+      "amountRequired": 112855,
+      "contract_item": "minecraft:observer"
+    },
+    {
+      "amountRequired": 386693,
+      "contract_item": "minecraft:obsidian"
+    },
+    {
+      "amountRequired": 9,
+      "contract_item": "minecraft:pink_concrete"
+    },
+    {
+      "amountRequired": 184,
+      "contract_item": "minecraft:piston"
+    },
+    {
+      "amountRequired": 2183,
+      "contract_item": "minecraft:podzol"
+    },
+    {
+      "amountRequired": 282,
+      "contract_item": "minecraft:polished_blackstone"
+    },
+    {
+      "amountRequired": 222,
+      "contract_item": "minecraft:polished_blackstone_brick_slab"
+    },
+    {
+      "amountRequired": 2198,
+      "contract_item": "minecraft:polished_blackstone_brick_stairs"
+    },
+    {
+      "amountRequired": 312,
+      "contract_item": "minecraft:polished_blackstone_brick_wall"
+    },
+    {
+      "amountRequired": 2337,
+      "contract_item": "minecraft:polished_blackstone_bricks"
+    },
+    {
+      "amountRequired": 685,
+      "contract_item": "minecraft:polished_blackstone_wall"
+    },
+    {
+      "amountRequired": 3,
+      "contract_item": "minecraft:rail"
+    },
+    {
+      "amountRequired": 14,
+      "contract_item": "minecraft:red_concrete"
+    },
+    {
+      "amountRequired": 144,
+      "contract_item": "minecraft:redstone_block"
+    },
+    {
+      "amountRequired": 120,
+      "contract_item": "minecraft:redstone_lamp"
+    },
+    {
+      "amountRequired": 307,
+      "contract_item": "minecraft:redstone_torch"
+    },
+    {
+      "amountRequired": 164,
+      "contract_item": "minecraft:redstone_torch"
+    },
+    {
+      "amountRequired": 23661,
+      "contract_item": "minecraft:redstone"
+    },
+    {
+      "amountRequired": 1197,
+      "contract_item": "minecraft:repeater"
+    },
+    {
+      "amountRequired": 13937,
+      "contract_item": "minecraft:sand"
+    },
+    {
+      "amountRequired": 6051,
+      "contract_item": "minecraft:sea_lantern"
+    },
+    {
+      "amountRequired": 10,
+      "contract_item": "minecraft:sea_pickle"
+    },
+    {
+      "amountRequired": 141,
+      "contract_item": "minecraft:short_grass"
+    },
+    {
+      "amountRequired": 2179,
+      "contract_item": "minecraft:shroomlight"
+    },
+    {
+      "amountRequired": 3473,
+      "contract_item": "minecraft:slime_block"
+    },
+    {
+      "amountRequired": 18,
+      "contract_item": "minecraft:smooth_stone_slab"
+    },
+    {
+      "amountRequired": 29,
+      "contract_item": "minecraft:soul_lantern"
+    },
+    {
+      "amountRequired": 1201,
+      "contract_item": "minecraft:soul_sand"
+    },
+    {
+      "amountRequired": 553,
+      "contract_item": "minecraft:soul_soil"
+    },
+    {
+      "amountRequired": 10,
+      "contract_item": "minecraft:spruce_slab"
+    },
+    {
+      "amountRequired": 25,
+      "contract_item": "minecraft:spruce_trapdoor"
+    },
+    {
+      "amountRequired": 430,
+      "contract_item": "minecraft:sticky_piston"
+    },
+    {
+      "amountRequired": 87055,
+      "contract_item": "minecraft:stone"
+    },
+    {
+      "amountRequired": 42,
+      "contract_item": "minecraft:stone_brick_slab"
+    },
+    {
+      "amountRequired": 195,
+      "contract_item": "minecraft:stone_brick_wall"
+    },
+    {
+      "amountRequired": 23,
+      "contract_item": "minecraft:stone_bricks"
+    },
+    {
+      "amountRequired": 70,
+      "contract_item": "minecraft:stone_button"
+    },
+    {
+      "amountRequired": 7,
+      "contract_item": "minecraft:stone_pressure_plate"
+    },
+    {
+      "amountRequired": 8,
+      "contract_item": "minecraft:stone_slab"
+    },
+    {
+      "amountRequired": 2,
+      "contract_item": "minecraft:tall_grass"
+    },
+    {
+      "amountRequired": 406,
+      "contract_item": "minecraft:target"
+    },
+    {
+      "amountRequired": 7853,
+      "contract_item": "minecraft:string"
+    },
+    {
+      "amountRequired": 4,
+      "contract_item": "minecraft:tripwire_hook"
+    },
+    {
+      "amountRequired": 350,
+      "contract_item": "minecraft:vine"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:torch"
+    },
+    {
+      "amountRequired": 298,
+      "contract_item": "minecraft:warped_sign"
+    },
+    {
+      "amountRequired": 1111,
+      "contract_item": "minecraft:water_bucket"
+    },
+    {
+      "amountRequired": 14,
+      "contract_item": "minecraft:white_bed"
+    },
+    {
+      "amountRequired": 60,
+      "contract_item": "minecraft:white_carpet"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:yellow_carpet"
+    },
+    {
+      "amountRequired": 3,
+      "contract_item": "minecraft:yellow_concrete"
+    }
+  ],
+  "itemRewards": [
+    {
+      "amountGiving": 5,
+      "randomEffectCount": 2,
+      "rewardingItem": {
+        "count": 1,
+        "id": "craftorio:effect_rune"
+      }
+    },
+    {
+      "amountGiving": 3,
+      "randomEffectCount": 2,
+      "rewardingItem": {
+        "count": 1,
+        "id": "craftorio:mystery_effect_rune"
+      }
+    }
+  ],
+  "min_point_threshold": "10000000",
+  "name": "registry.hephaestus_vault.title",
+  "point_threshold": "10000000000",
+  "punishment": "craftorio:general/commeupance_of_the_gods",
+  "seconds": 43200,
+  "weight": 10
+}

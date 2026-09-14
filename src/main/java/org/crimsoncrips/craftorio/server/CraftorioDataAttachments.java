@@ -16,7 +16,7 @@ import net.neoforged.neoforge.registries.NeoForgeRegistries;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.registries.effect.ShopMultiplierEffect;
-import org.crimsoncrips.craftorio.registries.shipment.CraftorioShipmentContract;
+import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
 import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
@@ -99,11 +99,11 @@ public class CraftorioDataAttachments {
                     .sync(ShopMultiplierEffect.CODEC_STREAM.apply(ByteBufCodecs.list()))
                     .build());
 
-    public static final Supplier<AttachmentType<List<CraftorioShipmentContract>>> SHIPMENT_CONTRACTS = ATTACHMENT_TYPES.register(
-            "shipment_contracts", () -> AttachmentType.<List<CraftorioShipmentContract>>builder((holder) -> new ArrayList<>())
-                    .serialize(Codec.list(CraftorioShipmentContract.CODEC))
+    public static final Supplier<AttachmentType<List<CraftorioContract>>> CONTRACTS = ATTACHMENT_TYPES.register(
+            "contracts", () -> AttachmentType.<List<CraftorioContract>>builder((holder) -> new ArrayList<>())
+                    .serialize(Codec.list(CraftorioContract.CODEC))
                     .copyOnDeath()
-                    .sync(CraftorioShipmentContract.CODEC_STREAM.apply(ByteBufCodecs.list()))
+                    .sync(CraftorioContract.CODEC_STREAM.apply(ByteBufCodecs.list()))
                     .build());
 
     public static final Supplier<AttachmentType<GlobalPos>> SPAWN_ORIGIN = ATTACHMENT_TYPES.register(
@@ -179,6 +179,10 @@ public class CraftorioDataAttachments {
 
     public static final Supplier<AttachmentType<Double>> ADVANCEMENT_MULTIPLIER_BONUS = ATTACHMENT_TYPES.register(
             "advancement_multiplier_bonus", () -> AttachmentType.builder(() -> 0.0).serialize(Codec.DOUBLE).copyOnDeath().sync(ByteBufCodecs.DOUBLE).build()
+    );
+
+    public static final Supplier<AttachmentType<Integer>> CONTRACTS_COMPLETED = ATTACHMENT_TYPES.register(
+            "contracts_completed", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().sync(ByteBufCodecs.VAR_INT).build()
     );
 
 }
