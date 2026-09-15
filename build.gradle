@@ -137,6 +137,7 @@ dependencies {
     implementation "xaero.map:xaeroworldmap-neoforge-1.21.1:1.44.2"
     implementation "curse.maven:jade-324717:8591319"
     runtimeOnly "curse.maven:jei-238222:8622758"
+    // runtimeOnly "curse.maven:lithium-360438:8330365"
 
     implementation("com.simibubi.create:create-${minecraft_version}:${create_version}:slim") { transitive = false }
     implementation("net.createmod.ponder:ponder-neoforge:${ponder_version}+mc${minecraft_version}")
