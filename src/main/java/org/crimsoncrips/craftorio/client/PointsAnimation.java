@@ -196,7 +196,6 @@ public final class PointsAnimation {
         return SHAKE_DURATION_MIN_MS + (long) ((SHAKE_DURATION_MAX_MS - SHAKE_DURATION_MIN_MS) * magnitudeFactor);
     }
 
-    // ---- easing helpers ----
 
     private static double easeInCubic(double t) {
         return t * t * t;

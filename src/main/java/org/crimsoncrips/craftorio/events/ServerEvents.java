@@ -24,7 +24,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.block.CraftorioBlocks;
-import org.crimsoncrips.craftorio.networking.EffectTimerPacket;
+import org.crimsoncrips.craftorio.networking.*;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 import org.crimsoncrips.craftorio.server.ChunkCollisionHooks;
@@ -209,8 +209,8 @@ public class ServerEvents {
             }
 
             if (player instanceof ServerPlayer serverPlayer) {
-                PacketDistributor.sendToPlayer(serverPlayer, new org.crimsoncrips.craftorio.networking.WelcomeToastPacket());
-                PacketDistributor.sendToPlayer(serverPlayer, new org.crimsoncrips.craftorio.networking.ShopStatusPacket(CraftorioShop.isEnabled()));
+                PacketDistributor.sendToPlayer(serverPlayer, new WelcomeToastPacket());
+                PacketDistributor.sendToPlayer(serverPlayer, new ShopStatusPacket(CraftorioShop.isEnabled()));
                 CraftorioPointsAdvancements.checkAndGrant(serverPlayer, CraftorioMisc.getPoints(player));
             }
 
@@ -233,7 +233,7 @@ public class ServerEvents {
     private void syncUniversalState(ServerPlayer player) {
         if (!CraftorioMisc.universalBased(CraftorioMisc.universalLevel(player))) return;
 
-        PacketDistributor.sendToPlayer(player, new org.crimsoncrips.craftorio.networking.UniversalStateSyncPacket(
+        PacketDistributor.sendToPlayer(player, new UniversalStateSyncPacket(
                 CraftorioMisc.getPoints(player),
                 CraftorioMisc.getHighestPoints(player),
                 CraftorioMisc.getTempPoints(player),
@@ -544,12 +544,12 @@ public class ServerEvents {
 
     private void notifyNewContracts(ServerPlayer player, List<ResourceLocation> offer, int refreshTicks) {
         if (pendingContractScreenPush.remove(player.getUUID())) {
-            PacketDistributor.sendToPlayer(player, new org.crimsoncrips.craftorio.networking.OpenContractOfferScreenPacket(offer, refreshTicks));
+            PacketDistributor.sendToPlayer(player, new OpenContractOfferScreenPacket(offer, refreshTicks));
             return;
         }
 
         if (offer.isEmpty()) return;
-        PacketDistributor.sendToPlayer(player, new org.crimsoncrips.craftorio.networking.ContractOfferStatusPacket(true));
+        PacketDistributor.sendToPlayer(player, new ContractOfferStatusPacket(true));
     }
 
 }

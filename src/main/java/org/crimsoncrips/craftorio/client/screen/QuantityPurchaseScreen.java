@@ -80,7 +80,6 @@ public abstract class QuantityPurchaseScreen extends Screen {
             this.errorMessage = Component.translatable("misc.craftorio.enter_valid_quantity").withColor(0xFF5555);
             return;
         }
-
         onConfirm(quantity);
     }
 

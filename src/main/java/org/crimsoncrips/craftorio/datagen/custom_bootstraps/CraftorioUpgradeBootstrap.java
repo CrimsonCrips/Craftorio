@@ -108,7 +108,7 @@ public class CraftorioUpgradeBootstrap {
                 .save(context, ResourceLocation.fromNamespaceAndPath("craftorio", "contract_refresh_3"),
                         b -> CraftorioModifierUpgrade.of(b, ModifierTarget.CONTRACT_REFRESH_SPEED, UpgradeOperation.MULTIPLY, 1.5));
 
-// Manual upgrade - replace the factory below with your existing class, e.g. YourManualUpgrade::of
+// Manual upgrade - replace factory below with your manual ActionUpgrade, e.g. YourManualUpgrade::of
         CraftorioUpgrade.builder()
                 .name("misc.craftorio.upgrade_double_or_nothing_unlock")
                 .icon(DEFAULT_ICON)

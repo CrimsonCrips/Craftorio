@@ -480,7 +480,7 @@ public class ClientEvents {
 	public static void displayPoints(GuiGraphics graphics) {
 		Minecraft minecraft = Minecraft.getInstance();
 
-		if (minecraft.gui.getDebugOverlay().showDebugScreen())
+		if (minecraft.gui.getDebugOverlay().showDebugScreen() || minecraft.options.hideGui)
 			return;
 		if (minecraft.player == null)
 			return;

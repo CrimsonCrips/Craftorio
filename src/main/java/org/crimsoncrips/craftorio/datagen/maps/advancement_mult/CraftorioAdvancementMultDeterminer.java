@@ -104,8 +104,7 @@ public class CraftorioAdvancementMultDeterminer extends DataMapProvider {
     }
 
 
-    //(Work multiplier refers to how many hops it takes in terms of crafting to get to the result item)
-    
+
 
 
 }
