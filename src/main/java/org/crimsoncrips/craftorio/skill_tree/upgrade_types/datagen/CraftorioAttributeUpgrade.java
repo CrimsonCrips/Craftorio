@@ -36,10 +36,11 @@ public class CraftorioAttributeUpgrade extends CraftorioUpgrade {
                     TARGET_CODEC.fieldOf("target").forGetter(CraftorioAttributeUpgrade::getTarget),
                     CraftorioModifierUpgrade.OPERATION_CODEC.fieldOf("operation").forGetter(CraftorioAttributeUpgrade::getOperation),
                     Codec.DOUBLE.fieldOf("value").forGetter(CraftorioAttributeUpgrade::getValue),
+                    Codec.INT.optionalFieldOf("max_purchases", 1).forGetter(CraftorioAttributeUpgrade::getMaxPurchases),
                     Codec.DOUBLE.optionalFieldOf("x", 0.0).forGetter(CraftorioAttributeUpgrade::getX),
                     Codec.DOUBLE.optionalFieldOf("y", 0.0).forGetter(CraftorioAttributeUpgrade::getY)
-            ).apply(instance, (name, icon, parent, description, cost, target, operation, value, x, y) -> {
-                    CraftorioAttributeUpgrade upgrade = new CraftorioAttributeUpgrade(name, icon, parent.orElse(null), description, cost, target, operation, value);
+            ).apply(instance, (name, icon, parent, description, cost, target, operation, value, maxPurchases, x, y) -> {
+                    CraftorioAttributeUpgrade upgrade = new CraftorioAttributeUpgrade(name, icon, parent.orElse(null), description, cost, target, operation, value, maxPurchases);
                     upgrade.setPosition(x, y);
                     return upgrade;
             })
@@ -47,7 +48,12 @@ public class CraftorioAttributeUpgrade extends CraftorioUpgrade {
 
     public CraftorioAttributeUpgrade(String name, ResourceLocation icon, ResourceLocation parent, String description, BigInteger cost,
                                       AttributeTarget target, UpgradeOperation operation, double value) {
-        super(name, icon, parent, description, cost);
+        this(name, icon, parent, description, cost, target, operation, value, 1);
+    }
+
+    public CraftorioAttributeUpgrade(String name, ResourceLocation icon, ResourceLocation parent, String description, BigInteger cost,
+                                      AttributeTarget target, UpgradeOperation operation, double value, int maxPurchases) {
+        super(name, icon, parent, description, cost, maxPurchases);
         this.target = target;
         this.operation = operation;
         this.value = value;
@@ -67,11 +73,11 @@ public class CraftorioAttributeUpgrade extends CraftorioUpgrade {
 
     public static CraftorioAttributeUpgrade of(CraftorioUpgrade.Builder builder, AttributeTarget target, UpgradeOperation operation, double value) {
         return new CraftorioAttributeUpgrade(builder.getName(), builder.getIcon(), builder.getParent(), builder.getDescription(), builder.getCost(),
-                target, operation, value);
+                target, operation, value, builder.getMaxPurchases());
     }
 
     @Override
-    public void onUnlock(ServerPlayer player, ResourceLocation id) {
+    public void onUnlock(ServerPlayer player, ResourceLocation id, int purchaseCount) {
         Holder<Attribute> attribute = target.getAttribute();
         if (attribute == null) return;
 
@@ -82,7 +88,7 @@ public class CraftorioAttributeUpgrade extends CraftorioUpgrade {
                 ? AttributeModifier.Operation.ADD_VALUE
                 : AttributeModifier.Operation.ADD_MULTIPLIED_BASE;
 
-        instance.addOrReplacePermanentModifier(new AttributeModifier(id, value, op));
+        instance.addOrReplacePermanentModifier(new AttributeModifier(id, value * purchaseCount, op));
     }
 
     @Override

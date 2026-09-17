@@ -14,7 +14,7 @@ import java.util.Optional;
 public abstract class ActionUpgrade extends CraftorioUpgrade {
 
     protected ActionUpgrade(String name, ResourceLocation icon, ResourceLocation parent, String description, BigInteger cost) {
-        super(name, icon, parent, description, cost);
+        super(name, icon, parent, description, cost, 1);
     }
 
     public void activateFunction(){
@@ -22,7 +22,8 @@ public abstract class ActionUpgrade extends CraftorioUpgrade {
     };
 
     @Override
-    public void onUnlock(ServerPlayer player, ResourceLocation id) {
+    public void onUnlock(ServerPlayer player, ResourceLocation id, int purchaseCount) {
+        if (purchaseCount != 1) return;
         activateFunction();
     }
 

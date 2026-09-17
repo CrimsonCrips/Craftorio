@@ -1,8 +1,12 @@
 {
   "parent": "craftorio:existential_infinity",
   "criteria": {
-    "impossible": {
-      "trigger": "minecraft:impossible"
+    "points": {
+      "conditions": {
+        "negative": true,
+        "threshold": "-1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "trigger": "craftorio:points"
     }
   },
   "display": {
@@ -20,7 +24,7 @@
   },
   "requirements": [
     [
-      "impossible"
+      "points"
     ]
   ],
   "sends_telemetry_event": true

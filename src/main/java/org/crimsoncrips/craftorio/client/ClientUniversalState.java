@@ -11,7 +11,7 @@ import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
 
 import java.math.BigInteger;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 @OnlyIn(Dist.CLIENT)
 public class ClientUniversalState {
@@ -21,7 +21,7 @@ public class ClientUniversalState {
     private static BigInteger highestPoints = BigInteger.ZERO;
     private static BigInteger tempPoints = BigInteger.ZERO;
     private static long landAmount = 0L;
-    private static Set<ResourceLocation> unlockedUpgrades = Set.of();
+    private static Map<ResourceLocation, Integer> unlockedUpgrades = Map.of();
     private static List<GeneralMultiplierEffect> generalEffects = List.of();
     private static List<TagMultiplierEffect> tagEffects = List.of();
     private static List<ShopMultiplierEffect> shopEffects = List.of();
@@ -33,7 +33,7 @@ public class ClientUniversalState {
     }
 
     public static void update(BigInteger points, BigInteger highestPoints, BigInteger tempPoints, long landAmount,
-                               Set<ResourceLocation> unlockedUpgrades,
+                               Map<ResourceLocation, Integer> unlockedUpgrades,
                                List<GeneralMultiplierEffect> generalEffects,
                                List<TagMultiplierEffect> tagEffects,
                                List<ShopMultiplierEffect> shopEffects,
@@ -78,7 +78,7 @@ public class ClientUniversalState {
         return landAmount;
     }
 
-    public static Set<ResourceLocation> getUnlockedUpgrades() {
+    public static Map<ResourceLocation, Integer> getUpgradePurchaseCounts() {
         return unlockedUpgrades;
     }
 

@@ -139,7 +139,7 @@ public class SinkerMenu extends AbstractContainerMenu {
 				if (!item.isEmpty() && !level.isClientSide()){
 					sinkedItems.add(item);
 
-					pointsToGive = pointsToGive.add(CraftorioMisc.checkValue(item,player,true));
+					pointsToGive = pointsToGive.add(CraftorioMisc.checkValue(item,player,true,true));
 					CraftorioMisc.recordItemSinked(player, item.getItem(), item.getCount());
 					slot.set(ItemStack.EMPTY);
 				}
@@ -181,7 +181,7 @@ public class SinkerMenu extends AbstractContainerMenu {
 		for (int slot = 0; slot < this.containerRows * 9; slot++) {
 			ItemStack stack = container.getItem(slot);
 			if (!stack.isEmpty()) {
-				total = total.add(CraftorioMisc.checkValue(stack, player, true));
+				total = total.add(CraftorioMisc.checkValue(stack, player, true, true));
 			}
 		}
 		return total;

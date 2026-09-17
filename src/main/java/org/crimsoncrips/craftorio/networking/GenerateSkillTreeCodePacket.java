@@ -20,7 +20,9 @@ import org.crimsoncrips.craftorio.server.CraftorioDevTools;
 import org.crimsoncrips.craftorio.skill_tree.AttributeTarget;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.ModifierTarget;
+import org.crimsoncrips.craftorio.skill_tree.PlayerActionTarget;
 import org.crimsoncrips.craftorio.skill_tree.UpgradeOperation;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioActionEffectUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioAttributeUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioModifierUpgrade;
 
@@ -187,6 +189,12 @@ public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean
             return CraftorioModifierUpgrade.of(builder, targetEnum, operationEnum, value);
         }
 
+        if (node.category().equals("action_effect")) {
+            PlayerActionTarget targetEnum = PlayerActionTarget.valueOf(node.target());
+            String effectId = sanitize(node.value()).isEmpty() ? "craftorio:productive" : sanitize(node.value());
+            return CraftorioActionEffectUpgrade.of(builder, targetEnum, ResourceLocation.parse(effectId));
+        }
+
         AttributeTarget targetEnum = AttributeTarget.valueOf(node.target());
         return CraftorioAttributeUpgrade.of(builder, targetEnum, operationEnum, value);
     }
@@ -308,6 +316,10 @@ public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean
                 code.append("        .save(context, ResourceLocation.fromNamespaceAndPath(\"").append(modId).append("\", \"").append(id).append("\"),\n");
                 code.append("                b -> CraftorioModifierUpgrade.of(b, ModifierTarget.").append(node.target()).append(", UpgradeOperation.").append(node.operation()).append(", ").append(value).append("));\n");
             }
+        } else if (node.category().equals("action_effect")) {
+            String effectId = sanitize(node.value()).isEmpty() ? "craftorio:productive" : sanitize(node.value());
+            code.append("        .save(context, ResourceLocation.fromNamespaceAndPath(\"").append(modId).append("\", \"").append(id).append("\"),\n");
+            code.append("                b -> CraftorioActionEffectUpgrade.of(b, PlayerActionTarget.").append(node.target()).append(", ResourceLocation.parse(\"").append(effectId).append("\")));\n");
         } else {
             code.append("        .save(context, ResourceLocation.fromNamespaceAndPath(\"").append(modId).append("\", \"").append(id).append("\"),\n");
             code.append("                b -> CraftorioAttributeUpgrade.of(b, AttributeTarget.").append(node.target()).append(", UpgradeOperation.").append(node.operation()).append(", ").append(value).append("));\n");

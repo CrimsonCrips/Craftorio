@@ -22,6 +22,9 @@ public class CraftorioUpgradeTypes {
     public static final Supplier<MapCodec<CraftorioAttributeUpgrade>> ATTRIBUTE =
             TYPES.register("attribute", () -> CraftorioAttributeUpgrade.CODEC);
 
+    public static final Supplier<MapCodec<CraftorioActionEffectUpgrade>> ACTION_EFFECT =
+            TYPES.register("action_effect", () -> CraftorioActionEffectUpgrade.CODEC);
+
     public static final Supplier<MapCodec<AdvancementMultiplierUpgrade>> ADVANCEMENT_MULTIPLIER =
             TYPES.register("advancement_multiplier", () -> AdvancementMultiplierUpgrade.CODEC);
 

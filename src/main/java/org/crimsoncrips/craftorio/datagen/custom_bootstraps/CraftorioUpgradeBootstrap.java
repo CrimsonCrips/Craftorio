@@ -5,6 +5,7 @@ import net.minecraft.data.worldgen.BootstrapContext;
 import net.minecraft.resources.ResourceLocation;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.skill_tree.*;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioActionEffectUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioAttributeUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioModifierUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.manual.AdvancementMultiplierUpgrade;
@@ -458,6 +459,36 @@ public class CraftorioUpgradeBootstrap {
                 .position(-50.425302613570636, -718.5935889573514)
                 .save(context, ResourceLocation.fromNamespaceAndPath("craftorio", "base_value_8"),
                         b -> CraftorioModifierUpgrade.of(b, ModifierTarget.ITEM_BASE_VALUE, UpgradeOperation.MULTIPLY, 2.0));
+
+        Holder.Reference<CraftorioUpgrade> manualSinkValue1Upgrade = CraftorioUpgrade.builder()
+                .name("misc.craftorio.upgrade_manual_sink_value_1")
+                .icon(DEFAULT_ICON)
+                .parent(baseValue8Upgrade)
+                .description("misc.craftorio.upgrade_manual_sink_value_1_description")
+                .cost(scientificToInt("20000000000000000"))
+                .position(-118.36978072713401, -798.6169229773282)
+                .save(context, ResourceLocation.fromNamespaceAndPath("craftorio", "manual_sink_value_1"),
+                        b -> CraftorioModifierUpgrade.of(b, ModifierTarget.MANUAL_SINK_VALUE, UpgradeOperation.MULTIPLY, 0.25));
+
+        Holder.Reference<CraftorioUpgrade> wakeUpProductiveUpgrade = CraftorioUpgrade.builder()
+                .name("misc.craftorio.upgrade_wake_up_productive")
+                .icon(DEFAULT_ICON)
+                .parent(manualSinkValue1Upgrade)
+                .description("misc.craftorio.upgrade_wake_up_productive_description")
+                .cost(scientificToInt("30000000000000000"))
+                .position(-160.19353890940016, -860.0454193636273)
+                .save(context, ResourceLocation.fromNamespaceAndPath("craftorio", "wake_up_productive"),
+                        b -> CraftorioActionEffectUpgrade.of(b, PlayerActionTarget.WAKE_UP, Craftorio.prefix("productive")));
+
+        Holder.Reference<CraftorioUpgrade> tradeEconomicBoomUpgrade = CraftorioUpgrade.builder()
+                .name("misc.craftorio.upgrade_trade_economic_boom")
+                .icon(DEFAULT_ICON)
+                .parent(manualSinkValue1Upgrade)
+                .description("misc.craftorio.upgrade_trade_economic_boom_description")
+                .cost(scientificToInt("30000000000000000"))
+                .position(-76.51602254486786, -860.0454193636273)
+                .save(context, ResourceLocation.fromNamespaceAndPath("craftorio", "trade_economic_boom"),
+                        b -> CraftorioActionEffectUpgrade.of(b, PlayerActionTarget.TRADE, Craftorio.prefix("economic_boom")));
 
         Holder.Reference<CraftorioUpgrade> effectDuration1Upgrade = CraftorioUpgrade.builder()
                 .name("misc.craftorio.upgrade_effect_duration_1")

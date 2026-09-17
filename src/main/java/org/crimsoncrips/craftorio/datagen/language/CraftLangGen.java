@@ -55,6 +55,7 @@ public class CraftLangGen extends LanguageProvider {
 		this.addMisc("points_required", "Points Required");
 		this.addMisc("expand_border", "Expand Border");
 		this.addMisc("expand_border_growth", "Border Growth: %s");
+		this.addMisc("expand_border_amount", "Amount");
 		this.addMisc("too_much_value", "Value exceeds Infinity!");
 		this.addMisc("advancement_value", "Points given for advancement : ");
 
@@ -201,6 +202,12 @@ public class CraftLangGen extends LanguageProvider {
 		this.add("misc.craftorio.upgrade_base_value_7_description", "Adds 135 to item base value");
 		this.add("misc.craftorio.upgrade_base_value_8", "Mult Base Value");
 		this.add("misc.craftorio.upgrade_base_value_8_description", "Multiplies item base value by 2");
+		this.add("misc.craftorio.upgrade_manual_sink_value_1", "Manual Sink Bonus");
+		this.add("misc.craftorio.upgrade_manual_sink_value_1_description", "Increases the value of items sunk manually via the Sinker by 25%");
+		this.add("misc.craftorio.upgrade_wake_up_productive", "Rise and Grind");
+		this.add("misc.craftorio.upgrade_wake_up_productive_description", "Grants the Productive effect whenever you wake up and refresh the day");
+		this.add("misc.craftorio.upgrade_trade_economic_boom", "Merchant's Favor");
+		this.add("misc.craftorio.upgrade_trade_economic_boom_description", "Grants the Economic Boom effect whenever you trade with a villager");
 		this.add("misc.craftorio.upgrade_effect_duration_1", "Effect Duration");
 		this.add("misc.craftorio.upgrade_effect_duration_1_description", "Add effect duration by 50%");
 		this.add("misc.craftorio.upgrade_effect_duration_2", "Effect Duration");
@@ -268,6 +275,7 @@ public class CraftLangGen extends LanguageProvider {
 		this.addMisc("dev_tools_label_parent", "Parent");
 		this.addMisc("dev_tools_label_target", "Target (modifier)");
 		this.addMisc("dev_tools_label_target_attribute", "Target (attribute)");
+		this.addMisc("dev_tools_label_target_action", "Action (effect)");
 		this.addMisc("dev_tools_label_operation", "Operation");
 		this.addMisc("dev_tools_label_value", "Value");
 		this.addMisc("dev_tools_label_item_tag_target", "Item Tag (tag target)");

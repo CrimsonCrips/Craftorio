@@ -32,7 +32,9 @@ public class AdvancementMultiplierUpgrade extends ActionUpgrade {
     }
 
     @Override
-    public void onUnlock(ServerPlayer player, ResourceLocation id) {
+    public void onUnlock(ServerPlayer player, ResourceLocation id, int purchaseCount) {
+        if (purchaseCount != 1) return;
+
         activateFunction();
 
         for (AdvancementHolder advancement : player.server.getAdvancements().getAllAdvancements()) {

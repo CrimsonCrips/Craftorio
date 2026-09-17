@@ -28,11 +28,6 @@ public class DoubleOrNothingUnlockUpgrade extends ActionUpgrade {
     }
 
     @Override
-    public void onUnlock(ServerPlayer player, ResourceLocation id) {
-        activateFunction();
-    }
-
-    @Override
     public MapCodec<? extends CraftorioUpgrade> codec() {
         return CraftorioUpgradeTypes.DOUBLE_OR_NOTHING_UNLOCK.get();
     }

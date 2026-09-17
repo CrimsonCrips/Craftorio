@@ -18,6 +18,8 @@ import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.networking.GenerateSkillTreeCodePacket;
 import org.crimsoncrips.craftorio.networking.SkillTreeNodeData;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.PlayerActionTarget;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioActionEffectUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioAttributeUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioModifierUpgrade;
 
@@ -33,16 +35,17 @@ import java.util.Set;
 @OnlyIn(Dist.CLIENT)
 public class SkillTreeCreatorScreen extends Screen {
 
-    private static final String[] CATEGORIES = {"modifier", "attribute"};
+    private static final String[] CATEGORIES = {"modifier", "attribute", "action_effect"};
     private static final String[] MODIFIER_TARGETS = {
             "MULTIPLIER", "ITEM_BASE_VALUE", "ITEM_TAG_BASE_VALUE", "CONTRACT_REFRESH_SPEED", "EFFECT_TIMER_SPEED",
             "PUNISHMENT_DURATION", "EFFECT_DURATION", "EXPANSION_COST",
             "RARER_CONTRACT_CHANCE", "RARER_EFFECT_CHANCE", "SHOP_COST", "CONTRACT_REFRESH_COST",
-            "LOST_BET_REFUND", "MULT_PER_CONTRACT_DONE", "BET_ODDS", "BET_BONUS"
+            "LOST_BET_REFUND", "MULT_PER_CONTRACT_DONE", "BET_ODDS", "BET_BONUS", "MANUAL_SINK_VALUE"
     };
     private static final String[] ATTRIBUTE_TARGETS = {
             "HEALTH", "SPEED", "DEFENSE", "DAMAGE", "BLOCK_REACH", "JUMP_HEIGHT", "XP_GAIN", "RESISTANCE"
     };
+    private static final String[] PLAYER_ACTION_TARGETS = {"WAKE_UP", "TRADE"};
     private static final String[] OPERATIONS = {"ADD", "MULTIPLY"};
 
     private static final int NODE_W = 64;
@@ -52,7 +55,6 @@ public class SkillTreeCreatorScreen extends Screen {
     private static final double TREE_NODE_ARC_MARGIN = 90.0;
     private static final double MIN_ZOOM = 0.2;
     private static final double MAX_ZOOM = 3.5;
-    private static final ResourceLocation LINE_TEXTURE = Craftorio.getGuiTexture("skill_tree_line.png");
 
     private static final List<DraftNode> nodes = new ArrayList<>();
     private static int nextLocalId = 0;
@@ -86,6 +88,7 @@ public class SkillTreeCreatorScreen extends Screen {
     private Button categoryButton;
     private Button modifierTargetButton;
     private Button attributeTargetButton;
+    private Button playerActionTargetButton;
     private Button operationButton;
     private Button duplicateButton;
     private Button deleteButton;
@@ -125,7 +128,7 @@ public class SkillTreeCreatorScreen extends Screen {
 
         for (Holder.Reference<CraftorioUpgrade> holder : registry.holders().toList()) {
             CraftorioUpgrade upgrade = holder.value();
-            boolean manual = !(upgrade instanceof CraftorioModifierUpgrade) && !(upgrade instanceof CraftorioAttributeUpgrade);
+            boolean manual = !(upgrade instanceof CraftorioModifierUpgrade) && !(upgrade instanceof CraftorioAttributeUpgrade) && !(upgrade instanceof CraftorioActionEffectUpgrade);
 
             ResourceLocation id = holder.key().location();
             DraftNode node = new DraftNode(nextLocalId++, id.getPath());
@@ -155,6 +158,10 @@ public class SkillTreeCreatorScreen extends Screen {
                 node.attributeTargetIndex = indexOf(ATTRIBUTE_TARGETS, attributeUpgrade.getTarget().name());
                 node.operationIndex = indexOf(OPERATIONS, attributeUpgrade.getOperation().name());
                 node.value = String.valueOf(attributeUpgrade.getValue());
+            } else if (upgrade instanceof CraftorioActionEffectUpgrade actionEffectUpgrade) {
+                node.category = "action_effect";
+                node.playerActionTargetIndex = indexOf(PLAYER_ACTION_TARGETS, actionEffectUpgrade.getTarget().name());
+                node.value = actionEffectUpgrade.getEffect().toString();
             }
 
             nodeByLocation.put(id, node);
@@ -322,7 +329,7 @@ public class SkillTreeCreatorScreen extends Screen {
 
         this.categoryButton = Button.builder(Component.literal("modifier"), b -> {
             if (selected == null) return;
-            selected.category = selected.category.equals("modifier") ? "attribute" : "modifier";
+            selected.category = CATEGORIES[(indexOf(CATEGORIES, selected.category) + 1) % CATEGORIES.length];
             refreshSidebarFromSelection();
         }).bounds(fieldX, y, fieldWidth, 16).build();
         this.addRenderableWidget(this.categoryButton);
@@ -363,6 +370,13 @@ public class SkillTreeCreatorScreen extends Screen {
             refreshSidebarFromSelection();
         }).bounds(fieldX, y, fieldWidth, 16).build();
         this.addRenderableWidget(this.attributeTargetButton);
+
+        this.playerActionTargetButton = Button.builder(Component.literal(PLAYER_ACTION_TARGETS[0]), b -> {
+            if (selected == null) return;
+            selected.playerActionTargetIndex = (selected.playerActionTargetIndex + 1) % PLAYER_ACTION_TARGETS.length;
+            refreshSidebarFromSelection();
+        }).bounds(fieldX, y, fieldWidth, 16).build();
+        this.addRenderableWidget(this.playerActionTargetButton);
         y += rowHeight;
 
         this.operationButton = Button.builder(Component.literal(OPERATIONS[0]), b -> {
@@ -470,6 +484,8 @@ public class SkillTreeCreatorScreen extends Screen {
             this.modifierTargetButton.active = false;
             this.attributeTargetButton.visible = false;
             this.attributeTargetButton.active = false;
+            this.playerActionTargetButton.visible = false;
+            this.playerActionTargetButton.active = false;
             this.itemTagBox.visible = false;
             this.itemTagBox.active = false;
             this.nameBox.visible = false;
@@ -515,6 +531,8 @@ public class SkillTreeCreatorScreen extends Screen {
             this.modifierTargetButton.active = false;
             this.attributeTargetButton.visible = false;
             this.attributeTargetButton.active = false;
+            this.playerActionTargetButton.visible = false;
+            this.playerActionTargetButton.active = false;
             this.itemTagBox.visible = false;
             this.itemTagBox.active = false;
             return;
@@ -526,12 +544,21 @@ public class SkillTreeCreatorScreen extends Screen {
         this.valueBox.setValue(selected.value);
 
         boolean isModifier = selected.category.equals("modifier");
+        boolean isActionEffect = selected.category.equals("action_effect");
+        boolean isAttribute = !isModifier && !isActionEffect;
+
         this.modifierTargetButton.visible = isModifier;
         this.modifierTargetButton.active = isModifier;
         this.modifierTargetButton.setMessage(Component.literal(MODIFIER_TARGETS[selected.modifierTargetIndex]));
-        this.attributeTargetButton.visible = !isModifier;
-        this.attributeTargetButton.active = !isModifier;
+        this.attributeTargetButton.visible = isAttribute;
+        this.attributeTargetButton.active = isAttribute;
         this.attributeTargetButton.setMessage(Component.literal(ATTRIBUTE_TARGETS[selected.attributeTargetIndex]));
+        this.playerActionTargetButton.visible = isActionEffect;
+        this.playerActionTargetButton.active = isActionEffect;
+        this.playerActionTargetButton.setMessage(Component.literal(PLAYER_ACTION_TARGETS[selected.playerActionTargetIndex]));
+
+        this.operationButton.visible = !isActionEffect;
+        this.operationButton.active = !isActionEffect;
 
         boolean usesTag = isModifier && MODIFIER_TARGETS[selected.modifierTargetIndex].equals("ITEM_TAG_BASE_VALUE");
         this.itemTagBox.visible = usesTag;
@@ -587,6 +614,7 @@ public class SkillTreeCreatorScreen extends Screen {
         copy.category = selected.category;
         copy.modifierTargetIndex = selected.modifierTargetIndex;
         copy.attributeTargetIndex = selected.attributeTargetIndex;
+        copy.playerActionTargetIndex = selected.playerActionTargetIndex;
         copy.operationIndex = selected.operationIndex;
         copy.description = selected.description;
         copy.cost = selected.cost;
@@ -634,7 +662,9 @@ public class SkillTreeCreatorScreen extends Screen {
                     modId,
                     node.description,
                     node.cost,
-                    node.category.equals("modifier") ? MODIFIER_TARGETS[node.modifierTargetIndex] : ATTRIBUTE_TARGETS[node.attributeTargetIndex],
+                    node.category.equals("modifier") ? MODIFIER_TARGETS[node.modifierTargetIndex]
+                            : node.category.equals("action_effect") ? PLAYER_ACTION_TARGETS[node.playerActionTargetIndex]
+                            : ATTRIBUTE_TARGETS[node.attributeTargetIndex],
                     OPERATIONS[node.operationIndex],
                     node.value,
                     node.itemTag,
@@ -655,6 +685,9 @@ public class SkillTreeCreatorScreen extends Screen {
     }
 
     private String valueHint(DraftNode node) {
+        if (node.category.equals("action_effect")) {
+            return "e.g. craftorio:productive";
+        }
         if (isTickDurationTarget(node) && OPERATIONS[node.operationIndex].equals("ADD")) {
             return "e.g. 10 (seconds)";
         }
@@ -854,8 +887,9 @@ public class SkillTreeCreatorScreen extends Screen {
         int w = nodeWidth();
         int h = nodeHeight();
         boolean isModifier = node.category.equals("modifier");
+        boolean isActionEffect = node.category.equals("action_effect");
         boolean isRoot = node.parentId == null;
-        int fillColor = node.manual ? 0xFF3A3A3A : (isModifier ? 0xFF2A3A5A : 0xFF5A3A2A);
+        int fillColor = node.manual ? 0xFF3A3A3A : (isModifier ? 0xFF2A3A5A : (isActionEffect ? 0xFF3A5A3A : 0xFF5A3A2A));
         int borderColor = isSelected ? 0xFFFFFF55 : (node.manual ? 0xFF888888 : (isRoot ? 0xFF55AAFF : 0xFF808080));
 
         graphics.fill(x - 1, y - 1, x + w + 1, y + h + 1, borderColor);
@@ -863,7 +897,10 @@ public class SkillTreeCreatorScreen extends Screen {
 
         String idLabel = node.id.isEmpty() ? "?" : node.id;
         graphics.drawCenteredString(this.font, idLabel, x + w / 2, y + 3, 0xFFFFFF);
-        String targetLabel = node.manual ? "MANUAL" : (isModifier ? MODIFIER_TARGETS[node.modifierTargetIndex] : ATTRIBUTE_TARGETS[node.attributeTargetIndex]);
+        String targetLabel = node.manual ? "MANUAL"
+                : isModifier ? MODIFIER_TARGETS[node.modifierTargetIndex]
+                : isActionEffect ? PLAYER_ACTION_TARGETS[node.playerActionTargetIndex]
+                : ATTRIBUTE_TARGETS[node.attributeTargetIndex];
         graphics.drawCenteredString(this.font, targetLabel, x + w / 2, y + 14, node.manual ? 0xFFAA55 : 0xAAAAAA);
 
         if (isRoot && !node.manual) {
@@ -901,17 +938,11 @@ public class SkillTreeCreatorScreen extends Screen {
         if (length < 0.5) return;
 
         float angle = (float) Math.atan2(dy, dx);
-        float alpha = ((color >>> 24) & 0xFF) / 255f;
-        float red = ((color >> 16) & 0xFF) / 255f;
-        float green = ((color >> 8) & 0xFF) / 255f;
-        float blue = (color & 0xFF) / 255f;
 
         graphics.pose().pushPose();
         graphics.pose().translate(x1, y1, 0);
         graphics.pose().mulPose(com.mojang.math.Axis.ZP.rotation(angle));
-        graphics.setColor(red, green, blue, alpha);
-        graphics.blit(LINE_TEXTURE, 0, -1, 0, 0, (int) Math.round(length), 2, 1, 1);
-        graphics.setColor(1f, 1f, 1f, 1f);
+        graphics.fill(0, -1, (int) Math.round(length), 1, color);
         graphics.pose().popPose();
     }
 
@@ -922,6 +953,7 @@ public class SkillTreeCreatorScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         graphics.fill(0, 0, this.width, this.height, 0xFF101010);
+        org.crimsoncrips.craftorio.client.CraftorioStarfield.render(graphics, this.width, this.height, panX, panY);
         graphics.drawCenteredString(this.font, this.title, this.width / 2, 8, 0xFFFFFF);
 
         for (DraftNode node : nodes) {
@@ -1017,11 +1049,19 @@ public class SkillTreeCreatorScreen extends Screen {
             }
             y += rowHeight;
 
+            String targetLabelKey = selected.category.equals("modifier") ? "dev_tools_label_target"
+                    : selected.category.equals("action_effect") ? "dev_tools_label_target_action"
+                    : "dev_tools_label_target_attribute";
             String[] moreLabelKeys = {
-                    "dev_tools_label_cost", selected.category.equals("modifier") ? "dev_tools_label_target" : "dev_tools_label_target_attribute",
+                    "dev_tools_label_cost", targetLabelKey,
                     "dev_tools_label_operation", "dev_tools_label_value"
             };
+            boolean isActionEffectSelected = selected.category.equals("action_effect");
             for (String key : moreLabelKeys) {
+                if (key.equals("dev_tools_label_operation") && isActionEffectSelected) {
+                    y += rowHeight;
+                    continue;
+                }
                 graphics.drawString(this.font, Component.translatable("misc.craftorio." + key), labelX, y + 4, 0xAAAAAA, false);
                 y += rowHeight;
             }
@@ -1095,6 +1135,7 @@ public class SkillTreeCreatorScreen extends Screen {
         String category = "modifier";
         int modifierTargetIndex = 0;
         int attributeTargetIndex = 0;
+        int playerActionTargetIndex = 0;
         int operationIndex = 0;
         String id;
         String description = "";

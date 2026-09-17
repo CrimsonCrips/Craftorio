@@ -5,6 +5,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
@@ -31,7 +32,7 @@ public class BorderExpandScreen extends Screen {
 	private static final int EXPAND_BUTTON_HEIGHT = 20;
 	private static final int AMOUNT_BUTTON_SIZE = 22;
 	private static final int AMOUNT_BUTTON_GAP = 4;
-	private static final int AMOUNT_NUMBER_HALF_GAP = 26;
+	private static final int AMOUNT_EDIT_BOX_WIDTH = 80;
 	private static final int CANCEL_BUTTON_WIDTH = 100;
 	private static final int CANCEL_BUTTON_HEIGHT = 20;
 	private static final int GAP_AFTER_EXPAND = 14;
@@ -42,6 +43,7 @@ public class BorderExpandScreen extends Screen {
 
 	long amountClaiming = 0;
 	BorderExpandScreen borderExpandScreen;
+	private EditBox amountBox;
 
 	private int panelTop;
 	private int panelHeight;
@@ -82,9 +84,6 @@ public class BorderExpandScreen extends Screen {
 		if (player == null)
 			return;
 
-		guiGraphics.drawCenteredString(this.font, String.valueOf(amountClaiming), centerX,
-				this.amountRowY + (AMOUNT_BUTTON_SIZE - this.font.lineHeight) / 2, 4210752);
-
 		long borderGrowth = amountClaiming * Craftorio.SERVER_CONFIG.EXPANSION_AMOUNT.getAsInt();
 		guiGraphics.drawCenteredString(this.font, Component.translatable("misc.craftorio.expand_border_growth", borderGrowth), centerX, this.growthTextY, 4210752);
 
@@ -110,15 +109,19 @@ public class BorderExpandScreen extends Screen {
 
 		int centerX = this.width / 2;
 
-		int minus1X = centerX - AMOUNT_NUMBER_HALF_GAP - AMOUNT_BUTTON_SIZE;
-		int plus1X = centerX + AMOUNT_NUMBER_HALF_GAP;
-		int maxMinusX = minus1X - AMOUNT_BUTTON_GAP - AMOUNT_BUTTON_SIZE;
-		int maxPlusX = plus1X + AMOUNT_BUTTON_SIZE + AMOUNT_BUTTON_GAP;
+		int editBoxX = centerX - AMOUNT_EDIT_BOX_WIDTH / 2;
+		int maxMinusX = editBoxX - AMOUNT_BUTTON_GAP - AMOUNT_BUTTON_SIZE;
+		int maxPlusX = editBoxX + AMOUNT_EDIT_BOX_WIDTH + AMOUNT_BUTTON_GAP;
 
-		this.addButton(new BorderExpandAmount(maxMinusX, this.amountRowY, AMOUNT_BUTTON_SIZE, AMOUNT_BUTTON_SIZE, true, false));
-		this.addButton(new BorderExpandAmount(minus1X, this.amountRowY, AMOUNT_BUTTON_SIZE, AMOUNT_BUTTON_SIZE, false, false));
-		this.addButton(new BorderExpandAmount(plus1X, this.amountRowY, AMOUNT_BUTTON_SIZE, AMOUNT_BUTTON_SIZE, false, true));
-		this.addButton(new BorderExpandAmount(maxPlusX, this.amountRowY, AMOUNT_BUTTON_SIZE, AMOUNT_BUTTON_SIZE, true, true));
+		this.addButton(new BorderExpandAmount(maxMinusX, this.amountRowY, AMOUNT_BUTTON_SIZE, AMOUNT_BUTTON_SIZE, false));
+		this.addButton(new BorderExpandAmount(maxPlusX, this.amountRowY, AMOUNT_BUTTON_SIZE, AMOUNT_BUTTON_SIZE, true));
+
+		this.amountBox = new EditBox(this.font, editBoxX, this.amountRowY, AMOUNT_EDIT_BOX_WIDTH, AMOUNT_BUTTON_SIZE, Component.translatable("misc.craftorio.expand_border_amount"));
+		this.amountBox.setFilter(s -> s.isEmpty() || (s.length() <= 15 && s.chars().allMatch(Character::isDigit)));
+		this.amountBox.setValue(String.valueOf(amountClaiming));
+		this.amountBox.setResponder(this::onAmountTyped);
+		this.addRenderableWidget(this.amountBox);
+
 		this.addButton(new ExpandBorder(centerX - EXPAND_BUTTON_WIDTH / 2, this.expandButtonY, EXPAND_BUTTON_WIDTH, EXPAND_BUTTON_HEIGHT));
 
 		this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.cancel"), b -> this.onClose())
@@ -166,23 +169,35 @@ public class BorderExpandScreen extends Screen {
 		}
 	}
 
+	private void onAmountTyped(String value) {
+		if (getMinecraft().player == null) return;
+
+		long parsed;
+		try {
+			parsed = value.isEmpty() ? 0 : Long.parseLong(value);
+		} catch (NumberFormatException e) {
+			parsed = amountClaiming;
+		}
+
+		BigInteger points = CraftorioMisc.getPoints(getMinecraft().player);
+		long land = CraftorioMisc.getLandAmount(getMinecraft().player);
+		long cap = CraftorioMisc.expandCapabilityWithPoints(points, land);
+		long clamped = Math.max(0, Math.min(parsed, cap));
+
+		amountClaiming = clamped;
+		if (clamped != parsed && this.amountBox != null) {
+			this.amountBox.setValue(String.valueOf(clamped));
+		}
+	}
+
 	class BorderExpandAmount extends ExpansionButtons {
-		boolean maxer;
 		boolean positive;
 
-		public BorderExpandAmount(int x, int y, int width, int height, boolean maxer, boolean positive){
-			super(x,y,width,height, labelFor(maxer, positive));
-			this.maxer = maxer;
+		public BorderExpandAmount(int x, int y, int width, int height, boolean positive){
+			super(x,y,width,height, positive ? Component.translatable("misc.craftorio.max_plus") : Component.translatable("misc.craftorio.max_minus"));
 			this.positive = positive;
 			Tooltip tooltip = Tooltip.create(this.getMessage());
 			this.setTooltip(tooltip);
-		}
-
-		private static Component labelFor(boolean maxer, boolean positive) {
-			if (maxer){
-				return positive ? Component.translatable("misc.craftorio.max_plus") : Component.translatable("misc.craftorio.max_minus");
-			}
-			return positive ? Component.literal("+1") : Component.literal("-1");
 		}
 
 		@Override
@@ -201,15 +216,9 @@ public class BorderExpandScreen extends Screen {
 			long land = CraftorioMisc.getLandAmount(getMinecraft().player);
 			long cap = CraftorioMisc.expandCapabilityWithPoints(points,land);
 
-			if (maxer){
-				if (positive){
-					amountClaiming = cap;
-				} else amountClaiming = 0;
-			} else {
-				long capCheck = positive ? (amountClaiming + 1) : (amountClaiming > 0 ? amountClaiming - 1 : 0);
-				if (capCheck <= cap){
-					amountClaiming = capCheck;
-				}
+			amountClaiming = positive ? cap : 0;
+			if (amountBox != null) {
+				amountBox.setValue(String.valueOf(amountClaiming));
 			}
 		}
 	}

@@ -8,6 +8,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.CollisionGetter;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.world.phys.shapes.BooleanOp;
+import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.server.BorderCollisionHooks;
@@ -16,15 +18,20 @@ import org.spongepowered.asm.mixin.Mixin;
 
 import javax.annotation.Nullable;
 
-
-@Mixin(CollisionGetter.class)
+@Mixin(value = CollisionGetter.class, priority = 2000)
 public interface CraftorioCollisionGetter {
 
-    @WrapMethod(method = "borderCollision")
-    default VoxelShape gatedBorderCollision(Entity entity, AABB box, Operation<VoxelShape> original) {
-        @Nullable VoxelShape borderCollision = original.call(entity, box);
+    @WrapMethod(method = "noCollision(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/AABB;)Z")
+    default boolean gatedNoCollision(@Nullable Entity entity, AABB collisionBox, Operation<Boolean> original) {
+        if (!original.call(entity, collisionBox)) {
+            return false;
+        }
+        if (entity == null) {
+            return true;
+        }
 
         if ((Object) this instanceof Level level) {
+            VoxelShape borderCollision = null;
             if (CraftorioMisc.chunkBased(level)) {
                 borderCollision = ChunkCollisionHooks.combineWorldAndChunkBorders(level, entity, borderCollision);
             }
@@ -36,9 +43,13 @@ public interface CraftorioCollisionGetter {
             } else if (entity instanceof Player player) {
                 borderCollision = BorderCollisionHooks.combineCraftorioBorders(level, player, borderCollision);
             }
+
+            if (borderCollision != null && Shapes.joinIsNotEmpty(borderCollision, Shapes.create(collisionBox), BooleanOp.AND)) {
+                return false;
+            }
         }
 
-        return borderCollision;
+        return true;
     }
 
 }

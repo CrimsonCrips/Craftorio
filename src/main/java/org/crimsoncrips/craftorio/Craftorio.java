@@ -46,10 +46,10 @@ public class Craftorio {
     public static final Logger LOGGER = LogUtils.getLogger();
 
     public static final CraftorioServerConfig SERVER_CONFIG;
-    private static final ModConfigSpec SERVER_CONFIG_SPEC;
+    public static final ModConfigSpec SERVER_CONFIG_SPEC;
 
     public static final CraftorioClientConfig CLIENT_CONFIG;
-    private static final ModConfigSpec CLIENT_CONFIG_SPEC;
+    public static final ModConfigSpec CLIENT_CONFIG_SPEC;
 
 
     public static final CraftorioUnlockedItemsManager UNLOCKED_ITEMS = new CraftorioUnlockedItemsManager();
@@ -65,6 +65,8 @@ public class Craftorio {
     }
 
     public Craftorio(IEventBus modEventBus, ModContainer modContainer) {
+        modEventBus.addListener(org.crimsoncrips.craftorio.server.CraftorioPointsAdvancements::registerTrigger);
+
         // Register the commonSetup method for modloading
         CraftorioDataAttachments.ATTACHMENT_TYPES.register(modEventBus);
         modEventBus.addListener(CraftorioDatagen::generateData);

@@ -36,7 +36,7 @@ public record UnlockUpgradePacket(ResourceLocation upgradeId) implements CustomP
             CraftorioUpgrade upgrade = registry.get(message.upgradeId);
             if (upgrade == null) return;
 
-            if (CraftorioMisc.hasUnlockedUpgrade(player, message.upgradeId)) return;
+            if (CraftorioMisc.getUpgradeCount(player, message.upgradeId) >= upgrade.getMaxPurchases()) return;
 
             if (upgrade.getParent().isPresent() && !CraftorioMisc.hasUnlockedUpgrade(player, upgrade.getParent().get())) {
                 player.sendSystemMessage(Component.translatable("misc.craftorio.upgrade_locked_tooltip").withStyle(ChatFormatting.RED));
@@ -50,15 +50,17 @@ public record UnlockUpgradePacket(ResourceLocation upgradeId) implements CustomP
                 return;
             }
 
+            int purchaseCount = CraftorioMisc.purchaseUpgrade(player, message.upgradeId, upgrade.getMaxPurchases());
+            if (purchaseCount < 0) return;
+
             CraftorioMisc.setPoints(points.subtract(cost), player);
-            CraftorioMisc.unlockUpgrade(player, message.upgradeId);
 
             if (CraftorioMisc.universalBased(player.level())) {
                 for (ServerPlayer other : player.getServer().getPlayerList().getPlayers()) {
-                    upgrade.onUnlock(other, message.upgradeId);
+                    upgrade.onUnlock(other, message.upgradeId, purchaseCount);
                 }
             } else {
-                upgrade.onUnlock(player, message.upgradeId);
+                upgrade.onUnlock(player, message.upgradeId, purchaseCount);
             }
         });
     }

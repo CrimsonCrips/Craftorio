@@ -23,6 +23,7 @@ public abstract class CraftorioUpgrade {
     private final ResourceLocation parent;
     private final String description;
     private final BigInteger cost;
+    private final int maxPurchases;
     private double x = 0.0;
     private double y = 0.0;
 
@@ -45,11 +46,16 @@ public abstract class CraftorioUpgrade {
     public abstract MapCodec<? extends CraftorioUpgrade> codec();
 
     protected CraftorioUpgrade(String name, ResourceLocation icon, ResourceLocation parent, String description, BigInteger cost) {
+        this(name, icon, parent, description, cost, 1);
+    }
+
+    protected CraftorioUpgrade(String name, ResourceLocation icon, ResourceLocation parent, String description, BigInteger cost, int maxPurchases) {
         this.name = name;
         this.icon = icon;
         this.parent = parent;
         this.description = description;
         this.cost = cost;
+        this.maxPurchases = Math.max(1, maxPurchases);
     }
 
     public String getNameKey() {
@@ -80,6 +86,10 @@ public abstract class CraftorioUpgrade {
         return cost;
     }
 
+    public int getMaxPurchases() {
+        return maxPurchases;
+    }
+
     public double getX() {
         return x;
     }
@@ -93,7 +103,7 @@ public abstract class CraftorioUpgrade {
         this.y = y;
     }
 
-    public void onUnlock(ServerPlayer player, ResourceLocation id) {
+    public void onUnlock(ServerPlayer player, ResourceLocation id, int purchaseCount) {
     }
 
     public static Builder builder() {
@@ -106,6 +116,7 @@ public abstract class CraftorioUpgrade {
         private ResourceLocation parent;
         private String description;
         private BigInteger cost = BigInteger.ZERO;
+        private int maxPurchases = 1;
         private double x = 0.0;
         private double y = 0.0;
 
@@ -131,6 +142,11 @@ public abstract class CraftorioUpgrade {
 
         public Builder cost(long cost) {
             this.cost = BigInteger.valueOf(cost);
+            return this;
+        }
+
+        public Builder maxPurchases(int maxPurchases) {
+            this.maxPurchases = maxPurchases;
             return this;
         }
 
@@ -168,6 +184,10 @@ public abstract class CraftorioUpgrade {
 
         public BigInteger getCost() {
             return cost;
+        }
+
+        public int getMaxPurchases() {
+            return maxPurchases;
         }
 
         public double getX() {

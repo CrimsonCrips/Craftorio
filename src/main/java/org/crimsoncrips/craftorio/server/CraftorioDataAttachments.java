@@ -167,11 +167,10 @@ public class CraftorioDataAttachments {
                     .sync(ByteBufCodecs.fromCodec(ITEMS_SINKED_CODEC))
                     .build());
 
-    private static final Codec<Set<ResourceLocation>> UNLOCKED_UPGRADES_CODEC = Codec.list(ResourceLocation.CODEC)
-            .xmap(HashSet::new, ArrayList::new);
+    private static final Codec<Map<ResourceLocation, Integer>> UNLOCKED_UPGRADES_CODEC = Codec.unboundedMap(ResourceLocation.CODEC, Codec.INT);
 
-    public static final Supplier<AttachmentType<Set<ResourceLocation>>> UNLOCKED_UPGRADES = ATTACHMENT_TYPES.register(
-            "unlocked_upgrades", () -> AttachmentType.<Set<ResourceLocation>>builder((holder) -> new HashSet<>())
+    public static final Supplier<AttachmentType<Map<ResourceLocation, Integer>>> UNLOCKED_UPGRADES = ATTACHMENT_TYPES.register(
+            "unlocked_upgrades", () -> AttachmentType.<Map<ResourceLocation, Integer>>builder((holder) -> new HashMap<>())
                     .serialize(UNLOCKED_UPGRADES_CODEC)
                     .copyOnDeath()
                     .sync(ByteBufCodecs.fromCodec(UNLOCKED_UPGRADES_CODEC))

@@ -16,5 +16,6 @@ public enum ModifierTarget {
     LOST_BET_REFUND,
     MULT_PER_CONTRACT_DONE,
     BET_ODDS,
-    BET_BONUS
+    BET_BONUS,
+    MANUAL_SINK_VALUE
 }

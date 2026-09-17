@@ -57,6 +57,10 @@ import static org.crimsoncrips.craftorio.server.CraftorioDataAttachments.*;
 
 public class CraftorioMisc {
 
+    static {
+        Craftorio.LOGGER.info("test message");
+    }
+
     public static final int SECONDS_TO_TICKS = 20;
 
     public static List<ChunkPos> generateSelectionChunks(int startX,int startZ, int endX, int endZ) {
@@ -178,7 +182,11 @@ public class CraftorioMisc {
 
 
 
-    public static BigInteger checkValue(ItemStack itemStack,Player player,boolean addBonusValue){
+    public static BigInteger checkValue(ItemStack itemStack, Player player, boolean addBonusValue){
+        return checkValue(itemStack, player, addBonusValue, false);
+    }
+
+    public static BigInteger checkValue(ItemStack itemStack, Player player, boolean addBonusValue, boolean manualSink){
         var valueString = itemStack.getItem().builtInRegistryHolder().getData(CraftorioDataMaps.POINT_VALUE);
         BigDecimal determinedValue;
         determinedValue = valueString != null ? (new BigDecimal(valueString).multiply(BigDecimal.valueOf(itemStack.getCount()))) : BigDecimal.valueOf(0);
@@ -237,6 +245,10 @@ public class CraftorioMisc {
             baseValue = baseValue.add(getSinkValueBonus(player, itemStack));
 
             baseValue = applyUpgradeModifier(player, ModifierTarget.ITEM_BASE_VALUE, new BigDecimal(baseValue));
+
+            if (manualSink) {
+                baseValue = applyUpgradeModifier(player, ModifierTarget.MANUAL_SINK_VALUE, new BigDecimal(baseValue));
+            }
         }
 
         double tagAdditive = sumModifierUpgrades(player, ModifierTarget.ITEM_TAG_BASE_VALUE, UpgradeOperation.ADD, itemStack);
@@ -342,11 +354,11 @@ public class CraftorioMisc {
         }
     }
 
-    public static Set<ResourceLocation> getUnlockedUpgrades(Player player){
+    public static Map<ResourceLocation, Integer> getUpgradePurchaseCounts(Player player){
         Level level = universalLevel(player);
         if (universalBased(level)){
             if (level.isClientSide() && ClientUniversalState.isAvailable()) {
-                return ClientUniversalState.getUnlockedUpgrades();
+                return ClientUniversalState.getUpgradePurchaseCounts();
             }
             return level.getData(CraftorioDataAttachments.UNLOCKED_UPGRADES);
         } else {
@@ -354,13 +366,23 @@ public class CraftorioMisc {
         }
     }
 
-    public static boolean hasUnlockedUpgrade(Player player, ResourceLocation id){
-        return getUnlockedUpgrades(player).contains(id);
+    public static Set<ResourceLocation> getUnlockedUpgrades(Player player){
+        return getUpgradePurchaseCounts(player).keySet();
     }
 
-    public static void unlockUpgrade(Player player, ResourceLocation id){
-        Set<ResourceLocation> updated = new HashSet<>(getUnlockedUpgrades(player));
-        if (!updated.add(id)) return;
+    public static boolean hasUnlockedUpgrade(Player player, ResourceLocation id){
+        return getUpgradeCount(player, id) > 0;
+    }
+
+    public static int getUpgradeCount(Player player, ResourceLocation id){
+        return getUpgradePurchaseCounts(player).getOrDefault(id, 0);
+    }
+
+    public static int purchaseUpgrade(Player player, ResourceLocation id, int maxPurchases){
+        Map<ResourceLocation, Integer> updated = new HashMap<>(getUpgradePurchaseCounts(player));
+        int newCount = updated.getOrDefault(id, 0) + 1;
+        if (newCount > maxPurchases) return -1;
+        updated.put(id, newCount);
 
         Level level = universalLevel(player);
         if (universalBased(level)){
@@ -368,6 +390,12 @@ public class CraftorioMisc {
         } else {
             player.setData(CraftorioDataAttachments.UNLOCKED_UPGRADES, updated);
         }
+
+        if (player instanceof ServerPlayer serverPlayer) {
+            org.crimsoncrips.craftorio.events.ServerEvents.syncUniversalState(serverPlayer);
+        }
+
+        return newCount;
     }
 
     public static boolean hasModifierGateUnlocked(Player player, ModifierTarget gateTarget){
@@ -383,8 +411,8 @@ public class CraftorioMisc {
         Registry<CraftorioUpgrade> registry = registryAccess.registryOrThrow(CraftorioUpgrade.REGISTRY_KEY);
 
         double sum = 0;
-        for (ResourceLocation id : getUnlockedUpgrades(player)) {
-            CraftorioUpgrade upgrade = registry.get(id);
+        for (Map.Entry<ResourceLocation, Integer> entry : getUpgradePurchaseCounts(player).entrySet()) {
+            CraftorioUpgrade upgrade = registry.get(entry.getKey());
             if (!(upgrade instanceof CraftorioModifierUpgrade modifierUpgrade)) continue;
             if (modifierUpgrade.getTarget() != target || modifierUpgrade.getOperation() != operation) continue;
 
@@ -394,7 +422,7 @@ public class CraftorioMisc {
                 if (tag.isEmpty() || !contextStack.is(tag.get())) continue;
             }
 
-            sum += modifierUpgrade.getValue();
+            sum += modifierUpgrade.getValue() * entry.getValue();
         }
         return sum;
     }
@@ -422,12 +450,12 @@ public class CraftorioMisc {
         Registry<CraftorioUpgrade> registry = registryAccess.registryOrThrow(CraftorioUpgrade.REGISTRY_KEY);
 
         double sum = 0;
-        for (ResourceLocation id : getUnlockedUpgrades(player)) {
-            CraftorioUpgrade upgrade = registry.get(id);
+        for (Map.Entry<ResourceLocation, Integer> entry : getUpgradePurchaseCounts(player).entrySet()) {
+            CraftorioUpgrade upgrade = registry.get(entry.getKey());
             if (upgrade instanceof CraftorioAttributeUpgrade attributeUpgrade
                     && attributeUpgrade.getTarget() == AttributeTarget.XP_GAIN
                     && attributeUpgrade.getOperation() == operation) {
-                sum += attributeUpgrade.getValue();
+                sum += attributeUpgrade.getValue() * entry.getValue();
             }
         }
         return sum;
@@ -591,9 +619,11 @@ public class CraftorioMisc {
     
     public static void setPoints(BigInteger points,Player player){
         Level level = universalLevel(player);
+        BigInteger assigningPoints = points.compareTo(pointThreshold()) > 0 ? pointThreshold() : points;
+        if (assigningPoints.equals(getPoints(player))) return;
+
         setTempPoints(getPoints(player),player);
         setHighestPoints(points,player);
-        BigInteger assigningPoints = points.compareTo(pointThreshold()) > 0 ? pointThreshold() : points;
         if (universalBased(level)) {
             level.setData(POINTS,assigningPoints);
         } else {
@@ -602,6 +632,7 @@ public class CraftorioMisc {
 
         if (player instanceof ServerPlayer serverPlayer) {
             CraftorioPointsAdvancements.checkAndGrant(serverPlayer, assigningPoints);
+            org.crimsoncrips.craftorio.events.ServerEvents.syncUniversalState(serverPlayer);
         }
     }
 

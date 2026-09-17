@@ -1,8 +1,11 @@
 {
   "parent": "craftorio:millionaire",
   "criteria": {
-    "impossible": {
-      "trigger": "minecraft:impossible"
+    "points": {
+      "conditions": {
+        "threshold": "7000000000000000000000000000"
+      },
+      "trigger": "craftorio:points"
     }
   },
   "display": {
@@ -20,7 +23,7 @@
   },
   "requirements": [
     [
-      "impossible"
+      "points"
     ]
   ],
   "sends_telemetry_event": true

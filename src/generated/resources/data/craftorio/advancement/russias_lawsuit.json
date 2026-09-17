@@ -1,8 +1,11 @@
 {
   "parent": "craftorio:the_human_body",
   "criteria": {
-    "impossible": {
-      "trigger": "minecraft:impossible"
+    "points": {
+      "conditions": {
+        "threshold": "20000000000000000000000000000000000"
+      },
+      "trigger": "craftorio:points"
     }
   },
   "display": {
@@ -20,7 +23,7 @@
   },
   "requirements": [
     [
-      "impossible"
+      "points"
     ]
   ],
   "sends_telemetry_event": true

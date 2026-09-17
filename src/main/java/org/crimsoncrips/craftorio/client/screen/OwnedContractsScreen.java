@@ -12,7 +12,6 @@ import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.networking.AbandonContractPacket;
 import org.crimsoncrips.craftorio.networking.ForceCompleteContractPacket;
@@ -25,7 +24,6 @@ import java.util.List;
 @OnlyIn(Dist.CLIENT)
 public class OwnedContractsScreen extends Screen {
 
-    private static final ResourceLocation CARD_TEXTURE = Craftorio.getGuiTexture("contract.png");
     private static final int BASE_CARD_WIDTH = 120;
     private static final int BASE_CARD_HEIGHT = 144;
     private static final int MIN_CARD_HEIGHT = 70;
@@ -164,11 +162,13 @@ public class OwnedContractsScreen extends Screen {
         graphics.pose().translate(centerX, this.cardCenterY, 0);
         graphics.pose().scale(hoverScale, hoverScale, 1f);
 
+        ResourceLocation cardTexture = contract.resolveCardTexture(this.minecraft.level.registryAccess());
+
         graphics.setColor(0f, 0f, 0f, SHADOW_ALPHA / 255f);
-        graphics.blit(CARD_TEXTURE, -this.cardWidth / 2 + SHADOW_OFFSET, -this.cardHeight / 2 + SHADOW_OFFSET, 0, 0, this.cardWidth, this.cardHeight, this.cardWidth, this.cardHeight);
+        graphics.blit(cardTexture, -this.cardWidth / 2 + SHADOW_OFFSET, -this.cardHeight / 2 + SHADOW_OFFSET, 0, 0, this.cardWidth, this.cardHeight, this.cardWidth, this.cardHeight);
         graphics.setColor(1f, 1f, 1f, 1f);
 
-        graphics.blit(CARD_TEXTURE, -this.cardWidth / 2, -this.cardHeight / 2, 0, 0, this.cardWidth, this.cardHeight, this.cardWidth, this.cardHeight);
+        graphics.blit(cardTexture, -this.cardWidth / 2, -this.cardHeight / 2, 0, 0, this.cardWidth, this.cardHeight, this.cardWidth, this.cardHeight);
 
         graphics.pose().popPose();
 

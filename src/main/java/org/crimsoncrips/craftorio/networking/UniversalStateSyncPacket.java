@@ -16,15 +16,16 @@ import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
 
 import java.math.BigInteger;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 public record UniversalStateSyncPacket(
         BigInteger points,
         BigInteger highestPoints,
         BigInteger tempPoints,
         long landAmount,
-        Set<ResourceLocation> unlockedUpgrades,
+        Map<ResourceLocation, Integer> unlockedUpgrades,
         List<GeneralMultiplierEffect> generalEffects,
         List<TagMultiplierEffect> tagEffects,
         List<ShopMultiplierEffect> shopEffects,
@@ -41,7 +42,7 @@ public record UniversalStateSyncPacket(
                 ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).encode(buffer, packet.highestPoints());
                 ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).encode(buffer, packet.tempPoints());
                 ByteBufCodecs.VAR_LONG.encode(buffer, packet.landAmount());
-                ResourceLocation.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buffer, List.copyOf(packet.unlockedUpgrades()));
+                ByteBufCodecs.<RegistryFriendlyByteBuf, ResourceLocation, Integer, Map<ResourceLocation, Integer>>map(HashMap::new, ResourceLocation.STREAM_CODEC, ByteBufCodecs.VAR_INT).encode(buffer, packet.unlockedUpgrades());
                 GeneralMultiplierEffect.CODEC_STREAM.apply(ByteBufCodecs.list()).encode(buffer, packet.generalEffects());
                 TagMultiplierEffect.CODEC_STREAM.apply(ByteBufCodecs.list()).encode(buffer, packet.tagEffects());
                 ShopMultiplierEffect.CODEC_STREAM.apply(ByteBufCodecs.list()).encode(buffer, packet.shopEffects());
@@ -54,14 +55,14 @@ public record UniversalStateSyncPacket(
                 BigInteger highestPoints = ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).decode(buffer);
                 BigInteger tempPoints = ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).decode(buffer);
                 long landAmount = ByteBufCodecs.VAR_LONG.decode(buffer);
-                List<ResourceLocation> unlockedUpgrades = ResourceLocation.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buffer);
+                Map<ResourceLocation, Integer> unlockedUpgrades = ByteBufCodecs.map(HashMap::new, ResourceLocation.STREAM_CODEC, ByteBufCodecs.VAR_INT).decode(buffer);
                 List<GeneralMultiplierEffect> generalEffects = GeneralMultiplierEffect.CODEC_STREAM.apply(ByteBufCodecs.list()).decode(buffer);
                 List<TagMultiplierEffect> tagEffects = TagMultiplierEffect.CODEC_STREAM.apply(ByteBufCodecs.list()).decode(buffer);
                 List<ShopMultiplierEffect> shopEffects = ShopMultiplierEffect.CODEC_STREAM.apply(ByteBufCodecs.list()).decode(buffer);
                 double advancementMultiplierBonus = ByteBufCodecs.DOUBLE.decode(buffer);
                 List<CraftorioContract> contracts = CraftorioContract.CODEC_STREAM.apply(ByteBufCodecs.list()).decode(buffer);
                 List<CraftorioBorder> borders = CraftorioBorder.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buffer);
-                return new UniversalStateSyncPacket(points, highestPoints, tempPoints, landAmount, Set.copyOf(unlockedUpgrades),
+                return new UniversalStateSyncPacket(points, highestPoints, tempPoints, landAmount, unlockedUpgrades,
                         generalEffects, tagEffects, shopEffects, advancementMultiplierBonus, contracts, borders);
             }
     );

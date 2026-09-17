@@ -28,7 +28,6 @@ import java.util.List;
 @OnlyIn(Dist.CLIENT)
 public class ContractRevealScreen extends Screen {
 
-    private static final ResourceLocation CARD_TEXTURE = Craftorio.getGuiTexture("contract.png");
     private static final int BASE_CARD_WIDTH = 150;
     private static final int BASE_CARD_HEIGHT = 180;
     private static final int MIN_CARD_HEIGHT = 80;
@@ -250,12 +249,13 @@ public class ContractRevealScreen extends Screen {
         float finalScale = scaleX * pulse * card.hoverScale;
         float centerY = card.restY + dropOffset + bobOffset;
         boolean locked = !meetsThreshold(card.contract);
+        ResourceLocation cardTexture = card.contract.resolveCardTexture(this.minecraft.level.registryAccess());
 
         graphics.pose().pushPose();
         graphics.pose().translate(card.restX + SHADOW_OFFSET, centerY + SHADOW_OFFSET, 0);
         graphics.pose().scale(finalScale, pulse * card.hoverScale, 1f);
         graphics.setColor(0f, 0f, 0f, SHADOW_ALPHA / 255f);
-        graphics.blit(CARD_TEXTURE, -this.cardWidth / 2, -this.cardHeight / 2, 0, 0, this.cardWidth, this.cardHeight, this.cardWidth, this.cardHeight);
+        graphics.blit(cardTexture, -this.cardWidth / 2, -this.cardHeight / 2, 0, 0, this.cardWidth, this.cardHeight, this.cardWidth, this.cardHeight);
         graphics.setColor(1f, 1f, 1f, 1f);
         graphics.pose().popPose();
 
@@ -265,7 +265,7 @@ public class ContractRevealScreen extends Screen {
         if (locked) {
             graphics.setColor(0.6f, 0.6f, 0.6f, 0.55f);
         }
-        graphics.blit(CARD_TEXTURE, -this.cardWidth / 2, -this.cardHeight / 2, 0, 0, this.cardWidth, this.cardHeight, this.cardWidth, this.cardHeight);
+        graphics.blit(cardTexture, -this.cardWidth / 2, -this.cardHeight / 2, 0, 0, this.cardWidth, this.cardHeight, this.cardWidth, this.cardHeight);
         if (locked) {
             graphics.setColor(1f, 1f, 1f, 1f);
         }

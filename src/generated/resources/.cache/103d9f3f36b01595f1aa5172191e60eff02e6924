@@ -1,4 +1,4 @@
-// 1.21.1	2026-09-15T01:04:03.621017669	Registries
+// 1.21.1	2026-09-17T03:28:30.317638481	Registries
 155d81829133c15dc219174ed77ce43a218104d0 data/craftorio/craftorio/contract/animal_feed.json
 65b0f1b474c2441ea784d2ca9c7a3f7b20fcb520 data/craftorio/craftorio/contract/archery_resupply.json
 28596e93cb87fec8c866c4538f567904c127230c data/craftorio/craftorio/contract/brewing_materials.json
@@ -16,6 +16,7 @@ b9ca45b3ded78a33161a131de9575491a17c4fe9 data/craftorio/craftorio/contract/execu
 0e08da3583b90fe00b8f6594ccb6f3426caddb7a data/craftorio/craftorio/contract/multiversal_collection.json
 fc317bf9668cf4cd1482e45328a15b910441aeb7 data/craftorio/craftorio/contract/terraforming.json
 c4769e25d54f804195e365cf5b81949b91b45760 data/craftorio/craftorio/contract/trophy_headed.json
+7cf8c6bcaf928b07c03120a7496c04babb13f6ef data/craftorio/craftorio/contract_texture/default.json
 4fc7dccb3926d30bf4d3be024a8df757b49cb2f0 data/craftorio/craftorio/effect/archery_season.json
 7f82bb2de7e28094a631d78956808e3b061c79af data/craftorio/craftorio/effect/black_holdover.json
 f875ce6d38585c2dfc885543fa7244ef1e04d3b7 data/craftorio/craftorio/effect/dense_traffic.json
@@ -60,6 +61,7 @@ da54fab796bdf6db8468976c96b1fd21d814b4fa data/craftorio/craftorio/upgrade/effect
 6b57798331351127d6f641fcf075330b3638eae7 data/craftorio/craftorio/upgrade/expansion_cost_2.json
 6e3b1323f5f595dc5582afd7dcd0e972878cb02f data/craftorio/craftorio/upgrade/lost_bet_refund_1.json
 37e9ce316a015023085c2de87865dfd22139b0ab data/craftorio/craftorio/upgrade/lost_bet_refund_2.json
+5d28e4e38ec5005a02d1ac1d39a4bdb97bc4cfe8 data/craftorio/craftorio/upgrade/manual_sink_value_1.json
 6495cc155a7eb0071625475047faf9e4feb97cb7 data/craftorio/craftorio/upgrade/mult_1.json
 a2190d58ca21de5aca2a80ec0a24a9c9129b4ada data/craftorio/craftorio/upgrade/mult_2.json
 1b7aa5d1aaecc9ef2bd8aff9dd4dd27cfdae5b86 data/craftorio/craftorio/upgrade/mult_3.json
@@ -81,3 +83,5 @@ f84b15e977a49fcc977e9fe0e264ce9375d19c9b data/craftorio/craftorio/upgrade/rarer_
 aab67d7f23ebb082d13e532acec9e53a3030b59c data/craftorio/craftorio/upgrade/refresh_cost_1.json
 28a37778e3c438466617c9d8a2be93cedce12eab data/craftorio/craftorio/upgrade/refresh_cost_2.json
 9de5605643811682c853cc6ba1ffc018f3773ec2 data/craftorio/craftorio/upgrade/root.json
+1c848606b94e45d41a7b39b51f7c63788580e7f7 data/craftorio/craftorio/upgrade/trade_economic_boom.json
+45cfb235c613748cc1cf79c5ab6a410718f8fd8d data/craftorio/craftorio/upgrade/wake_up_productive.json

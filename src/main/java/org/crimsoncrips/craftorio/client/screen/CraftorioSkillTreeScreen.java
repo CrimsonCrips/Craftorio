@@ -23,7 +23,6 @@ import java.util.*;
 
 public class CraftorioSkillTreeScreen extends Screen {
 
-    private static final ResourceLocation LINE_TEXTURE = Craftorio.getGuiTexture("skill_tree_line.png");
     private static final int NODE_SIZE = 24;
     private static final double RADIUS_STEP = 90.0;
     private static final double NODE_ARC_MARGIN = 40.0;
@@ -253,6 +252,7 @@ public class CraftorioSkillTreeScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         graphics.fill(0, 0, this.width, this.height, 0xFF000000);
+        org.crimsoncrips.craftorio.client.CraftorioStarfield.render(graphics, this.width, this.height, this.panX, this.panY);
 
         Player player = this.minecraft.player;
         if (player != null) {
@@ -305,17 +305,11 @@ public class CraftorioSkillTreeScreen extends Screen {
         if (length < 0.5) return;
 
         float angle = (float) Math.atan2(dy, dx);
-        float alpha = ((color >>> 24) & 0xFF) / 255f;
-        float red = ((color >> 16) & 0xFF) / 255f;
-        float green = ((color >> 8) & 0xFF) / 255f;
-        float blue = (color & 0xFF) / 255f;
 
         graphics.pose().pushPose();
         graphics.pose().translate(x1, y1, 0);
         graphics.pose().mulPose(com.mojang.math.Axis.ZP.rotation(angle));
-        graphics.setColor(red, green, blue, alpha);
-        graphics.blit(LINE_TEXTURE, 0, -LINE_THICKNESS / 2, 0, 0, (int) Math.round(length), LINE_THICKNESS, 1, 1);
-        graphics.setColor(1f, 1f, 1f, 1f);
+        graphics.fill(0, -LINE_THICKNESS / 2, (int) Math.round(length), -LINE_THICKNESS / 2 + LINE_THICKNESS, color);
         graphics.pose().popPose();
     }
 

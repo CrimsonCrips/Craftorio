@@ -39,10 +39,11 @@ public class CraftorioModifierUpgrade extends CraftorioUpgrade {
                     OPERATION_CODEC.fieldOf("operation").forGetter(CraftorioModifierUpgrade::getOperation),
                     Codec.DOUBLE.fieldOf("value").forGetter(CraftorioModifierUpgrade::getValue),
                     TagKey.hashedCodec(Registries.ITEM).optionalFieldOf("item_tag").forGetter(CraftorioModifierUpgrade::getItemTag),
+                    Codec.INT.optionalFieldOf("max_purchases", 1).forGetter(CraftorioModifierUpgrade::getMaxPurchases),
                     Codec.DOUBLE.optionalFieldOf("x", 0.0).forGetter(CraftorioModifierUpgrade::getX),
                     Codec.DOUBLE.optionalFieldOf("y", 0.0).forGetter(CraftorioModifierUpgrade::getY)
-            ).apply(instance, (name, icon, parent, description, cost, target, operation, value, itemTag, x, y) -> {
-                    CraftorioModifierUpgrade upgrade = new CraftorioModifierUpgrade(name, icon, parent.orElse(null), description, cost, target, operation, value, itemTag.orElse(null));
+            ).apply(instance, (name, icon, parent, description, cost, target, operation, value, itemTag, maxPurchases, x, y) -> {
+                    CraftorioModifierUpgrade upgrade = new CraftorioModifierUpgrade(name, icon, parent.orElse(null), description, cost, target, operation, value, itemTag.orElse(null), maxPurchases);
                     upgrade.setPosition(x, y);
                     return upgrade;
             })
@@ -50,7 +51,12 @@ public class CraftorioModifierUpgrade extends CraftorioUpgrade {
 
     public CraftorioModifierUpgrade(String name, ResourceLocation icon, ResourceLocation parent, String description, BigInteger cost,
                                      ModifierTarget target, UpgradeOperation operation, double value, TagKey<Item> itemTag) {
-        super(name, icon, parent, description, cost);
+        this(name, icon, parent, description, cost, target, operation, value, itemTag, 1);
+    }
+
+    public CraftorioModifierUpgrade(String name, ResourceLocation icon, ResourceLocation parent, String description, BigInteger cost,
+                                     ModifierTarget target, UpgradeOperation operation, double value, TagKey<Item> itemTag, int maxPurchases) {
+        super(name, icon, parent, description, cost, maxPurchases);
         this.target = target;
         this.operation = operation;
         this.value = value;
@@ -79,7 +85,7 @@ public class CraftorioModifierUpgrade extends CraftorioUpgrade {
 
     public static CraftorioModifierUpgrade of(CraftorioUpgrade.Builder builder, ModifierTarget target, UpgradeOperation operation, double value, TagKey<Item> itemTag) {
         return new CraftorioModifierUpgrade(builder.getName(), builder.getIcon(), builder.getParent(), builder.getDescription(), builder.getCost(),
-                target, operation, value, itemTag);
+                target, operation, value, itemTag, builder.getMaxPurchases());
     }
 
     @Override

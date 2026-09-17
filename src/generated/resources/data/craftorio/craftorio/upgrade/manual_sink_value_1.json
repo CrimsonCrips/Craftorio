@@ -1,0 +1,13 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:base_value_8",
+  "cost": "20000000000000000",
+  "description": "misc.craftorio.upgrade_manual_sink_value_1_description",
+  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "name": "misc.craftorio.upgrade_manual_sink_value_1",
+  "operation": "MULTIPLY",
+  "target": "MANUAL_SINK_VALUE",
+  "value": 0.25,
+  "x": -118.36978072713401,
+  "y": -798.6169229773282
+}

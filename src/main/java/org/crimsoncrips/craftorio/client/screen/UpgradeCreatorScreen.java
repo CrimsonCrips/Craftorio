@@ -16,16 +16,17 @@ import java.util.List;
 @OnlyIn(Dist.CLIENT)
 public class UpgradeCreatorScreen extends Screen {
 
-    private static final String[] CATEGORIES = {"modifier", "attribute"};
+    private static final String[] CATEGORIES = {"modifier", "attribute", "action_effect"};
     private static final String[] MODIFIER_TARGETS = {
             "MULTIPLIER", "ITEM_BASE_VALUE", "ITEM_TAG_BASE_VALUE", "CONTRACT_REFRESH_SPEED", "EFFECT_TIMER_SPEED",
             "PUNISHMENT_DURATION", "EFFECT_DURATION", "EXPANSION_COST",
             "RARER_CONTRACT_CHANCE", "RARER_EFFECT_CHANCE", "SHOP_COST", "CONTRACT_REFRESH_COST",
-            "LOST_BET_REFUND", "MULT_PER_CONTRACT_DONE", "BET_ODDS", "BET_BONUS"
+            "LOST_BET_REFUND", "MULT_PER_CONTRACT_DONE", "BET_ODDS", "BET_BONUS", "MANUAL_SINK_VALUE"
     };
     private static final String[] ATTRIBUTE_TARGETS = {
             "HEALTH", "SPEED", "DEFENSE", "DAMAGE", "BLOCK_REACH", "JUMP_HEIGHT", "XP_GAIN", "RESISTANCE"
     };
+    private static final String[] PLAYER_ACTION_TARGETS = {"WAKE_UP", "TRADE"};
     private static final String[] OPERATIONS = {"ADD", "MULTIPLY"};
 
     private final Screen parent;
@@ -39,10 +40,12 @@ public class UpgradeCreatorScreen extends Screen {
     private int categoryIndex = 0;
     private int modifierTargetIndex = 0;
     private int attributeTargetIndex = 0;
+    private int playerActionTargetIndex = 0;
     private int operationIndex = 0;
     private Button categoryButton;
     private Button modifierTargetButton;
     private Button attributeTargetButton;
+    private Button playerActionTargetButton;
     private Button operationButton;
 
     private EditBox idBox;
@@ -120,6 +123,12 @@ public class UpgradeCreatorScreen extends Screen {
         }).bounds(fieldX, y, fieldWidth, 16).build();
         this.addRenderableWidget(this.attributeTargetButton);
 
+        this.playerActionTargetButton = Button.builder(Component.literal(PLAYER_ACTION_TARGETS[playerActionTargetIndex]), b -> {
+            playerActionTargetIndex = (playerActionTargetIndex + 1) % PLAYER_ACTION_TARGETS.length;
+            playerActionTargetButton.setMessage(Component.literal(PLAYER_ACTION_TARGETS[playerActionTargetIndex]));
+        }).bounds(fieldX, y, fieldWidth, 16).build();
+        this.addRenderableWidget(this.playerActionTargetButton);
+
         updateTargetVisibility();
         y += rowHeight;
 
@@ -181,12 +190,26 @@ public class UpgradeCreatorScreen extends Screen {
         return CATEGORIES[categoryIndex].equals("modifier");
     }
 
+    private boolean isActionEffectCategory() {
+        return CATEGORIES[categoryIndex].equals("action_effect");
+    }
+
     private void updateTargetVisibility() {
         boolean isModifier = isModifierCategory();
+        boolean isActionEffect = isActionEffectCategory();
+        boolean isAttribute = !isModifier && !isActionEffect;
+
         this.modifierTargetButton.visible = isModifier;
         this.modifierTargetButton.active = isModifier;
-        this.attributeTargetButton.visible = !isModifier;
-        this.attributeTargetButton.active = !isModifier;
+        this.attributeTargetButton.visible = isAttribute;
+        this.attributeTargetButton.active = isAttribute;
+        this.playerActionTargetButton.visible = isActionEffect;
+        this.playerActionTargetButton.active = isActionEffect;
+
+        if (this.operationButton != null) {
+            this.operationButton.visible = !isActionEffect;
+            this.operationButton.active = !isActionEffect;
+        }
     }
 
     private boolean usesItemTag() {
@@ -201,6 +224,9 @@ public class UpgradeCreatorScreen extends Screen {
     }
 
     private String valueHint() {
+        if (isActionEffectCategory()) {
+            return "e.g. craftorio:productive";
+        }
         if (isTickDurationTarget() && OPERATIONS[operationIndex].equals("ADD")) {
             return "e.g. 10 (seconds)";
         }
@@ -221,7 +247,9 @@ public class UpgradeCreatorScreen extends Screen {
     }
 
     private void generate() {
-        String selectedTarget = isModifierCategory() ? MODIFIER_TARGETS[modifierTargetIndex] : ATTRIBUTE_TARGETS[attributeTargetIndex];
+        String selectedTarget = isModifierCategory() ? MODIFIER_TARGETS[modifierTargetIndex]
+                : isActionEffectCategory() ? PLAYER_ACTION_TARGETS[playerActionTargetIndex]
+                : ATTRIBUTE_TARGETS[attributeTargetIndex];
         PacketDistributor.sendToServer(new GenerateUpgradeCodePacket(
                 CATEGORIES[categoryIndex],
                 idBox.getValue(),
@@ -253,15 +281,19 @@ public class UpgradeCreatorScreen extends Screen {
         int labelX = panelLeft + 8;
         int y = panelTop + 24;
         int rowHeight = 22;
+        String targetLabelKey = isModifierCategory() ? "dev_tools_label_target"
+                : isActionEffectCategory() ? "dev_tools_label_target_action"
+                : "dev_tools_label_target_attribute";
         String[] labelKeys = {
                 "dev_tools_label_type", "dev_tools_label_id", "dev_tools_label_mod_id", "dev_tools_label_description", "dev_tools_label_cost",
-                "dev_tools_label_parent", isModifierCategory() ? "dev_tools_label_target" : "dev_tools_label_target_attribute",
+                "dev_tools_label_parent", targetLabelKey,
                 "dev_tools_label_operation", "dev_tools_label_value", "dev_tools_label_item_tag_target", "dev_tools_label_include_lang"
         };
         for (String key : labelKeys) {
             boolean show = switch (key) {
                 case "dev_tools_label_item_tag_target" -> usesItemTag();
                 case "dev_tools_label_description" -> includeLang;
+                case "dev_tools_label_operation" -> !isActionEffectCategory();
                 default -> true;
             };
             if (show) {

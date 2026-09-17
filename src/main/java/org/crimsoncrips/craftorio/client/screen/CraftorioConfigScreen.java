@@ -60,6 +60,7 @@ public class CraftorioConfigScreen extends Screen {
 
     @Override
     public void onClose() {
+        Craftorio.CLIENT_CONFIG_SPEC.save();
         this.minecraft.setScreen(this.parent);
     }
 }

@@ -1,7 +1,8 @@
 package org.crimsoncrips.craftorio.server;
 
-import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.registries.RegisterEvent;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 
@@ -10,45 +11,33 @@ import java.util.List;
 
 public final class CraftorioPointsAdvancements {
 
-    private static final String CRITERION = "impossible";
+    public static final CraftorioPointsTrigger POINTS_TRIGGER = new CraftorioPointsTrigger();
 
-    private record Milestone(String path, BigInteger threshold) {}
+    public static void registerTrigger(RegisterEvent event) {
+        event.register(Registries.TRIGGER_TYPE, helper -> helper.register(Craftorio.prefix("points"), POINTS_TRIGGER));
+    }
+
+    public record Milestone(String path, BigInteger threshold, boolean negative) {}
 
     private static BigInteger illion(long coefficient, int exponent) {
         return BigInteger.valueOf(coefficient).multiply(BigInteger.TEN.pow(exponent));
     }
 
-    private static final List<Milestone> POSITIVE_MILESTONES = List.of(
-            new Milestone("millionaire", illion(1, 6)),
-            new Milestone("the_human_body", illion(7, 27)),
-            new Milestone("russias_lawsuit", illion(20, 33)),
-            new Milestone("universal_number", illion(1, 81)),
-            new Milestone("capture_of_the_true_overlord", illion(1, 102)),
-            new Milestone("the_miners_number", illion(1, 303)),
-            new Milestone("existential_infinity", CraftorioMisc.pointThreshold())
+    public static final List<Milestone> POSITIVE_MILESTONES = List.of(
+            new Milestone("millionaire", illion(1, 6), false),
+            new Milestone("the_human_body", illion(7, 27), false),
+            new Milestone("russias_lawsuit", illion(20, 33), false),
+            new Milestone("universal_number", illion(1, 81), false),
+            new Milestone("capture_of_the_true_overlord", illion(1, 102), false),
+            new Milestone("the_miners_number", illion(1, 303), false),
+            new Milestone("existential_infinity", CraftorioMisc.pointThreshold(), false)
     );
 
-    private static final Milestone NEGATIVE_MILESTONE = new Milestone("existential_debt", CraftorioMisc.pointThreshold().negate());
+    public static final Milestone NEGATIVE_MILESTONE = new Milestone("existential_debt", CraftorioMisc.pointThreshold().negate(), true);
 
     private CraftorioPointsAdvancements() {}
 
     public static void checkAndGrant(ServerPlayer player, BigInteger points) {
-        for (Milestone milestone : POSITIVE_MILESTONES) {
-            if (points.compareTo(milestone.threshold()) >= 0) {
-                grant(player, milestone.path());
-            }
-        }
-
-        if (points.compareTo(NEGATIVE_MILESTONE.threshold()) <= 0) {
-            grant(player, NEGATIVE_MILESTONE.path());
-        }
-    }
-
-    private static void grant(ServerPlayer player, String path) {
-        AdvancementHolder holder = player.server.getAdvancements().get(Craftorio.prefix(path));
-        if (holder == null) return;
-
-        player.getAdvancements().award(holder, CRITERION);
-
+        POINTS_TRIGGER.trigger(player, points);
     }
 }

@@ -13,6 +13,7 @@ import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.datagen.advancement.CraftorioAdvancementProvider;
 import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioEffectBootstrap;
 import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioContractBootstrap;
+import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioContractTextureBootstrap;
 import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioUpgradeBootstrap;
 import org.crimsoncrips.craftorio.datagen.language.CraftLangGen;
 import org.crimsoncrips.craftorio.datagen.maps.points.CraftorioPointsDeterminer;
@@ -20,6 +21,7 @@ import org.crimsoncrips.craftorio.datagen.recipe.CraftorioRecipeGenerator;
 import org.crimsoncrips.craftorio.datagen.tags.CraftorioBlockTagGen;
 import org.crimsoncrips.craftorio.datagen.tags.CraftorioItemTagGen;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
+import org.crimsoncrips.craftorio.registries.contract.CraftorioContractTexture;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
 
@@ -51,6 +53,7 @@ public class CraftorioDatagen {
                     CraftorioEffectBootstrap.debuffBootstrap(context);
                 })
                 .add(CraftorioContract.REGISTRY_KEY, CraftorioContractBootstrap::bootstrap)
+                .add(CraftorioContractTexture.REGISTRY_KEY, CraftorioContractTextureBootstrap::bootstrap)
                 .add(CraftorioUpgrade.REGISTRY_KEY, CraftorioUpgradeBootstrap::bootstrap);
 
         generator.addProvider(event.includeServer(),

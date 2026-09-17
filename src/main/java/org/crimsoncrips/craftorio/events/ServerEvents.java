@@ -17,6 +17,8 @@ import net.neoforged.neoforge.attachment.AttachmentSync;
 import net.neoforged.neoforge.event.entity.player.AdvancementEvent;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerWakeUpEvent;
+import net.neoforged.neoforge.event.entity.player.TradeWithVillagerEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -34,6 +36,10 @@ import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
 import org.crimsoncrips.craftorio.server.CraftorioPointsAdvancements;
 import org.crimsoncrips.craftorio.server.CraftorioShop;
 import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioActionEffectUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioAttributeUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.PlayerActionTarget;
 
 
 import java.math.BigInteger;
@@ -219,10 +225,10 @@ public class ServerEvents {
 
         if (player instanceof ServerPlayer serverPlayer) {
             var registry = player.level().registryAccess().registryOrThrow(org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade.REGISTRY_KEY);
-            for (ResourceLocation upgradeId : CraftorioMisc.getUnlockedUpgrades(player)) {
-                var upgrade = registry.get(upgradeId);
-                if (upgrade != null) {
-                    upgrade.onUnlock(serverPlayer, upgradeId);
+            for (Map.Entry<ResourceLocation, Integer> entry : CraftorioMisc.getUpgradePurchaseCounts(player).entrySet()) {
+                var upgrade = registry.get(entry.getKey());
+                if (upgrade instanceof CraftorioAttributeUpgrade) {
+                    upgrade.onUnlock(serverPlayer, entry.getKey(), entry.getValue());
                 }
             }
 
@@ -230,7 +236,7 @@ public class ServerEvents {
         }
     }
 
-    private void syncUniversalState(ServerPlayer player) {
+    public static void syncUniversalState(ServerPlayer player) {
         if (!CraftorioMisc.universalBased(CraftorioMisc.universalLevel(player))) return;
 
         PacketDistributor.sendToPlayer(player, new UniversalStateSyncPacket(
@@ -238,7 +244,7 @@ public class ServerEvents {
                 CraftorioMisc.getHighestPoints(player),
                 CraftorioMisc.getTempPoints(player),
                 CraftorioMisc.getLandAmount(player),
-                CraftorioMisc.getUnlockedUpgrades(player),
+                CraftorioMisc.getUpgradePurchaseCounts(player),
                 CraftorioMisc.getGeneralEffects(player),
                 CraftorioMisc.getTagEffects(player),
                 CraftorioMisc.getShopEffects(player),
@@ -315,8 +321,10 @@ public class ServerEvents {
         ResourceLocation id = advancement.id();
         BigInteger value = CraftorioAdvancementPoints.getPoints(id.toString());
 
-        BigInteger pointsOwned = CraftorioMisc.getPoints(player);
-        CraftorioMisc.setPoints(pointsOwned.add(value),player);
+        if (value.signum() != 0) {
+            BigInteger pointsOwned = CraftorioMisc.getPoints(player);
+            CraftorioMisc.setPoints(pointsOwned.add(value),player);
+        }
 
         if (CraftorioMisc.hasUnlockedUpgrade(player, Craftorio.prefix("advancement_multiplier"))) {
             double multiplierBonus = CraftorioAdvancementMultipliers.getMultiplier(id.toString());
@@ -335,6 +343,31 @@ public class ServerEvents {
                 for (String criterion : advancement.value().criteria().keySet()) {
                     other.getAdvancements().award(advancement, criterion);
                 }
+            }
+        }
+    }
+
+    @SubscribeEvent
+    public void onPlayerWakeUp(PlayerWakeUpEvent event) {
+        if (!event.updateLevel()) return;
+        if (event.getEntity() instanceof ServerPlayer player) {
+            grantActionEffects(player, PlayerActionTarget.WAKE_UP);
+        }
+    }
+
+    @SubscribeEvent
+    public void onVillagerTrade(TradeWithVillagerEvent event) {
+        if (event.getEntity() instanceof ServerPlayer player) {
+            grantActionEffects(player, PlayerActionTarget.TRADE);
+        }
+    }
+
+    private void grantActionEffects(ServerPlayer player, PlayerActionTarget actionTarget) {
+        var registry = player.level().registryAccess().registryOrThrow(CraftorioUpgrade.REGISTRY_KEY);
+        for (ResourceLocation id : CraftorioMisc.getUnlockedUpgrades(player)) {
+            CraftorioUpgrade upgrade = registry.get(id);
+            if (upgrade instanceof CraftorioActionEffectUpgrade actionEffectUpgrade && actionEffectUpgrade.getTarget() == actionTarget) {
+                CraftorioMisc.grantEffect(player, actionEffectUpgrade.getEffect());
             }
         }
     }

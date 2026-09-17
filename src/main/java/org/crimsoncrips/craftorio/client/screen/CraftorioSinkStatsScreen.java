@@ -2,15 +2,13 @@ package org.crimsoncrips.craftorio.client.screen;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.components.AbstractButton;
-import net.minecraft.client.gui.components.AbstractWidget;
-import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.narration.NarrationElementOutput;
+import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.ObjectSelectionList;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -21,10 +19,15 @@ import org.crimsoncrips.craftorio.CraftorioMisc;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Stream;
 
 @OnlyIn(Dist.CLIENT)
-public class CraftorioSinkStatsScreen extends CatalogScreen<Item> {
+public class CraftorioSinkStatsScreen extends Screen {
+
+    private static final ResourceLocation SLOT_SPRITE = ResourceLocation.withDefaultNamespace("container/slot");
+    private static final int LIST_WIDTH = 280;
+    private static final int ROW_HEIGHT = 20;
+    private static final int LIST_TOP = 33;
+    private static final int FOOTER_HEIGHT = 36;
 
     private final Map<ResourceLocation, Long> sinkCounts;
 
@@ -38,67 +41,80 @@ public class CraftorioSinkStatsScreen extends CatalogScreen<Item> {
     }
 
     @Override
-    protected List<Item> buildCatalog() {
-        List<Item> items = new ArrayList<>();
-        for (Item item : BuiltInRegistries.ITEM) {
-            if (item == Items.AIR) continue;
-            items.add(item);
-        }
-        items.sort((a, b) -> Long.compare(countFor(b), countFor(a)));
-        return items;
+    protected void init() {
+        super.init();
+
+        this.addRenderableWidget(new SinkStatsList(this.minecraft));
+
+        this.addRenderableWidget(Button.builder(CommonComponents.GUI_DONE, b -> this.onClose())
+                .bounds(this.width / 2 - 100, this.height - 28, 200, 20).build());
     }
 
     @Override
-    protected String getSearchName(Item item) {
-        return new ItemStack(item).getHoverName().getString();
+    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        super.render(guiGraphics, mouseX, mouseY, partialTick);
+        guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 8, 0xFFFFFF);
     }
 
     @Override
-    protected String getSearchNamespace(Item item) {
-        return BuiltInRegistries.ITEM.getKey(item).getNamespace();
-    }
-
-    @Override
-    protected Stream<ResourceLocation> getSearchTags(Item item) {
-        return new ItemStack(item).getTags().map(TagKey::location);
-    }
-
-    @Override
-    protected AbstractWidget createEntryWidget(int x, int y, Item item) {
-        return new SinkCountEntryButton(x, y, item);
+    public boolean isPauseScreen() {
+        return false;
     }
 
     @OnlyIn(Dist.CLIENT)
-    private class SinkCountEntryButton extends AbstractButton {
+    private class SinkStatsList extends ObjectSelectionList<SinkStatsList.Row> {
 
-        private final ItemStack displayStack;
+        SinkStatsList(Minecraft minecraft) {
+            super(minecraft, CraftorioSinkStatsScreen.this.width,
+                    CraftorioSinkStatsScreen.this.height - LIST_TOP - FOOTER_HEIGHT, LIST_TOP, ROW_HEIGHT);
 
-        SinkCountEntryButton(int x, int y, Item item) {
-            super(x, y, SLOT_SIZE, SLOT_SIZE, CommonComponents.EMPTY);
-            this.displayStack = new ItemStack(item);
+            List<Item> items = new ArrayList<>();
+            for (Item item : BuiltInRegistries.ITEM) {
+                if (item == Items.AIR) continue;
+                if (countFor(item) <= 0) continue;
+                items.add(item);
+            }
+            items.sort((a, b) -> Long.compare(countFor(b), countFor(a)));
 
-            long count = countFor(item);
-            this.setTooltip(Tooltip.create(Component.literal(this.displayStack.getHoverName().getString())
-                    .append(Component.translatable("misc.craftorio.times_sinked_suffix", count))));
+            for (Item item : items) {
+                this.addEntry(new Row(item));
+            }
         }
 
         @Override
-        public void onPress() {
+        public int getRowWidth() {
+            return LIST_WIDTH;
         }
 
-        @Override
-        protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-            if (this.isHovered()) {
-                guiGraphics.fill(this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(), 0x80FFFFFF);
+        @OnlyIn(Dist.CLIENT)
+        class Row extends ObjectSelectionList.Entry<Row> {
+            private final Item item;
+            private final Component name;
+
+            Row(Item item) {
+                this.item = item;
+                this.name = new ItemStack(item).getHoverName();
             }
 
-            guiGraphics.renderItem(this.displayStack, this.getX() + 1, this.getY() + 1);
-            guiGraphics.renderItemDecorations(CraftorioSinkStatsScreen.this.font, this.displayStack, this.getX() + 1, this.getY() + 1);
-        }
+            @Override
+            public void render(GuiGraphics guiGraphics, int index, int top, int left, int width, int height,
+                                int mouseX, int mouseY, boolean hovering, float partialTick) {
+                guiGraphics.blitSprite(SLOT_SPRITE, left, top, 18, 18);
+                guiGraphics.renderItem(new ItemStack(this.item), left + 1, top + 1);
 
-        @Override
-        public void updateWidgetNarration(NarrationElementOutput narrationElementOutput) {
-            this.defaultButtonNarrationText(narrationElementOutput);
+                int textY = top + height / 2 - CraftorioSinkStatsScreen.this.font.lineHeight / 2;
+                int color = index % 2 == 0 ? 0xFFFFFF : 0xAAAAAA;
+                guiGraphics.drawString(CraftorioSinkStatsScreen.this.font, this.name, left + 22, textY, color, false);
+
+                String countText = String.valueOf(countFor(this.item));
+                guiGraphics.drawString(CraftorioSinkStatsScreen.this.font, countText,
+                        left + width - CraftorioSinkStatsScreen.this.font.width(countText) - 4, textY, color, false);
+            }
+
+            @Override
+            public Component getNarration() {
+                return Component.translatable("narrator.select", this.name);
+            }
         }
     }
 }
