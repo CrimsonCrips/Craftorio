@@ -12,7 +12,7 @@ import org.crimsoncrips.craftorio.client.screen.ActiveEffectsScreen;
 import org.crimsoncrips.craftorio.client.screen.BorderExpandScreen;
 import org.crimsoncrips.craftorio.client.screen.ClaimItemPurchaseScreen;
 import org.crimsoncrips.craftorio.client.screen.CraftorioHubScreen;
-import org.crimsoncrips.craftorio.client.screen.CraftorioSkillTreeScreen;
+import org.crimsoncrips.craftorio.client.screen.skill_tree.CraftorioBasicSkillTreeScreen;
 import org.crimsoncrips.craftorio.client.screen.OwnedContractsScreen;
 import org.crimsoncrips.craftorio.networking.PrintScanPacket;
 import org.crimsoncrips.craftorio.networking.RequestContractOfferPacket;
@@ -123,7 +123,7 @@ public class CraftorioKeyMappings {
         }
         while (OPEN_SKILL_TREE.consumeClick()) {
             if (inHaven) continue;
-            minecraft.setScreen(new CraftorioSkillTreeScreen());
+            minecraft.setScreen(new CraftorioBasicSkillTreeScreen("misc.craftorio.skill_tree_title"));
         }
         while (OPEN_MY_CONTRACTS.consumeClick()) {
             if (inHaven) continue;

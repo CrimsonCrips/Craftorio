@@ -50,10 +50,10 @@ import org.crimsoncrips.craftorio.client.screen.AutoValueCondenserScreen;
 import org.crimsoncrips.craftorio.client.screen.ContractCreatorBountyScreen;
 import org.crimsoncrips.craftorio.client.screen.ContractRevealScreen;
 import org.crimsoncrips.craftorio.client.screen.CraftorioConfigScreen;
-import org.crimsoncrips.craftorio.client.screen.CraftorioRebirthSkillTreeScreen;
 import org.crimsoncrips.craftorio.client.screen.CraftorioStatisticsScreen;
-import org.crimsoncrips.craftorio.client.screen.CraftorioSkillTreeScreen;
 import org.crimsoncrips.craftorio.client.screen.CraftorioWorldCreationScreen;
+import org.crimsoncrips.craftorio.client.screen.skill_tree.CraftorioRebirthSkillTreeScreen;
+import org.crimsoncrips.craftorio.client.screen.skill_tree.CraftorioSkillTreeScreenBase;
 import org.crimsoncrips.craftorio.client.screen.ShopScreen;
 import org.crimsoncrips.craftorio.client.screen.SinkScreen;
 import org.crimsoncrips.craftorio.client.screen.SkillTreeCreatorScreen;
@@ -119,7 +119,7 @@ public class ClientEvents {
 	}
 
 	public static void handleUnlockUpgradeFailed(UnlockUpgradeFailedPacket message) {
-		if (Minecraft.getInstance().screen instanceof CraftorioSkillTreeScreen screen) {
+		if (Minecraft.getInstance().screen instanceof CraftorioSkillTreeScreenBase screen) {
 			screen.showStatusMessage(Component.translatable("misc.craftorio." + message.messageKey()));
 		}
 	}

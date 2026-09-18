@@ -1,4 +1,4 @@
-package org.crimsoncrips.craftorio.client.screen;
+package org.crimsoncrips.craftorio.client.screen.skill_tree;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
@@ -9,49 +9,74 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
-import net.neoforged.neoforge.network.PacketDistributor;
-import org.crimsoncrips.craftorio.Craftorio;
-import org.crimsoncrips.craftorio.CraftorioMisc;
-import org.crimsoncrips.craftorio.networking.UnlockUpgradePacket;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import org.crimsoncrips.craftorio.client.CraftorioStarfield;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
 
 import java.math.BigInteger;
 import java.util.*;
 
-public class CraftorioSkillTreeScreen extends Screen {
+@OnlyIn(Dist.CLIENT)
+public abstract class CraftorioSkillTreeScreenBase extends Screen {
 
-    private static final int NODE_SIZE = 24;
-    private static final double RADIUS_STEP = 90.0;
-    private static final double NODE_ARC_MARGIN = 40.0;
-    private static final int LINE_THICKNESS = 2;
-    private static final long APPEAR_DURATION_MS = 250L;
-    private static final long DEPTH_STAGGER_MS = 150L;
-    private static final double MIN_ZOOM = 0.2;
-    private static final double MAX_ZOOM = 3.5;
+    protected static final int NODE_SIZE = 24;
+    protected static final double RADIUS_STEP = 90.0;
+    protected static final double NODE_ARC_MARGIN = 40.0;
+    protected static final int LINE_THICKNESS = 2;
+    protected static final long APPEAR_DURATION_MS = 250L;
+    protected static final long DEPTH_STAGGER_MS = 150L;
+    protected static final double MIN_ZOOM = 0.2;
+    protected static final double MAX_ZOOM = 3.5;
+    protected static final long STATUS_MESSAGE_DURATION_MS = 3000L;
 
-    private final Map<ResourceLocation, NodePos> positions = new HashMap<>();
-    private final Map<ResourceLocation, CraftorioUpgrade> upgrades = new HashMap<>();
-    private final Map<ResourceLocation, ResourceLocation> parents = new HashMap<>();
-    private final Map<ResourceLocation, Integer> depths = new HashMap<>();
-    private final Map<ResourceLocation, Long> spawnTimes = new HashMap<>();
-    private final Map<ResourceLocation, UpgradeNodeButton> buttons = new HashMap<>();
-    private Set<ResourceLocation> lastUnlockedSnapshot = Set.of();
-    private int centerX;
-    private int centerY;
-    private double zoom = 1.0;
-    private double panX = 0.0;
-    private double panY = 0.0;
-    private boolean panning;
-    private double panStartMouseX, panStartMouseY, panStartX, panStartY;
+    protected final Map<ResourceLocation, NodePos> positions = new HashMap<>();
+    protected final Map<ResourceLocation, CraftorioUpgrade> upgrades = new HashMap<>();
+    protected final Map<ResourceLocation, ResourceLocation> parents = new HashMap<>();
+    protected final Map<ResourceLocation, Integer> depths = new HashMap<>();
+    protected final Map<ResourceLocation, Long> spawnTimes = new HashMap<>();
+    protected final Map<ResourceLocation, UpgradeNodeButton> buttons = new HashMap<>();
+    protected Set<ResourceLocation> lastUnlockedSnapshot = Set.of();
+    protected int centerX;
+    protected int centerY;
+    protected double zoom = 1.0;
+    protected double panX = 0.0;
+    protected double panY = 0.0;
+    protected boolean panning;
+    protected double panStartMouseX, panStartMouseY, panStartX, panStartY;
     private Component statusMessage;
     private long statusMessageExpireMillis;
-    private static final long STATUS_MESSAGE_DURATION_MS = 3000L;
 
-    public CraftorioSkillTreeScreen() {
-        super(Component.translatable("misc.craftorio.skill_tree_title"));
+    protected CraftorioSkillTreeScreenBase(Component title) {
+        super(title);
+    }
+
+    protected abstract ResourceKey<Registry<CraftorioUpgrade>> registryKey();
+
+    protected abstract boolean hasUnlocked(Player player, ResourceLocation id);
+
+    protected abstract int getPurchaseCount(Player player, ResourceLocation id);
+
+    protected abstract Set<ResourceLocation> getUnlockedSnapshot(Player player);
+
+    protected abstract BigInteger getCurrentCurrency(Player player);
+
+    protected abstract String formatCost(BigInteger cost);
+
+    protected abstract void sendUnlockPacket(ResourceLocation id);
+
+    protected abstract void renderHud(GuiGraphics graphics, Player player);
+
+    protected boolean useSpawnAnimation() {
+        return false;
+    }
+
+    protected int starfieldColor() {
+        return 0xF7F139;
     }
 
     @Override
@@ -68,9 +93,9 @@ public class CraftorioSkillTreeScreen extends Screen {
         Player player = this.minecraft.player;
         if (player == null || this.minecraft.level == null) return;
 
-        this.lastUnlockedSnapshot = new HashSet<>(CraftorioMisc.getUnlockedUpgrades(player));
+        this.lastUnlockedSnapshot = new HashSet<>(getUnlockedSnapshot(player));
 
-        Registry<CraftorioUpgrade> registry = this.minecraft.level.registryAccess().registryOrThrow(CraftorioUpgrade.REGISTRY_KEY);
+        Registry<CraftorioUpgrade> registry = this.minecraft.level.registryAccess().registryOrThrow(registryKey());
 
         Map<ResourceLocation, List<ResourceLocation>> children = new HashMap<>();
         List<ResourceLocation> roots = new ArrayList<>();
@@ -101,6 +126,7 @@ public class CraftorioSkillTreeScreen extends Screen {
             cursor += sweepPerRoot;
         }
 
+        boolean animated = useSpawnAnimation();
         boolean firstInit = this.spawnTimes.isEmpty();
         long baseSpawnTime = System.currentTimeMillis();
 
@@ -108,11 +134,13 @@ public class CraftorioSkillTreeScreen extends Screen {
             ResourceLocation id = entry.getKey();
             if (!isVisible(id, player)) continue;
 
-            if (firstInit) {
-                int depth = this.depths.getOrDefault(id, 0);
-                this.spawnTimes.putIfAbsent(id, baseSpawnTime + depth * DEPTH_STAGGER_MS);
-            } else {
-                this.spawnTimes.putIfAbsent(id, baseSpawnTime);
+            if (animated) {
+                if (firstInit) {
+                    int depth = this.depths.getOrDefault(id, 0);
+                    this.spawnTimes.putIfAbsent(id, baseSpawnTime + depth * DEPTH_STAGGER_MS);
+                } else {
+                    this.spawnTimes.putIfAbsent(id, baseSpawnTime);
+                }
             }
 
             CraftorioUpgrade upgrade = this.upgrades.get(id);
@@ -193,7 +221,7 @@ public class CraftorioSkillTreeScreen extends Screen {
 
     private boolean isVisible(ResourceLocation id, Player player) {
         ResourceLocation parent = this.parents.get(id);
-        return parent == null || CraftorioMisc.hasUnlockedUpgrade(player, parent);
+        return parent == null || hasUnlocked(player, parent);
     }
 
     private double computeLeafCounts(ResourceLocation id, Map<ResourceLocation, List<ResourceLocation>> childrenMap, Map<ResourceLocation, Double> leafCounts) {
@@ -256,11 +284,11 @@ public class CraftorioSkillTreeScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         graphics.fill(0, 0, this.width, this.height, 0xFF000000);
-        org.crimsoncrips.craftorio.client.CraftorioStarfield.render(graphics, this.width, this.height, this.panX, this.panY);
+        CraftorioStarfield.render(graphics, this.width, this.height, this.panX, this.panY, starfieldColor());
 
         Player player = this.minecraft.player;
         if (player != null) {
-            Set<ResourceLocation> currentUnlocked = CraftorioMisc.getUnlockedUpgrades(player);
+            Set<ResourceLocation> currentUnlocked = getUnlockedSnapshot(player);
             if (!currentUnlocked.equals(this.lastUnlockedSnapshot)) {
                 this.rebuildWidgets();
             }
@@ -274,7 +302,7 @@ public class CraftorioSkillTreeScreen extends Screen {
             NodePos parent = this.positions.get(entry.getValue());
             if (child == null || parent == null) continue;
 
-            boolean unlocked = CraftorioMisc.hasUnlockedUpgrade(player, childId);
+            boolean unlocked = hasUnlocked(player, childId);
             int lineColor = unlocked ? 0xFF55FF55 : 0xFFFFFFFF;
             drawLine(graphics, this.centerX + (int) Math.round(parent.x * zoom + panX), this.centerY + (int) Math.round(parent.y * zoom + panY),
                     this.centerX + (int) Math.round(child.x * zoom + panX), this.centerY + (int) Math.round(child.y * zoom + panY), lineColor);
@@ -283,9 +311,7 @@ public class CraftorioSkillTreeScreen extends Screen {
         super.render(graphics, mouseX, mouseY, partialTick);
 
         if (player != null) {
-            String pointsLine = Component.translatable("misc.craftorio.points_label").getString()
-                    + CraftorioMisc.bigIntFormat(CraftorioMisc.getPoints(player));
-            graphics.drawCenteredString(this.font, pointsLine, this.width / 2, 8, 0xFFFF55);
+            renderHud(graphics, player);
         }
 
         if (this.statusMessage != null) {
@@ -329,24 +355,24 @@ public class CraftorioSkillTreeScreen extends Screen {
         return false;
     }
 
-    private record NodePos(double x, double y) {}
+    protected record NodePos(double x, double y) {}
 
-    private class UpgradeNodeButton extends AbstractButton {
-        private final ResourceLocation id;
-        private final CraftorioUpgrade upgrade;
+    protected class UpgradeNodeButton extends AbstractButton {
+        protected final ResourceLocation id;
+        protected final CraftorioUpgrade upgrade;
         private int lastTooltipPurchaseCount = -1;
 
         UpgradeNodeButton(int x, int y, int size, ResourceLocation id, CraftorioUpgrade upgrade) {
             super(x, y, size, size, Component.translatable(upgrade.getNameKey()));
             this.id = id;
             this.upgrade = upgrade;
-            Player player = CraftorioSkillTreeScreen.this.minecraft.player;
-            updateTooltip(player != null ? CraftorioMisc.getUpgradeCount(player, id) : 0);
+            Player player = CraftorioSkillTreeScreenBase.this.minecraft.player;
+            updateTooltip(player != null ? getPurchaseCount(player, id) : 0);
         }
 
         private void updateTooltip(int purchaseCount) {
             this.lastTooltipPurchaseCount = purchaseCount;
-            String costText = CraftorioMisc.bigIntFormat(upgrade.getCost());
+            String costText = formatCost(upgrade.getCost());
             Component tooltip = Component.literal(upgrade.getActualName())
                     .append("\n").append(upgrade.getActualDescription())
                     .append("\n").append(Component.translatable("misc.craftorio.upgrade_cost_tooltip", costText))
@@ -356,20 +382,20 @@ public class CraftorioSkillTreeScreen extends Screen {
 
         @Override
         public void onPress() {
-            PacketDistributor.sendToServer(new UnlockUpgradePacket(id));
+            sendUnlockPacket(id);
         }
 
         @Override
         protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-            Player player = CraftorioSkillTreeScreen.this.minecraft.player;
-            int purchaseCount = player != null ? CraftorioMisc.getUpgradeCount(player, id) : 0;
+            Player player = CraftorioSkillTreeScreenBase.this.minecraft.player;
+            int purchaseCount = player != null ? getPurchaseCount(player, id) : 0;
             if (purchaseCount != this.lastTooltipPurchaseCount) {
                 updateTooltip(purchaseCount);
             }
 
-            boolean parentUnlocked = upgrade.getParent().isEmpty() || (player != null && CraftorioMisc.hasUnlockedUpgrade(player, upgrade.getParent().get()));
+            boolean parentUnlocked = upgrade.getParent().isEmpty() || (player != null && hasUnlocked(player, upgrade.getParent().get()));
             boolean maxed = purchaseCount >= upgrade.getMaxPurchases();
-            boolean affordable = player != null && CraftorioMisc.getPoints(player).compareTo(upgrade.getCost()) >= 0;
+            boolean affordable = player != null && getCurrentCurrency(player).compareTo(upgrade.getCost()) >= 0;
 
             int borderColor;
             if (maxed) {
@@ -382,13 +408,17 @@ public class CraftorioSkillTreeScreen extends Screen {
                 borderColor = 0xFFFF5555;
             }
 
-            long elapsed = System.currentTimeMillis() - CraftorioSkillTreeScreen.this.spawnTimes.getOrDefault(id, System.currentTimeMillis());
-            float t = Mth.clamp(elapsed / (float) APPEAR_DURATION_MS, 0f, 1f);
-            float scale = Mth.clamp(easeOutBack(t), 0f, 1.3f);
-            boolean animating = scale != 1f;
-
+            boolean animating = false;
+            float scale = 1f;
             int pivotX = this.getX() + this.getWidth() / 2;
             int pivotY = this.getY() + this.getHeight() / 2;
+
+            if (useSpawnAnimation()) {
+                long elapsed = System.currentTimeMillis() - CraftorioSkillTreeScreenBase.this.spawnTimes.getOrDefault(id, System.currentTimeMillis());
+                float t = Mth.clamp(elapsed / (float) APPEAR_DURATION_MS, 0f, 1f);
+                scale = Mth.clamp(easeOutBack(t), 0f, 1.3f);
+                animating = scale != 1f;
+            }
 
             if (animating) {
                 guiGraphics.pose().pushPose();

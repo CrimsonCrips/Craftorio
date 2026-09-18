@@ -49,29 +49,20 @@ public final class CraftorioStarfield {
     private static final float HALO_ALPHA_FACTOR = 0.5f;
     private static final float BASE_BLUR = 0.35f;
 
-    private static final float BASE_HUE;
-    private static final float BASE_SATURATION;
-    private static final float BASE_BRIGHTNESS;
     private static final float HUE_JITTER = 0.05f;
     private static final float SATURATION_JITTER = 0.15f;
     private static final float BRIGHTNESS_JITTER = 0.15f;
 
-    static {
-        float[] hsb = Color.RGBtoHSB(0x30, 0xFF, 0x5D, null);
-        BASE_HUE = hsb[0];
-        BASE_SATURATION = hsb[1];
-        BASE_BRIGHTNESS = hsb[2];
-    }
-
     private static List<Star> stars = List.of();
     private static int cachedWidth = -1;
     private static int cachedHeight = -1;
+    private static int cachedColor;
 
     private CraftorioStarfield() {}
 
-    public static void render(GuiGraphics graphics, int width, int height, double panX, double panY) {
-        if (width != cachedWidth || height != cachedHeight) {
-            regenerate(width, height);
+    public static void render(GuiGraphics graphics, int width, int height, double panX, double panY, int baseColor) {
+        if (width != cachedWidth || height != cachedHeight || baseColor != cachedColor) {
+            regenerate(width, height, baseColor);
         }
 
         long now = System.currentTimeMillis();
@@ -123,9 +114,15 @@ public final class CraftorioStarfield {
         return wrapped;
     }
 
-    private static void regenerate(int width, int height) {
+    private static void regenerate(int width, int height, int baseColor) {
         cachedWidth = width;
         cachedHeight = height;
+        cachedColor = baseColor;
+
+        float[] baseHsb = Color.RGBtoHSB((baseColor >> 16) & 0xFF, (baseColor >> 8) & 0xFF, baseColor & 0xFF, null);
+        float baseHue = baseHsb[0];
+        float baseSaturation = baseHsb[1];
+        float baseBrightness = baseHsb[2];
 
         RandomSource random = RandomSource.create(SEED);
         List<Star> generated = new ArrayList<>(STAR_COUNT);
@@ -142,9 +139,9 @@ public final class CraftorioStarfield {
             double cooldownMs = COOLDOWN_MIN_MS + random.nextDouble() * (COOLDOWN_MAX_MS - COOLDOWN_MIN_MS);
             float depth = random.nextFloat() * random.nextFloat();
 
-            float hue = BASE_HUE + (random.nextFloat() * 2f - 1f) * HUE_JITTER;
-            float saturation = Mth.clamp(BASE_SATURATION + (random.nextFloat() * 2f - 1f) * SATURATION_JITTER, 0f, 1f);
-            float value = Mth.clamp(BASE_BRIGHTNESS + (random.nextFloat() * 2f - 1f) * BRIGHTNESS_JITTER, 0f, 1f);
+            float hue = baseHue + (random.nextFloat() * 2f - 1f) * HUE_JITTER;
+            float saturation = Mth.clamp(baseSaturation + (random.nextFloat() * 2f - 1f) * SATURATION_JITTER, 0f, 1f);
+            float value = Mth.clamp(baseBrightness + (random.nextFloat() * 2f - 1f) * BRIGHTNESS_JITTER, 0f, 1f);
             int rgb = Color.HSBtoRGB(hue, saturation, value);
             float r = ((rgb >> 16) & 0xFF) / 255f;
             float g = ((rgb >> 8) & 0xFF) / 255f;

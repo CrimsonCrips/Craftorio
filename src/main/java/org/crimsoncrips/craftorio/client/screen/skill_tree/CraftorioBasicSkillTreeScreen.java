@@ -10,59 +10,63 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.CraftorioMisc;
-import org.crimsoncrips.craftorio.networking.UnlockRebirthUpgradePacket;
+import org.crimsoncrips.craftorio.networking.UnlockUpgradePacket;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
 
 import java.math.BigInteger;
 import java.util.Set;
 
 @OnlyIn(Dist.CLIENT)
-public class CraftorioRebirthSkillTreeScreen extends CraftorioSkillTreeScreenBase {
+public class CraftorioBasicSkillTreeScreen extends CraftorioSkillTreeScreenBase {
 
-    public CraftorioRebirthSkillTreeScreen() {
-        super(Component.translatable("misc.craftorio.rebirth_skill_tree_title"));
+    public CraftorioBasicSkillTreeScreen(String keyName) {
+        super(Component.translatable(keyName));
     }
 
     @Override
     protected ResourceKey<Registry<CraftorioUpgrade>> registryKey() {
-        return CraftorioUpgrade.REBIRTH_REGISTRY_KEY;
+        return CraftorioUpgrade.REGISTRY_KEY;
     }
 
     @Override
     protected boolean hasUnlocked(Player player, ResourceLocation id) {
-        return CraftorioMisc.hasUnlockedRebirthUpgrade(player, id);
+        return CraftorioMisc.hasUnlockedUpgrade(player, id);
     }
 
     @Override
     protected int getPurchaseCount(Player player, ResourceLocation id) {
-        return CraftorioMisc.getRebirthUpgradeCount(player, id);
+        return CraftorioMisc.getUpgradeCount(player, id);
     }
 
     @Override
     protected Set<ResourceLocation> getUnlockedSnapshot(Player player) {
-        return CraftorioMisc.getRebirthUpgradePurchaseCounts(player).keySet();
+        return CraftorioMisc.getUnlockedUpgrades(player);
     }
 
     @Override
     protected BigInteger getCurrentCurrency(Player player) {
-        return CraftorioMisc.getLifePoints(player);
+        return CraftorioMisc.getPoints(player);
     }
 
     @Override
     protected String formatCost(BigInteger cost) {
-        return cost.toString();
+        return CraftorioMisc.bigIntFormat(cost);
     }
 
     @Override
     protected void sendUnlockPacket(ResourceLocation id) {
-        PacketDistributor.sendToServer(new UnlockRebirthUpgradePacket(id));
+        PacketDistributor.sendToServer(new UnlockUpgradePacket(id));
+    }
+
+    @Override
+    protected boolean useSpawnAnimation() {
+        return true;
     }
 
     @Override
     protected void renderHud(GuiGraphics graphics, Player player) {
-        String lifeLine = Component.translatable("misc.craftorio.rebirth_current_life", CraftorioMisc.getLife(player)).getString();
-        String pointsLine = Component.translatable("misc.craftorio.rebirth_life_points_current", CraftorioMisc.getLifePoints(player).toString()).getString();
-        graphics.drawCenteredString(this.font, lifeLine, this.width / 2, 8, 0xFFFFFF);
-        graphics.drawCenteredString(this.font, pointsLine, this.width / 2, 20, 0xFFFF55);
+        String pointsLine = Component.translatable("misc.craftorio.points_label").getString()
+                + CraftorioMisc.bigIntFormat(CraftorioMisc.getPoints(player));
+        graphics.drawCenteredString(this.font, pointsLine, this.width / 2, 8, 0xFFFF55);
     }
 }
