@@ -30,6 +30,13 @@ public class ContractCreatorBountyScreen extends AbstractContainerScreen<Contrac
         int panelLeft = (this.width - this.imageWidth) / 2;
         int panelTop = (this.height - this.imageHeight) / 2;
 
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.back"), b -> {
+            if (this.minecraft.player != null) {
+                this.minecraft.player.closeContainer();
+            }
+            this.minecraft.setScreen(new DevToolsScreen(null));
+        }).bounds(panelLeft + 8, panelTop + 6, 52, 14).build());
+
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_next"), b -> this.minecraft.setScreen(new ContractCreatorRewardScreen(this.menu, this.minecraft.player.getInventory(), this.title)))
                 .bounds(panelLeft + this.imageWidth - 60, panelTop + 6, 52, 14).build());
 

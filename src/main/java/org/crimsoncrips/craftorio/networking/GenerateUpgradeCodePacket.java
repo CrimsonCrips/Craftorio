@@ -25,11 +25,11 @@ import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioModi
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public record GenerateUpgradeCodePacket(String category, String id, String modId, String description, String cost, String parent,
+public record GenerateUpgradeCodePacket(String category, String id, String modId, String description, String cost, String maxPurchases, String parent,
                                          String target, String operation, String value, String itemTag,
                                          boolean includeLang, String name, boolean jsonExport) implements CustomPacketPayload {
 
-    private static final ResourceLocation DEFAULT_ICON = Craftorio.getGuiTexture("default_contract_icon.png");
+    private static final ResourceLocation DEFAULT_ICON = Craftorio.getGuiTexture("default_icon.png");
 
     public static final Type<GenerateUpgradeCodePacket> TYPE = new Type<>(Craftorio.prefix("generate_upgrade_code_packet"));
     public static final StreamCodec<RegistryFriendlyByteBuf, GenerateUpgradeCodePacket> STREAM_CODEC = StreamCodec.of(
@@ -39,6 +39,7 @@ public record GenerateUpgradeCodePacket(String category, String id, String modId
                 ByteBufCodecs.STRING_UTF8.encode(buffer, message.modId());
                 ByteBufCodecs.STRING_UTF8.encode(buffer, message.description());
                 ByteBufCodecs.STRING_UTF8.encode(buffer, message.cost());
+                ByteBufCodecs.STRING_UTF8.encode(buffer, message.maxPurchases());
                 ByteBufCodecs.STRING_UTF8.encode(buffer, message.parent());
                 ByteBufCodecs.STRING_UTF8.encode(buffer, message.target());
                 ByteBufCodecs.STRING_UTF8.encode(buffer, message.operation());
@@ -49,6 +50,7 @@ public record GenerateUpgradeCodePacket(String category, String id, String modId
                 ByteBufCodecs.BOOL.encode(buffer, message.jsonExport());
             },
             buffer -> new GenerateUpgradeCodePacket(
+                    ByteBufCodecs.STRING_UTF8.decode(buffer),
                     ByteBufCodecs.STRING_UTF8.decode(buffer),
                     ByteBufCodecs.STRING_UTF8.decode(buffer),
                     ByteBufCodecs.STRING_UTF8.decode(buffer),
@@ -85,6 +87,7 @@ public record GenerateUpgradeCodePacket(String category, String id, String modId
             boolean isActionEffect = message.category().equals("action_effect");
 
             String cost = sanitize(message.cost()).isEmpty() ? "1000" : sanitize(message.cost());
+            int maxPurchases = Math.max(1, parseInt(message.maxPurchases(), 1));
             String parent = sanitize(message.parent()).isEmpty() ? "craftorio:root" : sanitize(message.parent());
             double value = parseDouble(message.value(), 0.1);
             if (message.operation().equals("ADD") && isTickDurationTarget(message.category(), message.target())) {
@@ -109,7 +112,8 @@ public record GenerateUpgradeCodePacket(String category, String id, String modId
                         .icon(DEFAULT_ICON)
                         .parent(ResourceLocation.parse(parent))
                         .description("misc." + modId + ".upgrade_" + id + "_description")
-                        .cost(CraftorioMisc.scientificToInt(cost));
+                        .cost(CraftorioMisc.scientificToInt(cost))
+                        .maxPurchases(maxPurchases);
 
                 CraftorioUpgrade upgrade;
                 if (isModifier) {
@@ -156,6 +160,7 @@ public record GenerateUpgradeCodePacket(String category, String id, String modId
             code.append("        .parent(ResourceLocation.parse(\"").append(parent).append("\"))\n");
             code.append("        .description(\"misc.").append(modId).append(".upgrade_").append(id).append("_description\")\n");
             code.append("        .cost(scientificToInt(\"").append(cost).append("\"))\n");
+            code.append("        .maxPurchases(").append(maxPurchases).append(")\n");
 
             if (isModifier) {
                 if (message.target().equals("ITEM_TAG_BASE_VALUE")) {
@@ -211,6 +216,14 @@ public record GenerateUpgradeCodePacket(String category, String id, String modId
     private static double parseDouble(String value, double fallback) {
         try {
             return Double.parseDouble(value.trim());
+        } catch (Exception e) {
+            return fallback;
+        }
+    }
+
+    private static int parseInt(String value, int fallback) {
+        try {
+            return Integer.parseInt(value.trim());
         } catch (Exception e) {
             return fallback;
         }

@@ -1,7 +1,6 @@
 {
   "basePointValue": "7000",
   "description": "registry.dyeabolical.description",
-  "icon": "craftorio:textures/gui/default_contract_icon.png",
   "itemBounty": [
     {
       "amountRequired": 100,

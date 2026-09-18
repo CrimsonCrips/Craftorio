@@ -14,7 +14,7 @@ import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
 
 public class CraftorioEffectBootstrap {
 
-    private static final ResourceLocation DEFAULT_ICON = Craftorio.getGuiTexture("default_contract_icon.png");
+    private static final ResourceLocation DEFAULT_ICON = Craftorio.getGuiTexture("default_icon.png");
 
     public static void buffBootstrap(BootstrapContext<CraftorioEffects> context) {
         context.register(

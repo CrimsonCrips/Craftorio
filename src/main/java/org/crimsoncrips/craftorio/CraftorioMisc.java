@@ -174,6 +174,10 @@ public class CraftorioMisc {
         return level.getData(UNIVERSAL_BASED);
     }
 
+    public static boolean isInHavenDimension(Level level){
+        return level != null && level.dimension().equals(org.crimsoncrips.craftorio.registries.CraftorioDimensions.HAVEN_LEVEL_KEY);
+    }
+
     public static Level universalLevel(Player player){
         Level level = player.level();
         MinecraftServer server = level.getServer();
@@ -315,6 +319,10 @@ public class CraftorioMisc {
         float multiplyFactor = (float) (1.0 + getUpgradeModifierSum(player, ModifierTarget.MULTIPLIER, UpgradeOperation.MULTIPLY));
         float result = multiplier * multiplyFactor;
 
+        if (!player.level().isClientSide()) {
+            recordHighestMultiplierIfHigher(player, result);
+        }
+
         CRAFTORIO_MULTIPLIER_CACHE.put(player, new CachedMultiplier(player.tickCount, result));
         return result;
     }
@@ -398,6 +406,90 @@ public class CraftorioMisc {
         return newCount;
     }
 
+    //Rebirth Skill Tree (life points, never reset by rebirth)
+
+    public static Map<ResourceLocation, Integer> getRebirthUpgradePurchaseCounts(Player player){
+        Level level = universalLevel(player);
+        if (universalBased(level)){
+            if (level.isClientSide() && ClientUniversalState.isAvailable()) {
+                return ClientUniversalState.getRebirthUpgradePurchaseCounts();
+            }
+            return level.getData(CraftorioDataAttachments.REBIRTH_UPGRADES_UNLOCKED);
+        } else {
+            return player.getData(CraftorioDataAttachments.REBIRTH_UPGRADES_UNLOCKED);
+        }
+    }
+
+    public static boolean hasUnlockedRebirthUpgrade(Player player, ResourceLocation id){
+        return getRebirthUpgradePurchaseCounts(player).getOrDefault(id, 0) > 0;
+    }
+
+    public static int getRebirthUpgradeCount(Player player, ResourceLocation id){
+        return getRebirthUpgradePurchaseCounts(player).getOrDefault(id, 0);
+    }
+
+    public static int purchaseRebirthUpgrade(Player player, ResourceLocation id, int maxPurchases){
+        Map<ResourceLocation, Integer> updated = new HashMap<>(getRebirthUpgradePurchaseCounts(player));
+        int newCount = updated.getOrDefault(id, 0) + 1;
+        if (newCount > maxPurchases) return -1;
+        updated.put(id, newCount);
+
+        Level level = universalLevel(player);
+        if (universalBased(level)){
+            level.setData(CraftorioDataAttachments.REBIRTH_UPGRADES_UNLOCKED, updated);
+        } else {
+            player.setData(CraftorioDataAttachments.REBIRTH_UPGRADES_UNLOCKED, updated);
+        }
+
+        if (player instanceof ServerPlayer serverPlayer) {
+            org.crimsoncrips.craftorio.events.ServerEvents.syncUniversalState(serverPlayer);
+        }
+
+        return newCount;
+    }
+
+    public static BigInteger getLifePoints(Player player){
+        Level level = universalLevel(player);
+        if (universalBased(level)){
+            if (level.isClientSide() && ClientUniversalState.isAvailable()) {
+                return ClientUniversalState.getLifePoints();
+            }
+            return level.getData(CraftorioDataAttachments.LIFE_POINTS);
+        } else {
+            return player.getData(CraftorioDataAttachments.LIFE_POINTS);
+        }
+    }
+
+    public static void setLifePoints(BigInteger points, Player player){
+        Level level = universalLevel(player);
+        if (universalBased(level)) {
+            level.setData(CraftorioDataAttachments.LIFE_POINTS, points);
+        } else {
+            player.setData(CraftorioDataAttachments.LIFE_POINTS, points);
+        }
+    }
+
+    public static int getLife(Player player){
+        Level level = universalLevel(player);
+        if (universalBased(level)){
+            if (level.isClientSide() && ClientUniversalState.isAvailable()) {
+                return ClientUniversalState.getLife();
+            }
+            return level.getData(CraftorioDataAttachments.LIFE);
+        } else {
+            return player.getData(CraftorioDataAttachments.LIFE);
+        }
+    }
+
+    public static void setLife(int life, Player player){
+        Level level = universalLevel(player);
+        if (universalBased(level)) {
+            level.setData(CraftorioDataAttachments.LIFE, life);
+        } else {
+            player.setData(CraftorioDataAttachments.LIFE, life);
+        }
+    }
+
     public static boolean hasModifierGateUnlocked(Player player, ModifierTarget gateTarget){
         return getUpgradeModifierSum(player, gateTarget, UpgradeOperation.ADD) > 0;
     }
@@ -408,10 +500,16 @@ public class CraftorioMisc {
 
     private static double sumModifierUpgrades(Player player, ModifierTarget target, UpgradeOperation operation, ItemStack contextStack){
         RegistryAccess registryAccess = player.level().registryAccess();
-        Registry<CraftorioUpgrade> registry = registryAccess.registryOrThrow(CraftorioUpgrade.REGISTRY_KEY);
 
         double sum = 0;
-        for (Map.Entry<ResourceLocation, Integer> entry : getUpgradePurchaseCounts(player).entrySet()) {
+        sum += sumModifierUpgradesFrom(registryAccess.registryOrThrow(CraftorioUpgrade.REGISTRY_KEY), getUpgradePurchaseCounts(player), target, operation, contextStack);
+        sum += sumModifierUpgradesFrom(registryAccess.registryOrThrow(CraftorioUpgrade.REBIRTH_REGISTRY_KEY), getRebirthUpgradePurchaseCounts(player), target, operation, contextStack);
+        return sum;
+    }
+
+    private static double sumModifierUpgradesFrom(Registry<CraftorioUpgrade> registry, Map<ResourceLocation, Integer> purchaseCounts, ModifierTarget target, UpgradeOperation operation, ItemStack contextStack){
+        double sum = 0;
+        for (Map.Entry<ResourceLocation, Integer> entry : purchaseCounts.entrySet()) {
             CraftorioUpgrade upgrade = registry.get(entry.getKey());
             if (!(upgrade instanceof CraftorioModifierUpgrade modifierUpgrade)) continue;
             if (modifierUpgrade.getTarget() != target || modifierUpgrade.getOperation() != operation) continue;
@@ -447,10 +545,16 @@ public class CraftorioMisc {
 
     public static double getXpGainModifierSum(Player player, UpgradeOperation operation){
         RegistryAccess registryAccess = player.level().registryAccess();
-        Registry<CraftorioUpgrade> registry = registryAccess.registryOrThrow(CraftorioUpgrade.REGISTRY_KEY);
 
         double sum = 0;
-        for (Map.Entry<ResourceLocation, Integer> entry : getUpgradePurchaseCounts(player).entrySet()) {
+        sum += sumXpGainUpgradesFrom(registryAccess.registryOrThrow(CraftorioUpgrade.REGISTRY_KEY), getUpgradePurchaseCounts(player), operation);
+        sum += sumXpGainUpgradesFrom(registryAccess.registryOrThrow(CraftorioUpgrade.REBIRTH_REGISTRY_KEY), getRebirthUpgradePurchaseCounts(player), operation);
+        return sum;
+    }
+
+    private static double sumXpGainUpgradesFrom(Registry<CraftorioUpgrade> registry, Map<ResourceLocation, Integer> purchaseCounts, UpgradeOperation operation){
+        double sum = 0;
+        for (Map.Entry<ResourceLocation, Integer> entry : purchaseCounts.entrySet()) {
             CraftorioUpgrade upgrade = registry.get(entry.getKey());
             if (upgrade instanceof CraftorioAttributeUpgrade attributeUpgrade
                     && attributeUpgrade.getTarget() == AttributeTarget.XP_GAIN
@@ -600,6 +704,26 @@ public class CraftorioMisc {
             level.setData(HIGHEST_REACHED_POINTS,assigningPoints);
         } else {
             player.setData(HIGHEST_REACHED_POINTS,assigningPoints);
+        }
+
+        if (assigningPoints.compareTo(getOverallHighestPoints(player)) > 0) {
+            if (universalBased(level)) {
+                level.setData(CraftorioDataAttachments.OVERALL_HIGHEST_POINTS, assigningPoints);
+            } else {
+                player.setData(CraftorioDataAttachments.OVERALL_HIGHEST_POINTS, assigningPoints);
+            }
+        }
+    }
+
+    public static BigInteger getOverallHighestPoints(Player player){
+        Level level = universalLevel(player);
+        if (universalBased(level)){
+            if (level.isClientSide() && ClientUniversalState.isAvailable()) {
+                return ClientUniversalState.getOverallHighestPoints();
+            }
+            return level.getData(CraftorioDataAttachments.OVERALL_HIGHEST_POINTS);
+        } else {
+            return player.getData(CraftorioDataAttachments.OVERALL_HIGHEST_POINTS);
         }
     }
 
@@ -784,13 +908,14 @@ public class CraftorioMisc {
     };
 
 
-    public static String bigIntFormat(BigInteger value, int formatType) {
+    public static String bigIntFormat(BigInteger value) {
         if (value.signum() == 0) {
             return "0";
         }
 
         boolean negative = value.signum() < 0;
         BigInteger absValue = value.abs();
+        int formatType = Craftorio.CLIENT_CONFIG.POINT_FORMATTING.get();
 
         String result = switch (formatType) {
             case 0 -> absValue.toString();
@@ -798,7 +923,7 @@ public class CraftorioMisc {
             case 2 -> toSuffix(absValue,false);
             case 3 -> toSuffix(absValue, true);
             default -> throw new IllegalArgumentException(
-                    "Invalid formatType: " + formatType + " (use 1 for scientific, 2 for suffix)");
+                    "Invalid formatType: " + formatType);
         };
 
         return negative ? "-" + result : result;
@@ -877,8 +1002,8 @@ public class CraftorioMisc {
         }
 
         public static int drawCapAwareNumber(GuiGraphics graphics, Font font, BigInteger value, int x, int y, boolean dropShadow, int normalColor) {
-            String text = bigIntFormat(value, Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
-            String cappedText = bigIntFormat(pointThreshold(), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
+            String text = bigIntFormat(value);
+            String cappedText = bigIntFormat(pointThreshold());
             String negCappedText = "-" + cappedText;
 
             if (text.equals(cappedText)) {
@@ -900,7 +1025,7 @@ public class CraftorioMisc {
             int totalWidth = 0;
             for (int i = 0; i < parts.length; i++) {
                 rendered[i] = parts[i] instanceof BigInteger bigInt
-                        ? bigIntFormat(bigInt, Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt())
+                        ? bigIntFormat(bigInt)
                         : String.valueOf(parts[i]);
                 totalWidth += font.width(rendered[i]);
             }
@@ -928,8 +1053,8 @@ public class CraftorioMisc {
         }
 
         public static MutableComponent capAwareNumberComponent(BigInteger value) {
-            String text = bigIntFormat(value, Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
-            String cappedText = bigIntFormat(pointThreshold(), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
+            String text = bigIntFormat(value);
+            String cappedText = bigIntFormat(pointThreshold());
             String negCappedText = "-" + cappedText;
 
             if (text.equals(cappedText)) {
@@ -1346,6 +1471,27 @@ public class CraftorioMisc {
         } else {
             player.setData(CraftorioDataAttachments.ITEMS_SINKED, updated);
         }
+
+        Map<ResourceLocation, Long> overallUpdated = new HashMap<>(getOverallItemsSinked(player));
+        overallUpdated.merge(id, amount, Long::sum);
+
+        if (universalBased(level)) {
+            level.setData(CraftorioDataAttachments.OVERALL_ITEMS_SINKED, overallUpdated);
+        } else {
+            player.setData(CraftorioDataAttachments.OVERALL_ITEMS_SINKED, overallUpdated);
+        }
+    }
+
+    public static Map<ResourceLocation, Long> getOverallItemsSinked(Player player){
+        Level level = universalLevel(player);
+        if (universalBased(level)){
+            if (level.isClientSide() && ClientUniversalState.isAvailable()) {
+                return ClientUniversalState.getOverallItemsSinked();
+            }
+            return level.getData(CraftorioDataAttachments.OVERALL_ITEMS_SINKED);
+        } else {
+            return player.getData(CraftorioDataAttachments.OVERALL_ITEMS_SINKED);
+        }
     }
 
     public static Collection<Holder.Reference<CraftorioContract>> getAllContracts(RegistryAccess registryAccess) {
@@ -1355,6 +1501,9 @@ public class CraftorioMisc {
     public static int getContractsCompleted(Player player){
         Level level = universalLevel(player);
         if (universalBased(level)){
+            if (level.isClientSide() && ClientUniversalState.isAvailable()) {
+                return ClientUniversalState.getContractsCompleted();
+            }
             return level.getData(CraftorioDataAttachments.CONTRACTS_COMPLETED);
         } else {
             return player.getData(CraftorioDataAttachments.CONTRACTS_COMPLETED);
@@ -1368,6 +1517,49 @@ public class CraftorioMisc {
             level.setData(CraftorioDataAttachments.CONTRACTS_COMPLETED, updated);
         } else {
             player.setData(CraftorioDataAttachments.CONTRACTS_COMPLETED, updated);
+        }
+
+        int overallUpdated = getOverallContractsCompleted(player) + 1;
+        if (universalBased(level)) {
+            level.setData(CraftorioDataAttachments.OVERALL_CONTRACTS_COMPLETED, overallUpdated);
+        } else {
+            player.setData(CraftorioDataAttachments.OVERALL_CONTRACTS_COMPLETED, overallUpdated);
+        }
+    }
+
+    public static int getOverallContractsCompleted(Player player){
+        Level level = universalLevel(player);
+        if (universalBased(level)){
+            if (level.isClientSide() && ClientUniversalState.isAvailable()) {
+                return ClientUniversalState.getOverallContractsCompleted();
+            }
+            return level.getData(CraftorioDataAttachments.OVERALL_CONTRACTS_COMPLETED);
+        } else {
+            return player.getData(CraftorioDataAttachments.OVERALL_CONTRACTS_COMPLETED);
+        }
+    }
+
+    //Highest Multiplier Achieved
+
+    public static float getHighestMultiplier(Player player){
+        Level level = universalLevel(player);
+        if (universalBased(level)){
+            if (level.isClientSide() && ClientUniversalState.isAvailable()) {
+                return ClientUniversalState.getHighestMultiplier();
+            }
+            return level.getData(CraftorioDataAttachments.HIGHEST_MULTIPLIER);
+        } else {
+            return player.getData(CraftorioDataAttachments.HIGHEST_MULTIPLIER);
+        }
+    }
+
+    public static void recordHighestMultiplierIfHigher(Player player, float multiplier){
+        if (multiplier <= getHighestMultiplier(player)) return;
+        Level level = universalLevel(player);
+        if (universalBased(level)) {
+            level.setData(CraftorioDataAttachments.HIGHEST_MULTIPLIER, multiplier);
+        } else {
+            player.setData(CraftorioDataAttachments.HIGHEST_MULTIPLIER, multiplier);
         }
     }
 

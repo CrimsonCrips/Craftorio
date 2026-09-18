@@ -26,7 +26,7 @@ import java.util.Map;
 public record GenerateEffectCodePacket(String effectType, String id, String modId, String multiplier, String seconds, String weight,
                                         boolean unobtainable, String itemTag, boolean includeLang, String name, boolean jsonExport) implements CustomPacketPayload {
 
-    private static final ResourceLocation DEFAULT_ICON = Craftorio.getGuiTexture("default_contract_icon.png");
+    private static final ResourceLocation DEFAULT_ICON = Craftorio.getGuiTexture("default_icon.png");
 
     public static final Type<GenerateEffectCodePacket> TYPE = new Type<>(Craftorio.prefix("generate_effect_code_packet"));
     public static final StreamCodec<RegistryFriendlyByteBuf, GenerateEffectCodePacket> STREAM_CODEC = StreamCodec.of(

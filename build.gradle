@@ -135,6 +135,7 @@ dependencies {
     // implementation files("libs/coolmod-${mc_version}-${coolmod_version}.jar")
 
     implementation "xaero.map:xaeroworldmap-neoforge-1.21.1:1.44.2"
+    compileOnly "curse.maven:irisshaders-455508:6661598"
     implementation "curse.maven:jade-324717:8591319"
     runtimeOnly "curse.maven:jei-238222:8622758"
     runtimeOnly "curse.maven:lithium-360438:8330365"

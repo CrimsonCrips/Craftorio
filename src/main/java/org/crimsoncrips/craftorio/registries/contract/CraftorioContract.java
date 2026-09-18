@@ -32,7 +32,6 @@ public class CraftorioContract {
     private int time;
     private BigInteger basePointValue;
     private List<CraftorioContractItemReward> rewards;
-    private ResourceLocation icon;
     private ResourceLocation punishment;
     private boolean abandoned;
     private int weight;
@@ -55,7 +54,6 @@ public class CraftorioContract {
                     Codec.INT.fieldOf("seconds").forGetter(contract -> contract.getTime() / SECONDS_TO_TICKS),
                     BIGINT_CODEC().optionalFieldOf("basePointValue", BigInteger.ZERO).forGetter(CraftorioContract::getBasePointValue),
                     Codec.list(CraftorioContractItemReward.CODEC).optionalFieldOf("itemRewards", List.of()).forGetter(CraftorioContract::getRewards),
-                    ResourceLocation.CODEC.optionalFieldOf("icon").forGetter(contract -> Optional.ofNullable(contract.getIcon())),
                     ResourceLocation.CODEC.optionalFieldOf("punishment").forGetter(contract -> Optional.ofNullable(contract.getPunishment())),
                     Codec.INT.fieldOf("weight").forGetter(CraftorioContract::getWeight),
                     SCIENTIFIC_BIGINT_CODEC().optionalFieldOf("point_threshold", BigInteger.ZERO).forGetter(CraftorioContract::getPointThreshold),
@@ -63,8 +61,8 @@ public class CraftorioContract {
                     SCIENTIFIC_BIGINT_CODEC().optionalFieldOf("max_point_threshold", CraftorioMisc.pointThreshold()).forGetter(CraftorioContract::getMaxPointThreshold),
                     Codec.STRING.optionalFieldOf("required_mod_id").forGetter(contract -> Optional.ofNullable(contract.getRequiredModId())),
                     ResourceKey.codec(CraftorioContractTexture.REGISTRY_KEY).optionalFieldOf("card_texture").forGetter(contract -> Optional.ofNullable(contract.getCardTexture()))
-            ).apply(instance, (itemBounty, name, description, seconds, basePointValue, rewards, icon, punishment, weight, pointThreshold, minPointThreshold, maxPointThreshold, requiredModId, cardTexture) ->
-                    new CraftorioContract(itemBounty, name, description, seconds, basePointValue, rewards, icon.orElse(null), punishment, weight, pointThreshold, minPointThreshold, maxPointThreshold, requiredModId, cardTexture))
+            ).apply(instance, (itemBounty, name, description, seconds, basePointValue, rewards, punishment, weight, pointThreshold, minPointThreshold, maxPointThreshold, requiredModId, cardTexture) ->
+                    new CraftorioContract(itemBounty, name, description, seconds, basePointValue, rewards, punishment, weight, pointThreshold, minPointThreshold, maxPointThreshold, requiredModId, cardTexture))
     );
 
     public static final StreamCodec<RegistryFriendlyByteBuf, CraftorioContract> CODEC_STREAM = StreamCodec.of(
@@ -75,7 +73,6 @@ public class CraftorioContract {
                 ByteBufCodecs.INT.encode(buffer, contract.getTime());
                 ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).encode(buffer, contract.getBasePointValue());
                 CraftorioContractItemReward.CODEC_STREAM.apply(ByteBufCodecs.list()).encode(buffer, contract.getRewards());
-                ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC).encode(buffer, Optional.ofNullable(contract.getIcon()));
                 ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC).encode(buffer, Optional.ofNullable(contract.getPunishment()));
                 ByteBufCodecs.BOOL.encode(buffer, contract.isAbandoned());
                 ByteBufCodecs.INT.encode(buffer, contract.getWeight());
@@ -92,7 +89,6 @@ public class CraftorioContract {
                 int time = ByteBufCodecs.INT.decode(buffer);
                 BigInteger basePointValue = ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).decode(buffer);
                 List<CraftorioContractItemReward> rewards = CraftorioContractItemReward.CODEC_STREAM.apply(ByteBufCodecs.list()).decode(buffer);
-                ResourceLocation icon = ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC).decode(buffer).orElse(null);
                 Optional<ResourceLocation> punishment = ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC).decode(buffer);
                 boolean abandoned = ByteBufCodecs.BOOL.decode(buffer);
                 int weight = ByteBufCodecs.INT.decode(buffer);
@@ -101,24 +97,23 @@ public class CraftorioContract {
                 BigInteger maxPointThreshold = ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).decode(buffer);
                 Optional<String> requiredModId = ByteBufCodecs.optional(ByteBufCodecs.STRING_UTF8).decode(buffer);
                 Optional<ResourceKey<CraftorioContractTexture>> cardTexture = ByteBufCodecs.optional(ResourceKey.streamCodec(CraftorioContractTexture.REGISTRY_KEY)).decode(buffer);
-                CraftorioContract contract = new CraftorioContract(itemBounty, name, description, time / SECONDS_TO_TICKS, basePointValue, rewards, icon, punishment, weight, pointThreshold, minPointThreshold, maxPointThreshold, requiredModId, cardTexture);
+                CraftorioContract contract = new CraftorioContract(itemBounty, name, description, time / SECONDS_TO_TICKS, basePointValue, rewards, punishment, weight, pointThreshold, minPointThreshold, maxPointThreshold, requiredModId, cardTexture);
                 contract.setTime(time);
                 return contract;
             }
     );
 
-    public CraftorioContract(List<CraftorioContractItem> itemBounty, String name, String description, int seconds, BigInteger basePointValue, List<CraftorioContractItemReward> rewards, ResourceLocation icon, Optional<ResourceLocation> punishment, int weight, BigInteger pointThreshold, BigInteger minPointThreshold, BigInteger maxPointThreshold, Optional<String> requiredModId){
-        this(itemBounty, name, description, seconds, basePointValue, rewards, icon, punishment, weight, pointThreshold, minPointThreshold, maxPointThreshold, requiredModId, Optional.empty());
+    public CraftorioContract(List<CraftorioContractItem> itemBounty, String name, String description, int seconds, BigInteger basePointValue, List<CraftorioContractItemReward> rewards, Optional<ResourceLocation> punishment, int weight, BigInteger pointThreshold, BigInteger minPointThreshold, BigInteger maxPointThreshold, Optional<String> requiredModId){
+        this(itemBounty, name, description, seconds, basePointValue, rewards, punishment, weight, pointThreshold, minPointThreshold, maxPointThreshold, requiredModId, Optional.empty());
     }
 
-    public CraftorioContract(List<CraftorioContractItem> itemBounty, String name, String description, int seconds, BigInteger basePointValue, List<CraftorioContractItemReward> rewards, ResourceLocation icon, Optional<ResourceLocation> punishment, int weight, BigInteger pointThreshold, BigInteger minPointThreshold, BigInteger maxPointThreshold, Optional<String> requiredModId, Optional<ResourceKey<CraftorioContractTexture>> cardTexture){
+    public CraftorioContract(List<CraftorioContractItem> itemBounty, String name, String description, int seconds, BigInteger basePointValue, List<CraftorioContractItemReward> rewards, Optional<ResourceLocation> punishment, int weight, BigInteger pointThreshold, BigInteger minPointThreshold, BigInteger maxPointThreshold, Optional<String> requiredModId, Optional<ResourceKey<CraftorioContractTexture>> cardTexture){
         this.itemBounty = itemBounty;
         this.name = name;
         this.description = description;
         this.time = seconds * SECONDS_TO_TICKS;
         this.basePointValue = basePointValue != null ? basePointValue : BigInteger.ZERO;
         this.rewards = rewards != null ? rewards : List.of();
-        this.icon = icon;
         this.punishment = punishment.orElse(null);
         this.abandoned = false;
         this.weight = weight;
@@ -129,8 +124,12 @@ public class CraftorioContract {
         this.cardTexture = cardTexture != null ? cardTexture.orElse(null) : null;
     }
 
-    public CraftorioContract(List<CraftorioContractItem> itemBounty, String langKey, int seconds, BigInteger basePointValue, List<CraftorioContractItemReward> rewards, ResourceLocation icon, Optional<ResourceLocation> punishment, int weight, BigInteger pointThreshold, BigInteger minPointThreshold, BigInteger maxPointThreshold, Optional<String> requiredModId){
-        this(itemBounty, "registry." + langKey + ".title", "registry." + langKey + ".description", seconds, basePointValue, rewards, icon, punishment, weight, pointThreshold, minPointThreshold, maxPointThreshold, requiredModId);
+    public CraftorioContract(List<CraftorioContractItem> itemBounty, String langKey, int seconds, BigInteger basePointValue, List<CraftorioContractItemReward> rewards, Optional<ResourceLocation> punishment, int weight, BigInteger pointThreshold, BigInteger minPointThreshold, BigInteger maxPointThreshold, Optional<String> requiredModId){
+        this(itemBounty, "registry." + langKey + ".title", "registry." + langKey + ".description", seconds, basePointValue, rewards, punishment, weight, pointThreshold, minPointThreshold, maxPointThreshold, requiredModId);
+    }
+
+    public CraftorioContract(List<CraftorioContractItem> itemBounty, String langKey, int seconds, BigInteger basePointValue, List<CraftorioContractItemReward> rewards, Optional<ResourceLocation> punishment, int weight, BigInteger pointThreshold, BigInteger minPointThreshold, BigInteger maxPointThreshold, Optional<String> requiredModId, Optional<ResourceKey<CraftorioContractTexture>> cardTexture){
+        this(itemBounty, "registry." + langKey + ".title", "registry." + langKey + ".description", seconds, basePointValue, rewards, punishment, weight, pointThreshold, minPointThreshold, maxPointThreshold, requiredModId, cardTexture);
     }
 
     public boolean isComplete(){
@@ -148,7 +147,7 @@ public class CraftorioContract {
         for (CraftorioContractItem item : itemBounty) {
             copiedItems.add(item.copy());
         }
-        CraftorioContract copy = new CraftorioContract(copiedItems, getActualName(), getDescription(), getTime() / SECONDS_TO_TICKS, getBasePointValue(), getRewards(), getIcon(), Optional.ofNullable(getPunishment()), getWeight(), getPointThreshold(), getMinPointThreshold(), getMaxPointThreshold(), Optional.ofNullable(getRequiredModId()), Optional.ofNullable(getCardTexture()));
+        CraftorioContract copy = new CraftorioContract(copiedItems, getActualName(), getDescription(), getTime() / SECONDS_TO_TICKS, getBasePointValue(), getRewards(), Optional.ofNullable(getPunishment()), getWeight(), getPointThreshold(), getMinPointThreshold(), getMaxPointThreshold(), Optional.ofNullable(getRequiredModId()), Optional.ofNullable(getCardTexture()));
         copy.setTime(getTime());
         return copy;
     }
@@ -229,14 +228,6 @@ public class CraftorioContract {
         this.rewards = rewards;
     }
 
-    public ResourceLocation getIcon() {
-        return icon;
-    }
-
-    public void setIcon(ResourceLocation icon) {
-        this.icon = icon;
-    }
-
     public ResourceLocation getPunishment() {
         return punishment;
     }
@@ -302,7 +293,7 @@ public class CraftorioContract {
     }
 
     public ResourceLocation resolveCardTexture(net.minecraft.core.RegistryAccess registryAccess) {
-        ResourceLocation fallback = Craftorio.getGuiTexture("contract_textures/contract.png");
+        ResourceLocation fallback = Craftorio.getGuiTexture("contract_textures/default_contract.png");
         if (cardTexture == null) return fallback;
 
         return registryAccess.registryOrThrow(CraftorioContractTexture.REGISTRY_KEY)

@@ -12,6 +12,7 @@ import net.minecraft.world.phys.shapes.BooleanOp;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.registries.CraftorioDimensions;
 import org.crimsoncrips.craftorio.server.BorderCollisionHooks;
 import org.crimsoncrips.craftorio.server.ChunkCollisionHooks;
 import org.spongepowered.asm.mixin.Mixin;
@@ -31,6 +32,10 @@ public interface CraftorioCollisionGetter {
         }
 
         if ((Object) this instanceof Level level) {
+            if (level.dimension().equals(CraftorioDimensions.HAVEN_LEVEL_KEY)) {
+                return true;
+            }
+
             VoxelShape borderCollision = null;
             if (CraftorioMisc.chunkBased(level)) {
                 borderCollision = ChunkCollisionHooks.combineWorldAndChunkBorders(level, entity, borderCollision);

@@ -12,6 +12,7 @@ import org.crimsoncrips.craftorio.item.CraftorioItems;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContractItem;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContractItemReward;
+import org.crimsoncrips.craftorio.registries.contract.CraftorioContractTexture;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -24,8 +25,6 @@ import static org.crimsoncrips.craftorio.CraftorioMisc.toItem;
 
 public class CraftorioContractBootstrap {
 
-    private static final ResourceLocation DEFAULT_ICON = Craftorio.getGuiTexture("default_contract_icon.png");
-
     public static void bootstrap(BootstrapContext<CraftorioContract> context) {
 
         context.register(
@@ -36,7 +35,6 @@ public class CraftorioContractBootstrap {
                         List.of(
                                 newContractReward(1, Items.GOLD_INGOT)
                         ),
-                        DEFAULT_ICON,
                         Optional.empty(),
                         10,
                         BigInteger.ZERO,
@@ -56,7 +54,6 @@ public class CraftorioContractBootstrap {
                         List.of(
                                 newContractReward(1, Items.CAKE)
                         ),
-                        DEFAULT_ICON,
                         Optional.empty(),
                         10,
                         BigInteger.ZERO,
@@ -77,7 +74,6 @@ public class CraftorioContractBootstrap {
                                 newContractItem(16, Items.BREAD)
                         ),"care_package", 500, BigInteger.valueOf(1200),
                         List.of(),
-                        DEFAULT_ICON,
                         Optional.empty(),
                         10,
                         BigInteger.ZERO,
@@ -98,7 +94,6 @@ public class CraftorioContractBootstrap {
                         List.of(
                                 newContractReward(5, Items.EXPERIENCE_BOTTLE)
                         ),
-                        DEFAULT_ICON,
                         Optional.empty(),
                         10,
                         scientificToInt("1e3"),
@@ -119,7 +114,6 @@ public class CraftorioContractBootstrap {
                         List.of(
                                 newContractReward(1, Items.DIAMOND_BLOCK)
                         ),
-                        DEFAULT_ICON,
                         Optional.of(Craftorio.prefix("shop/kingdom_tariff")),
                         10,
                         scientificToInt("5e3"),
@@ -152,7 +146,6 @@ public class CraftorioContractBootstrap {
                         List.of(
                                 newContractReward(20, Items.EXPERIENCE_BOTTLE)
                         ),
-                        DEFAULT_ICON,
                         Optional.empty(),
                         10,
                         scientificToInt("1e4"),
@@ -171,7 +164,6 @@ public class CraftorioContractBootstrap {
                                 newContractItem(192, Items.SPECTRAL_ARROW)
                         ),"archery_resupply", 3600, BigInteger.valueOf(7500),
                         List.of(),
-                        DEFAULT_ICON,
                         Optional.empty(),
                         10,
                         scientificToInt("2e4"),
@@ -188,7 +180,6 @@ public class CraftorioContractBootstrap {
                                 newContractItem(4, Items.DIAMOND_PICKAXE)
                         ),"terraforming", 3600, BigInteger.valueOf(20000),
                         List.of(),
-                        DEFAULT_ICON,
                         Optional.empty(),
                         10,
                         scientificToInt("1e4"),
@@ -212,7 +203,6 @@ public class CraftorioContractBootstrap {
                                 newContractItem(9, Items.CAKE)
                         ),"kingdoms_feast", 5400, BigInteger.valueOf(7541),
                         List.of(),
-                        DEFAULT_ICON,
                         Optional.of(Craftorio.prefix("shop/kingdom_tariff")),
                         10,
                         scientificToInt("3e4"),
@@ -230,7 +220,6 @@ public class CraftorioContractBootstrap {
                                 newContractItem(64, Items.WHEAT_SEEDS)
                         ),"chicken_coop", 900, BigInteger.valueOf(384),
                         List.of(),
-                        DEFAULT_ICON,
                         Optional.empty(),
                         10,
                         scientificToInt("5e3"),
@@ -253,7 +242,6 @@ public class CraftorioContractBootstrap {
                         List.of(
                                 newContractReward(1, CraftorioItems.MYSTERY_EFFECT_RUNE.get(), 2)
                         ),
-                        DEFAULT_ICON,
                         Optional.of(Craftorio.prefix("general/inquisitors_wrath")),
                         10,
                         scientificToInt("1e5"),
@@ -272,7 +260,6 @@ public class CraftorioContractBootstrap {
                                 newContractReward(2, CraftorioItems.MYSTERY_EFFECT_RUNE.get(), 1),
                                 newContractReward(1, CraftorioItems.EFFECT_RUNE.get(), 2)
                         ),
-                        DEFAULT_ICON,
                         Optional.of(Craftorio.prefix("tag/copper_deficiency")),
                         10,
                         scientificToInt("3e5"),
@@ -295,7 +282,6 @@ public class CraftorioContractBootstrap {
                         List.of(
                                 newContractReward(1, CraftorioItems.MYSTERY_EFFECT_RUNE.get(), 3)
                         ),
-                        DEFAULT_ICON,
                         Optional.empty(),
                         10,
                         scientificToInt("1e5"),
@@ -309,13 +295,13 @@ public class CraftorioContractBootstrap {
                 key("multiversal_collection"), new CraftorioContract(
                         allObtainableVanillaItems(),"multiversal_collection", 36000, scientificToInt("1e18"),
                         List.of(),
-                        DEFAULT_ICON,
                         Optional.of(Craftorio.prefix("general/trazyns_curse")),
                         10,
                         scientificToInt("1e9"),
                         scientificToInt("5e7"),
                         scientificToInt("1e309"),
-                        Optional.empty()
+                        Optional.empty(),
+                        Optional.of(CraftorioContractTexture.TRAZYN)
                 )
         );
 
@@ -455,7 +441,6 @@ public class CraftorioContractBootstrap {
                                 newContractReward(5, CraftorioItems.EFFECT_RUNE.get(), 2),
                                 newContractReward(3, CraftorioItems.MYSTERY_EFFECT_RUNE.get(), 2)
                         ),
-                        DEFAULT_ICON,
                         Optional.of(Craftorio.prefix("general/commeupance_of_the_gods")),
                         10,
                         scientificToInt("1e10"),
@@ -501,7 +486,6 @@ public class CraftorioContractBootstrap {
                         List.of(
                                 new CraftorioContractItemReward(1, BuiltInRegistries.ITEM.get(ResourceLocation.parse("craftorio:mystery_effect_rune")), 7)
                         ),
-                        DEFAULT_ICON,
                         Optional.empty(),
                         10,
                         scientificToInt("1e8"), scientificToInt("5e7"), scientificToInt("3e20"),
@@ -518,7 +502,6 @@ public class CraftorioContractBootstrap {
                         ),
                         "executed_escapee", 600, scientificToInt("1200"),
                         List.of(),
-                        DEFAULT_ICON,
                         Optional.empty(),
                         10,
                         scientificToInt("1e3"), scientificToInt("0"), scientificToInt("1e6"),

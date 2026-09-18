@@ -1,7 +1,6 @@
 {
   "basePointValue": "12000",
   "description": "registry.gold_throne_construction.description",
-  "icon": "craftorio:textures/gui/default_contract_icon.png",
   "itemBounty": [
     {
       "amountRequired": 28,

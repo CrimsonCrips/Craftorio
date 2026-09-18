@@ -40,6 +40,8 @@ public class PacketRegistration {
         registrar.playToServer(ClearContractCreatorGridPacket.TYPE, ClearContractCreatorGridPacket.STREAM_CODEC, ClearContractCreatorGridPacket::handle);
         registrar.playToServer(SetContractCreatorViewPacket.TYPE, SetContractCreatorViewPacket.STREAM_CODEC, SetContractCreatorViewPacket::handle);
         registrar.playToServer(ClearEffectsPacket.TYPE, ClearEffectsPacket.STREAM_CODEC, ClearEffectsPacket::handle);
+        registrar.playToServer(RequestRebirthPacket.TYPE, RequestRebirthPacket.STREAM_CODEC, RequestRebirthPacket::handle);
+        registrar.playToServer(UnlockRebirthUpgradePacket.TYPE, UnlockRebirthUpgradePacket.STREAM_CODEC, UnlockRebirthUpgradePacket::handle);
 
         registrar.playToClient(OpenShopScreenPacket.TYPE, OpenShopScreenPacket.STREAM_CODEC, OpenShopScreenPacket::handle);
         registrar.playToClient(OpenValueBrowserScreenPacket.TYPE, OpenValueBrowserScreenPacket.STREAM_CODEC, OpenValueBrowserScreenPacket::handle);
@@ -54,5 +56,6 @@ public class PacketRegistration {
         registrar.playToClient(DoubleOrNothingResultPacket.TYPE, DoubleOrNothingResultPacket.STREAM_CODEC, DoubleOrNothingResultPacket::handle);
         registrar.playToClient(SkillTreeGenerateResultPacket.TYPE, SkillTreeGenerateResultPacket.STREAM_CODEC, SkillTreeGenerateResultPacket::handle);
         registrar.playToClient(UnlockUpgradeFailedPacket.TYPE, UnlockUpgradeFailedPacket.STREAM_CODEC, UnlockUpgradeFailedPacket::handle);
+        registrar.playToClient(OpenRebirthSkillTreeScreenPacket.TYPE, OpenRebirthSkillTreeScreenPacket.STREAM_CODEC, OpenRebirthSkillTreeScreenPacket::handle);
     }
 }

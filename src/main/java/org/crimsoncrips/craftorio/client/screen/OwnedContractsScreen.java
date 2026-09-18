@@ -31,8 +31,6 @@ public class OwnedContractsScreen extends Screen {
     private static final int TOP_MARGIN = 40;
     private static final int BOTTOM_MARGIN = 46;
     private static final int SIDE_MARGIN = 30;
-    private static final int ICON_SIZE = 24;
-    private static final int ICON_GAP = 6;
     private static final int SHADOW_OFFSET = 5;
     private static final int SHADOW_ALPHA = 0x80;
     private static final float TEXT_SCALE = 0.8f;
@@ -185,10 +183,6 @@ public class OwnedContractsScreen extends Screen {
         graphics.pose().scale(textScale, textScale, 1f);
 
         float y = 0;
-        if (contract.getIcon() != null) {
-            graphics.blit(contract.getIcon(), -ICON_SIZE / 2, 0, 0, 0, ICON_SIZE, ICON_SIZE, ICON_SIZE, ICON_SIZE);
-            y = ICON_SIZE + ICON_GAP;
-        }
 
         for (var line : this.font.split(Component.literal(contract.getActualName()), wrapWidth)) {
             graphics.drawString(this.font, line, -this.font.width(line) / 2, (int) y, 0xFFFFFF, true);

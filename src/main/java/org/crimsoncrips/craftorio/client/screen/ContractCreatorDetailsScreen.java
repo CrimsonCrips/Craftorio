@@ -28,6 +28,7 @@ public class ContractCreatorDetailsScreen extends Screen {
     private static final String KEY_MAX_THRESHOLD = "contract_max_threshold";
     private static final String KEY_PUNISHMENT = "contract_punishment";
     private static final String KEY_REQUIRED_MOD = "contract_required_mod";
+    private static final String KEY_CARD_TEXTURE = "contract_card_texture";
     private static final String KEY_JSON_EXPORT = "contract_json_export";
     private static final String KEY_INCLUDE_LANG = "contract_include_lang";
     private static final String KEY_TITLE = "contract_title";
@@ -39,7 +40,7 @@ public class ContractCreatorDetailsScreen extends Screen {
 
     private int panelLeft;
     private int panelTop;
-    private final int panelWidth = 260;
+    private final int panelWidth = 320;
     private final int panelHeight = 378;
 
     private EditBox idBox;
@@ -52,6 +53,7 @@ public class ContractCreatorDetailsScreen extends Screen {
     private EditBox maxPointThresholdBox;
     private EditBox punishmentBox;
     private EditBox requiredModIdBox;
+    private EditBox cardTextureBox;
     private boolean jsonExport;
     private Button exportButton;
     private boolean includeLang;
@@ -81,8 +83,8 @@ public class ContractCreatorDetailsScreen extends Screen {
         this.panelLeft = (this.width - panelWidth) / 2;
         this.panelTop = (this.height - panelHeight) / 2;
 
-        int fieldX = panelLeft + 100;
-        int fieldWidth = panelWidth - 110;
+        int fieldX = panelLeft + 132;
+        int fieldWidth = panelWidth - 142;
         int y = panelTop + 24;
         int rowHeight = 22;
 
@@ -110,6 +112,8 @@ public class ContractCreatorDetailsScreen extends Screen {
         this.punishmentBox = newBox(fieldX, y, fieldWidth, KEY_PUNISHMENT, "e.g. craftorio:general/some_punishment");
         y += rowHeight;
         this.requiredModIdBox = newBox(fieldX, y, fieldWidth, KEY_REQUIRED_MOD, "e.g. create");
+        y += rowHeight;
+        this.cardTextureBox = newBox(fieldX, y, fieldWidth, KEY_CARD_TEXTURE, "e.g. craftorio:default");
         y += rowHeight;
 
         this.includeLangButton = Button.builder(Component.literal(String.valueOf(includeLang)), b -> {
@@ -194,6 +198,7 @@ public class ContractCreatorDetailsScreen extends Screen {
                 includeLang,
                 titleBox.getValue(),
                 descriptionBox.getValue(),
+                cardTextureBox.getValue(),
                 jsonExport
         ));
     }
@@ -219,7 +224,7 @@ public class ContractCreatorDetailsScreen extends Screen {
         String[] labelKeys = {
                 "dev_tools_label_id", "dev_tools_label_mod_id", "dev_tools_label_seconds", "dev_tools_label_reward_points", "dev_tools_label_weight",
                 "dev_tools_label_claim_threshold", "dev_tools_label_offer_min", "dev_tools_label_offer_max",
-                "dev_tools_label_punishment", "dev_tools_label_required_mod", "dev_tools_label_include_lang"
+                "dev_tools_label_punishment", "dev_tools_label_required_mod", "dev_tools_label_card_texture", "dev_tools_label_include_lang"
         };
         for (String key : labelKeys) {
             guiGraphics.drawString(this.font, Component.translatable("misc.craftorio." + key), labelX, y + 4, 0xAAAAAA, false);

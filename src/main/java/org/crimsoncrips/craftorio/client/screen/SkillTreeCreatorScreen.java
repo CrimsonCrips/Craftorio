@@ -56,15 +56,15 @@ public class SkillTreeCreatorScreen extends Screen {
     private static final double MIN_ZOOM = 0.2;
     private static final double MAX_ZOOM = 3.5;
 
-    private static final List<DraftNode> nodes = new ArrayList<>();
-    private static int nextLocalId = 0;
-    private static int nextNodeNumber = 1;
-    private static int nodeCascade = 0;
-    private static boolean jsonExport = false;
-    private static boolean includeLang = false;
-    private static String savedModId = "yourmodid";
-    private static double panX = 0, panY = 0;
-    private static double zoom = 1.0;
+    private final List<DraftNode> nodes = new ArrayList<>();
+    private int nextLocalId = 0;
+    private int nextNodeNumber = 1;
+    private int nodeCascade = 0;
+    private boolean jsonExport = false;
+    private boolean includeLang = false;
+    private String savedModId = "yourmodid";
+    private double panX = 0, panY = 0;
+    private double zoom = 1.0;
 
     private final Screen parent;
     private final DevToolsHelpPanel helpPanel = new DevToolsHelpPanel();
@@ -101,6 +101,7 @@ public class SkillTreeCreatorScreen extends Screen {
     private EditBox descriptionBox;
     private EditBox costBox;
     private Button costScientificButton;
+    private EditBox maxPurchasesBox;
     private EditBox valueBox;
     private EditBox itemTagBox;
     private EditBox externalParentBox;
@@ -111,7 +112,7 @@ public class SkillTreeCreatorScreen extends Screen {
         this.parent = parent;
     }
 
-    public static void loadFromRegistry(Minecraft minecraft) {
+    public void loadFromRegistry(Minecraft minecraft) {
         if (minecraft.level == null) return;
         Registry<CraftorioUpgrade> registry = minecraft.level.registryAccess().registryOrThrow(CraftorioUpgrade.REGISTRY_KEY);
 
@@ -134,6 +135,7 @@ public class SkillTreeCreatorScreen extends Screen {
             DraftNode node = new DraftNode(nextLocalId++, id.getPath());
 
             node.cost = upgrade.getCost().toString();
+            node.maxPurchases = String.valueOf(upgrade.getMaxPurchases());
             node.name = Component.translatable(upgrade.getNameKey()).getString();
             node.description = Component.translatable(upgrade.getDescriptionKey()).getString();
             node.x = upgrade.getX();
@@ -357,6 +359,12 @@ public class SkillTreeCreatorScreen extends Screen {
         this.addRenderableWidget(this.costScientificButton);
         y += rowHeight;
 
+        this.maxPurchasesBox = new EditBox(this.font, fieldX, y, fieldWidth, 16, Component.literal("max purchases"));
+        this.maxPurchasesBox.setMaxLength(256);
+        this.maxPurchasesBox.setResponder(s -> { if (selected != null) selected.maxPurchases = s; });
+        this.addRenderableWidget(this.maxPurchasesBox);
+        y += rowHeight;
+
         this.modifierTargetButton = Button.builder(Component.literal(MODIFIER_TARGETS[0]), b -> {
             if (selected == null) return;
             selected.modifierTargetIndex = (selected.modifierTargetIndex + 1) % MODIFIER_TARGETS.length;
@@ -471,6 +479,8 @@ public class SkillTreeCreatorScreen extends Screen {
         this.costBox.active = has;
         this.costScientificButton.visible = has;
         this.costScientificButton.active = has;
+        this.maxPurchasesBox.visible = has;
+        this.maxPurchasesBox.active = has;
         this.operationButton.visible = has;
         this.operationButton.active = has;
         this.valueBox.visible = has;
@@ -502,6 +512,7 @@ public class SkillTreeCreatorScreen extends Screen {
         this.duplicateButton.active = !selected.manual;
 
         this.costBox.setValue(selected.cost);
+        this.maxPurchasesBox.setValue(selected.maxPurchases);
 
         this.nameBox.visible = includeLang;
         this.nameBox.active = includeLang;
@@ -523,6 +534,8 @@ public class SkillTreeCreatorScreen extends Screen {
             this.categoryButton.active = false;
             this.idBox.visible = false;
             this.idBox.active = false;
+            this.maxPurchasesBox.visible = false;
+            this.maxPurchasesBox.active = false;
             this.operationButton.visible = false;
             this.operationButton.active = false;
             this.valueBox.visible = false;
@@ -618,6 +631,7 @@ public class SkillTreeCreatorScreen extends Screen {
         copy.operationIndex = selected.operationIndex;
         copy.description = selected.description;
         copy.cost = selected.cost;
+        copy.maxPurchases = selected.maxPurchases;
         copy.value = selected.value;
         copy.itemTag = selected.itemTag;
         copy.name = selected.name;
@@ -662,6 +676,7 @@ public class SkillTreeCreatorScreen extends Screen {
                     modId,
                     node.description,
                     node.cost,
+                    node.maxPurchases,
                     node.category.equals("modifier") ? MODIFIER_TARGETS[node.modifierTargetIndex]
                             : node.category.equals("action_effect") ? PLAYER_ACTION_TARGETS[node.playerActionTargetIndex]
                             : ATTRIBUTE_TARGETS[node.attributeTargetIndex],
@@ -1021,6 +1036,7 @@ public class SkillTreeCreatorScreen extends Screen {
             y += rowHeight;
 
             y += rowHeight;
+            y += rowHeight;
             graphics.drawString(this.font, Component.translatable("misc.craftorio.dev_tools_skill_tree_manual_upgrade_3"), labelX, y + 4, 0xFFAA55, false);
             y += rowHeight;
             y += rowHeight * 2;
@@ -1053,7 +1069,7 @@ public class SkillTreeCreatorScreen extends Screen {
                     : selected.category.equals("action_effect") ? "dev_tools_label_target_action"
                     : "dev_tools_label_target_attribute";
             String[] moreLabelKeys = {
-                    "dev_tools_label_cost", targetLabelKey,
+                    "dev_tools_label_cost", "dev_tools_label_max_purchases", targetLabelKey,
                     "dev_tools_label_operation", "dev_tools_label_value"
             };
             boolean isActionEffectSelected = selected.category.equals("action_effect");
@@ -1100,6 +1116,9 @@ public class SkillTreeCreatorScreen extends Screen {
                 CraftorioMisc.CraftorioTextEffects.drawEditBoxHint(graphics, this.font, this.descriptionBox, "e.g. My upgrade.");
             }
             CraftorioMisc.CraftorioTextEffects.drawEditBoxHint(graphics, this.font, this.costBox, "e.g. 1000 or 1e6");
+            if (this.maxPurchasesBox.visible) {
+                CraftorioMisc.CraftorioTextEffects.drawEditBoxHint(graphics, this.font, this.maxPurchasesBox, "e.g. 1");
+            }
             if (this.nameBox.visible) {
                 CraftorioMisc.CraftorioTextEffects.drawEditBoxHint(graphics, this.font, this.nameBox, "e.g. My Upgrade");
             }
@@ -1140,6 +1159,7 @@ public class SkillTreeCreatorScreen extends Screen {
         String id;
         String description = "";
         String cost = "1000";
+        String maxPurchases = "1";
         String value = "0.1";
         String itemTag = "";
         String name = "";

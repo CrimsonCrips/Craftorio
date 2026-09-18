@@ -17,7 +17,7 @@ import static org.crimsoncrips.craftorio.CraftorioMisc.scientificToInt;
 
 public class CraftorioUpgradeBootstrap {
 
-    private static final ResourceLocation DEFAULT_ICON = Craftorio.getGuiTexture("default_contract_icon.png");
+    private static final ResourceLocation DEFAULT_ICON = Craftorio.getGuiTexture("default_icon.png");
 
     public static void bootstrap(BootstrapContext<CraftorioUpgrade> context) {
         Holder.Reference<CraftorioUpgrade> betBonus1Upgrade = CraftorioUpgrade.builder()

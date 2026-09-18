@@ -18,9 +18,11 @@ import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.inventory.ContractCreatorMenu;
 import org.crimsoncrips.craftorio.item.EffectRune;
+import net.minecraft.resources.ResourceKey;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContractItem;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContractItemReward;
+import org.crimsoncrips.craftorio.registries.contract.CraftorioContractTexture;
 import org.crimsoncrips.craftorio.server.CraftorioDevTools;
 
 import java.math.BigInteger;
@@ -33,10 +35,8 @@ import java.util.Optional;
 public record GenerateContractCodePacket(String id, String modId, String seconds, String basePointValue, String weight,
                                           String claimPointThreshold, String minPointThreshold, String maxPointThreshold,
                                           String punishment, String requiredModId, String rewardRandomEffectCount,
-                                          boolean includeLang, String title, String description,
+                                          boolean includeLang, String title, String description, String cardTexture,
                                           boolean jsonExport) implements CustomPacketPayload {
-
-    private static final ResourceLocation DEFAULT_ICON = Craftorio.getGuiTexture("default_contract_icon.png");
 
     public static final Type<GenerateContractCodePacket> TYPE = new Type<>(Craftorio.prefix("generate_contract_code_packet"));
     public static final StreamCodec<RegistryFriendlyByteBuf, GenerateContractCodePacket> STREAM_CODEC = StreamCodec.of(
@@ -55,6 +55,7 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
                 ByteBufCodecs.BOOL.encode(buffer, message.includeLang());
                 ByteBufCodecs.STRING_UTF8.encode(buffer, message.title());
                 ByteBufCodecs.STRING_UTF8.encode(buffer, message.description());
+                ByteBufCodecs.STRING_UTF8.encode(buffer, message.cardTexture());
                 ByteBufCodecs.BOOL.encode(buffer, message.jsonExport());
             },
             buffer -> new GenerateContractCodePacket(
@@ -70,6 +71,7 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
                     ByteBufCodecs.STRING_UTF8.decode(buffer),
                     ByteBufCodecs.STRING_UTF8.decode(buffer),
                     ByteBufCodecs.BOOL.decode(buffer),
+                    ByteBufCodecs.STRING_UTF8.decode(buffer),
                     ByteBufCodecs.STRING_UTF8.decode(buffer),
                     ByteBufCodecs.STRING_UTF8.decode(buffer),
                     ByteBufCodecs.BOOL.decode(buffer)
@@ -101,6 +103,7 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
             String maxThreshold = sanitize(message.maxPointThreshold()).isEmpty() ? "1000000" : sanitize(message.maxPointThreshold());
             String punishment = sanitize(message.punishment());
             String requiredModId = sanitize(message.requiredModId());
+            String cardTexture = sanitize(message.cardTexture());
             int randomEffectCount = parseInt(message.rewardRandomEffectCount(), 0);
             String modId = sanitize(message.modId()).isEmpty() ? "yourmodid" : sanitize(message.modId());
 
@@ -133,6 +136,8 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
 
                 Optional<ResourceLocation> punishmentLoc = punishment.isEmpty() ? Optional.empty() : Optional.of(ResourceLocation.parse(punishment));
                 Optional<String> requiredModOpt = requiredModId.isEmpty() ? Optional.empty() : Optional.of(requiredModId);
+                Optional<ResourceKey<CraftorioContractTexture>> cardTextureKey = cardTexture.isEmpty() ? Optional.empty()
+                        : Optional.of(ResourceKey.create(CraftorioContractTexture.REGISTRY_KEY, ResourceLocation.parse(cardTexture)));
 
                 BigInteger basePoints = CraftorioMisc.scientificToInt(basePointValue);
                 BigInteger claim = CraftorioMisc.scientificToInt(claimThreshold);
@@ -140,7 +145,7 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
                 BigInteger max = CraftorioMisc.scientificToInt(maxThreshold);
 
                 CraftorioContract contract = new CraftorioContract(bountyItems, id, seconds, basePoints, rewardItems,
-                        DEFAULT_ICON, punishmentLoc, weight, claim, min, max, requiredModOpt);
+                        punishmentLoc, weight, claim, min, max, requiredModOpt, cardTextureKey);
 
                 CraftorioContract.CODEC.encodeStart(JsonOps.INSTANCE, contract).resultOrPartial(Craftorio.LOGGER::error)
                         .ifPresentOrElse(
@@ -193,6 +198,8 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
 
             String punishmentExpr = punishment.isEmpty() ? "Optional.empty()" : "Optional.of(ResourceLocation.parse(\"" + punishment + "\"))";
             String requiredModIdExpr = requiredModId.isEmpty() ? "Optional.empty()" : "Optional.of(\"" + requiredModId + "\")";
+            String cardTextureExpr = cardTexture.isEmpty() ? "Optional.empty()"
+                    : "Optional.of(ResourceKey.create(CraftorioContractTexture.REGISTRY_KEY, ResourceLocation.parse(\"" + cardTexture + "\")))";
 
             StringBuilder code = new StringBuilder();
             code.append("context.register(\n");
@@ -203,15 +210,16 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
             code.append("                \"").append(id).append("\", ").append(seconds).append(", scientificToInt(\"").append(basePointValue).append("\"),\n");
             code.append("                List.of(\n").append(rewards);
             code.append("                ),\n");
-            code.append("                DEFAULT_ICON,\n");
             code.append("                ").append(punishmentExpr).append(",\n");
             code.append("                ").append(weight).append(",\n");
             code.append("                scientificToInt(\"").append(claimThreshold).append("\"), scientificToInt(\"").append(minThreshold).append("\"), scientificToInt(\"").append(maxThreshold).append("\"),\n");
-            code.append("                ").append(requiredModIdExpr).append("\n");
+            code.append("                ").append(requiredModIdExpr).append(",\n");
+            code.append("                ").append(cardTextureExpr).append("\n");
             code.append("        )\n");
             code.append(");\n");
             code.append("\n// Requires: import static org.crimsoncrips.craftorio.CraftorioMisc.scientificToInt;\n");
             code.append("// Requires: import static org.crimsoncrips.craftorio.CraftorioMisc.toItem;\n");
+            code.append("// Requires: import org.crimsoncrips.craftorio.registries.contract.CraftorioContractTexture;\n");
 
             if (!langEntries.isEmpty()) {
                 code.append("\n// Add to your LanguageProvider's addTranslations(...):\n");

@@ -17,6 +17,7 @@ import org.crimsoncrips.craftorio.block.entity.CraftorioBlockEntityTypes;
 import org.crimsoncrips.craftorio.events.ClientEvents;
 import org.crimsoncrips.craftorio.client.CraftorioClientConfig;
 import org.crimsoncrips.craftorio.client.CraftorioKeyMappings;
+import org.crimsoncrips.craftorio.client.compat.IrisCompat;
 import org.crimsoncrips.craftorio.client.compat.XaeroWorldMapCompat;
 import org.crimsoncrips.craftorio.datagen.CraftorioDatagen;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
@@ -96,11 +97,18 @@ public class Craftorio {
             NeoForge.EVENT_BUS.addListener(CraftorioKeyMappings::onClientTick);
             NeoForge.EVENT_BUS.addListener(ClientEvents::tickUniversalProgressDisplay);
             NeoForge.EVENT_BUS.addListener(ClientEvents::addCraftorioStatsButton);
+            NeoForge.EVENT_BUS.addListener(ClientEvents::addCraftorioWorldCreationButton);
+            NeoForge.EVENT_BUS.addListener(ClientEvents::repositionWorldCreationButton);
+            modEventBus.addListener(ClientEvents::registerDimensionEffects);
             ClientEvents.registerConfigScreen(modContainer);
 
             if (ModList.get().isLoaded("xaeroworldmap")) {
                 NeoForge.EVENT_BUS.addListener(XaeroWorldMapCompat::onClientTick);
                 NeoForge.EVENT_BUS.addListener(XaeroWorldMapCompat::renderOverlay);
+            }
+
+            if (ModList.get().isLoaded("iris")) {
+                NeoForge.EVENT_BUS.addListener(IrisCompat::onClientTick);
             }
         }
 
@@ -112,6 +120,7 @@ public class Craftorio {
         CraftorioItems.ITEMS.register(modEventBus);
         CraftorioMenuTypes.CONTAINERS.register(modEventBus);
         CraftorioDataComponents.COMPONENTS.register(modEventBus);
+        org.crimsoncrips.craftorio.worldgen.CraftorioFeatures.FEATURES.register(modEventBus);
 
         //Config
         modContainer.registerConfig(ModConfig.Type.COMMON, SERVER_CONFIG_SPEC, "craftorio-general.toml");

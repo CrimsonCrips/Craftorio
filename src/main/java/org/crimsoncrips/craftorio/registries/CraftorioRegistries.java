@@ -36,5 +36,6 @@ public class CraftorioRegistries {
         event.dataPackRegistry(CraftorioContract.REGISTRY_KEY, CraftorioContract.CODEC, CraftorioContract.CODEC);
         event.dataPackRegistry(CraftorioContractTexture.REGISTRY_KEY, CraftorioContractTexture.CODEC, CraftorioContractTexture.CODEC);
         event.dataPackRegistry(CraftorioUpgrade.REGISTRY_KEY, CraftorioUpgrade.dispatchCodec(), CraftorioUpgrade.dispatchCodec());
+        event.dataPackRegistry(CraftorioUpgrade.REBIRTH_REGISTRY_KEY, CraftorioUpgrade.dispatchCodec(), CraftorioUpgrade.dispatchCodec());
     }
 }

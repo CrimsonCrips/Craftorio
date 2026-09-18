@@ -4,7 +4,7 @@
   "cost": "30000000000000000",
   "description": "misc.craftorio.upgrade_wake_up_productive_description",
   "effect": "craftorio:productive",
-  "icon": "craftorio:textures/gui/default_contract_icon.png",
+  "icon": "craftorio:textures/gui/default_icon.png",
   "name": "misc.craftorio.upgrade_wake_up_productive",
   "target": "WAKE_UP",
   "x": -160.19353890940016,

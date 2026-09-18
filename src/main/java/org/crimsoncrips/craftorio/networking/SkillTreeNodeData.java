@@ -5,7 +5,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 
 public record SkillTreeNodeData(int localId, int parentLocalId, String externalParent, String category,
-                                 String id, String modId, String description, String cost,
+                                 String id, String modId, String description, String cost, String maxPurchases,
                                  String target, String operation, String value, String itemTag, String name,
                                  boolean manual, double x, double y) {
 
@@ -19,6 +19,7 @@ public record SkillTreeNodeData(int localId, int parentLocalId, String externalP
                 ByteBufCodecs.STRING_UTF8.encode(buffer, node.modId());
                 ByteBufCodecs.STRING_UTF8.encode(buffer, node.description());
                 ByteBufCodecs.STRING_UTF8.encode(buffer, node.cost());
+                ByteBufCodecs.STRING_UTF8.encode(buffer, node.maxPurchases());
                 ByteBufCodecs.STRING_UTF8.encode(buffer, node.target());
                 ByteBufCodecs.STRING_UTF8.encode(buffer, node.operation());
                 ByteBufCodecs.STRING_UTF8.encode(buffer, node.value());
@@ -31,6 +32,7 @@ public record SkillTreeNodeData(int localId, int parentLocalId, String externalP
             buffer -> new SkillTreeNodeData(
                     ByteBufCodecs.INT.decode(buffer),
                     ByteBufCodecs.INT.decode(buffer),
+                    ByteBufCodecs.STRING_UTF8.decode(buffer),
                     ByteBufCodecs.STRING_UTF8.decode(buffer),
                     ByteBufCodecs.STRING_UTF8.decode(buffer),
                     ByteBufCodecs.STRING_UTF8.decode(buffer),

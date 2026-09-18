@@ -37,7 +37,7 @@ import java.util.Set;
 
 public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean includeLang, boolean jsonExport) implements CustomPacketPayload {
 
-    private static final ResourceLocation DEFAULT_ICON = Craftorio.getGuiTexture("default_contract_icon.png");
+    private static final ResourceLocation DEFAULT_ICON = Craftorio.getGuiTexture("default_icon.png");
 
     public static final Type<GenerateSkillTreeCodePacket> TYPE = new Type<>(Craftorio.prefix("generate_skill_tree_code_packet"));
     public static final StreamCodec<RegistryFriendlyByteBuf, GenerateSkillTreeCodePacket> STREAM_CODEC = StreamCodec.of(
@@ -163,6 +163,7 @@ public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean
         String id = sanitize(node.id());
         String modId = sanitize(node.modId()).isEmpty() ? "yourmodid" : sanitize(node.modId());
         String cost = sanitize(node.cost()).isEmpty() ? "1000" : sanitize(node.cost());
+        int maxPurchases = Math.max(1, parseInt(node.maxPurchases(), 1));
         double value = parseDouble(node.value(), 0.1);
         if (node.operation().equals("ADD") && isTickDurationTarget(node.category(), node.target())) {
             value *= CraftorioMisc.SECONDS_TO_TICKS;
@@ -176,6 +177,7 @@ public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean
                 .icon(DEFAULT_ICON)
                 .description("misc." + modId + ".upgrade_" + id + "_description")
                 .cost(CraftorioMisc.scientificToInt(cost))
+                .maxPurchases(maxPurchases)
                 .position(parentLocation.isPresent() ? node.x() : 0.0, parentLocation.isPresent() ? node.y() : 0.0);
         parentLocation.ifPresent(builder::parent);
 
@@ -270,6 +272,7 @@ public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean
         String id = sanitize(node.id());
         String modId = sanitize(node.modId()).isEmpty() ? "yourmodid" : sanitize(node.modId());
         String cost = sanitize(node.cost()).isEmpty() ? "1000" : sanitize(node.cost());
+        int maxPurchases = Math.max(1, parseInt(node.maxPurchases(), 1));
         double value = parseDouble(node.value(), 0.1);
         if (node.operation().equals("ADD") && isTickDurationTarget(node.category(), node.target())) {
             value *= CraftorioMisc.SECONDS_TO_TICKS;
@@ -305,6 +308,7 @@ public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean
         }
         code.append("        .description(\"misc.").append(modId).append(".upgrade_").append(id).append("_description\")\n");
         code.append("        .cost(scientificToInt(\"").append(cost).append("\"))\n");
+        code.append("        .maxPurchases(").append(maxPurchases).append(")\n");
         code.append("        .position(").append(posX).append(", ").append(posY).append(")\n");
 
         if (node.category().equals("modifier")) {
@@ -339,6 +343,14 @@ public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean
     private static double parseDouble(String value, double fallback) {
         try {
             return Double.parseDouble(value.trim());
+        } catch (Exception e) {
+            return fallback;
+        }
+    }
+
+    private static int parseInt(String value, int fallback) {
+        try {
+            return Integer.parseInt(value.trim());
         } catch (Exception e) {
             return fallback;
         }

@@ -44,9 +44,6 @@ public class CraftorioServerConfigScreen extends Screen {
 
         CraftorioServerConfig config = Craftorio.SERVER_CONFIG;
 
-        addBooleanRow("CHUNK_BASED_EXPANSION", config.CHUNK_BASED_EXPANSION);
-        addBooleanRow("UNIVERSAL_PROGRESSION", config.UNIVERSAL_PROGRESSION);
-        addBooleanRow("NO_BORDERS", config.NO_BORDERS);
         addBooleanRow("RANDOM_EFFECTS_ENABLED", config.RANDOM_EFFECTS_ENABLED);
         addBooleanRow("INSTANT_DEATH_OUTSIDE_CLAIM", config.INSTANT_DEATH_OUTSIDE_CLAIM);
         addEnumRow("SHOP_MODE", config.SHOP_MODE);

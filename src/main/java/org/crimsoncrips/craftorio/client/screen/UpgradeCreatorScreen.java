@@ -52,6 +52,7 @@ public class UpgradeCreatorScreen extends Screen {
     private EditBox modIdBox;
     private EditBox descriptionBox;
     private EditBox costBox;
+    private EditBox maxPurchasesBox;
     private EditBox parentBox;
     private EditBox valueBox;
     private EditBox itemTagBox;
@@ -103,6 +104,12 @@ public class UpgradeCreatorScreen extends Screen {
         this.costBox = new EditBox(this.font, fieldX, y, fieldWidth, 16, Component.literal("cost"));
         this.costBox.setMaxLength(256);
         this.addRenderableWidget(this.costBox);
+        y += rowHeight;
+
+        this.maxPurchasesBox = new EditBox(this.font, fieldX, y, fieldWidth, 16, Component.literal("max purchases"));
+        this.maxPurchasesBox.setMaxLength(256);
+        this.maxPurchasesBox.setValue("1");
+        this.addRenderableWidget(this.maxPurchasesBox);
         y += rowHeight;
 
         this.parentBox = new EditBox(this.font, fieldX, y, fieldWidth, 16, Component.literal("parent"));
@@ -256,6 +263,7 @@ public class UpgradeCreatorScreen extends Screen {
                 modIdBox.getValue(),
                 descriptionBox.getValue(),
                 costBox.getValue(),
+                maxPurchasesBox.getValue(),
                 parentBox.getValue(),
                 selectedTarget,
                 OPERATIONS[operationIndex],
@@ -286,7 +294,7 @@ public class UpgradeCreatorScreen extends Screen {
                 : "dev_tools_label_target_attribute";
         String[] labelKeys = {
                 "dev_tools_label_type", "dev_tools_label_id", "dev_tools_label_mod_id", "dev_tools_label_description", "dev_tools_label_cost",
-                "dev_tools_label_parent", targetLabelKey,
+                "dev_tools_label_max_purchases", "dev_tools_label_parent", targetLabelKey,
                 "dev_tools_label_operation", "dev_tools_label_value", "dev_tools_label_item_tag_target", "dev_tools_label_include_lang"
         };
         for (String key : labelKeys) {
@@ -314,6 +322,7 @@ public class UpgradeCreatorScreen extends Screen {
             CraftorioMisc.CraftorioTextEffects.drawEditBoxHint(guiGraphics, this.font, this.descriptionBox, "e.g. My upgrade.");
         }
         CraftorioMisc.CraftorioTextEffects.drawEditBoxHint(guiGraphics, this.font, this.costBox, "e.g. 1000 or 1e6");
+        CraftorioMisc.CraftorioTextEffects.drawEditBoxHint(guiGraphics, this.font, this.maxPurchasesBox, "e.g. 1");
         CraftorioMisc.CraftorioTextEffects.drawEditBoxHint(guiGraphics, this.font, this.parentBox, "e.g. craftorio:root");
         CraftorioMisc.CraftorioTextEffects.drawEditBoxHint(guiGraphics, this.font, this.valueBox, valueHint());
         if (usesItemTag()) {

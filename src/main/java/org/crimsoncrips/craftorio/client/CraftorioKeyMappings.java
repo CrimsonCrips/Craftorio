@@ -106,36 +106,47 @@ public class CraftorioKeyMappings {
     }
 
     public static void onClientTick(ClientTickEvent.Post event) {
-        while (OPEN_HUB.consumeClick()) {
-            Minecraft.getInstance().setScreen(new CraftorioHubScreen());
-        }
         while (PRINT_SCAN.consumeClick()) {
             PacketDistributor.sendToServer(new PrintScanPacket());
         }
+
+        Minecraft minecraft = Minecraft.getInstance();
+        boolean inHaven = minecraft.level != null && CraftorioMisc.isInHavenDimension(minecraft.level);
+
+        while (OPEN_HUB.consumeClick()) {
+            if (inHaven) continue;
+            minecraft.setScreen(new CraftorioHubScreen());
+        }
         while (OPEN_ACTIVE_EFFECTS.consumeClick()) {
-            Minecraft.getInstance().setScreen(new ActiveEffectsScreen(null));
+            if (inHaven) continue;
+            minecraft.setScreen(new ActiveEffectsScreen(null));
         }
         while (OPEN_SKILL_TREE.consumeClick()) {
-            Minecraft.getInstance().setScreen(new CraftorioSkillTreeScreen());
+            if (inHaven) continue;
+            minecraft.setScreen(new CraftorioSkillTreeScreen());
         }
         while (OPEN_MY_CONTRACTS.consumeClick()) {
-            Minecraft.getInstance().setScreen(new OwnedContractsScreen(null));
+            if (inHaven) continue;
+            minecraft.setScreen(new OwnedContractsScreen(null));
         }
         while (OPEN_AVAILABLE_CONTRACTS.consumeClick()) {
+            if (inHaven) continue;
             PacketDistributor.sendToServer(new RequestContractOfferPacket());
         }
         while (OPEN_ITEM_VALUES.consumeClick()) {
+            if (inHaven) continue;
             PacketDistributor.sendToServer(new RequestOpenValueBrowserPacket());
         }
         while (OPEN_EXPAND_BORDER_OR_CLAIM.consumeClick()) {
-            Minecraft minecraft = Minecraft.getInstance();
-            if (minecraft.level != null && CraftorioMisc.chunkBased(minecraft.level)) {
+            if (inHaven || minecraft.level == null) continue;
+            if (CraftorioMisc.chunkBased(minecraft.level)) {
                 minecraft.setScreen(new ClaimItemPurchaseScreen());
             } else {
                 minecraft.setScreen(new BorderExpandScreen());
             }
         }
         while (OPEN_ITEM_SHOP.consumeClick()) {
+            if (inHaven) continue;
             PacketDistributor.sendToServer(new RequestOpenShopPacket());
         }
     }

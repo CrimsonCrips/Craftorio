@@ -31,7 +31,7 @@ public final class PointsPopup {
     public static void spawn(BigInteger delta) {
         if (delta.signum() == 0) return;
 
-        String formatted = CraftorioMisc.bigIntFormat(delta, Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
+        String formatted = CraftorioMisc.bigIntFormat(delta);
         boolean positive = delta.signum() > 0;
         String text = positive ? "+" + formatted : formatted;
         float side = RNG.nextBoolean() ? 1.0f : -1.0f;

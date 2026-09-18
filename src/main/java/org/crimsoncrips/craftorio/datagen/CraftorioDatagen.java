@@ -2,6 +2,7 @@ package org.crimsoncrips.craftorio.datagen;
 
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.RegistrySetBuilder;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.DataGenerator;
 import net.minecraft.data.PackOutput;
 import net.neoforged.fml.common.Mod;
@@ -13,8 +14,10 @@ import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.datagen.advancement.CraftorioAdvancementProvider;
 import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioEffectBootstrap;
 import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioContractBootstrap;
-import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioContractTextureBootstrap;
+import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioDefaultContractTextureBootstrap;
 import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioUpgradeBootstrap;
+import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioRebirthUpgradeBootstrap;
+import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioHavenDimensionBootstrap;
 import org.crimsoncrips.craftorio.datagen.language.CraftLangGen;
 import org.crimsoncrips.craftorio.datagen.maps.points.CraftorioPointsDeterminer;
 import org.crimsoncrips.craftorio.datagen.recipe.CraftorioRecipeGenerator;
@@ -53,8 +56,12 @@ public class CraftorioDatagen {
                     CraftorioEffectBootstrap.debuffBootstrap(context);
                 })
                 .add(CraftorioContract.REGISTRY_KEY, CraftorioContractBootstrap::bootstrap)
-                .add(CraftorioContractTexture.REGISTRY_KEY, CraftorioContractTextureBootstrap::bootstrap)
-                .add(CraftorioUpgrade.REGISTRY_KEY, CraftorioUpgradeBootstrap::bootstrap);
+                .add(CraftorioContractTexture.REGISTRY_KEY, CraftorioDefaultContractTextureBootstrap::bootstrap)
+                .add(CraftorioUpgrade.REGISTRY_KEY, CraftorioUpgradeBootstrap::bootstrap)
+                .add(CraftorioUpgrade.REBIRTH_REGISTRY_KEY, CraftorioRebirthUpgradeBootstrap::bootstrap)
+                .add(Registries.BIOME, CraftorioHavenDimensionBootstrap::bootstrapBiome)
+                .add(Registries.DIMENSION_TYPE, CraftorioHavenDimensionBootstrap::bootstrapDimensionType)
+                .add(Registries.LEVEL_STEM, CraftorioHavenDimensionBootstrap::bootstrapLevelStem);
 
         generator.addProvider(event.includeServer(),
                 new DatapackBuiltinEntriesProvider(output, provider, registryBuilder, Set.of(Craftorio.MODID)));

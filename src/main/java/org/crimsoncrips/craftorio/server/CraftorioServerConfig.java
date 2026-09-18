@@ -34,6 +34,10 @@ public class CraftorioServerConfig {
 
     public final ModConfigSpec.BooleanValue INSTANT_DEATH_OUTSIDE_CLAIM;
 
+    public final ModConfigSpec.IntValue REBIRTH_BASE_LIFE_POINTS;
+    public final ModConfigSpec.DoubleValue REBIRTH_SKIP_BONUS_PERCENT;
+    public final ModConfigSpec.IntValue REBIRTH_MAX_SKIP;
+
 
     public CraftorioServerConfig(final ModConfigSpec.Builder builder) {
 
@@ -86,6 +90,11 @@ public class CraftorioServerConfig {
 
         builder.pop();
 
+        builder.push("Rebirth");
+        this.REBIRTH_BASE_LIFE_POINTS = buildInt(builder, "REBIRTH_BASE_LIFE_POINTS", 10, 0, Integer.MAX_VALUE, "Baseline rebirth skill tree points granted per life gained");
+        this.REBIRTH_SKIP_BONUS_PERCENT = buildDouble(builder, "REBIRTH_SKIP_BONUS_PERCENT", 0.20, 0, Double.MAX_VALUE, "Extra percent of REBIRTH_BASE_LIFE_POINTS granted per additional life skipped in a single rebirth (ex. 0.20 = +20% per life skipped)");
+        this.REBIRTH_MAX_SKIP = buildInt(builder, "REBIRTH_MAX_SKIP", 100, 0, Integer.MAX_VALUE, "Maximum number of extra lives that can be skipped in a single rebirth");
+        builder.pop();
 
     }
 

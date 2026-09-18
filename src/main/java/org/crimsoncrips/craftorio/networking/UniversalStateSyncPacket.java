@@ -1,5 +1,6 @@
 package org.crimsoncrips.craftorio.networking;
 
+import com.mojang.serialization.Codec;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
@@ -31,10 +32,20 @@ public record UniversalStateSyncPacket(
         List<ShopMultiplierEffect> shopEffects,
         double advancementMultiplierBonus,
         List<CraftorioContract> contracts,
-        List<CraftorioBorder> borders
+        List<CraftorioBorder> borders,
+        int contractsCompleted,
+        float highestMultiplier,
+        int life,
+        BigInteger lifePoints,
+        Map<ResourceLocation, Integer> rebirthUpgradesUnlocked,
+        BigInteger overallHighestPoints,
+        int overallContractsCompleted,
+        Map<ResourceLocation, Long> overallItemsSinked
 ) implements CustomPacketPayload {
 
     public static final Type<UniversalStateSyncPacket> TYPE = new Type<>(Craftorio.prefix("universal_state_sync_packet"));
+
+    private static final Codec<Map<ResourceLocation, Long>> ITEMS_SINKED_CODEC = Codec.unboundedMap(ResourceLocation.CODEC, Codec.LONG);
 
     public static final StreamCodec<RegistryFriendlyByteBuf, UniversalStateSyncPacket> STREAM_CODEC = StreamCodec.of(
             (buffer, packet) -> {
@@ -49,6 +60,14 @@ public record UniversalStateSyncPacket(
                 ByteBufCodecs.DOUBLE.encode(buffer, packet.advancementMultiplierBonus());
                 CraftorioContract.CODEC_STREAM.apply(ByteBufCodecs.list()).encode(buffer, packet.contracts());
                 CraftorioBorder.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buffer, packet.borders());
+                ByteBufCodecs.VAR_INT.encode(buffer, packet.contractsCompleted());
+                ByteBufCodecs.FLOAT.encode(buffer, packet.highestMultiplier());
+                ByteBufCodecs.VAR_INT.encode(buffer, packet.life());
+                ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).encode(buffer, packet.lifePoints());
+                ByteBufCodecs.<RegistryFriendlyByteBuf, ResourceLocation, Integer, Map<ResourceLocation, Integer>>map(HashMap::new, ResourceLocation.STREAM_CODEC, ByteBufCodecs.VAR_INT).encode(buffer, packet.rebirthUpgradesUnlocked());
+                ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).encode(buffer, packet.overallHighestPoints());
+                ByteBufCodecs.VAR_INT.encode(buffer, packet.overallContractsCompleted());
+                ByteBufCodecs.fromCodec(ITEMS_SINKED_CODEC).encode(buffer, packet.overallItemsSinked());
             },
             buffer -> {
                 BigInteger points = ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).decode(buffer);
@@ -62,8 +81,18 @@ public record UniversalStateSyncPacket(
                 double advancementMultiplierBonus = ByteBufCodecs.DOUBLE.decode(buffer);
                 List<CraftorioContract> contracts = CraftorioContract.CODEC_STREAM.apply(ByteBufCodecs.list()).decode(buffer);
                 List<CraftorioBorder> borders = CraftorioBorder.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buffer);
+                int contractsCompleted = ByteBufCodecs.VAR_INT.decode(buffer);
+                float highestMultiplier = ByteBufCodecs.FLOAT.decode(buffer);
+                int life = ByteBufCodecs.VAR_INT.decode(buffer);
+                BigInteger lifePoints = ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).decode(buffer);
+                Map<ResourceLocation, Integer> rebirthUpgradesUnlocked = ByteBufCodecs.map(HashMap::new, ResourceLocation.STREAM_CODEC, ByteBufCodecs.VAR_INT).decode(buffer);
+                BigInteger overallHighestPoints = ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).decode(buffer);
+                int overallContractsCompleted = ByteBufCodecs.VAR_INT.decode(buffer);
+                Map<ResourceLocation, Long> overallItemsSinked = ByteBufCodecs.fromCodec(ITEMS_SINKED_CODEC).decode(buffer);
                 return new UniversalStateSyncPacket(points, highestPoints, tempPoints, landAmount, unlockedUpgrades,
-                        generalEffects, tagEffects, shopEffects, advancementMultiplierBonus, contracts, borders);
+                        generalEffects, tagEffects, shopEffects, advancementMultiplierBonus, contracts, borders,
+                        contractsCompleted, highestMultiplier, life, lifePoints, rebirthUpgradesUnlocked,
+                        overallHighestPoints, overallContractsCompleted, overallItemsSinked);
             }
     );
 
@@ -76,7 +105,10 @@ public record UniversalStateSyncPacket(
         ctx.enqueueWork(() -> ClientUniversalState.update(
                 message.points(), message.highestPoints(), message.tempPoints(), message.landAmount(),
                 message.unlockedUpgrades(), message.generalEffects(), message.tagEffects(), message.shopEffects(),
-                message.advancementMultiplierBonus(), message.contracts(), message.borders()
+                message.advancementMultiplierBonus(), message.contracts(), message.borders(),
+                message.contractsCompleted(), message.highestMultiplier(),
+                message.life(), message.lifePoints(), message.rebirthUpgradesUnlocked(),
+                message.overallHighestPoints(), message.overallContractsCompleted(), message.overallItemsSinked()
         ));
     }
 }

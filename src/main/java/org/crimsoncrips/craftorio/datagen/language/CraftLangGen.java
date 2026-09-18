@@ -30,6 +30,7 @@ public class CraftLangGen extends LanguageProvider {
 		this.addBlock(CraftorioBlocks.AUTO_SINKER,"Auto Sinker");
 		this.addBlock(CraftorioBlocks.VALUE_CONDENSER,"Value Condenser");
 		this.addBlock(CraftorioBlocks.AUTO_VALUE_CONDENSER,"Auto Value Condenser");
+		this.addBlock(CraftorioBlocks.INVISIBLE_BLOCK,"Invisible Block");
 		this.addMisc("claim_land", "Claim Land");
 
 		this.addMisc("double_or_nothing_button", "Double Or Nothing");
@@ -93,8 +94,12 @@ public class CraftLangGen extends LanguageProvider {
 		this.addMisc("locked_suffix", " (Locked)");
 
 		this.addMisc("value_browser_title", "Item Values");
-		this.addMisc("sink_stats_title", "Craftorio Statistics");
-		this.addMisc("sink_stats_button", "Craftorio Statistics");
+		this.addMisc("stats_title", "Craftorio Statistics");
+		this.addMisc("stats_button", "Craftorio Statistics");
+		this.addMisc("stats_tab_items", "Item Sinked");
+		this.addMisc("stats_tab_general", "General");
+		this.addMisc("contracts_fulfilled_label", "Contracts Fulfilled: ");
+		this.addMisc("highest_multiplier_label", "Highest Multiplier Achieved: ");
 
 		this.addMisc("skill_tree_title", "Craftorio Skill Tree");
 		this.addMisc("skill_tree_button", "Skill Tree");
@@ -111,6 +116,7 @@ public class CraftLangGen extends LanguageProvider {
 		this.addMisc("effect_tag_label", "Applies to items tagged: %s");
 		this.addMisc("effect_tag_items_title", "Tagged Items");
 		this.addMisc("upgrade_cost_tooltip", "Cost: %s points");
+		this.addMisc("upgrade_purchases_tooltip", "Purchases: %s/%s");
 		this.addMisc("upgrade_locked_tooltip", "Requires the previous upgrade");
 		this.addMisc("upgrade_unlocked_tooltip", "Unlocked");
 
@@ -221,6 +227,10 @@ public class CraftLangGen extends LanguageProvider {
 		this.addMisc("config_title", "Craftorio Config");
 		this.addMisc("server_config_title", "Craftorio Server Config");
 		this.addMisc("server_config_button", "Server Config");
+		this.addMisc("world_creation_settings_title", "Craftorio World Settings");
+		this.addMisc("world_creation_universal_progression", "Universal Progression: %s");
+		this.addMisc("world_creation_chunk_based", "Chunk Based Expansion: %s");
+		this.addMisc("world_creation_no_borders", "No Borders: %s");
 		this.addMisc("point_formatting_label", "Point Formatting: %s");
 		this.addMisc("format_raw", "Raw Numbers");
 		this.addMisc("format_scientific", "Scientific");
@@ -264,31 +274,33 @@ public class CraftLangGen extends LanguageProvider {
 
 		this.addMisc("dev_tools_label_type", "Type");
 		this.addMisc("dev_tools_label_id", "Effect Id");
-		this.addMisc("dev_tools_label_mod_id", "Mod Id");
-		this.addMisc("dev_tools_label_multiplier", "Multiplier");
-		this.addMisc("dev_tools_label_seconds", "Seconds");
-		this.addMisc("dev_tools_label_weight", "Weight");
+		this.addMisc("dev_tools_label_mod_id", "Mod Id (Opt)");
+		this.addMisc("dev_tools_label_multiplier", "Multiplier (Opt)");
+		this.addMisc("dev_tools_label_seconds", "Seconds (Opt)");
+		this.addMisc("dev_tools_label_weight", "Weight (Opt)");
 		this.addMisc("dev_tools_label_unobtainable", "Unobtainable");
 		this.addMisc("dev_tools_label_item_tag", "Item Tag");
-		this.addMisc("dev_tools_label_description", "Description");
-		this.addMisc("dev_tools_label_cost", "Cost");
-		this.addMisc("dev_tools_label_parent", "Parent");
+		this.addMisc("dev_tools_label_description", "Description (Opt)");
+		this.addMisc("dev_tools_label_cost", "Cost (Opt)");
+		this.addMisc("dev_tools_label_max_purchases", "Max Purchases");
+		this.addMisc("dev_tools_label_parent", "Parent (Opt)");
 		this.addMisc("dev_tools_label_target", "Target (modifier)");
 		this.addMisc("dev_tools_label_target_attribute", "Target (attribute)");
 		this.addMisc("dev_tools_label_target_action", "Action (effect)");
 		this.addMisc("dev_tools_label_operation", "Operation");
-		this.addMisc("dev_tools_label_value", "Value");
-		this.addMisc("dev_tools_label_item_tag_target", "Item Tag (tag target)");
+		this.addMisc("dev_tools_label_value", "Value (Opt)");
+		this.addMisc("dev_tools_label_item_tag_target", "Item Tag (tag target) (Opt)");
 		this.addMisc("dev_tools_label_include_lang", "Include Lang Values");
-		this.addMisc("dev_tools_label_name", "Name");
-		this.addMisc("dev_tools_label_title", "Title");
-		this.addMisc("dev_tools_label_reward_points", "Reward Points");
-		this.addMisc("dev_tools_label_claim_threshold", "Claim Threshold");
-		this.addMisc("dev_tools_label_offer_min", "Offer Min");
-		this.addMisc("dev_tools_label_offer_max", "Offer Max");
-		this.addMisc("dev_tools_label_punishment", "Punishment Path");
-		this.addMisc("dev_tools_label_required_mod", "Required Mod Id");
-		this.addMisc("dev_tools_label_reward_rolls", "Reward Rolls");
+		this.addMisc("dev_tools_label_name", "Name (Opt)");
+		this.addMisc("dev_tools_label_title", "Title (Opt)");
+		this.addMisc("dev_tools_label_reward_points", "Reward Points (Opt)");
+		this.addMisc("dev_tools_label_claim_threshold", "Claim Threshold (Opt)");
+		this.addMisc("dev_tools_label_offer_min", "Offer Min (Opt)");
+		this.addMisc("dev_tools_label_offer_max", "Offer Max (Opt)");
+		this.addMisc("dev_tools_label_punishment", "Punishment Path (Opt)");
+		this.addMisc("dev_tools_label_required_mod", "Required Mod Id (Opt)");
+		this.addMisc("dev_tools_label_card_texture", "Card Texture (Opt)");
+		this.addMisc("dev_tools_label_reward_rolls", "Reward Rolls (Opt)");
 		this.addMisc("dev_tools_generate_success", "Generated %s");
 		this.addMisc("dev_tools_generate_failed", "Failed to generate code - check the id field and server logs.");
 		this.addMisc("dev_tools_effect_tag_required", "Tag effects need an Item Tag value.");
@@ -333,6 +345,29 @@ public class CraftLangGen extends LanguageProvider {
 		this.addMisc("claim_contract_button", "Claim");
 		this.addMisc("contract_claimed", "Claimed");
 		this.addMisc("back", "Back");
+		this.addMisc("haven_entered", "Teleported to the Craftorio haven dimension.");
+		this.addMisc("haven_left", "Teleported back from the Craftorio haven dimension.");
+		this.addMisc("haven_already_inside", "You are already in the Craftorio haven dimension.");
+		this.addMisc("haven_not_inside", "You are not in the Craftorio haven dimension.");
+		this.addMisc("haven_shaders_disabled", "The haven doesn't seem to appreciate your view on things.");
+
+		this.addMisc("rebirth_button", "Rebirth");
+		this.addMisc("rebirth_confirm_title", "Rebirth");
+		this.addMisc("rebirth_confirm_button", "Rebirth");
+		this.addMisc("rebirth_consent_progress", "%s/%s players have agreed to rebirth. Open the Rebirth menu and confirm to agree.");
+		this.addMisc("rebirth_consent_cancelled", "The pending rebirth vote was cancelled because a player joined or left.");
+		this.addMisc("rebirth_current_life", "Current Life: %s");
+		this.addMisc("rebirth_cost_label", "Cost: %s");
+		this.addMisc("rebirth_life_points_label", "Life Points Granted: %s");
+		this.addMisc("rebirth_life_points_current", "Life Points: %s");
+		this.addMisc("rebirth_skip_on", "Skip Lives: ON (Max: %s)");
+		this.addMisc("rebirth_skip_off", "Skip Lives: OFF");
+		this.addMisc("rebirth_skill_tree_title", "Rebirth Skill Tree");
+		this.addMisc("life_label", "Life: ");
+		this.addMisc("highest_points_overall_suffix", " (Highest Overall: %s)");
+		this.addMisc("contracts_overall_suffix", " (Overall: %s)");
+		this.addMisc("sink_overall_suffix", " (%s)");
+
 		this.addMisc("contract_details_title", "Contract Details");
 		this.addMisc("choose_a_contract", "Choose a Contract");
 		this.addMisc("contract_punishment_line", "Failure Punishment: %s");

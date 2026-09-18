@@ -41,7 +41,7 @@ public class CraftorioDevTools {
             String fileName = fileNamePrefix + "_" + System.currentTimeMillis() + "." + extension;
             Files.writeString(dir.resolve(fileName), content, StandardCharsets.UTF_8);
 
-            player.sendSystemMessage(Component.translatable("misc.craftorio.dev_tools_generate_success", fileName).withStyle(ChatFormatting.GREEN));
+            player.sendSystemMessage(Component.translatable("misc.craftorio.dev_tools_generate_success", DEV_TOOLS_DIR_NAME + "/" + fileName).withStyle(ChatFormatting.GREEN));
         } catch (IOException e) {
             Craftorio.LOGGER.error("Failed to write dev tools generated code", e);
             player.sendSystemMessage(Component.translatable("misc.craftorio.dev_tools_generate_failed").withStyle(ChatFormatting.RED));
@@ -56,7 +56,7 @@ public class CraftorioDevTools {
                 Files.writeString(dir.resolve(entry.getKey()), entry.getValue(), StandardCharsets.UTF_8);
             }
 
-            player.sendSystemMessage(Component.translatable("misc.craftorio.dev_tools_generate_success", dir.getFileName().toString() + "/").withStyle(ChatFormatting.GREEN));
+            player.sendSystemMessage(Component.translatable("misc.craftorio.dev_tools_generate_success", DEV_TOOLS_DIR_NAME + "/" + dir.getFileName().toString() + "/").withStyle(ChatFormatting.GREEN));
         } catch (IOException e) {
             Craftorio.LOGGER.error("Failed to write dev tools generated bundle", e);
             player.sendSystemMessage(Component.translatable("misc.craftorio.dev_tools_generate_failed").withStyle(ChatFormatting.RED));

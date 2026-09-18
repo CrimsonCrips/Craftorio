@@ -39,7 +39,7 @@ public class CraftorioActionEffectUpgrade extends CraftorioUpgrade {
 
     public CraftorioActionEffectUpgrade(String name, ResourceLocation icon, ResourceLocation parent, String description, BigInteger cost,
                                          PlayerActionTarget target, ResourceLocation effect) {
-        super(name, icon, parent, description, cost);
+        super(name, icon, parent, description, cost, 1);
         this.target = target;
         this.effect = effect;
     }

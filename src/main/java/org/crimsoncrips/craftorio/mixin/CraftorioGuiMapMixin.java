@@ -56,7 +56,7 @@ public abstract class CraftorioGuiMapMixin {
                 }
             }
             BigInteger amountToClaim = CraftorioMisc.pointsToExpand(chunks.size(),claimed_amount);
-            String formattedAmount = CraftorioMisc.bigIntFormat(amountToClaim, Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
+            String formattedAmount = CraftorioMisc.bigIntFormat(amountToClaim);
 
             String string = Component.translatable("misc.craftorio.claim_land").getString();
 

@@ -33,6 +33,9 @@ public abstract class CraftorioUpgrade {
     public static final ResourceKey<Registry<CraftorioUpgrade>> REGISTRY_KEY =
             ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "upgrade"));
 
+    public static final ResourceKey<Registry<CraftorioUpgrade>> REBIRTH_REGISTRY_KEY =
+            ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "rebirth_upgrade"));
+
     private static Codec<CraftorioUpgrade> codecInstance;
 
     public static Codec<CraftorioUpgrade> dispatchCodec() {
@@ -44,10 +47,6 @@ public abstract class CraftorioUpgrade {
     }
 
     public abstract MapCodec<? extends CraftorioUpgrade> codec();
-
-    protected CraftorioUpgrade(String name, ResourceLocation icon, ResourceLocation parent, String description, BigInteger cost) {
-        this(name, icon, parent, description, cost, 1);
-    }
 
     protected CraftorioUpgrade(String name, ResourceLocation icon, ResourceLocation parent, String description, BigInteger cost, int maxPurchases) {
         this.name = name;

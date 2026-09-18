@@ -12,6 +12,7 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import net.neoforged.neoforge.common.util.ConcatenatedListView;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.registries.CraftorioDimensions;
 import org.crimsoncrips.craftorio.server.BorderCollisionHooks;
 import org.crimsoncrips.craftorio.server.ChunkCollisionHooks;
 import org.spongepowered.asm.mixin.Mixin;
@@ -88,6 +89,10 @@ public class CraftorioEntityMixin {
 
     private static VoxelShape craftorioBorderShape(Level level, Player player) {
         VoxelShape border = Shapes.empty();
+
+        if (level.dimension().equals(CraftorioDimensions.HAVEN_LEVEL_KEY)) {
+            return border;
+        }
 
         if (CraftorioMisc.chunkBased(level)) {
             border = ChunkCollisionHooks.combineWorldAndChunkBorders(level, player, border);

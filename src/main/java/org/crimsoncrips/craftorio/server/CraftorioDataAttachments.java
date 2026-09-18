@@ -114,6 +114,17 @@ public class CraftorioDataAttachments {
                     .build()
     );
 
+    public static final Supplier<AttachmentType<GlobalPos>> HAVEN_RETURN_POS = ATTACHMENT_TYPES.register(
+            "haven_return_pos", () -> AttachmentType.builder(() -> GlobalPos.of(Level.OVERWORLD, BlockPos.ZERO))
+                    .serialize(GlobalPos.CODEC)
+                    .sync(GlobalPos.STREAM_CODEC)
+                    .build()
+    );
+
+    public static final Supplier<AttachmentType<Boolean>> HAVEN_PLATFORM_PLACED = ATTACHMENT_TYPES.register(
+            "haven_platform_placed", () -> AttachmentType.builder(() -> false).serialize(Codec.BOOL).sync(ByteBufCodecs.BOOL).build()
+    );
+
     public static final Supplier<AttachmentType<List<CraftorioBorder>>> PLAYER_BORDERS =
             ATTACHMENT_TYPES.register("player_borders", () ->
                     AttachmentType.<List<CraftorioBorder>>builder((holder) -> new ArrayList<>())
@@ -183,5 +194,39 @@ public class CraftorioDataAttachments {
     public static final Supplier<AttachmentType<Integer>> CONTRACTS_COMPLETED = ATTACHMENT_TYPES.register(
             "contracts_completed", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().sync(ByteBufCodecs.VAR_INT).build()
     );
+
+    public static final Supplier<AttachmentType<Float>> HIGHEST_MULTIPLIER = ATTACHMENT_TYPES.register(
+            "highest_multiplier", () -> AttachmentType.builder(() -> 0.0F).serialize(Codec.FLOAT).copyOnDeath().sync(ByteBufCodecs.FLOAT).build()
+    );
+
+    public static final Supplier<AttachmentType<Integer>> LIFE = ATTACHMENT_TYPES.register(
+            "life", () -> AttachmentType.builder(() -> 1).serialize(Codec.INT).copyOnDeath().sync(ByteBufCodecs.VAR_INT).build()
+    );
+
+    public static final Supplier<AttachmentType<BigInteger>> LIFE_POINTS = ATTACHMENT_TYPES.register(
+            "life_points", () -> AttachmentType.builder(() -> BigInteger.ZERO).serialize(BIGINT_CODEC()).copyOnDeath().sync(ByteBufCodecs.fromCodec(BIGINT_CODEC())).build()
+    );
+
+    public static final Supplier<AttachmentType<Map<ResourceLocation, Integer>>> REBIRTH_UPGRADES_UNLOCKED = ATTACHMENT_TYPES.register(
+            "rebirth_upgrades_unlocked", () -> AttachmentType.<Map<ResourceLocation, Integer>>builder((holder) -> new HashMap<>())
+                    .serialize(UNLOCKED_UPGRADES_CODEC)
+                    .copyOnDeath()
+                    .sync(ByteBufCodecs.fromCodec(UNLOCKED_UPGRADES_CODEC))
+                    .build());
+
+    public static final Supplier<AttachmentType<BigInteger>> OVERALL_HIGHEST_POINTS = ATTACHMENT_TYPES.register(
+            "overall_highest_points", () -> AttachmentType.builder(() -> BigInteger.ZERO).serialize(BIGINT_CODEC()).copyOnDeath().sync(ByteBufCodecs.fromCodec(BIGINT_CODEC())).build()
+    );
+
+    public static final Supplier<AttachmentType<Integer>> OVERALL_CONTRACTS_COMPLETED = ATTACHMENT_TYPES.register(
+            "overall_contracts_completed", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().sync(ByteBufCodecs.VAR_INT).build()
+    );
+
+    public static final Supplier<AttachmentType<Map<ResourceLocation, Long>>> OVERALL_ITEMS_SINKED = ATTACHMENT_TYPES.register(
+            "overall_items_sinked", () -> AttachmentType.<Map<ResourceLocation, Long>>builder((holder) -> new HashMap<>())
+                    .serialize(ITEMS_SINKED_CODEC)
+                    .copyOnDeath()
+                    .sync(ByteBufCodecs.fromCodec(ITEMS_SINKED_CODEC))
+                    .build());
 
 }

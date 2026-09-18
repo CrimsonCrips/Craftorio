@@ -23,7 +23,7 @@ public class CraftorioHubScreen extends Screen {
     private static final int BUTTON_WIDTH = 200;
     private static final int BUTTON_HEIGHT = 20;
     private static final int BUTTON_STRIDE = 24;
-    private static final int REGULAR_BUTTON_COUNT = 7;
+    private static final int REGULAR_BUTTON_COUNT = 8;
     private static final int DONE_EXTRA_GAP = 16;
     private static final int LIFT_OFFSET = 20;
 
@@ -33,6 +33,11 @@ public class CraftorioHubScreen extends Screen {
 
     @Override
     protected void init() {
+        if (this.minecraft.level != null && CraftorioMisc.isInHavenDimension(this.minecraft.level)) {
+            this.minecraft.setScreen(null);
+            return;
+        }
+
         int centerX = this.width / 2;
         int blockHeight = (REGULAR_BUTTON_COUNT - 1) * BUTTON_STRIDE + BUTTON_HEIGHT + DONE_EXTRA_GAP + BUTTON_STRIDE;
         int y = (this.height - blockHeight) / 2 - LIFT_OFFSET;
@@ -78,15 +83,26 @@ public class CraftorioHubScreen extends Screen {
 
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.active_effects_button"), b -> this.minecraft.setScreen(new ActiveEffectsScreen(this)))
                 .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
+        y += BUTTON_STRIDE;
+
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.rebirth_button"), b -> this.minecraft.setScreen(new CraftorioRebirthConfirmScreen(this)))
+                .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
         y += BUTTON_STRIDE + DONE_EXTRA_GAP;
 
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.done"), b -> this.onClose())
                 .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
 
+        int statsSize = 20;
+        int statsX = this.width - statsSize - 8;
+        int statsY = this.height - statsSize - 8;
+        this.addRenderableWidget(Button.builder(Component.literal("?"), b -> this.minecraft.setScreen(new CraftorioStatisticsScreen()))
+                .bounds(statsX, statsY, statsSize, statsSize).build());
+
         if (this.minecraft.player != null && this.minecraft.player.isCreative()) {
             int devToolsWidth = 100;
+            int devToolsY = statsY - BUTTON_HEIGHT - 4;
             this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_title"), b -> this.minecraft.setScreen(new DevToolsScreen(this)))
-                    .bounds(this.width - devToolsWidth - 8, this.height - BUTTON_HEIGHT - 8, devToolsWidth, BUTTON_HEIGHT).build());
+                    .bounds(this.width - devToolsWidth - 8, devToolsY, devToolsWidth, BUTTON_HEIGHT).build());
         }
     }
 

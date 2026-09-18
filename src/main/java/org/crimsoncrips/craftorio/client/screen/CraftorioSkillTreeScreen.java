@@ -250,6 +250,10 @@ public class CraftorioSkillTreeScreen extends Screen {
     }
 
     @Override
+    protected void renderBlurredBackground(float partialTick) {
+    }
+
+    @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         graphics.fill(0, 0, this.width, this.height, 0xFF000000);
         org.crimsoncrips.craftorio.client.CraftorioStarfield.render(graphics, this.width, this.height, this.panX, this.panY);
@@ -280,7 +284,7 @@ public class CraftorioSkillTreeScreen extends Screen {
 
         if (player != null) {
             String pointsLine = Component.translatable("misc.craftorio.points_label").getString()
-                    + CraftorioMisc.bigIntFormat(CraftorioMisc.getPoints(player), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
+                    + CraftorioMisc.bigIntFormat(CraftorioMisc.getPoints(player));
             graphics.drawCenteredString(this.font, pointsLine, this.width / 2, 8, 0xFFFF55);
         }
 
@@ -330,19 +334,23 @@ public class CraftorioSkillTreeScreen extends Screen {
     private class UpgradeNodeButton extends AbstractButton {
         private final ResourceLocation id;
         private final CraftorioUpgrade upgrade;
+        private int lastTooltipPurchaseCount = -1;
 
         UpgradeNodeButton(int x, int y, int size, ResourceLocation id, CraftorioUpgrade upgrade) {
             super(x, y, size, size, Component.translatable(upgrade.getNameKey()));
             this.id = id;
             this.upgrade = upgrade;
-            updateTooltip();
+            Player player = CraftorioSkillTreeScreen.this.minecraft.player;
+            updateTooltip(player != null ? CraftorioMisc.getUpgradeCount(player, id) : 0);
         }
 
-        private void updateTooltip() {
-            String costText = CraftorioMisc.bigIntFormat(upgrade.getCost(), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
+        private void updateTooltip(int purchaseCount) {
+            this.lastTooltipPurchaseCount = purchaseCount;
+            String costText = CraftorioMisc.bigIntFormat(upgrade.getCost());
             Component tooltip = Component.literal(upgrade.getActualName())
                     .append("\n").append(upgrade.getActualDescription())
-                    .append("\n").append(Component.translatable("misc.craftorio.upgrade_cost_tooltip", costText));
+                    .append("\n").append(Component.translatable("misc.craftorio.upgrade_cost_tooltip", costText))
+                    .append("\n").append(Component.translatable("misc.craftorio.upgrade_purchases_tooltip", purchaseCount, upgrade.getMaxPurchases()));
             this.setTooltip(Tooltip.create(tooltip));
         }
 
@@ -354,12 +362,17 @@ public class CraftorioSkillTreeScreen extends Screen {
         @Override
         protected void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
             Player player = CraftorioSkillTreeScreen.this.minecraft.player;
-            boolean unlocked = player != null && CraftorioMisc.hasUnlockedUpgrade(player, id);
+            int purchaseCount = player != null ? CraftorioMisc.getUpgradeCount(player, id) : 0;
+            if (purchaseCount != this.lastTooltipPurchaseCount) {
+                updateTooltip(purchaseCount);
+            }
+
             boolean parentUnlocked = upgrade.getParent().isEmpty() || (player != null && CraftorioMisc.hasUnlockedUpgrade(player, upgrade.getParent().get()));
+            boolean maxed = purchaseCount >= upgrade.getMaxPurchases();
             boolean affordable = player != null && CraftorioMisc.getPoints(player).compareTo(upgrade.getCost()) >= 0;
 
             int borderColor;
-            if (unlocked) {
+            if (maxed) {
                 borderColor = 0xFF55FF55;
             } else if (!parentUnlocked) {
                 borderColor = 0xFF666666;
@@ -385,7 +398,7 @@ public class CraftorioSkillTreeScreen extends Screen {
             }
 
             guiGraphics.fill(this.getX() - 1, this.getY() - 1, this.getX() + this.getWidth() + 1, this.getY() + this.getHeight() + 1, borderColor);
-            guiGraphics.fill(this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(), unlocked ? 0xFF203020 : 0xFF202020);
+            guiGraphics.fill(this.getX(), this.getY(), this.getX() + this.getWidth(), this.getY() + this.getHeight(), maxed ? 0xFF203020 : 0xFF202020);
             int inset = Math.max(2, this.getWidth() / 8);
             int iconSize = this.getWidth() - inset * 2;
             guiGraphics.blit(upgrade.getIcon(), this.getX() + inset, this.getY() + inset, 0, 0, iconSize, iconSize, iconSize, iconSize);

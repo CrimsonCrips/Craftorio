@@ -312,7 +312,7 @@ public class ContractDetailsScreen extends Screen {
 
     private String pointRewardLine() {
         BigInteger baseValue = this.contract.getBasePointValue();
-        String baseText = CraftorioMisc.bigIntFormat(baseValue, Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
+        String baseText = CraftorioMisc.bigIntFormat(baseValue);
 
         Player player = this.minecraft.player;
         if (player == null) {
@@ -320,7 +320,7 @@ public class ContractDetailsScreen extends Screen {
         }
 
         BigInteger totalValue = this.contract.getMultipliedPointValue(player);
-        String totalText = CraftorioMisc.bigIntFormat(totalValue, Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
+        String totalText = CraftorioMisc.bigIntFormat(totalValue);
         float multiplierValue = CraftorioMisc.getCraftorioMultiplier(player);
 
         String rewardText = totalText;

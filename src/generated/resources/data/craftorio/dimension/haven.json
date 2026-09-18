@@ -1,0 +1,12 @@
+{
+  "type": "craftorio:haven",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "craftorio:haven",
+      "features": false,
+      "lakes": false,
+      "layers": []
+    }
+  }
+}

@@ -52,8 +52,6 @@ public class ContractRevealScreen extends Screen {
     private static final int SHADOW_ALPHA = 0x80;
 
     private static final float TEXT_SCALE = 0.8f;
-    private static final int ICON_SIZE = 32;
-    private static final int ICON_GAP = 6;
     private static final int CLAIM_BUTTON_WIDTH = 60;
     private static final int CLAIM_BUTTON_HEIGHT = 16;
     private static final int CLAIM_BUTTON_GAP = 8;
@@ -196,7 +194,7 @@ public class ContractRevealScreen extends Screen {
         if (this.refreshButton == null || this.minecraft.player == null) return;
 
         BigInteger cost = CraftorioMisc.contractRefreshCost(this.minecraft.player);
-        String costText = CraftorioMisc.bigIntFormat(cost, Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
+        String costText = CraftorioMisc.bigIntFormat(cost);
 
         this.refreshButton.setTooltip(Tooltip.create(Component.translatable("misc.craftorio.refresh_contracts_tooltip", costText)));
     }
@@ -312,16 +310,6 @@ public class ContractRevealScreen extends Screen {
         graphics.pose().scale(growScale * textScale, growScale * textScale, 1f);
 
         float y = 0;
-        if (card.contract.getIcon() != null) {
-            if (locked) {
-                graphics.setColor(0.5f, 0.5f, 0.5f, 0.7f);
-            }
-            graphics.blit(card.contract.getIcon(), -ICON_SIZE / 2, 0, 0, 0, ICON_SIZE, ICON_SIZE, ICON_SIZE, ICON_SIZE);
-            if (locked) {
-                graphics.setColor(1f, 1f, 1f, 1f);
-            }
-            y = ICON_SIZE + ICON_GAP;
-        }
         for (var line : this.font.split(Component.literal(card.contract.getActualName()), wrapWidth)) {
             graphics.drawString(this.font, line, -this.font.width(line) / 2, (int) y, nameColor, true);
             y += this.font.lineHeight;
@@ -361,7 +349,7 @@ public class ContractRevealScreen extends Screen {
         List<FormattedCharSequence> lines = new ArrayList<>();
         lines.addAll(this.font.split(Component.translatable("misc.craftorio.contract_threshold_not_met"), wrapWidth));
         lines.addAll(this.font.split(Component.translatable("misc.craftorio.contract_threshold_required",
-                CraftorioMisc.bigIntFormat(card.contract.getPointThreshold(), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt())), wrapWidth));
+                CraftorioMisc.bigIntFormat(card.contract.getPointThreshold())), wrapWidth));
 
         graphics.pose().pushPose();
         graphics.pose().translate(card.restX, centerY, 0);

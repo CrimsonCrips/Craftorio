@@ -16,6 +16,7 @@ import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.networking.EffectTimerPacket;
+import org.crimsoncrips.craftorio.server.CraftorioHavenDimension;
 
 import java.math.BigInteger;
 
@@ -39,6 +40,9 @@ public class CommandEvents {
                         .then(Commands.argument("seconds", IntegerArgumentType.integer(0)).executes(CommandEvents::runSetContractRefreshTime)))
                 .then(Commands.literal("effect_timer_time").requires(cs -> cs.hasPermission(3))
                         .then(Commands.argument("seconds", IntegerArgumentType.integer(0)).executes(CommandEvents::runSetEffectTimerTime)))
+                .then(Commands.literal("haven").requires(cs -> cs.hasPermission(2))
+                        .then(Commands.literal("enter").executes(CommandEvents::runHavenEnter))
+                        .then(Commands.literal("leave").executes(CommandEvents::runHavenLeave)))
         );
 
 
@@ -145,6 +149,22 @@ public class CommandEvents {
         }
 
         context.getSource().sendSuccess(() -> Component.translatable("misc.craftorio.effect_timer_time_set", seconds), true);
+        return 1;
+    }
+
+    private static int runHavenEnter(CommandContext<CommandSourceStack> context) {
+        ServerPlayer player = context.getSource().getPlayer();
+        if (player == null) return 0;
+
+        CraftorioHavenDimension.enter(player);
+        return 1;
+    }
+
+    private static int runHavenLeave(CommandContext<CommandSourceStack> context) {
+        ServerPlayer player = context.getSource().getPlayer();
+        if (player == null) return 0;
+
+        CraftorioHavenDimension.leave(player);
         return 1;
     }
 

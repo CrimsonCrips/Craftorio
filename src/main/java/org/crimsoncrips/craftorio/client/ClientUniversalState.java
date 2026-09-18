@@ -28,6 +28,14 @@ public class ClientUniversalState {
     private static double advancementMultiplierBonus = 0.0;
     private static List<CraftorioContract> contracts = List.of();
     private static List<CraftorioBorder> borders = List.of();
+    private static int contractsCompleted = 0;
+    private static float highestMultiplier = 0.0F;
+    private static int life = 1;
+    private static BigInteger lifePoints = BigInteger.ZERO;
+    private static Map<ResourceLocation, Integer> rebirthUpgradesUnlocked = Map.of();
+    private static BigInteger overallHighestPoints = BigInteger.ZERO;
+    private static int overallContractsCompleted = 0;
+    private static Map<ResourceLocation, Long> overallItemsSinked = Map.of();
 
     private ClientUniversalState() {
     }
@@ -39,7 +47,15 @@ public class ClientUniversalState {
                                List<ShopMultiplierEffect> shopEffects,
                                double advancementMultiplierBonus,
                                List<CraftorioContract> contracts,
-                               List<CraftorioBorder> borders) {
+                               List<CraftorioBorder> borders,
+                               int contractsCompleted,
+                               float highestMultiplier,
+                               int life,
+                               BigInteger lifePoints,
+                               Map<ResourceLocation, Integer> rebirthUpgradesUnlocked,
+                               BigInteger overallHighestPoints,
+                               int overallContractsCompleted,
+                               Map<ResourceLocation, Long> overallItemsSinked) {
         available = true;
         ClientUniversalState.points = points;
         ClientUniversalState.highestPoints = highestPoints;
@@ -52,6 +68,14 @@ public class ClientUniversalState {
         ClientUniversalState.advancementMultiplierBonus = advancementMultiplierBonus;
         ClientUniversalState.contracts = contracts;
         ClientUniversalState.borders = borders;
+        ClientUniversalState.contractsCompleted = contractsCompleted;
+        ClientUniversalState.highestMultiplier = highestMultiplier;
+        ClientUniversalState.life = life;
+        ClientUniversalState.lifePoints = lifePoints;
+        ClientUniversalState.rebirthUpgradesUnlocked = rebirthUpgradesUnlocked;
+        ClientUniversalState.overallHighestPoints = overallHighestPoints;
+        ClientUniversalState.overallContractsCompleted = overallContractsCompleted;
+        ClientUniversalState.overallItemsSinked = overallItemsSinked;
     }
 
     public static void clear() {
@@ -104,5 +128,37 @@ public class ClientUniversalState {
 
     public static List<CraftorioBorder> getBorders() {
         return borders;
+    }
+
+    public static int getContractsCompleted() {
+        return contractsCompleted;
+    }
+
+    public static float getHighestMultiplier() {
+        return highestMultiplier;
+    }
+
+    public static int getLife() {
+        return life;
+    }
+
+    public static BigInteger getLifePoints() {
+        return lifePoints;
+    }
+
+    public static Map<ResourceLocation, Integer> getRebirthUpgradePurchaseCounts() {
+        return rebirthUpgradesUnlocked;
+    }
+
+    public static BigInteger getOverallHighestPoints() {
+        return overallHighestPoints;
+    }
+
+    public static int getOverallContractsCompleted() {
+        return overallContractsCompleted;
+    }
+
+    public static Map<ResourceLocation, Long> getOverallItemsSinked() {
+        return overallItemsSinked;
     }
 }

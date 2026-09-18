@@ -11,9 +11,11 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.achievement.StatsScreen;
+import net.minecraft.client.gui.screens.worldselection.CreateWorldScreen;
 import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
@@ -48,8 +50,10 @@ import org.crimsoncrips.craftorio.client.screen.AutoValueCondenserScreen;
 import org.crimsoncrips.craftorio.client.screen.ContractCreatorBountyScreen;
 import org.crimsoncrips.craftorio.client.screen.ContractRevealScreen;
 import org.crimsoncrips.craftorio.client.screen.CraftorioConfigScreen;
-import org.crimsoncrips.craftorio.client.screen.CraftorioSinkStatsScreen;
+import org.crimsoncrips.craftorio.client.screen.CraftorioRebirthSkillTreeScreen;
+import org.crimsoncrips.craftorio.client.screen.CraftorioStatisticsScreen;
 import org.crimsoncrips.craftorio.client.screen.CraftorioSkillTreeScreen;
+import org.crimsoncrips.craftorio.client.screen.CraftorioWorldCreationScreen;
 import org.crimsoncrips.craftorio.client.screen.ShopScreen;
 import org.crimsoncrips.craftorio.client.screen.SinkScreen;
 import org.crimsoncrips.craftorio.client.screen.SkillTreeCreatorScreen;
@@ -98,6 +102,10 @@ public class ClientEvents {
 
 	public static void openShopScreen(OpenShopScreenPacket message) {
 		Minecraft.getInstance().setScreen(new ShopScreen(message.allUnlocked(), new HashSet<>(message.unlockedItems())));
+	}
+
+	public static void openRebirthSkillTreeScreen() {
+		Minecraft.getInstance().setScreen(new CraftorioRebirthSkillTreeScreen());
 	}
 
 	public static void openValueBrowserScreen(OpenValueBrowserScreenPacket message) {
@@ -494,9 +502,9 @@ public class ClientEvents {
 		PointsRateTracker.tick(actualPoints);
 
 		BigInteger displayValue = PointsAnimation.getDisplayValue();
-		String pointsString = CraftorioMisc.bigIntFormat(displayValue, Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
-		String INFINITY_TEXT = CraftorioMisc.bigIntFormat(CraftorioMisc.pointThreshold(), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
-		String NEG_INFINITY_TEXT = "-" + CraftorioMisc.bigIntFormat(CraftorioMisc.pointThreshold(), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
+		String pointsString = CraftorioMisc.bigIntFormat(displayValue);
+		String INFINITY_TEXT = CraftorioMisc.bigIntFormat(CraftorioMisc.pointThreshold());
+		String NEG_INFINITY_TEXT = "-" + CraftorioMisc.bigIntFormat(CraftorioMisc.pointThreshold());
 
 		int screenWidth = Minecraft.getInstance().getWindow().getGuiScaledWidth();
 		int centerX = screenWidth / 2;
@@ -514,7 +522,7 @@ public class ClientEvents {
 
 		BigInteger pointsPerSecond = PointsRateTracker.getPointsPerSecond();
 		String ppmSign = pointsPerSecond.signum() > 0 ? "+" : "";
-		String ppmString = ppmSign + CraftorioMisc.bigIntFormat(pointsPerSecond, Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt())
+		String ppmString = ppmSign + CraftorioMisc.bigIntFormat(pointsPerSecond)
 				+ Component.translatable("misc.craftorio.points_per_second_suffix").getString();
 		int ppmColor = 0xAAAAAA;
 		graphics.drawString(font, ppmString, ppmBadgeX + BADGE_WIDTH / 2 - font.width(ppmString) / 2, textY, ppmColor, true);
@@ -573,8 +581,6 @@ public class ClientEvents {
 		int y = 5;
 
 		BigInteger maxPoints = CraftorioMisc.getHighestPoints(minecraft.player);
-		String prefix = Component.translatable("misc.craftorio.highest_points_label").getString();
-		CraftorioMisc.CraftorioTextEffects.drawCenteredLine(graphics, font, centerX, y + 5, true, 0xFFFF55, prefix, maxPoints);
 	}
 
 
@@ -668,6 +674,7 @@ public class ClientEvents {
 	public static final int STATUS_ICON_SHEET_HEIGHT = 39;
 	public static final int BORDER_MODE_INDICATOR_SIZE = STATUS_ICON_SIZE;
 	public static final int BORDER_MODE_INDICATOR_GAP = 4;
+	private static final int WORLD_CREATION_BUTTON_SIZE = 20;
 
 	private static final int CHUNK_BASED_ROW = 0;
 	private static final int UNIVERSAL_BASED_ROW = 1;
@@ -719,9 +726,57 @@ public class ClientEvents {
 		int x = statsScreen.width - width - 8;
 		int y = 8;
 
-		event.addListener(Button.builder(Component.translatable("misc.craftorio.sink_stats_button"),
-						b -> Minecraft.getInstance().setScreen(new CraftorioSinkStatsScreen()))
+		event.addListener(Button.builder(Component.translatable("misc.craftorio.stats_button"),
+						b -> Minecraft.getInstance().setScreen(new CraftorioStatisticsScreen()))
 				.bounds(x, y, width, height)
 				.build());
+	}
+
+	private static Button worldCreationButton;
+
+	public static void repositionWorldCreationButton(ScreenEvent.Render.Pre event) {
+		if (worldCreationButton == null || !(event.getScreen() instanceof CreateWorldScreen createWorldScreen)) return;
+
+		worldCreationButton.setX(createWorldScreen.width - WORLD_CREATION_BUTTON_SIZE - 8);
+		worldCreationButton.setY(32);
+	}
+
+	public static void addCraftorioWorldCreationButton(ScreenEvent.Init.Post event) {
+		if (!(event.getScreen() instanceof CreateWorldScreen createWorldScreen)) return;
+
+		int x = createWorldScreen.width - WORLD_CREATION_BUTTON_SIZE - 8;
+		int y = 32;
+
+		worldCreationButton = Button.builder(Component.empty(), b -> Minecraft.getInstance().setScreen(new CraftorioWorldCreationScreen(
+						createWorldScreen,
+						Craftorio.SERVER_CONFIG.UNIVERSAL_PROGRESSION.getAsBoolean(),
+						Craftorio.SERVER_CONFIG.CHUNK_BASED_EXPANSION.getAsBoolean(),
+						Craftorio.SERVER_CONFIG.NO_BORDERS.getAsBoolean())))
+				.bounds(x, y, WORLD_CREATION_BUTTON_SIZE, WORLD_CREATION_BUTTON_SIZE)
+				.tooltip(Tooltip.create(Component.translatable("misc.craftorio.world_creation_settings_title")))
+				.build(WorldCreationIconButton::new);
+		event.addListener(worldCreationButton);
+	}
+
+	private static class WorldCreationIconButton extends Button {
+		private static final ResourceLocation ICON = Craftorio.getGuiTexture("default_icon.png");
+		private static final int ICON_SIZE = 14;
+
+		private WorldCreationIconButton(Button.Builder builder) {
+			super(builder);
+		}
+
+		@Override
+		public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+			super.renderWidget(guiGraphics, mouseX, mouseY, partialTick);
+
+			int iconX = getX() + (getWidth() - ICON_SIZE) / 2;
+			int iconY = getY() + (getHeight() - ICON_SIZE) / 2;
+			guiGraphics.blit(ICON, iconX, iconY, 0, 0, ICON_SIZE, ICON_SIZE, ICON_SIZE, ICON_SIZE);
+		}
+	}
+
+	public static void registerDimensionEffects(net.neoforged.neoforge.client.event.RegisterDimensionSpecialEffectsEvent event) {
+		event.register(org.crimsoncrips.craftorio.registries.CraftorioDimensions.HAVEN_ID, new org.crimsoncrips.craftorio.client.CraftorioHavenSkyEffects());
 	}
 }

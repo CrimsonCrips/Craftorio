@@ -94,7 +94,7 @@ public class AllContractsScreen extends Screen {
                 }
 
                 String name = contract.getActualName();
-                String threshold = CraftorioMisc.bigIntFormat(contract.getMinPointThreshold(), Craftorio.CLIENT_CONFIG.POINT_FORMATTING.getAsInt());
+                String threshold = CraftorioMisc.bigIntFormat(contract.getMinPointThreshold());
 
                 graphics.drawString(this.font, name, left + 4, y + (ROW_HEIGHT - this.font.lineHeight) / 2, 0xFFFFFF, false);
                 String thresholdText = threshold;
