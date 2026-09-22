@@ -300,36 +300,38 @@ public class ContractRevealScreen extends Screen {
         int wrapWidth = (int) (innerWidth / textScale);
         float textTop = centerY - this.cardHeight / 2f + 14;
 
-        int nameColor = locked ? 0x707070 : 0xa9a9a9;
-        int timeColor = locked ? 0x555555 : 0xAAAAAA;
-        int descColor = locked ? 0x707070 : 0xa9a9a9;
-        int punishmentColor = locked ? 0x707070 : 0xFFFFFF;
+        int nameColor = 0xa9a9a9;
+        int timeColor = 0xffd966;
+        int descColor = 0xa9a9a9;
+        int punishmentColor = 0xff0000;
 
         graphics.pose().pushPose();
         graphics.pose().translate(card.restX, textTop, 0);
         graphics.pose().scale(growScale * textScale, growScale * textScale, 1f);
 
-        float y = 0;
-        for (var line : this.font.split(Component.literal(card.contract.getActualName()), wrapWidth)) {
-            graphics.drawString(this.font, line, -this.font.width(line) / 2, (int) y, nameColor, true);
-            y += this.font.lineHeight;
-        }
+        if(!locked){
+            float y = 0;
+            for (var line : this.font.split(Component.literal(card.contract.getActualName()), wrapWidth)) {
+                graphics.drawString(this.font, line, -this.font.width(line) / 2, (int) y, nameColor, true);
+                y += this.font.lineHeight + 6;
+            }
 
-        String timeLine = Component.translatable("misc.craftorio.contract_time_remaining", CraftorioMisc.ticksToTimeString(card.contract.getTime())).getString();
-        graphics.drawString(this.font, timeLine, -this.font.width(timeLine) / 2, (int) y, timeColor, true);
-        y += this.font.lineHeight + 3;
+            String timeLine = Component.translatable("misc.craftorio.contract_time_remaining", CraftorioMisc.ticksToTimeString(card.contract.getTime())).getString();
+            graphics.drawString(this.font, timeLine, -this.font.width(timeLine) / 2, (int) y, timeColor, true);
+            y += this.font.lineHeight + 20;
 
-        for (var line : this.font.split(Component.literal(card.contract.getActualDescription()), wrapWidth)) {
-            graphics.drawString(this.font, line, -this.font.width(line) / 2, (int) y, descColor, true);
-            y += this.font.lineHeight;
-        }
-
-        Component punishmentLine = punishmentLine(card.contract);
-        if (!punishmentLine.getString().isEmpty()) {
-            y += 3;
-            for (var line : this.font.split(punishmentLine, wrapWidth)) {
-                graphics.drawString(this.font, line, -this.font.width(line) / 2, (int) y, punishmentColor, true);
+            for (var line : this.font.split(Component.literal(card.contract.getActualDescription()), wrapWidth)) {
+                graphics.drawString(this.font, line, -this.font.width(line) / 2, (int) y, descColor, true);
                 y += this.font.lineHeight;
+            }
+
+            Component punishmentLine = punishmentLine(card.contract);
+            if (!punishmentLine.getString().isEmpty()) {
+                y = 120;
+                for (var line : this.font.split(punishmentLine, wrapWidth)) {
+                    graphics.drawString(this.font, line, -this.font.width(line) / 2, (int) y, punishmentColor, true);
+                    y += this.font.lineHeight;
+                }
             }
         }
 
@@ -372,7 +374,7 @@ public class ContractRevealScreen extends Screen {
 
         return this.minecraft.level.registryAccess().registryOrThrow(CraftorioEffects.REGISTRY_KEY).getOptional(punishmentId)
                 .<Component>map(effect -> Component.translatable("misc.craftorio.contract_punishment_line", effect.getActualName())
-                        .withStyle(style -> style.withColor(ChatFormatting.RED).withBold(true)))
+                        .withStyle(style -> style.withBold(true)))
                 .orElse(Component.empty());
     }
 

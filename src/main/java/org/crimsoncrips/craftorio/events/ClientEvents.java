@@ -604,7 +604,6 @@ public class ClientEvents {
 	public static void tickUniversalProgressDisplay(ClientTickEvent.Post event) {
 		Minecraft minecraft = Minecraft.getInstance();
 		if (minecraft.player == null || minecraft.level == null) return;
-		if (!CraftorioMisc.universalBased(minecraft.level)) return;
 
 		for (CraftorioEffects effect : CraftorioMisc.getCraftorioEffects(minecraft.player)) {
 			if (effect.getTime() > 0) {

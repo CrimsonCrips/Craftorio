@@ -115,8 +115,31 @@ public class OwnedContractsScreen extends Screen {
         this.scrollX = Mth.clamp(this.scrollX, 0, this.maxScroll);
     }
 
+    private void refreshContracts() {
+        Player player = this.minecraft.player;
+        if (player == null) return;
+
+        List<CraftorioContract> source = CraftorioMisc.getCraftorioContracts(player);
+        if (source.size() != this.contracts.size()) {
+            this.contracts.clear();
+            this.contracts.addAll(source);
+            this.hoverScales.clear();
+            for (int i = 0; i < this.contracts.size(); i++) {
+                this.hoverScales.add(1.0f);
+            }
+            recomputeScrollBounds();
+            return;
+        }
+
+        for (int i = 0; i < source.size(); i++) {
+            this.contracts.set(i, source.get(i));
+        }
+    }
+
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        refreshContracts();
+
         super.render(graphics, mouseX, mouseY, partialTick);
 
         graphics.drawCenteredString(this.font, this.getTitle(), this.width / 2, 16, 0xFFFFFF);

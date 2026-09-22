@@ -1691,9 +1691,8 @@ public class CraftorioMisc {
     }
 
     public static BigInteger contractRefreshCost(Player player){
-        BigInteger highestPoints = getHighestPoints(player);
         BigDecimal percent = BigDecimal.valueOf(Craftorio.SERVER_CONFIG.CONTRACT_REFRESH_COST_PERCENT.get());
-        BigDecimal cost = new BigDecimal(highestPoints).multiply(percent).divide(BigDecimal.valueOf(100));
+        BigDecimal cost = new BigDecimal(CraftorioMisc.getPoints(player)).multiply(percent).divide(BigDecimal.valueOf(100));
         return applyUpgradeModifier(player, ModifierTarget.CONTRACT_REFRESH_COST, cost).max(BigInteger.ZERO);
     }
 
