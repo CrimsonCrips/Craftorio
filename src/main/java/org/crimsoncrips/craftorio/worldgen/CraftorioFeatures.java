@@ -11,6 +11,6 @@ public class CraftorioFeatures {
 
     public static final DeferredRegister<Feature<?>> FEATURES = DeferredRegister.create(Registries.FEATURE, Craftorio.MODID);
 
-    public static final DeferredHolder<Feature<?>, CraftorioHavenPlatformFeature> HAVEN_PLATFORM =
-            FEATURES.register("haven_platform", () -> new CraftorioHavenPlatformFeature(NoneFeatureConfiguration.CODEC));
+    public static final DeferredHolder<Feature<?>, HavenPlatformFeature> HAVEN_PLATFORM =
+            FEATURES.register("haven_platform", () -> new HavenPlatformFeature(NoneFeatureConfiguration.CODEC));
 }

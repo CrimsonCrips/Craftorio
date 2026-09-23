@@ -24,14 +24,14 @@ public class CraftorioBlocks {
 
     public static final DeferredBlock<Block> AUTO_VALUE_CONDENSER = register1("auto_value_condenser", () -> new AutoValueCondenserBlock(BlockBehaviour.Properties.of().mapColor(MapColor.COLOR_LIGHT_GRAY).noOcclusion().pushReaction(PushReaction.BLOCK).requiresCorrectToolForDrops().sound(SoundType.NETHERITE_BLOCK).strength(3.0F, 100.0F)));
 
-    public static final DeferredBlock<Block> INVISIBLE_BLOCK = register("invisible_block", () -> new CraftorioInvisibleBlock(BlockBehaviour.Properties.of()
+    public static final DeferredBlock<Block> HAVEN_BLOCK = register("haven_block", () -> new HavenBlock(BlockBehaviour.Properties.of()
             .strength(-1.0F, 3600000.8F)
             .mapColor(MapColor.NONE)
             .noLootTable()
             .noOcclusion()
             .isValidSpawn((state, level, pos, type) -> false)
             .noTerrainParticles()
-            .pushReaction(PushReaction.BLOCK)));
+            .pushReaction(PushReaction.IGNORE)));
 
     public static <T extends Block> DeferredBlock<T> register(String name, Supplier<T> block) {
         DeferredBlock<T> ret = BLOCKS.register(name, block);

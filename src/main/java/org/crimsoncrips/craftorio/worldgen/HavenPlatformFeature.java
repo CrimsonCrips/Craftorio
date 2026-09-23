@@ -9,11 +9,11 @@ import net.minecraft.world.level.levelgen.feature.FeaturePlaceContext;
 import net.minecraft.world.level.levelgen.feature.configurations.NoneFeatureConfiguration;
 import org.crimsoncrips.craftorio.block.CraftorioBlocks;
 
-public class CraftorioHavenPlatformFeature extends Feature<NoneFeatureConfiguration> {
+public class HavenPlatformFeature extends Feature<NoneFeatureConfiguration> {
 
     public static final int PLATFORM_RADIUS = 5;
 
-    public CraftorioHavenPlatformFeature(Codec<NoneFeatureConfiguration> codec) {
+    public HavenPlatformFeature(Codec<NoneFeatureConfiguration> codec) {
         super(codec);
     }
 
@@ -21,7 +21,7 @@ public class CraftorioHavenPlatformFeature extends Feature<NoneFeatureConfigurat
     public boolean place(FeaturePlaceContext<NoneFeatureConfiguration> context) {
         WorldGenLevel level = context.level();
         BlockPos origin = context.origin();
-        BlockState platformState = CraftorioBlocks.INVISIBLE_BLOCK.get().defaultBlockState();
+        BlockState platformState = CraftorioBlocks.HAVEN_BLOCK.get().defaultBlockState();
 
         BlockPos.MutableBlockPos pos = new BlockPos.MutableBlockPos();
         for (int x = -PLATFORM_RADIUS; x < PLATFORM_RADIUS; x++) {

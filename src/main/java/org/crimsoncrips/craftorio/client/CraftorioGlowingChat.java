@@ -9,10 +9,11 @@ import net.neoforged.api.distmarker.OnlyIn;
 @OnlyIn(Dist.CLIENT)
 public final class CraftorioGlowingChat {
 
+    public static final GuiMessageTag GLOW_TAG = new GuiMessageTag(0xFFFFFF, null, null, "GlowMessage");
+
     private CraftorioGlowingChat() {}
 
-    public static void sendGlowingMessage(Component message,int color) {
-        GuiMessageTag GLOW_TAG = new GuiMessageTag(color, null, null, "GlowMessage");
+    public static void sendGlowingMessage(Component message) {
         Minecraft.getInstance().gui.getChat().addMessage(message, null, GLOW_TAG);
     }
 }

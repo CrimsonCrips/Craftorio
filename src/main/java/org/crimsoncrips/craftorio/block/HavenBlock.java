@@ -9,9 +9,9 @@ import net.minecraft.world.phys.shapes.CollisionContext;
 import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 
-public class CraftorioInvisibleBlock extends Block {
+public class HavenBlock extends Block {
 
-    public CraftorioInvisibleBlock(Properties properties) {
+    public HavenBlock(Properties properties) {
         super(properties);
     }
 

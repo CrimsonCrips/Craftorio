@@ -30,7 +30,7 @@ public class CraftLangGen extends LanguageProvider {
 		this.addBlock(CraftorioBlocks.AUTO_SINKER,"Auto Sinker");
 		this.addBlock(CraftorioBlocks.VALUE_CONDENSER,"Value Condenser");
 		this.addBlock(CraftorioBlocks.AUTO_VALUE_CONDENSER,"Auto Value Condenser");
-		this.addBlock(CraftorioBlocks.INVISIBLE_BLOCK,"Invisible Block");
+		this.addBlock(CraftorioBlocks.HAVEN_BLOCK,"Invisible Block");
 		this.addMisc("claim_land", "Claim Land");
 
 		this.addMisc("double_or_nothing_button", "Double Or Nothing");

@@ -27,7 +27,7 @@ public final class IrisCompat {
                     suppressingShaders = true;
                     shadersWereEnabledBeforeHaven = true;
                     IrisApi.getInstance().getConfig().setShadersEnabledAndApply(false);
-                    CraftorioGlowingChat.sendGlowingMessage(Component.translatable("misc.craftorio.haven_shaders_disabled").withStyle(ChatFormatting.ITALIC),0xFFFFFF);
+                    CraftorioGlowingChat.sendGlowingMessage(Component.translatable("misc.craftorio.haven_shaders_disabled").withStyle(ChatFormatting.ITALIC));
                 }
             } else {
                 suppressingShaders = false;
