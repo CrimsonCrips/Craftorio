@@ -6,15 +6,17 @@ import net.minecraft.advancements.AdvancementType;
 import net.minecraft.advancements.critereon.PlayerTrigger;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.Items;
 import net.neoforged.neoforge.common.data.AdvancementProvider;
 import net.neoforged.neoforge.common.data.ExistingFileHelper;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.block.CraftorioBlocks;
-import org.crimsoncrips.craftorio.server.CraftorioPointsAdvancements;
-import org.crimsoncrips.craftorio.server.CraftorioPointsTrigger;
+import org.crimsoncrips.craftorio.server.advancement.CraftorioPointsAdvancements;
+import org.crimsoncrips.craftorio.server.advancement.CraftorioPointsTrigger;
 
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class CraftorioAdvancementProvider implements AdvancementProvider.AdvancementGenerator {
@@ -30,7 +32,7 @@ public class CraftorioAdvancementProvider implements AdvancementProvider.Advance
                 .addCriterion("tick", PlayerTrigger.TriggerInstance.tick())
                 .save(saver, Craftorio.prefix("root"), existingFileHelper);
 
-        Map<String, net.minecraft.world.item.Item> icons = Map.of(
+        Map<String, Item> icons = Map.of(
                 "millionaire", Items.GOLD_INGOT,
                 "the_human_body", Items.EMERALD,
                 "russias_lawsuit", Items.DIAMOND,
@@ -49,7 +51,7 @@ public class CraftorioAdvancementProvider implements AdvancementProvider.Advance
     }
 
     private AdvancementHolder pointsMilestone(Consumer<AdvancementHolder> saver, ExistingFileHelper existingFileHelper, AdvancementHolder parent,
-                                               CraftorioPointsAdvancements.Milestone milestone, net.minecraft.world.item.Item icon) {
+                                               CraftorioPointsAdvancements.Milestone milestone, Item icon) {
         return Advancement.Builder.advancement()
                 .parent(parent)
                 .display(icon,
@@ -58,7 +60,7 @@ public class CraftorioAdvancementProvider implements AdvancementProvider.Advance
                         null, AdvancementType.CHALLENGE, true, true, false
                 )
                 .addCriterion("points", CraftorioPointsAdvancements.POINTS_TRIGGER.createCriterion(
-                        new CraftorioPointsTrigger.TriggerInstance(java.util.Optional.empty(), milestone.threshold(), milestone.negative())))
+                        new CraftorioPointsTrigger.TriggerInstance(Optional.empty(), milestone.threshold(), milestone.negative())))
                 .save(saver, Craftorio.prefix(milestone.path()), existingFileHelper);
     }
 

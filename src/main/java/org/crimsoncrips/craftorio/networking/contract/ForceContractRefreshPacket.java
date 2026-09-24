@@ -1,0 +1,36 @@
+package org.crimsoncrips.craftorio.networking.contract;
+
+import net.minecraft.network.RegistryFriendlyByteBuf;
+import net.minecraft.network.codec.StreamCodec;
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload;
+import net.minecraft.server.level.ServerPlayer;
+import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.crimsoncrips.craftorio.Craftorio;
+import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.events.ServerEvents;
+
+public record ForceContractRefreshPacket() implements CustomPacketPayload {
+
+    public static final Type<ForceContractRefreshPacket> TYPE = new Type<>(Craftorio.prefix("force_contract_refresh_packet"));
+    public static final StreamCodec<RegistryFriendlyByteBuf, ForceContractRefreshPacket> STREAM_CODEC = StreamCodec.unit(new ForceContractRefreshPacket());
+
+    @Override
+    public Type<? extends CustomPacketPayload> type() {
+        return TYPE;
+    }
+
+    public static void handle(ForceContractRefreshPacket message, IPayloadContext ctx) {
+        ctx.enqueueWork(() -> {
+            if (!(ctx.player() instanceof ServerPlayer serverPlayer)) return;
+            if (!serverPlayer.isCreative()) return;
+
+            if (CraftorioMisc.universalBased(serverPlayer.level())) {
+                CraftorioMisc.setContractRefreshTime(serverPlayer.level(), 0);
+            } else {
+                CraftorioMisc.setContractRefreshTime(serverPlayer, 0);
+            }
+
+            ServerEvents.requestInstantContractRefresh(serverPlayer);
+        });
+    }
+}

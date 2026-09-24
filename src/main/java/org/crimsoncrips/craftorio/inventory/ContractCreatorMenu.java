@@ -8,8 +8,8 @@ import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
-import org.crimsoncrips.craftorio.CraftorioMenuTypes;
-import org.crimsoncrips.craftorio.server.CraftorioContractDraftStore;
+import org.crimsoncrips.craftorio.registries.CraftorioMenuTypes;
+import org.crimsoncrips.craftorio.server.devtools.CraftorioContractDraftStore;
 
 public class ContractCreatorMenu extends AbstractContainerMenu {
 

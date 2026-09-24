@@ -20,8 +20,8 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.LevelResource;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
 import org.crimsoncrips.craftorio.Craftorio;
-import org.crimsoncrips.craftorio.CraftorioDataComponents;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.registries.CraftorioDataComponents;
 
 import java.io.IOException;
 import java.math.BigInteger;

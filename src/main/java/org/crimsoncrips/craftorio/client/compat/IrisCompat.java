@@ -6,7 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.neoforged.neoforge.client.event.ClientTickEvent;
 import org.crimsoncrips.craftorio.CraftorioMisc;
-import org.crimsoncrips.craftorio.client.CraftorioGlowingChat;
+import org.crimsoncrips.craftorio.client.hud.CraftorioGlowingChat;
 
 public final class IrisCompat {
 

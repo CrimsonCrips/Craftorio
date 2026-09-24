@@ -11,7 +11,7 @@ import net.neoforged.neoforge.client.event.ClientTickEvent;
 import net.neoforged.neoforge.client.event.ScreenEvent;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
-import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
+import org.crimsoncrips.craftorio.server.border.CraftorioBorder;
 import xaero.map.MapProcessor;
 import xaero.map.gui.GuiMap;
 import xaero.map.world.MapWorld;

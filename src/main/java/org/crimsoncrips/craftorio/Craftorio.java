@@ -13,27 +13,31 @@ import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.crimsoncrips.craftorio.block.CraftorioBlocks;
-import org.crimsoncrips.craftorio.block.entity.CraftorioBlockEntityTypes;
-import org.crimsoncrips.craftorio.events.ClientEvents;
-import org.crimsoncrips.craftorio.client.CraftorioClientConfig;
-import org.crimsoncrips.craftorio.client.CraftorioKeyMappings;
+import org.crimsoncrips.craftorio.block.blockentity.CraftorioBlockEntityTypes;
 import org.crimsoncrips.craftorio.client.compat.IrisCompat;
 import org.crimsoncrips.craftorio.client.compat.XaeroWorldMapCompat;
+import org.crimsoncrips.craftorio.client.config.CraftorioClientConfig;
+import org.crimsoncrips.craftorio.client.input.CraftorioKeyMappings;
 import org.crimsoncrips.craftorio.datagen.CraftorioDatagen;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
-import org.crimsoncrips.craftorio.registries.effect.CraftorioEffectTypes;
+import org.crimsoncrips.craftorio.events.ClientEvents;
+import org.crimsoncrips.craftorio.events.CommandEvents;
+import org.crimsoncrips.craftorio.events.ServerEvents;
 import org.crimsoncrips.craftorio.item.CraftorioItems;
 import org.crimsoncrips.craftorio.item.ScannerStickItem;
 import org.crimsoncrips.craftorio.loot.CraftorioLootModifiers;
-import org.crimsoncrips.craftorio.server.CraftorioAdvancementPoints;
-import org.crimsoncrips.craftorio.server.CraftorioAdvancementMultipliers;
-import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
-import org.crimsoncrips.craftorio.server.CraftorioServerConfig;
-import org.crimsoncrips.craftorio.events.CommandEvents;
 import org.crimsoncrips.craftorio.networking.PacketRegistration;
-import org.crimsoncrips.craftorio.events.ServerEvents;
+import org.crimsoncrips.craftorio.registries.CraftorioDataComponents;
+import org.crimsoncrips.craftorio.registries.CraftorioMenuTypes;
+import org.crimsoncrips.craftorio.registries.effect.CraftorioEffectTypes;
+import org.crimsoncrips.craftorio.server.advancement.CraftorioAdvancementMultipliers;
+import org.crimsoncrips.craftorio.server.advancement.CraftorioAdvancementPoints;
+import org.crimsoncrips.craftorio.server.advancement.CraftorioPointsAdvancements;
+import org.crimsoncrips.craftorio.server.config.CraftorioServerConfig;
+import org.crimsoncrips.craftorio.server.data.CraftorioDataAttachments;
 import org.crimsoncrips.craftorio.server.unlocks.CraftorioUnlockedItemsManager;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgradeTypes;
+import org.crimsoncrips.craftorio.worldgen.CraftorioFeatures;
 import org.slf4j.Logger;
 
 import java.util.Locale;
@@ -66,7 +70,7 @@ public class Craftorio {
     }
 
     public Craftorio(IEventBus modEventBus, ModContainer modContainer) {
-        modEventBus.addListener(org.crimsoncrips.craftorio.server.CraftorioPointsAdvancements::registerTrigger);
+        modEventBus.addListener(CraftorioPointsAdvancements::registerTrigger);
 
         // Register the commonSetup method for modloading
         CraftorioDataAttachments.ATTACHMENT_TYPES.register(modEventBus);
@@ -120,7 +124,7 @@ public class Craftorio {
         CraftorioItems.ITEMS.register(modEventBus);
         CraftorioMenuTypes.CONTAINERS.register(modEventBus);
         CraftorioDataComponents.COMPONENTS.register(modEventBus);
-        org.crimsoncrips.craftorio.worldgen.CraftorioFeatures.FEATURES.register(modEventBus);
+        CraftorioFeatures.FEATURES.register(modEventBus);
 
         //Config
         modContainer.registerConfig(ModConfig.Type.COMMON, SERVER_CONFIG_SPEC, "craftorio-general.toml");

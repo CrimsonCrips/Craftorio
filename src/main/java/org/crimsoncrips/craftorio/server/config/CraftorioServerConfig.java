@@ -1,0 +1,117 @@
+package org.crimsoncrips.craftorio.server.config;
+
+import net.neoforged.neoforge.common.ModConfigSpec;
+import org.crimsoncrips.craftorio.server.shop.CraftorioShopMode;
+
+public class CraftorioServerConfig {
+
+    public final ModConfigSpec.BooleanValue CHUNK_BASED_EXPANSION;
+    public final ModConfigSpec.BooleanValue UNIVERSAL_PROGRESSION;
+    public final ModConfigSpec.BooleanValue NO_BORDERS;
+    public final ModConfigSpec.IntValue STARTING_LAND_SIZE;
+    public final ModConfigSpec.DoubleValue COST_MULTIPLIER;
+    public final ModConfigSpec.IntValue SHOP_COST_MULTIPLIER;
+    public final ModConfigSpec.IntValue BASE_COST;
+    public final ModConfigSpec.IntValue EXPANSION_AMOUNT;
+    public final ModConfigSpec.ConfigValue<String> STARTING_POINTS;
+    public final ModConfigSpec.EnumValue<CraftorioShopMode> SHOP_MODE;
+
+    public final ModConfigSpec.DoubleValue MIN_SPAWN_DISTANCE;
+    public final ModConfigSpec.DoubleValue MAX_SPAWN_DISTANCE;
+
+    public final ModConfigSpec.DoubleValue CHUNK_OUT_OF_BOUNDS_DAMAGE;
+
+    public final ModConfigSpec.BooleanValue RANDOM_EFFECTS_ENABLED;
+    public final ModConfigSpec.IntValue RANDOM_EFFECT_INTERVAL;
+
+    public final ModConfigSpec.IntValue MAX_OFFERED_CONTRACTS;
+    public final ModConfigSpec.IntValue CONTRACT_REFRESH_SECONDS;
+    public final ModConfigSpec.DoubleValue CONTRACT_REFRESH_COST_PERCENT;
+
+    public final ModConfigSpec.IntValue SINK_VALUE_BONUS_AMOUNT;
+    public final ModConfigSpec.IntValue SINK_VALUE_BONUS_THRESHOLD;
+
+    public final ModConfigSpec.DoubleValue MULT_PER_CONTRACT_DONE;
+
+    public final ModConfigSpec.BooleanValue INSTANT_DEATH_OUTSIDE_CLAIM;
+
+    public final ModConfigSpec.IntValue REBIRTH_BASE_LIFE_POINTS;
+    public final ModConfigSpec.DoubleValue REBIRTH_SKIP_BONUS_PERCENT;
+    public final ModConfigSpec.IntValue REBIRTH_MAX_SKIP;
+
+
+    public CraftorioServerConfig(final ModConfigSpec.Builder builder) {
+
+        builder.push("General");
+        this.UNIVERSAL_PROGRESSION = buildBoolean(builder, "UNIVERSAL_PROGRESSION", true, "Whether progress is universal or solo");
+        this.STARTING_POINTS = buildString(builder, "STARTING_POINTS",  "100", "Starting points (exponents work like 1e2)");
+        this.INSTANT_DEATH_OUTSIDE_CLAIM = buildBoolean(builder, "INSTANT_DEATH_OUTSIDE_CLAIM", false, "If true, being outside your claimed area instantly blows you up");
+
+        MIN_SPAWN_DISTANCE = builder.defineInRange("min_spawn_distance", 500.0, 0.0, 100000.0);
+        MAX_SPAWN_DISTANCE = builder.defineInRange("max_spawn_distance", 2000.0, 0.0, 1000000.0);
+        this.MULT_PER_CONTRACT_DONE = buildDouble(builder, "MULT_PER_CONTRACT_DONE", 0.01, 0, Double.MAX_VALUE, "Multiplier bonus granted per contract completed (requires the matching skill tree upgrade). Ex. 0.01 = +0.01x mult per contract completed");
+
+        builder.push("Expansion");
+        this.CHUNK_BASED_EXPANSION = buildBoolean(builder, "CHUNK_BASED_EXPANSION", false, "Mode of expansion is through chunks");
+
+        this.STARTING_LAND_SIZE = buildInt(builder, "STARTING_LAND_SIZE", 1,1,Integer.MAX_VALUE, "Starting size for claimed land");
+        this.COST_MULTIPLIER = buildDouble(builder, "COST_MULTIPLIER", 0.05F,0,Double.MAX_VALUE, "Cost Multiplier to claim land (ex. 0.05F = 5%)");
+        this.BASE_COST = buildInt(builder, "BASE_COST", 10,1,Integer.MAX_VALUE, "Base Cost of Land");
+        builder.pop();
+
+        builder.push("Random Effects");
+        this.RANDOM_EFFECTS_ENABLED = buildBoolean(builder, "RANDOM_EFFECTS_ENABLED", true, "Whether registered effects can randomly be granted, similar to weather");
+        this.RANDOM_EFFECT_INTERVAL = buildInt(builder, "RANDOM_EFFECT_INTERVAL", 1500, 1, Integer.MAX_VALUE, "Exact number of seconds between random effect grants");
+        builder.pop();
+
+        builder.push("Shop");
+        this.SHOP_MODE = builder.comment("Shop screen access: DISABLED (cant be opened), UNLOCKED (only items the player has picked up at least once can be bought), OPEN (every priced item is buyable immediately)").translation("SHOP_MODE").defineEnum("SHOP_MODE", CraftorioShopMode.UNLOCKED);
+        this.SHOP_COST_MULTIPLIER = buildInt(builder, "SHOP_COST_MULTIPLIER", 10,1,Integer.MAX_VALUE, "Multiplier cost of buying items from shop");
+        builder.pop();
+
+        builder.push("Contracts");
+        this.MAX_OFFERED_CONTRACTS = buildInt(builder, "MAX_OFFERED_CONTRACTS", 3,1,5, "Maximum number of contracts offered at once on the contract offer screen");
+        this.CONTRACT_REFRESH_SECONDS = buildInt(builder, "CONTRACT_REFRESH_SECONDS", 1200, 1, Integer.MAX_VALUE, "Exact number of seconds between contract offer refreshes");
+        this.CONTRACT_REFRESH_COST_PERCENT = buildDouble(builder, "CONTRACT_REFRESH_COST_PERCENT", 5.0, 0, 100, "Percent of a player's highest points charged to manually refresh the contract offer early");
+        builder.pop();
+
+        builder.push("Sink Value");
+        this.SINK_VALUE_BONUS_AMOUNT = buildInt(builder, "SINK_VALUE_BONUS_AMOUNT", 10, 0, Integer.MAX_VALUE, "Bonus base value granted per SINK_VALUE_BONUS_THRESHOLD times an item has been sinked (requires the matching skill tree upgrade)");
+        this.SINK_VALUE_BONUS_THRESHOLD = buildInt(builder, "SINK_VALUE_BONUS_THRESHOLD", 10000, 1, Integer.MAX_VALUE, "Number of times an item must be sinked to grant one SINK_VALUE_BONUS_AMOUNT (requires the matching skill tree upgrade)");
+        builder.pop();
+
+
+        builder.push("Border Based");
+        this.EXPANSION_AMOUNT = buildInt(builder, "EXPANSION_AMOUNT", 1,1,Integer.MAX_VALUE, "Amount of expansion per purchase");
+        builder.pop();
+
+        builder.push("Chunk Based");
+        this.NO_BORDERS = buildBoolean(builder, "NO_BORDERS", false, "Whether another player can lay claim to a already claimed chunk to be able to access as well");
+        this.CHUNK_OUT_OF_BOUNDS_DAMAGE = buildDouble(builder, "CHUNK_OUT_OF_BOUNDS_DAMAGE", 2.0, 0, Double.MAX_VALUE, "Flat damage dealt per second while standing outside a chunk you own");
+
+        builder.pop();
+
+        builder.push("Rebirth");
+        this.REBIRTH_BASE_LIFE_POINTS = buildInt(builder, "REBIRTH_BASE_LIFE_POINTS", 10, 0, Integer.MAX_VALUE, "Baseline rebirth skill tree points granted per life gained");
+        this.REBIRTH_SKIP_BONUS_PERCENT = buildDouble(builder, "REBIRTH_SKIP_BONUS_PERCENT", 0.20, 0, Double.MAX_VALUE, "Extra percent of REBIRTH_BASE_LIFE_POINTS granted per additional life skipped in a single rebirth (ex. 0.20 = +20% per life skipped)");
+        this.REBIRTH_MAX_SKIP = buildInt(builder, "REBIRTH_MAX_SKIP", 100, 0, Integer.MAX_VALUE, "Maximum number of extra lives that can be skipped in a single rebirth");
+        builder.pop();
+
+    }
+
+    private static ModConfigSpec.BooleanValue buildBoolean(ModConfigSpec.Builder builder, String name, boolean defaultValue, String comment){
+        return builder.comment(comment).translation(name).define(name, defaultValue);
+    }
+
+    private static ModConfigSpec.IntValue buildInt(ModConfigSpec.Builder builder, String name, int defaultValue, int min, int max, String comment){
+        return builder.comment(comment).translation(name).defineInRange(name, defaultValue, min, max);
+    }
+
+    private static ModConfigSpec.ConfigValue<String> buildString(ModConfigSpec.Builder builder, String name, String defaultValue, String comment){
+        return builder.comment(comment).translation(name).define(name, defaultValue);
+    }
+
+    private static ModConfigSpec.DoubleValue buildDouble(ModConfigSpec.Builder builder, String name, double defaultValue, double min, double max, String comment){
+        return builder.comment(comment).translation(name).defineInRange(name, defaultValue, min, max);
+    }
+}

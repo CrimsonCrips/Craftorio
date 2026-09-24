@@ -14,10 +14,10 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
-import org.crimsoncrips.craftorio.CraftorioMenuTypes;
+import org.crimsoncrips.craftorio.registries.CraftorioMenuTypes;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
-import org.crimsoncrips.craftorio.skill_tree.ModifierTarget;
-import org.crimsoncrips.craftorio.skill_tree.UpgradeOperation;
+import org.crimsoncrips.craftorio.skill_tree.target.ModifierTarget;
+import org.crimsoncrips.craftorio.skill_tree.target.UpgradeOperation;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;

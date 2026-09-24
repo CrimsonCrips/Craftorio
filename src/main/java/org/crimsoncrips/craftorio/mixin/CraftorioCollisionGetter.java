@@ -13,8 +13,8 @@ import net.minecraft.world.phys.shapes.Shapes;
 import net.minecraft.world.phys.shapes.VoxelShape;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.registries.CraftorioDimensions;
-import org.crimsoncrips.craftorio.server.BorderCollisionHooks;
-import org.crimsoncrips.craftorio.server.ChunkCollisionHooks;
+import org.crimsoncrips.craftorio.server.border.BorderCollisionHooks;
+import org.crimsoncrips.craftorio.server.border.ChunkCollisionHooks;
 import org.spongepowered.asm.mixin.Mixin;
 
 import javax.annotation.Nullable;

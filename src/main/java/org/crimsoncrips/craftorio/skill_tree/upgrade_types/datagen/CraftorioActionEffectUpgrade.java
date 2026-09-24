@@ -7,7 +7,7 @@ import net.minecraft.resources.ResourceLocation;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgradeTypes;
-import org.crimsoncrips.craftorio.skill_tree.PlayerActionTarget;
+import org.crimsoncrips.craftorio.skill_tree.target.PlayerActionTarget;
 
 import java.math.BigInteger;
 

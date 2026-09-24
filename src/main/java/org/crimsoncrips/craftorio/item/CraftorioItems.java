@@ -13,6 +13,8 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.crimsoncrips.craftorio.Craftorio;
+import org.crimsoncrips.craftorio.item.rune.EffectRune;
+import org.crimsoncrips.craftorio.item.rune.MysteryEffectRune;
 
 import java.util.ArrayList;
 import java.util.List;

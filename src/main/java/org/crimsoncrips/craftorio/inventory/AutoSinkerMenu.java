@@ -8,9 +8,9 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.SimpleContainerData;
 import net.minecraft.world.item.ItemStack;
-import org.crimsoncrips.craftorio.CraftorioMenuTypes;
 import org.crimsoncrips.craftorio.CraftorioMisc;
-import org.crimsoncrips.craftorio.block.entity.AutoSinkerBlockEntity;
+import org.crimsoncrips.craftorio.block.blockentity.AutoSinkerBlockEntity;
+import org.crimsoncrips.craftorio.registries.CraftorioMenuTypes;
 
 import javax.annotation.Nullable;
 

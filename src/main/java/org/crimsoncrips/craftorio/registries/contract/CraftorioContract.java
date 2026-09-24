@@ -3,6 +3,7 @@ package org.crimsoncrips.craftorio.registries.contract;
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
 import net.minecraft.core.Registry;
+import net.minecraft.core.RegistryAccess;
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.codec.ByteBufCodecs;
@@ -11,6 +12,7 @@ import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
+import net.neoforged.fml.ModList;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 
@@ -292,7 +294,7 @@ public class CraftorioContract {
         this.cardTexture = cardTexture;
     }
 
-    public ResourceLocation resolveCardTexture(net.minecraft.core.RegistryAccess registryAccess) {
+    public ResourceLocation resolveCardTexture(RegistryAccess registryAccess) {
         ResourceLocation fallback = Craftorio.getGuiTexture("contract_textures/default_contract.png");
         if (cardTexture == null) return fallback;
 
@@ -303,7 +305,7 @@ public class CraftorioContract {
     }
 
     public boolean isModAvailable() {
-        return requiredModId == null || net.neoforged.fml.ModList.get().isLoaded(requiredModId);
+        return requiredModId == null || ModList.get().isLoaded(requiredModId);
     }
 
     public void abandon() {

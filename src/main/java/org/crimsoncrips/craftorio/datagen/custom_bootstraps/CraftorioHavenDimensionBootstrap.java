@@ -17,6 +17,7 @@ import net.minecraft.world.level.levelgen.flat.FlatLevelGeneratorSettings;
 import org.crimsoncrips.craftorio.registries.CraftorioDimensions;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.OptionalLong;
 
 public class CraftorioHavenDimensionBootstrap {
@@ -62,7 +63,7 @@ public class CraftorioHavenDimensionBootstrap {
         HolderGetter<Biome> biomes = context.lookup(Registries.BIOME);
 
         Holder<Biome> biome = biomes.getOrThrow(CraftorioDimensions.HAVEN_BIOME_KEY);
-        FlatLevelGeneratorSettings settings = new FlatLevelGeneratorSettings(java.util.Optional.empty(), biome, List.of());
+        FlatLevelGeneratorSettings settings = new FlatLevelGeneratorSettings(Optional.empty(), biome, List.of());
         FlatLevelSource generator = new FlatLevelSource(settings);
 
         context.register(CraftorioDimensions.HAVEN_LEVEL_STEM_KEY, new LevelStem(

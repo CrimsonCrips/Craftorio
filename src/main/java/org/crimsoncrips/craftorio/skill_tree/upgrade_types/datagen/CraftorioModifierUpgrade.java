@@ -9,8 +9,9 @@ import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
-import org.crimsoncrips.craftorio.skill_tree.ModifierTarget;
-import org.crimsoncrips.craftorio.skill_tree.UpgradeOperation;
+import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgradeTypes;
+import org.crimsoncrips.craftorio.skill_tree.target.ModifierTarget;
+import org.crimsoncrips.craftorio.skill_tree.target.UpgradeOperation;
 
 import java.math.BigInteger;
 import java.util.Optional;
@@ -90,6 +91,6 @@ public class CraftorioModifierUpgrade extends CraftorioUpgrade {
 
     @Override
     public MapCodec<? extends CraftorioUpgrade> codec() {
-        return org.crimsoncrips.craftorio.skill_tree.CraftorioUpgradeTypes.MODIFIER.get();
+        return CraftorioUpgradeTypes.MODIFIER.get();
     }
 }

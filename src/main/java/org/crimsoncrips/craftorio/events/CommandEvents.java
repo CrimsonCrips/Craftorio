@@ -15,8 +15,8 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.CraftorioMisc;
-import org.crimsoncrips.craftorio.networking.EffectTimerPacket;
-import org.crimsoncrips.craftorio.server.CraftorioHavenDimension;
+import org.crimsoncrips.craftorio.networking.effect.EffectTimerPacket;
+import org.crimsoncrips.craftorio.server.haven.CraftorioHavenDimension;
 
 import java.math.BigInteger;
 

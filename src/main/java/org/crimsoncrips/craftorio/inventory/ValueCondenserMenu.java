@@ -9,9 +9,9 @@ import net.minecraft.world.inventory.MenuType;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
-import org.crimsoncrips.craftorio.CraftorioDataComponents;
 import org.crimsoncrips.craftorio.CraftorioMisc;
-import org.crimsoncrips.craftorio.CraftorioMenuTypes;
+import org.crimsoncrips.craftorio.registries.CraftorioDataComponents;
+import org.crimsoncrips.craftorio.registries.CraftorioMenuTypes;
 
 import java.math.BigInteger;
 

@@ -1,5 +1,6 @@
 package org.crimsoncrips.craftorio.client.screen.skill_tree;
 
+import com.mojang.math.Axis;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Button;
@@ -15,7 +16,7 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import org.crimsoncrips.craftorio.client.CraftorioStarfield;
+import org.crimsoncrips.craftorio.client.render.CraftorioStarfield;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
 
 import java.math.BigInteger;
@@ -338,7 +339,7 @@ public abstract class CraftorioSkillTreeScreenBase extends Screen {
 
         graphics.pose().pushPose();
         graphics.pose().translate(x1, y1, 0);
-        graphics.pose().mulPose(com.mojang.math.Axis.ZP.rotation(angle));
+        graphics.pose().mulPose(Axis.ZP.rotation(angle));
         graphics.fill(0, -LINE_THICKNESS / 2, (int) Math.round(length), -LINE_THICKNESS / 2 + LINE_THICKNESS, color);
         graphics.pose().popPose();
     }

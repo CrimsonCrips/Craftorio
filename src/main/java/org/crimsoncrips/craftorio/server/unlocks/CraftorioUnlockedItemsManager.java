@@ -20,7 +20,7 @@ import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
-import org.crimsoncrips.craftorio.networking.ItemDiscoveredPacket;
+import org.crimsoncrips.craftorio.networking.sink.ItemDiscoveredPacket;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;

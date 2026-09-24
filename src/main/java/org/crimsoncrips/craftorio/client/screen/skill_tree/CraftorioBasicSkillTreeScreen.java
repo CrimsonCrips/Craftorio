@@ -10,7 +10,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.CraftorioMisc;
-import org.crimsoncrips.craftorio.networking.UnlockUpgradePacket;
+import org.crimsoncrips.craftorio.networking.skill_tree.UnlockUpgradePacket;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
 
 import java.math.BigInteger;

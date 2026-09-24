@@ -26,6 +26,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.ChunkPos;
+import net.minecraft.world.level.Level;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
@@ -33,44 +34,49 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
 import net.neoforged.neoforge.client.event.*;
+import net.neoforged.neoforge.client.event.RegisterDimensionSpecialEffectsEvent;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import org.crimsoncrips.craftorio.Craftorio;
-import org.crimsoncrips.craftorio.CraftorioDataComponents;
-import org.crimsoncrips.craftorio.CraftorioMenuTypes;
-
 import org.crimsoncrips.craftorio.CraftorioMisc;
-import org.crimsoncrips.craftorio.client.InfinityBurst;
-import org.crimsoncrips.craftorio.client.ItemDiscoveredPopup;
-import org.crimsoncrips.craftorio.client.PointsAnimation;
-import org.crimsoncrips.craftorio.client.PointsRateTracker;
-import org.crimsoncrips.craftorio.client.PointsPopup;
-import org.crimsoncrips.craftorio.client.screen.AutoSinkerScreen;
-import org.crimsoncrips.craftorio.client.screen.AutoValueCondenserScreen;
-import org.crimsoncrips.craftorio.client.screen.ContractCreatorBountyScreen;
-import org.crimsoncrips.craftorio.client.screen.ContractRevealScreen;
-import org.crimsoncrips.craftorio.client.screen.CraftorioConfigScreen;
-import org.crimsoncrips.craftorio.client.screen.CraftorioStatisticsScreen;
-import org.crimsoncrips.craftorio.client.screen.CraftorioWorldCreationScreen;
+import org.crimsoncrips.craftorio.client.hud.CraftorioToastManager;
+import org.crimsoncrips.craftorio.client.hud.InfinityBurst;
+import org.crimsoncrips.craftorio.client.hud.ItemDiscoveredPopup;
+import org.crimsoncrips.craftorio.client.hud.PointsAnimation;
+import org.crimsoncrips.craftorio.client.hud.PointsPopup;
+import org.crimsoncrips.craftorio.client.hud.PointsRateTracker;
+import org.crimsoncrips.craftorio.client.render.CraftorioHavenSkyEffects;
+import org.crimsoncrips.craftorio.client.screen.config.CraftorioConfigScreen;
+import org.crimsoncrips.craftorio.client.screen.config.CraftorioWorldCreationScreen;
+import org.crimsoncrips.craftorio.client.screen.contract.ContractRevealScreen;
+import org.crimsoncrips.craftorio.client.screen.devtools.contract_creator.ContractCreatorBountyScreen;
+import org.crimsoncrips.craftorio.client.screen.devtools.creator.SkillTreeCreatorScreen;
+import org.crimsoncrips.craftorio.client.screen.hub.CraftorioStatisticsScreen;
+import org.crimsoncrips.craftorio.client.screen.machine.AutoSinkerScreen;
+import org.crimsoncrips.craftorio.client.screen.machine.AutoValueCondenserScreen;
+import org.crimsoncrips.craftorio.client.screen.machine.SinkScreen;
+import org.crimsoncrips.craftorio.client.screen.machine.ValueCondenserScreen;
+import org.crimsoncrips.craftorio.client.screen.purchase.ShopScreen;
+import org.crimsoncrips.craftorio.client.screen.purchase.ValueBrowserScreen;
 import org.crimsoncrips.craftorio.client.screen.skill_tree.CraftorioRebirthSkillTreeScreen;
 import org.crimsoncrips.craftorio.client.screen.skill_tree.CraftorioSkillTreeScreenBase;
-import org.crimsoncrips.craftorio.client.screen.ShopScreen;
-import org.crimsoncrips.craftorio.client.screen.SinkScreen;
-import org.crimsoncrips.craftorio.client.screen.SkillTreeCreatorScreen;
-import org.crimsoncrips.craftorio.client.screen.ValueBrowserScreen;
-import org.crimsoncrips.craftorio.client.screen.ValueCondenserScreen;
+import org.crimsoncrips.craftorio.client.state.ClientContractCreatorDraftState;
 import org.crimsoncrips.craftorio.item.ScannerStickItem;
-import org.crimsoncrips.craftorio.networking.OpenContractOfferScreenPacket;
-import org.crimsoncrips.craftorio.networking.OpenShopScreenPacket;
-import org.crimsoncrips.craftorio.networking.OpenValueBrowserScreenPacket;
-import org.crimsoncrips.craftorio.networking.SkillTreeGenerateResultPacket;
-import org.crimsoncrips.craftorio.networking.UnlockUpgradeFailedPacket;
+import org.crimsoncrips.craftorio.networking.contract.OpenContractOfferScreenPacket;
+import org.crimsoncrips.craftorio.networking.devtools.SkillTreeGenerateResultPacket;
+import org.crimsoncrips.craftorio.networking.shop.OpenShopScreenPacket;
+import org.crimsoncrips.craftorio.networking.shop.OpenValueBrowserScreenPacket;
+import org.crimsoncrips.craftorio.networking.skill_tree.UnlockUpgradeFailedPacket;
+import org.crimsoncrips.craftorio.registries.CraftorioDataComponents;
+import org.crimsoncrips.craftorio.registries.CraftorioDimensions;
+import org.crimsoncrips.craftorio.registries.CraftorioMenuTypes;
+import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.effect.ShopMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
-import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
-import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
+import org.crimsoncrips.craftorio.server.border.CraftorioBorder;
+
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -83,7 +89,7 @@ public class ClientEvents {
 
 	@SubscribeEvent
 	public void loggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
-		org.crimsoncrips.craftorio.client.ClientContractCreatorDraftState.clear();
+		ClientContractCreatorDraftState.clear();
 	}
 
 	@SubscribeEvent
@@ -664,7 +670,7 @@ public class ClientEvents {
 
 	public static void showToasts(RegisterGuiLayersEvent e) {
 		e.registerBelow(VanillaGuiLayers.EXPERIENCE_BAR, toastLayer,
-				(graphics, partialTicks) -> org.crimsoncrips.craftorio.client.CraftorioToastManager.render(graphics));
+				(graphics, partialTicks) -> CraftorioToastManager.render(graphics));
 	}
 
 	public static final ResourceLocation STATUS_ICONS = Craftorio.getGuiTexture("status_icons.png");
@@ -683,7 +689,7 @@ public class ClientEvents {
 		Minecraft minecraft = Minecraft.getInstance();
 		if (minecraft.level == null) return;
 
-		net.minecraft.world.level.Level level = minecraft.level;
+		Level level = minecraft.level;
 
 		drawIndicator(graphics, font, x, y, mouseX, mouseY, CHUNK_BASED_ROW, CraftorioMisc.chunkBased(level),
 				Component.translatable("misc.craftorio.chunk_based_label", CraftorioMisc.chunkBased(level)));
@@ -775,7 +781,7 @@ public class ClientEvents {
 		}
 	}
 
-	public static void registerDimensionEffects(net.neoforged.neoforge.client.event.RegisterDimensionSpecialEffectsEvent event) {
-		event.register(org.crimsoncrips.craftorio.registries.CraftorioDimensions.HAVEN_ID, new org.crimsoncrips.craftorio.client.CraftorioHavenSkyEffects());
+	public static void registerDimensionEffects(RegisterDimensionSpecialEffectsEvent event) {
+		event.register(CraftorioDimensions.HAVEN_ID, new CraftorioHavenSkyEffects());
 	}
 }

@@ -10,10 +10,10 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import org.crimsoncrips.craftorio.CraftorioMisc;
-import org.crimsoncrips.craftorio.skill_tree.AttributeTarget;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgradeTypes;
-import org.crimsoncrips.craftorio.skill_tree.UpgradeOperation;
+import org.crimsoncrips.craftorio.skill_tree.target.AttributeTarget;
+import org.crimsoncrips.craftorio.skill_tree.target.UpgradeOperation;
 
 import java.math.BigInteger;
 

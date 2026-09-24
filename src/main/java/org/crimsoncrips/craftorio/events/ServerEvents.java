@@ -8,43 +8,59 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.damagesource.DamageTypes;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.LevelAccessor;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.attachment.AttachmentSync;
 import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
+import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.AdvancementEvent;
 import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerWakeUpEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerXpEvent;
 import net.neoforged.neoforge.event.entity.player.TradeWithVillagerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.block.CraftorioBlocks;
-import org.crimsoncrips.craftorio.networking.*;
+import org.crimsoncrips.craftorio.networking.contract.ContractOfferStatusPacket;
+import org.crimsoncrips.craftorio.networking.contract.OpenContractOfferScreenPacket;
+import org.crimsoncrips.craftorio.networking.effect.EffectTimerPacket;
+import org.crimsoncrips.craftorio.networking.shop.ShopStatusPacket;
+import org.crimsoncrips.craftorio.networking.sync.UniversalStateSyncPacket;
+import org.crimsoncrips.craftorio.networking.sync.WelcomeToastPacket;
 import org.crimsoncrips.craftorio.registries.CraftorioDimensions;
-import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
-import org.crimsoncrips.craftorio.server.ChunkCollisionHooks;
-import org.crimsoncrips.craftorio.server.CraftorioAdvancementPoints;
-import org.crimsoncrips.craftorio.server.CraftorioAdvancementMultipliers;
-import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
-import org.crimsoncrips.craftorio.server.CraftorioPointsAdvancements;
-import org.crimsoncrips.craftorio.server.CraftorioShop;
-import org.crimsoncrips.craftorio.server.CraftorioHavenDimension;
-import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
+import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
+import org.crimsoncrips.craftorio.server.advancement.CraftorioAdvancementMultipliers;
+import org.crimsoncrips.craftorio.server.advancement.CraftorioAdvancementPoints;
+import org.crimsoncrips.craftorio.server.advancement.CraftorioPointsAdvancements;
+import org.crimsoncrips.craftorio.server.border.ChunkCollisionHooks;
+import org.crimsoncrips.craftorio.server.border.CraftorioBorder;
+import org.crimsoncrips.craftorio.server.config.CraftorioWorldCreationOverrides;
+import org.crimsoncrips.craftorio.server.data.CraftorioDataAttachments;
+import org.crimsoncrips.craftorio.server.devtools.CraftorioContractDraftStore;
+import org.crimsoncrips.craftorio.server.haven.CraftorioHavenDimension;
+import org.crimsoncrips.craftorio.server.rebirth.CraftorioRebirthConsent;
+import org.crimsoncrips.craftorio.server.shop.CraftorioShop;
+import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.target.ModifierTarget;
+import org.crimsoncrips.craftorio.skill_tree.target.PlayerActionTarget;
+import org.crimsoncrips.craftorio.skill_tree.target.UpgradeOperation;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioActionEffectUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioAttributeUpgrade;
-import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
-import org.crimsoncrips.craftorio.skill_tree.PlayerActionTarget;
 
 
 import java.math.BigInteger;
@@ -56,13 +72,13 @@ import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
 
-import static org.crimsoncrips.craftorio.server.CraftorioDataAttachments.*;
+import static org.crimsoncrips.craftorio.server.data.CraftorioDataAttachments.*;
 
 public class ServerEvents {
 
     @SubscribeEvent
     public void serverStarted(ServerStartedEvent event) {
-        org.crimsoncrips.craftorio.server.CraftorioWorldCreationOverrides.Pending overrides = org.crimsoncrips.craftorio.server.CraftorioWorldCreationOverrides.consume();
+        CraftorioWorldCreationOverrides.Pending overrides = CraftorioWorldCreationOverrides.consume();
 
         for (ServerLevel level : event.getServer().getAllLevels()) {
             if (!level.getData(FINALIZED)){
@@ -86,8 +102,8 @@ public class ServerEvents {
     }
 
     @SubscribeEvent
-    public void serverStopping(net.neoforged.neoforge.event.server.ServerStoppingEvent event) {
-        org.crimsoncrips.craftorio.server.CraftorioContractDraftStore.clearAll();
+    public void serverStopping(ServerStoppingEvent event) {
+        CraftorioContractDraftStore.clearAll();
     }
 
     @SubscribeEvent
@@ -117,13 +133,13 @@ public class ServerEvents {
     }
 
     @SubscribeEvent
-    public void onHavenVoidDamage(net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent event) {
-        if (!event.getSource().is(net.minecraft.world.damagesource.DamageTypes.FELL_OUT_OF_WORLD)) return;
+    public void onHavenVoidDamage(LivingIncomingDamageEvent event) {
+        if (!event.getSource().is(DamageTypes.FELL_OUT_OF_WORLD)) return;
         if (!isHavenLevel(event.getEntity().level())) return;
         event.setCanceled(true);
     }
 
-    private static boolean isHavenLevel(net.minecraft.world.level.LevelAccessor levelAccessor) {
+    private static boolean isHavenLevel(LevelAccessor levelAccessor) {
         return levelAccessor instanceof Level level && level.dimension().equals(CraftorioDimensions.HAVEN_LEVEL_KEY);
     }
 
@@ -284,7 +300,7 @@ public class ServerEvents {
         }
 
         if (player instanceof ServerPlayer serverPlayer) {
-            var registry = player.level().registryAccess().registryOrThrow(org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade.REGISTRY_KEY);
+            var registry = player.level().registryAccess().registryOrThrow(CraftorioUpgrade.REGISTRY_KEY);
             for (Map.Entry<ResourceLocation, Integer> entry : CraftorioMisc.getUpgradePurchaseCounts(player).entrySet()) {
                 var upgrade = registry.get(entry.getKey());
                 if (upgrade instanceof CraftorioAttributeUpgrade) {
@@ -292,7 +308,7 @@ public class ServerEvents {
                 }
             }
 
-            var rebirthRegistry = player.level().registryAccess().registryOrThrow(org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade.REBIRTH_REGISTRY_KEY);
+            var rebirthRegistry = player.level().registryAccess().registryOrThrow(CraftorioUpgrade.REBIRTH_REGISTRY_KEY);
             for (Map.Entry<ResourceLocation, Integer> entry : CraftorioMisc.getRebirthUpgradePurchaseCounts(player).entrySet()) {
                 var upgrade = rebirthRegistry.get(entry.getKey());
                 if (upgrade instanceof CraftorioAttributeUpgrade) {
@@ -301,10 +317,10 @@ public class ServerEvents {
             }
 
             if (CraftorioMisc.universalBased(player.level()) && CraftorioMisc.getLife(player) > 1) {
-                org.crimsoncrips.craftorio.server.CraftorioHavenDimension.enterForRebirth(serverPlayer);
+                CraftorioHavenDimension.enterForRebirth(serverPlayer);
             }
 
-            org.crimsoncrips.craftorio.server.CraftorioRebirthConsent.onRosterChanged(serverPlayer.getServer());
+            CraftorioRebirthConsent.onRosterChanged(serverPlayer.getServer());
 
             syncUniversalState(serverPlayer);
         }
@@ -313,7 +329,7 @@ public class ServerEvents {
     @SubscribeEvent
     public void playerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         if (event.getEntity() instanceof ServerPlayer serverPlayer && serverPlayer.getServer() != null) {
-            org.crimsoncrips.craftorio.server.CraftorioRebirthConsent.onRosterChanged(serverPlayer.getServer());
+            CraftorioRebirthConsent.onRosterChanged(serverPlayer.getServer());
         }
     }
 
@@ -392,10 +408,10 @@ public class ServerEvents {
     }
 
     @SubscribeEvent
-    public void xpChange(net.neoforged.neoforge.event.entity.player.PlayerXpEvent.XpChange event) {
+    public void xpChange(PlayerXpEvent.XpChange event) {
         Player player = event.getEntity();
-        double additive = CraftorioMisc.getXpGainModifierSum(player, org.crimsoncrips.craftorio.skill_tree.UpgradeOperation.ADD);
-        double multiplicative = CraftorioMisc.getXpGainModifierSum(player, org.crimsoncrips.craftorio.skill_tree.UpgradeOperation.MULTIPLY);
+        double additive = CraftorioMisc.getXpGainModifierSum(player, UpgradeOperation.ADD);
+        double multiplicative = CraftorioMisc.getXpGainModifierSum(player, UpgradeOperation.MULTIPLY);
         if (additive == 0 && multiplicative == 0) return;
 
         double result = (event.getAmount() + additive) * (1.0 + multiplicative);
@@ -566,18 +582,18 @@ public class ServerEvents {
                     continue;
                 }
 
-                double rarerEffectChance = CraftorioMisc.getUpgradeModifierSum(player, org.crimsoncrips.craftorio.skill_tree.ModifierTarget.RARER_EFFECT_CHANCE, org.crimsoncrips.craftorio.skill_tree.UpgradeOperation.ADD);
+                double rarerEffectChance = CraftorioMisc.getUpgradeModifierSum(player, ModifierTarget.RARER_EFFECT_CHANCE, UpgradeOperation.ADD);
                 CraftorioEffects rolledEffect = CraftorioMisc.getRandomObtainableEffect(level.registryAccess(), player.getRandom(), rarerEffectChance);
                 CraftorioMisc.grantEffect(player, rolledEffect.copy());
 
                 int baseEffectTicks = Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get() * CraftorioMisc.SECONDS_TO_TICKS;
-                int effectInterval = CraftorioMisc.applySpeedUpgrade(player, org.crimsoncrips.craftorio.skill_tree.ModifierTarget.EFFECT_TIMER_SPEED, baseEffectTicks);
+                int effectInterval = CraftorioMisc.applySpeedUpgrade(player, ModifierTarget.EFFECT_TIMER_SPEED, baseEffectTicks);
                 CraftorioMisc.setRandomEffectTime(player, effectInterval);
             }
         }
     }
 
-    private void tickUniversalRandomEffect(net.minecraft.server.MinecraftServer server, ServerLevel overworld) {
+    private void tickUniversalRandomEffect(MinecraftServer server, ServerLevel overworld) {
         int timeUntilNextEffect = CraftorioMisc.getRandomEffectTime(overworld) - 1;
         List<ServerPlayer> allPlayers = server.getPlayerList().getPlayers();
 
@@ -595,14 +611,14 @@ public class ServerEvents {
         }
 
         if (!allPlayers.isEmpty()) {
-            double rarerEffectChance = CraftorioMisc.getUpgradeModifierSum(allPlayers.get(0), org.crimsoncrips.craftorio.skill_tree.ModifierTarget.RARER_EFFECT_CHANCE, org.crimsoncrips.craftorio.skill_tree.UpgradeOperation.ADD);
+            double rarerEffectChance = CraftorioMisc.getUpgradeModifierSum(allPlayers.get(0), ModifierTarget.RARER_EFFECT_CHANCE, UpgradeOperation.ADD);
             CraftorioEffects rolledEffect = CraftorioMisc.getRandomObtainableEffect(overworld.registryAccess(), overworld.random, rarerEffectChance);
             CraftorioMisc.grantEffect(allPlayers.get(0), rolledEffect.copy());
         }
 
         int baseEffectTicks = Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get() * CraftorioMisc.SECONDS_TO_TICKS;
         int effectInterval = allPlayers.isEmpty() ? baseEffectTicks
-                : CraftorioMisc.applySpeedUpgrade(allPlayers.get(0), org.crimsoncrips.craftorio.skill_tree.ModifierTarget.EFFECT_TIMER_SPEED, baseEffectTicks);
+                : CraftorioMisc.applySpeedUpgrade(allPlayers.get(0), ModifierTarget.EFFECT_TIMER_SPEED, baseEffectTicks);
         CraftorioMisc.setRandomEffectTime(overworld, effectInterval);
     }
 
@@ -626,12 +642,12 @@ public class ServerEvents {
                     continue;
                 }
 
-                double rarerContractChance = CraftorioMisc.getUpgradeModifierSum(player, org.crimsoncrips.craftorio.skill_tree.ModifierTarget.RARER_CONTRACT_CHANCE, org.crimsoncrips.craftorio.skill_tree.UpgradeOperation.ADD);
+                double rarerContractChance = CraftorioMisc.getUpgradeModifierSum(player, ModifierTarget.RARER_CONTRACT_CHANCE, UpgradeOperation.ADD);
                 List<ResourceLocation> offer = CraftorioMisc.rollContractOffer(player.registryAccess(), player.getRandom(), CraftorioMisc.getHighestPoints(player), rarerContractChance);
                 player.setData(CraftorioDataAttachments.CONTRACT_OFFER, offer);
                 player.setData(CraftorioDataAttachments.CONTRACT_OFFER_CLAIMED, false);
 
-                int refreshTicks = CraftorioMisc.applySpeedUpgrade(player, org.crimsoncrips.craftorio.skill_tree.ModifierTarget.CONTRACT_REFRESH_SPEED, baseRefreshTicks);
+                int refreshTicks = CraftorioMisc.applySpeedUpgrade(player, ModifierTarget.CONTRACT_REFRESH_SPEED, baseRefreshTicks);
                 CraftorioMisc.setContractRefreshTime(player, refreshTicks);
 
                 notifyNewContracts(player, offer, refreshTicks);
@@ -639,7 +655,7 @@ public class ServerEvents {
         }
     }
 
-    private void tickUniversalContractOffer(net.minecraft.server.MinecraftServer server, ServerLevel overworld, int baseRefreshTicks) {
+    private void tickUniversalContractOffer(MinecraftServer server, ServerLevel overworld, int baseRefreshTicks) {
         int timeUntilRefresh = CraftorioMisc.getContractRefreshTime(overworld) - 1;
 
         if (timeUntilRefresh > 0) {
@@ -652,13 +668,13 @@ public class ServerEvents {
         BigInteger highestPoints = allPlayers.isEmpty() ? BigInteger.ZERO
                 : CraftorioMisc.getHighestPoints(allPlayers.get(0));
         double rarerContractChance = allPlayers.isEmpty() ? 0
-                : CraftorioMisc.getUpgradeModifierSum(allPlayers.get(0), org.crimsoncrips.craftorio.skill_tree.ModifierTarget.RARER_CONTRACT_CHANCE, org.crimsoncrips.craftorio.skill_tree.UpgradeOperation.ADD);
+                : CraftorioMisc.getUpgradeModifierSum(allPlayers.get(0), ModifierTarget.RARER_CONTRACT_CHANCE, UpgradeOperation.ADD);
         List<ResourceLocation> offer = CraftorioMisc.rollContractOffer(overworld.registryAccess(), overworld.random, highestPoints, rarerContractChance);
         overworld.setData(CraftorioDataAttachments.CONTRACT_OFFER, offer);
         overworld.setData(CraftorioDataAttachments.CONTRACT_OFFER_CLAIMED, false);
 
         int refreshTicks = allPlayers.isEmpty() ? baseRefreshTicks
-                : CraftorioMisc.applySpeedUpgrade(allPlayers.get(0), org.crimsoncrips.craftorio.skill_tree.ModifierTarget.CONTRACT_REFRESH_SPEED, baseRefreshTicks);
+                : CraftorioMisc.applySpeedUpgrade(allPlayers.get(0), ModifierTarget.CONTRACT_REFRESH_SPEED, baseRefreshTicks);
         CraftorioMisc.setContractRefreshTime(overworld, refreshTicks);
 
         for (ServerPlayer player : allPlayers) {

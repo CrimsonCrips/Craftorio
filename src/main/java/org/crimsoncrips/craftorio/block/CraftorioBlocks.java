@@ -8,6 +8,10 @@ import net.minecraft.world.level.material.PushReaction;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.crimsoncrips.craftorio.Craftorio;
+import org.crimsoncrips.craftorio.block.machine.AutoSinkerBlock;
+import org.crimsoncrips.craftorio.block.machine.AutoValueCondenserBlock;
+import org.crimsoncrips.craftorio.block.machine.SinkerBlock;
+import org.crimsoncrips.craftorio.block.machine.ValueCondenserBlock;
 import org.crimsoncrips.craftorio.item.CraftorioItems;
 
 import java.util.function.Supplier;

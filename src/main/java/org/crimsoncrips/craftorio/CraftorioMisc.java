@@ -6,6 +6,7 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.core.*;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
@@ -30,19 +31,24 @@ import net.minecraft.world.level.Level;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.phys.Vec3;
-import org.crimsoncrips.craftorio.client.ClientUniversalState;
-import org.crimsoncrips.craftorio.registries.effect.*;
-import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioModifierUpgrade;
-import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
-import org.crimsoncrips.craftorio.skill_tree.ModifierTarget;
-import org.crimsoncrips.craftorio.skill_tree.UpgradeOperation;
-import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
+import net.neoforged.neoforge.network.PacketDistributor;
+import org.crimsoncrips.craftorio.client.state.ClientUniversalState;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
-import org.crimsoncrips.craftorio.server.CraftorioDataAttachments;
-import org.crimsoncrips.craftorio.server.CraftorioPointsAdvancements;
-import org.crimsoncrips.craftorio.server.custom_border.CraftorioBorder;
-import org.crimsoncrips.craftorio.skill_tree.AttributeTarget;
+import org.crimsoncrips.craftorio.events.ServerEvents;
+import org.crimsoncrips.craftorio.networking.contract.PunishmentToastPacket;
+import org.crimsoncrips.craftorio.registries.CraftorioDataComponents;
+import org.crimsoncrips.craftorio.registries.CraftorioDimensions;
+import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
+import org.crimsoncrips.craftorio.registries.effect.*;
+import org.crimsoncrips.craftorio.server.advancement.CraftorioPointsAdvancements;
+import org.crimsoncrips.craftorio.server.border.CraftorioBorder;
+import org.crimsoncrips.craftorio.server.data.CraftorioDataAttachments;
+import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.target.AttributeTarget;
+import org.crimsoncrips.craftorio.skill_tree.target.ModifierTarget;
+import org.crimsoncrips.craftorio.skill_tree.target.UpgradeOperation;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioAttributeUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioModifierUpgrade;
 
 import java.awt.*;
 import java.math.BigDecimal;
@@ -53,7 +59,7 @@ import java.util.List;
 import java.util.function.ToDoubleFunction;
 import java.util.function.ToIntFunction;
 
-import static org.crimsoncrips.craftorio.server.CraftorioDataAttachments.*;
+import static org.crimsoncrips.craftorio.server.data.CraftorioDataAttachments.*;
 
 public class CraftorioMisc {
 
@@ -175,7 +181,7 @@ public class CraftorioMisc {
     }
 
     public static boolean isInHavenDimension(Level level){
-        return level != null && level.dimension().equals(org.crimsoncrips.craftorio.registries.CraftorioDimensions.HAVEN_LEVEL_KEY);
+        return level != null && level.dimension().equals(CraftorioDimensions.HAVEN_LEVEL_KEY);
     }
 
     public static Level universalLevel(Player player){
@@ -400,7 +406,7 @@ public class CraftorioMisc {
         }
 
         if (player instanceof ServerPlayer serverPlayer) {
-            org.crimsoncrips.craftorio.events.ServerEvents.syncUniversalState(serverPlayer);
+            ServerEvents.syncUniversalState(serverPlayer);
         }
 
         return newCount;
@@ -442,7 +448,7 @@ public class CraftorioMisc {
         }
 
         if (player instanceof ServerPlayer serverPlayer) {
-            org.crimsoncrips.craftorio.events.ServerEvents.syncUniversalState(serverPlayer);
+            ServerEvents.syncUniversalState(serverPlayer);
         }
 
         return newCount;
@@ -771,7 +777,7 @@ public class CraftorioMisc {
 
         if (player instanceof ServerPlayer serverPlayer) {
             CraftorioPointsAdvancements.checkAndGrant(serverPlayer, assigningPoints);
-            org.crimsoncrips.craftorio.events.ServerEvents.syncUniversalState(serverPlayer);
+            ServerEvents.syncUniversalState(serverPlayer);
         }
     }
 
@@ -992,7 +998,7 @@ public class CraftorioMisc {
 
     public static class CraftorioTextEffects{
 
-        public static void drawEditBoxHint(GuiGraphics graphics, Font font, net.minecraft.client.gui.components.EditBox box, String hint) {
+        public static void drawEditBoxHint(GuiGraphics graphics, Font font, EditBox box, String hint) {
             if (!box.getValue().isEmpty() || box.isFocused()) return;
             int x = box.getX() + 4;
             int y = box.getY() + (box.getHeight() - 8) / 2;
@@ -1325,7 +1331,7 @@ public class CraftorioMisc {
 
             if (player instanceof ServerPlayer serverPlayer) {
                 Component message = Component.translatable("misc.craftorio.contract_punishment_received", contract.getActualName(), granted.getActualName());
-                net.neoforged.neoforge.network.PacketDistributor.sendToPlayer(serverPlayer, new org.crimsoncrips.craftorio.networking.PunishmentToastPacket(message));
+                PacketDistributor.sendToPlayer(serverPlayer, new PunishmentToastPacket(message));
             }
         });
     }
