@@ -1,6 +1,9 @@
 package org.crimsoncrips.craftorio.client.screen;
 
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
@@ -10,7 +13,12 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.inventory.ContractCreatorMenu;
 import org.crimsoncrips.craftorio.networking.ClearContractCreatorGridPacket;
 import org.crimsoncrips.craftorio.networking.CopyInventoryToContractCreatorPacket;
+import org.crimsoncrips.craftorio.networking.LoadContractIntoCreatorPacket;
+import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 import org.crimsoncrips.craftorio.networking.SetContractCreatorViewPacket;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class ContractCreatorBountyScreen extends AbstractContainerScreen<ContractCreatorMenu> {
 
@@ -48,6 +56,27 @@ public class ContractCreatorBountyScreen extends AbstractContainerScreen<Contrac
 
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_clear"), b -> PacketDistributor.sendToServer(new ClearContractCreatorGridPacket()))
                 .bounds(panelLeft + (this.imageWidth - 130) / 2, panelTop + 44, 130, 14).build());
+
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_edit_contracts"), b -> openEditPicker())
+                .bounds(this.width - 108, this.height - 28, 100, 20).build());
+    }
+
+    private void openEditPicker() {
+        if (this.minecraft.level == null) return;
+
+        Registry<CraftorioContract> registry = this.minecraft.level.registryAccess().registryOrThrow(CraftorioContract.REGISTRY_KEY);
+        List<DevToolsPickerScreen.Option> options = new ArrayList<>();
+        for (Holder.Reference<CraftorioContract> holder : registry.holders().toList()) {
+            ResourceLocation id = holder.key().location();
+            CraftorioContract contract = holder.value();
+            options.add(new DevToolsPickerScreen.Option(Component.literal(contract.getActualName()), id.toString(), 0, true, () -> {
+                ContractCreatorDetailsScreen.loadIntoDraft(id, contract);
+                PacketDistributor.sendToServer(new LoadContractIntoCreatorPacket(id));
+                this.minecraft.setScreen(this);
+            }));
+        }
+
+        this.minecraft.setScreen(new DevToolsPickerScreen(Component.translatable("misc.craftorio.dev_tools_pick_contract"), this, options));
     }
 
     @Override

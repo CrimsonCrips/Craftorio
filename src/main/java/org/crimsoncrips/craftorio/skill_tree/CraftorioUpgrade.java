@@ -198,7 +198,15 @@ public abstract class CraftorioUpgrade {
         }
 
         public Holder.Reference<CraftorioUpgrade> save(BootstrapContext<CraftorioUpgrade> context, ResourceLocation id, Function<Builder, ? extends CraftorioUpgrade> factory) {
-            ResourceKey<CraftorioUpgrade> key = ResourceKey.create(REGISTRY_KEY, id);
+            return saveTo(REGISTRY_KEY, context, id, factory);
+        }
+
+        public Holder.Reference<CraftorioUpgrade> saveRebirth(BootstrapContext<CraftorioUpgrade> context, ResourceLocation id, Function<Builder, ? extends CraftorioUpgrade> factory) {
+            return saveTo(REBIRTH_REGISTRY_KEY, context, id, factory);
+        }
+
+        private Holder.Reference<CraftorioUpgrade> saveTo(ResourceKey<Registry<CraftorioUpgrade>> registryKey, BootstrapContext<CraftorioUpgrade> context, ResourceLocation id, Function<Builder, ? extends CraftorioUpgrade> factory) {
+            ResourceKey<CraftorioUpgrade> key = ResourceKey.create(registryKey, id);
             CraftorioUpgrade upgrade = factory.apply(this);
             upgrade.setPosition(this.x, this.y);
             return context.register(key, upgrade);

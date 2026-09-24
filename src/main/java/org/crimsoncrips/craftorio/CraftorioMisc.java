@@ -679,6 +679,21 @@ public class CraftorioMisc {
         }
     }
 
+    public static String toScientificString(BigInteger value) {
+        String digits = value.abs().toString();
+        String sign = value.signum() < 0 ? "-" : "";
+        if (digits.length() <= 18) {
+            return value.toString();
+        }
+
+        String significant = digits.replaceAll("0+$", "");
+        if (significant.length() > 30) {
+            significant = significant.substring(0, 30);
+        }
+        String mantissa = significant.length() == 1 ? significant : significant.charAt(0) + "." + significant.substring(1);
+        return sign + mantissa + "e" + (digits.length() - 1);
+    }
+
     public static BigInteger pointThreshold(){
         return new BigDecimal("1e309").toBigInteger();
     }

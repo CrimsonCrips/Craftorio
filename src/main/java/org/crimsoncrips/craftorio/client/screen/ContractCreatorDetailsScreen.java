@@ -5,12 +5,15 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.client.ClientContractCreatorDraftState;
 import org.crimsoncrips.craftorio.networking.GenerateContractCodePacket;
+import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
+import org.crimsoncrips.craftorio.registries.contract.CraftorioContractItemReward;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,6 +66,30 @@ public class ContractCreatorDetailsScreen extends Screen {
 
     private final List<EditBox> hintedBoxes = new ArrayList<>();
     private final List<String> hintTexts = new ArrayList<>();
+
+    public static void loadIntoDraft(ResourceLocation id, CraftorioContract contract) {
+        ClientContractCreatorDraftState.set(KEY_ID, id.getPath());
+        ClientContractCreatorDraftState.set(KEY_MOD_ID, id.getNamespace());
+        ClientContractCreatorDraftState.set(KEY_SECONDS, String.valueOf(contract.getTime() / CraftorioMisc.SECONDS_TO_TICKS));
+        ClientContractCreatorDraftState.set(KEY_BASE_VALUE, CraftorioMisc.toScientificString(contract.getBasePointValue()));
+        ClientContractCreatorDraftState.set(KEY_WEIGHT, String.valueOf(contract.getWeight()));
+        ClientContractCreatorDraftState.set(KEY_CLAIM_THRESHOLD, CraftorioMisc.toScientificString(contract.getPointThreshold()));
+        ClientContractCreatorDraftState.set(KEY_MIN_THRESHOLD, CraftorioMisc.toScientificString(contract.getMinPointThreshold()));
+        ClientContractCreatorDraftState.set(KEY_MAX_THRESHOLD, CraftorioMisc.toScientificString(contract.getMaxPointThreshold()));
+        ClientContractCreatorDraftState.set(KEY_PUNISHMENT, contract.getPunishment() != null ? contract.getPunishment().toString() : "");
+        ClientContractCreatorDraftState.set(KEY_REQUIRED_MOD, contract.getRequiredModId() != null ? contract.getRequiredModId() : "");
+        ClientContractCreatorDraftState.set(KEY_CARD_TEXTURE, contract.getCardTexture() != null ? contract.getCardTexture().location().toString() : "");
+
+        String translatedTitle = Component.translatable(contract.getName()).getString();
+        String translatedDescription = Component.translatable(contract.getDescription()).getString();
+        boolean hasTranslation = !translatedTitle.equals(contract.getName());
+        ClientContractCreatorDraftState.set(KEY_INCLUDE_LANG, String.valueOf(hasTranslation));
+        ClientContractCreatorDraftState.set(KEY_TITLE, hasTranslation ? translatedTitle : "");
+        ClientContractCreatorDraftState.set(KEY_DESCRIPTION, hasTranslation && !translatedDescription.equals(contract.getDescription()) ? translatedDescription : "");
+
+        int rolls = contract.getRewards().stream().mapToInt(CraftorioContractItemReward::getRandomEffectCount).max().orElse(0);
+        ContractCreatorRewardScreen.setRewardRollsValue(String.valueOf(rolls));
+    }
 
     public ContractCreatorDetailsScreen(ContractCreatorRewardScreen parent) {
         super(Component.translatable("misc.craftorio.contract_creator_details_title"));

@@ -283,6 +283,17 @@ public class CraftLangGen extends LanguageProvider {
 		this.addMisc("dev_tools_label_description", "Description (Opt)");
 		this.addMisc("dev_tools_label_cost", "Cost (Opt)");
 		this.addMisc("dev_tools_label_max_purchases", "Max Purchases");
+		this.addMisc("dev_tools_label_tree", "Skill Tree");
+		this.addMisc("dev_tools_edit_effects", "Edit Effects");
+		this.addMisc("dev_tools_edit_contracts", "Edit Contracts");
+		this.addMisc("dev_tools_edit_upgrade", "Edit Upgrade");
+		this.addMisc("dev_tools_pick_effect", "Select an Effect to Edit");
+		this.addMisc("dev_tools_pick_contract", "Select a Contract to Edit");
+		this.addMisc("dev_tools_pick_upgrade", "Select an Upgrade to Edit");
+		this.addMisc("dev_tools_pick_tree", "Select a Skill Tree");
+		this.addMisc("dev_tools_tree_basic", "Basic Skill Tree");
+		this.addMisc("dev_tools_tree_rebirth", "Rebirth Skill Tree");
+		this.addMisc("dev_tools_contract_load_partial", "Contract loaded. %s tag-based bounty entries can't be edited here, and %s entries didn't fit in the grid.");
 		this.addMisc("dev_tools_label_parent", "Parent (Opt)");
 		this.addMisc("dev_tools_label_target", "Target (modifier)");
 		this.addMisc("dev_tools_label_target_attribute", "Target (attribute)");

@@ -4,13 +4,21 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.core.Holder;
+import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.networking.GenerateEffectCodePacket;
+import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
+import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
+import org.crimsoncrips.craftorio.registries.effect.ShopMultiplierEffect;
+import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @OnlyIn(Dist.CLIENT)
@@ -43,6 +51,14 @@ public class EffectCreatorScreen extends Screen {
     private EditBox nameBox;
     private boolean jsonExport = false;
     private Button exportButton;
+
+    private String prefillId = "";
+    private String prefillModId = "";
+    private String prefillMultiplier = "";
+    private String prefillSeconds = "";
+    private String prefillWeight = "";
+    private String prefillItemTag = "";
+    private String prefillName = "";
 
     public EffectCreatorScreen(Screen parent) {
         super(Component.translatable("misc.craftorio.effect_creator_title"));
@@ -121,6 +137,14 @@ public class EffectCreatorScreen extends Screen {
         this.addRenderableWidget(this.nameBox);
         y += rowHeight + 8;
 
+        this.idBox.setValue(prefillId);
+        this.modIdBox.setValue(prefillModId);
+        this.multiplierBox.setValue(prefillMultiplier);
+        this.secondsBox.setValue(prefillSeconds);
+        this.weightBox.setValue(prefillWeight);
+        this.itemTagBox.setValue(prefillItemTag);
+        this.nameBox.setValue(prefillName);
+
         refreshLangVisibility();
 
         this.exportButton = Button.builder(exportLabel(), b -> {
@@ -137,8 +161,54 @@ public class EffectCreatorScreen extends Screen {
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.back"), b -> this.minecraft.setScreen(this.parent))
                 .bounds(panelLeft + panelWidth / 2 - 90, y, 180, 20).build());
 
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_edit_effects"), b -> openEditPicker())
+                .bounds(this.width - 108, this.height - 28, 100, 20).build());
+
         this.addRenderableWidget(this.helpPanel.createButton(this.width, 6, this.timeConverterPanel::closeIfOpen));
         this.addRenderableWidget(this.timeConverterPanel.createToggleButton(this.width, 30, this.helpPanel::closeIfOpen));
+    }
+
+    private void openEditPicker() {
+        if (this.minecraft.level == null) return;
+
+        Registry<CraftorioEffects> registry = this.minecraft.level.registryAccess().registryOrThrow(CraftorioEffects.REGISTRY_KEY);
+        List<DevToolsPickerScreen.Option> options = new ArrayList<>();
+        for (Holder.Reference<CraftorioEffects> holder : registry.holders().toList()) {
+            ResourceLocation id = holder.key().location();
+            CraftorioEffects effect = holder.value();
+            options.add(new DevToolsPickerScreen.Option(Component.literal(effect.getActualName()), id.toString(), 0, true, () -> {
+                loadEffect(id, effect);
+                this.minecraft.setScreen(this);
+            }));
+        }
+
+        this.minecraft.setScreen(new DevToolsPickerScreen(Component.translatable("misc.craftorio.dev_tools_pick_effect"), this, options));
+    }
+
+    private void loadEffect(ResourceLocation id, CraftorioEffects effect) {
+        this.prefillId = id.getPath();
+        this.prefillModId = id.getNamespace();
+        this.prefillSeconds = String.valueOf(effect.getTime() / CraftorioMisc.SECONDS_TO_TICKS);
+        this.prefillWeight = String.valueOf(effect.getWeight());
+        this.unobtainable = effect.isUnobtainable();
+        this.prefillItemTag = "";
+
+        if (effect instanceof TagMultiplierEffect tagEffect) {
+            this.typeIndex = 2;
+            this.prefillMultiplier = String.valueOf(tagEffect.getMultiplier());
+            this.prefillItemTag = tagEffect.getItemTag().location().toString();
+        } else if (effect instanceof ShopMultiplierEffect shopEffect) {
+            this.typeIndex = 1;
+            this.prefillMultiplier = String.valueOf(shopEffect.getMultiplier());
+        } else if (effect instanceof GeneralMultiplierEffect generalEffect) {
+            this.typeIndex = 0;
+            this.prefillMultiplier = String.valueOf(generalEffect.getMultiplier());
+        }
+
+        String translated = Component.translatable(effect.getNameKey()).getString();
+        boolean hasTranslation = !translated.equals(effect.getNameKey());
+        this.includeLang = hasTranslation;
+        this.prefillName = hasTranslation ? translated : "";
     }
 
     private Component exportLabel() {

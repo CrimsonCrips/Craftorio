@@ -62,6 +62,7 @@ public class SkillTreeCreatorScreen extends Screen {
     private int nodeCascade = 0;
     private boolean jsonExport = false;
     private boolean includeLang = false;
+    private boolean rebirth = false;
     private String savedModId = "yourmodid";
     private double panX = 0, panY = 0;
     private double zoom = 1.0;
@@ -112,10 +113,14 @@ public class SkillTreeCreatorScreen extends Screen {
         this.parent = parent;
     }
 
-    public void loadFromRegistry(Minecraft minecraft) {
+    public void loadFromRegistry(Minecraft minecraft, boolean rebirthTree) {
         if (minecraft.level == null) return;
-        Registry<CraftorioUpgrade> registry = minecraft.level.registryAccess().registryOrThrow(CraftorioUpgrade.REGISTRY_KEY);
+        Registry<CraftorioUpgrade> registry = DevToolsUpgradeTrees.registry(minecraft, rebirthTree);
 
+        this.rebirth = rebirthTree;
+        this.selected = null;
+        this.selectedNodes.clear();
+        this.linkingFrom = null;
         nodes.clear();
         nextLocalId = 0;
         nodeCascade = 0;
@@ -454,6 +459,13 @@ public class SkillTreeCreatorScreen extends Screen {
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.back"), b -> this.minecraft.setScreen(this.parent))
                 .bounds(rowX + (btnW + gap) * 2, barY2, btnW, 20).build());
 
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_edit_skill_tree"), b ->
+                        DevToolsUpgradeTrees.openTreePicker(this.minecraft, this, pickedRebirth -> {
+                            loadFromRegistry(this.minecraft, pickedRebirth);
+                            this.minecraft.setScreen(this);
+                        }))
+                .bounds(this.width - 108, this.height - 28, 100, 20).build());
+
         this.addRenderableWidget(this.helpPanel.createButton(this.width, 6, true, () -> {}));
 
         refreshSidebarFromSelection();
@@ -689,7 +701,7 @@ public class SkillTreeCreatorScreen extends Screen {
                     node.y
             ));
         }
-        PacketDistributor.sendToServer(new GenerateSkillTreeCodePacket(data, includeLang, jsonExport));
+        PacketDistributor.sendToServer(new GenerateSkillTreeCodePacket(data, includeLang, jsonExport, rebirth));
     }
 
     private static boolean isTickDurationTarget(DraftNode node) {

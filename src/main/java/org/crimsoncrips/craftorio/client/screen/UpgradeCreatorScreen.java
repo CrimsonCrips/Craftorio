@@ -5,11 +5,16 @@ import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.networking.GenerateUpgradeCodePacket;
+import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioActionEffectUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioAttributeUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioModifierUpgrade;
 
 import java.util.List;
 
@@ -35,7 +40,7 @@ public class UpgradeCreatorScreen extends Screen {
     private int panelLeft;
     private int panelTop;
     private final int panelWidth = 280;
-    private final int panelHeight = 390;
+    private final int panelHeight = 412;
 
     private int categoryIndex = 0;
     private int modifierTargetIndex = 0;
@@ -61,6 +66,18 @@ public class UpgradeCreatorScreen extends Screen {
     private EditBox nameBox;
     private boolean jsonExport = false;
     private Button exportButton;
+    private boolean rebirth = false;
+    private Button treeButton;
+
+    private String prefillId = "";
+    private String prefillModId = "";
+    private String prefillDescription = "";
+    private String prefillCost = "";
+    private String prefillMaxPurchases = "1";
+    private String prefillParent = "";
+    private String prefillValue = "";
+    private String prefillItemTag = "";
+    private String prefillName = "";
 
     public UpgradeCreatorScreen(Screen parent) {
         super(Component.translatable("misc.craftorio.upgrade_creator_title"));
@@ -76,6 +93,13 @@ public class UpgradeCreatorScreen extends Screen {
         int fieldWidth = panelWidth - 110;
         int y = panelTop + 24;
         int rowHeight = 22;
+
+        this.treeButton = Button.builder(treeLabel(), b -> {
+            rebirth = !rebirth;
+            treeButton.setMessage(treeLabel());
+        }).bounds(fieldX, y, fieldWidth, 16).build();
+        this.addRenderableWidget(this.treeButton);
+        y += rowHeight;
 
         this.categoryButton = Button.builder(Component.literal(CATEGORIES[categoryIndex]), b -> {
             categoryIndex = (categoryIndex + 1) % CATEGORIES.length;
@@ -108,7 +132,7 @@ public class UpgradeCreatorScreen extends Screen {
 
         this.maxPurchasesBox = new EditBox(this.font, fieldX, y, fieldWidth, 16, Component.literal("max purchases"));
         this.maxPurchasesBox.setMaxLength(256);
-        this.maxPurchasesBox.setValue("1");
+        this.maxPurchasesBox.setValue(prefillMaxPurchases);
         this.addRenderableWidget(this.maxPurchasesBox);
         y += rowHeight;
 
@@ -170,6 +194,15 @@ public class UpgradeCreatorScreen extends Screen {
         this.addRenderableWidget(this.nameBox);
         y += rowHeight + 8;
 
+        this.idBox.setValue(prefillId);
+        this.modIdBox.setValue(prefillModId);
+        this.descriptionBox.setValue(prefillDescription);
+        this.costBox.setValue(prefillCost);
+        this.parentBox.setValue(prefillParent);
+        this.valueBox.setValue(prefillValue);
+        this.itemTagBox.setValue(prefillItemTag);
+        this.nameBox.setValue(prefillName);
+
         refreshLangVisibility();
 
         this.exportButton = Button.builder(exportLabel(), b -> {
@@ -186,7 +219,67 @@ public class UpgradeCreatorScreen extends Screen {
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.back"), b -> this.minecraft.setScreen(this.parent))
                 .bounds(panelLeft + panelWidth / 2 - 90, y, 180, 20).build());
 
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_edit_upgrade"), b -> openEditPicker())
+                .bounds(this.width - 108, this.height - 28, 100, 20).build());
+
         this.addRenderableWidget(this.helpPanel.createButton(this.width, 6, () -> {}));
+    }
+
+    private Component treeLabel() {
+        return Component.translatable(rebirth ? "misc.craftorio.dev_tools_tree_rebirth" : "misc.craftorio.dev_tools_tree_basic");
+    }
+
+    private void openEditPicker() {
+        DevToolsUpgradeTrees.openTreePicker(this.minecraft, this, pickedRebirth ->
+                DevToolsUpgradeTrees.openUpgradePicker(this.minecraft, this.minecraft.screen, pickedRebirth, entry -> {
+                    loadUpgrade(entry.id(), entry.upgrade(), pickedRebirth);
+                    this.minecraft.setScreen(this);
+                }));
+    }
+
+    private static int indexOf(String[] values, String value) {
+        for (int i = 0; i < values.length; i++) {
+            if (values[i].equals(value)) return i;
+        }
+        return 0;
+    }
+
+    private void loadUpgrade(ResourceLocation id, CraftorioUpgrade upgrade, boolean fromRebirthTree) {
+        this.rebirth = fromRebirthTree;
+        this.prefillId = id.getPath();
+        this.prefillModId = id.getNamespace();
+        this.prefillCost = CraftorioMisc.toScientificString(upgrade.getCost());
+        this.prefillMaxPurchases = String.valueOf(upgrade.getMaxPurchases());
+        this.prefillParent = upgrade.getParent().map(ResourceLocation::toString).orElse("");
+        this.prefillItemTag = "";
+
+        if (upgrade instanceof CraftorioModifierUpgrade modifierUpgrade) {
+            this.categoryIndex = 0;
+            this.modifierTargetIndex = indexOf(MODIFIER_TARGETS, modifierUpgrade.getTarget().name());
+            this.operationIndex = indexOf(OPERATIONS, modifierUpgrade.getOperation().name());
+            double value = modifierUpgrade.getValue();
+            if (modifierUpgrade.getOperation().name().equals("ADD") && isTickDurationTarget()) {
+                value /= CraftorioMisc.SECONDS_TO_TICKS;
+            }
+            this.prefillValue = String.valueOf(value);
+            this.prefillItemTag = modifierUpgrade.getItemTag().map(tag -> tag.location().toString()).orElse("");
+        } else if (upgrade instanceof CraftorioAttributeUpgrade attributeUpgrade) {
+            this.categoryIndex = 1;
+            this.attributeTargetIndex = indexOf(ATTRIBUTE_TARGETS, attributeUpgrade.getTarget().name());
+            this.operationIndex = indexOf(OPERATIONS, attributeUpgrade.getOperation().name());
+            this.prefillValue = String.valueOf(attributeUpgrade.getValue());
+        } else if (upgrade instanceof CraftorioActionEffectUpgrade actionEffectUpgrade) {
+            this.categoryIndex = 2;
+            this.playerActionTargetIndex = indexOf(PLAYER_ACTION_TARGETS, actionEffectUpgrade.getTarget().name());
+            this.prefillValue = actionEffectUpgrade.getEffect().toString();
+        }
+
+        String translatedName = Component.translatable(upgrade.getNameKey()).getString();
+        String translatedDescription = Component.translatable(upgrade.getDescriptionKey()).getString();
+        boolean hasTranslation = !translatedName.equals(upgrade.getNameKey());
+        this.includeLang = hasTranslation;
+        this.prefillName = hasTranslation ? translatedName : "";
+        this.prefillDescription = hasTranslation && !translatedDescription.equals(upgrade.getDescriptionKey()) ? translatedDescription : "";
     }
 
     private Component exportLabel() {
@@ -271,7 +364,8 @@ public class UpgradeCreatorScreen extends Screen {
                 itemTagBox.getValue(),
                 includeLang,
                 nameBox.getValue(),
-                jsonExport
+                jsonExport,
+                rebirth
         ));
     }
 
@@ -293,7 +387,7 @@ public class UpgradeCreatorScreen extends Screen {
                 : isActionEffectCategory() ? "dev_tools_label_target_action"
                 : "dev_tools_label_target_attribute";
         String[] labelKeys = {
-                "dev_tools_label_type", "dev_tools_label_id", "dev_tools_label_mod_id", "dev_tools_label_description", "dev_tools_label_cost",
+                "dev_tools_label_tree", "dev_tools_label_type", "dev_tools_label_id", "dev_tools_label_mod_id", "dev_tools_label_description", "dev_tools_label_cost",
                 "dev_tools_label_max_purchases", "dev_tools_label_parent", targetLabelKey,
                 "dev_tools_label_operation", "dev_tools_label_value", "dev_tools_label_item_tag_target", "dev_tools_label_include_lang"
         };

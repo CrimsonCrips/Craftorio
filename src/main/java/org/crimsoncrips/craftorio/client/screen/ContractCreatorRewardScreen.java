@@ -65,6 +65,10 @@ public class ContractCreatorRewardScreen extends AbstractContainerScreen<Contrac
         return ClientContractCreatorDraftState.get(REWARD_ROLLS_KEY, "0");
     }
 
+    public static void setRewardRollsValue(String value) {
+        ClientContractCreatorDraftState.set(REWARD_ROLLS_KEY, value);
+    }
+
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
         int i = (this.width - this.imageWidth) / 2;

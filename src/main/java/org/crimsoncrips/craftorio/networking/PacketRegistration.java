@@ -39,6 +39,7 @@ public class PacketRegistration {
         registrar.playToServer(AddItemToContractCreatorPacket.TYPE, AddItemToContractCreatorPacket.STREAM_CODEC, AddItemToContractCreatorPacket::handle);
         registrar.playToServer(ClearContractCreatorGridPacket.TYPE, ClearContractCreatorGridPacket.STREAM_CODEC, ClearContractCreatorGridPacket::handle);
         registrar.playToServer(SetContractCreatorViewPacket.TYPE, SetContractCreatorViewPacket.STREAM_CODEC, SetContractCreatorViewPacket::handle);
+        registrar.playToServer(LoadContractIntoCreatorPacket.TYPE, LoadContractIntoCreatorPacket.STREAM_CODEC, LoadContractIntoCreatorPacket::handle);
         registrar.playToServer(ClearEffectsPacket.TYPE, ClearEffectsPacket.STREAM_CODEC, ClearEffectsPacket::handle);
         registrar.playToServer(RequestRebirthPacket.TYPE, RequestRebirthPacket.STREAM_CODEC, RequestRebirthPacket::handle);
         registrar.playToServer(UnlockRebirthUpgradePacket.TYPE, UnlockRebirthUpgradePacket.STREAM_CODEC, UnlockRebirthUpgradePacket::handle);

@@ -35,7 +35,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean includeLang, boolean jsonExport) implements CustomPacketPayload {
+public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean includeLang, boolean jsonExport, boolean rebirth) implements CustomPacketPayload {
 
     private static final ResourceLocation DEFAULT_ICON = Craftorio.getGuiTexture("default_icon.png");
 
@@ -45,9 +45,11 @@ public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean
                 SkillTreeNodeData.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buffer, message.nodes());
                 ByteBufCodecs.BOOL.encode(buffer, message.includeLang());
                 ByteBufCodecs.BOOL.encode(buffer, message.jsonExport());
+                ByteBufCodecs.BOOL.encode(buffer, message.rebirth());
             },
             buffer -> new GenerateSkillTreeCodePacket(
                     SkillTreeNodeData.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buffer),
+                    ByteBufCodecs.BOOL.decode(buffer),
                     ByteBufCodecs.BOOL.decode(buffer),
                     ByteBufCodecs.BOOL.decode(buffer)
             )
@@ -128,7 +130,7 @@ public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean
                 }
             }
 
-            CraftorioDevTools.writeCodeFile(serverPlayer, "skill_tree", code.toString());
+            CraftorioDevTools.writeCodeFile(serverPlayer, "skill_tree", message.rebirth() ? code.toString().replace(".save(context,", ".saveRebirth(context,") : code.toString());
             PacketDistributor.sendToPlayer(serverPlayer, new SkillTreeGenerateResultPacket(true, "dev_tools_skill_tree_generated_code", String.valueOf(order.size())));
         });
     }
