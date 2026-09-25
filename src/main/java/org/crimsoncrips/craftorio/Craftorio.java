@@ -18,6 +18,7 @@ import org.crimsoncrips.craftorio.client.compat.IrisCompat;
 import org.crimsoncrips.craftorio.client.compat.XaeroWorldMapCompat;
 import org.crimsoncrips.craftorio.client.config.CraftorioClientConfig;
 import org.crimsoncrips.craftorio.client.input.CraftorioKeyMappings;
+import org.crimsoncrips.craftorio.client.render.CraftorioShaders;
 import org.crimsoncrips.craftorio.datagen.CraftorioDatagen;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
 import org.crimsoncrips.craftorio.events.ClientEvents;
@@ -91,6 +92,7 @@ public class Craftorio {
         if (FMLEnvironment.dist.isClient()) {
             modEventBus.addListener(new ClientEvents()::registerScreens);
             modEventBus.addListener(ClientEvents::showPoints);
+            modEventBus.addListener(CraftorioShaders::register);
             modEventBus.addListener(ClientEvents::showEffectTimer);
             modEventBus.addListener(ClientEvents::showToasts);
             NeoForge.EVENT_BUS.addListener(ClientEvents::renderScanBox);

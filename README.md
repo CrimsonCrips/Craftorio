@@ -6,6 +6,7 @@ For Modpackers, contracts, effects and item values are data-driven,allowing for 
 
 Repo containing an example mod and a wiki to guide how to use it: https://github.com/CrimsonCrips/CraftorioTemplate
 
+Skill Tree shader by: https://www.shadertoy.com/view/XlfGRj
 
 ## Special Thanks to
 

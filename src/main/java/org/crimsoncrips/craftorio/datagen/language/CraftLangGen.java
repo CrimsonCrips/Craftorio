@@ -225,13 +225,25 @@ public class CraftLangGen extends LanguageProvider {
 		this.addMisc("sorted_most_valueless", "Sorted: Most Valueless");
 
 		this.addMisc("config_title", "Craftorio Config");
-		this.addMisc("server_config_title", "Craftorio Server Config");
-		this.addMisc("server_config_button", "Server Config");
+		this.addMisc("config_tab_client", "Client");
+		this.addMisc("config_tab_server", "Server");
+		this.addMisc("config_group_display", "Display");
+		this.addMisc("config_group_animations", "Animations & Effects");
+		this.addMisc("config_group_general", "General");
+		this.addMisc("config_group_expansion", "Expansion");
+		this.addMisc("config_group_border_based", "Border Based");
+		this.addMisc("config_group_chunk_based", "Chunk Based");
+		this.addMisc("config_group_random_effects", "Random Effects");
+		this.addMisc("config_group_shop", "Shop");
+		this.addMisc("config_group_contracts", "Contracts");
+		this.addMisc("config_group_sink_value", "Sink Value");
+		this.addMisc("config_group_rebirth", "Rebirth");
+		this.addMisc("config_point_formatting", "Point Formatting");
+		this.addMisc("config_skip_claim_animation", "Skip Claim Animation");
 		this.addMisc("world_creation_settings_title", "Craftorio World Settings");
 		this.addMisc("world_creation_universal_progression", "Universal Progression: %s");
 		this.addMisc("world_creation_chunk_based", "Chunk Based Expansion: %s");
 		this.addMisc("world_creation_no_borders", "No Borders: %s");
-		this.addMisc("point_formatting_label", "Point Formatting: %s");
 		this.addMisc("format_raw", "Raw Numbers");
 		this.addMisc("format_scientific", "Scientific");
 		this.addMisc("format_short_suffix", "Short Suffix");
@@ -391,7 +403,8 @@ public class CraftLangGen extends LanguageProvider {
 		this.addMisc("contract_refresh_timer", "Next refresh: %s");
 		this.addMisc("welcome_toast_message", "Welcome to Craftorio! Press %s to open the Craftorio menu.");
 		this.addMisc("new_contracts_toast", "New contracts are available!");
-		this.addMisc("skip_claim_animation_label", "Skip Claim Animation: %s");
+		this.addMisc("welcome_toast_seconds_label", "Welcome Toast (s)");
+		this.addMisc("gold_rain_intensity_label", "Gold Rain (%)");
 		this.addMisc("force_contract_refresh_button", "Force Refresh (Creative)");
 		this.addMisc("view_all_contracts_button", "View All Contracts (Creative)");
 		this.addMisc("all_contracts_title", "All Registered Contracts");

@@ -16,7 +16,8 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import org.crimsoncrips.craftorio.client.render.CraftorioStarfield;
+import org.crimsoncrips.craftorio.Craftorio;
+import org.crimsoncrips.craftorio.client.render.CraftorioSkillTreeBackground;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
 
 import java.math.BigInteger;
@@ -74,10 +75,6 @@ public abstract class CraftorioSkillTreeScreenBase extends Screen {
 
     protected boolean useSpawnAnimation() {
         return false;
-    }
-
-    protected int starfieldColor() {
-        return 0xF7F139;
     }
 
     @Override
@@ -285,8 +282,10 @@ public abstract class CraftorioSkillTreeScreenBase extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         graphics.fill(0, 0, this.width, this.height, 0xFF000000);
-        CraftorioStarfield.render(graphics, this.width, this.height, this.panX, this.panY, this.zoom, starfieldColor());
 
+        if (Craftorio.CLIENT_CONFIG.SKILL_TREE_EFFECTS.get()) {
+            CraftorioSkillTreeBackground.render(graphics, this.width, this.height, this.panX, this.panY, this.zoom);
+        }
         Player player = this.minecraft.player;
         if (player != null) {
             Set<ResourceLocation> currentUnlocked = getUnlockedSnapshot(player);

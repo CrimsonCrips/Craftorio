@@ -1,0 +1,13 @@
+{
+  "vertex": "craftorio:skill_tree_starnest",
+  "fragment": "craftorio:skill_tree_starnest",
+  "attributes": [
+    "Position"
+  ],
+  "uniforms": [
+    { "name": "iResolution", "type": "float", "count": 2, "values": [ 1.0, 1.0 ] },
+    { "name": "Pan", "type": "float", "count": 2, "values": [ 0.0, 0.0 ] },
+    { "name": "Zoom", "type": "float", "count": 1, "values": [ 1.0 ] },
+    { "name": "Intensity", "type": "float", "count": 1, "values": [ 1.0 ] }
+  ]
+}
