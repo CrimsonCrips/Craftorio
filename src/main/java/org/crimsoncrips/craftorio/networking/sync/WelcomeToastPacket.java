@@ -14,8 +14,6 @@ public record WelcomeToastPacket() implements CustomPacketPayload {
     public static final Type<WelcomeToastPacket> TYPE = new Type<>(Craftorio.prefix("welcome_toast_packet"));
     public static final StreamCodec<RegistryFriendlyByteBuf, WelcomeToastPacket> STREAM_CODEC = StreamCodec.unit(new WelcomeToastPacket());
 
-    public static final long DISPLAY_TIME_MS = 10000L;
-
     @Override
     public Type<? extends CustomPacketPayload> type() {
         return TYPE;
@@ -25,7 +23,10 @@ public record WelcomeToastPacket() implements CustomPacketPayload {
         ctx.enqueueWork(() -> {
             Component message1 = Component.translatable("misc.craftorio.welcome_toast_message",
                     CraftorioKeyMappings.OPEN_HUB.getTranslatedKeyMessage());
-            CraftorioToastManager.addToast(message1, DISPLAY_TIME_MS);
+            int seconds = Craftorio.CLIENT_CONFIG.WELCOME_TOAST_SECONDS.get();
+            if (seconds >= 1) {
+                CraftorioToastManager.addToast(message1, seconds * 1000L);
+            }
         });
     }
 }

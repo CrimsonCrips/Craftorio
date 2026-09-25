@@ -285,7 +285,7 @@ public abstract class CraftorioSkillTreeScreenBase extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         graphics.fill(0, 0, this.width, this.height, 0xFF000000);
-        CraftorioStarfield.render(graphics, this.width, this.height, this.panX, this.panY, starfieldColor());
+        CraftorioStarfield.render(graphics, this.width, this.height, this.panX, this.panY, this.zoom, starfieldColor());
 
         Player player = this.minecraft.player;
         if (player != null) {

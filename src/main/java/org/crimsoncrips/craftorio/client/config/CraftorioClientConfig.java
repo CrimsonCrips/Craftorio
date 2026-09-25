@@ -7,6 +7,7 @@ public class CraftorioClientConfig {
     public final ModConfigSpec.IntValue POINT_FORMATTING;
     public final ModConfigSpec.BooleanValue SKIP_CONTRACT_CLAIM_ANIMATION;
     public final ModConfigSpec.IntValue GOLD_RAIN_INTENSITY;
+    public final ModConfigSpec.IntValue WELCOME_TOAST_SECONDS;
 
     public CraftorioClientConfig(final ModConfigSpec.Builder builder) {
 
@@ -14,6 +15,7 @@ public class CraftorioClientConfig {
         this.POINT_FORMATTING = buildInt(builder, "POINT_FORMATTING", 2,0,3, "Point formatting (0 = 100000,1 = 1e5,2 = 100k,3 = 100 Thousand)");
         this.SKIP_CONTRACT_CLAIM_ANIMATION = buildBoolean(builder, "SKIP_CONTRACT_CLAIM_ANIMATION", false, "Skip the spin/reveal animation on the contract claiming screen and show contracts already settled");
         this.GOLD_RAIN_INTENSITY = buildInt(builder, "GOLD_RAIN_INTENSITY", 100, 0, 300, "Scales how many gold ingots rain down when winning a Double Or Nothing bet, as a percentage (0 = disabled, 100 = default, 300 = triple)");
+        this.WELCOME_TOAST_SECONDS = buildInt(builder, "WELCOME_TOAST_SECONDS", 10, 1, Integer.MAX_VALUE, "How many seconds the welcome toast stays on screen before sliding out");
 
         builder.pop();
 

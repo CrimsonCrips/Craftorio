@@ -24,19 +24,31 @@ import java.util.List;
 
 public class CraftorioRebirth {
 
-    private static final double TIER_1_BASE = 2.5e19;
-    private static final double TIER_BASE_FACTOR = 1e19;
+    private static final double DEFAULT_BASE_COST = 2.5e19;
+    private static final double TIER_BASE_FACTOR_RATIO = 0.4;
 
     private CraftorioRebirth() {}
+
+    public static double baseCost() {
+        try {
+            double value = new BigDecimal(Craftorio.SERVER_CONFIG.REBIRTH_BASE_COST.get()).doubleValue();
+            return value > 0 ? value : DEFAULT_BASE_COST;
+        } catch (Exception e) {
+            Craftorio.LOGGER.debug("INCORRECT INPUT FOR REBIRTH_BASE_COST IN Craftorio Server Config");
+            return DEFAULT_BASE_COST;
+        }
+    }
 
     public static BigInteger rebirthCost(int life) {
         double x = life - 1;
         double price;
+        double tier1Base = baseCost();
+        double tierBaseFactor = tier1Base * TIER_BASE_FACTOR_RATIO;
 
         if (x < 40) {
-            price = TIER_1_BASE * (x + 1);
+            price = tier1Base * (x + 1);
         } else {
-            double base = TIER_BASE_FACTOR
+            double base = tierBaseFactor
                     * (5 * Math.floor(x / 5) + 2.5)
                     * (100 * Math.floor(x / 25) + 1)
                     * (1000 * Math.floor(x / 500) + 1);

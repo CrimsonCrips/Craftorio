@@ -1,12 +1,20 @@
 package org.crimsoncrips.craftorio.client.render;
 
+import com.mojang.blaze3d.systems.RenderSystem;
+import com.mojang.blaze3d.vertex.BufferBuilder;
+import com.mojang.blaze3d.vertex.BufferUploader;
+import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.Tesselator;
+import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.GameRenderer;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.crimsoncrips.craftorio.Craftorio;
+import org.joml.Matrix4f;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -22,6 +30,27 @@ public final class CraftorioStarfield {
             return riseMs + holdMs + decayMs + cooldownMs;
         }
     }
+
+    private record Haze(float x, float y, int size, float alpha, float depth, double phase, double periodMs, float driftX, float driftY) {}
+
+    private static final float ZOOM_BASE_SCALE = 1.12f;
+    private static final float ZOOM_SCALE_STRENGTH = 0.06f;
+
+    private static final float HAZE_FALLOFF = 2.2f;
+    private static final int HAZE_SEGMENTS = 24;
+    private static final int HAZE_RINGS = 5;
+    private static final int HAZE_COUNT = 110;
+    private static final float HAZE_MIN_ALPHA = 0.015f;
+    private static final float HAZE_MAX_ALPHA = 0.032f;
+    private static final float HAZE_SPREAD = 0.07f;
+    private static final float HAZE_MIN_SIZE = 0.22f;
+    private static final float HAZE_MAX_SIZE = 0.45f;
+    private static final float HAZE_PARALLAX_STRENGTH = 0.08f;
+    private static final double HAZE_MIN_PERIOD_MS = 14000.0;
+    private static final double HAZE_MAX_PERIOD_MS = 32000.0;
+    private static final float HAZE_TINT_R = 0.86f;
+    private static final float HAZE_TINT_G = 0.91f;
+    private static final float HAZE_TINT_B = 1.0f;
 
     private static final int[] PEAK_FRAMES = {1, 3, 5};
     private static final ResourceLocation[] GLITTER_FRAMES = new ResourceLocation[6];
@@ -54,18 +83,28 @@ public final class CraftorioStarfield {
     private static final float BRIGHTNESS_JITTER = 0.15f;
 
     private static List<Star> stars = List.of();
+    private static List<Haze> hazes = List.of();
     private static int cachedWidth = -1;
     private static int cachedHeight = -1;
     private static int cachedColor;
 
     private CraftorioStarfield() {}
 
-    public static void render(GuiGraphics graphics, int width, int height, double panX, double panY, int baseColor) {
+    public static void render(GuiGraphics graphics, int width, int height, double panX, double panY, double zoom, int baseColor) {
         if (width != cachedWidth || height != cachedHeight || baseColor != cachedColor) {
             regenerate(width, height, baseColor);
         }
 
         long now = System.currentTimeMillis();
+        float scale = ZOOM_BASE_SCALE * (1f + ZOOM_SCALE_STRENGTH * (float) Math.log(Math.max(zoom, 0.01)));
+
+        graphics.pose().pushPose();
+        graphics.pose().translate(width / 2f, height / 2f, 0f);
+        graphics.pose().scale(scale, scale, 1f);
+        graphics.pose().translate(-width / 2f, -height / 2f, 0f);
+
+        renderHaze(graphics, panX, panY, now);
+
         for (Star star : stars) {
             double cyclePos = (now + star.phase()) % star.cycleMs();
 
@@ -106,6 +145,67 @@ public final class CraftorioStarfield {
         }
         graphics.setColor(1f, 1f, 1f, 1f);
         graphics.bufferSource().endLastBatch();
+        graphics.pose().popPose();
+    }
+
+    private static void renderHaze(GuiGraphics graphics, double panX, double panY, long now) {
+        graphics.flush();
+
+        Matrix4f matrix = graphics.pose().last().pose();
+        BufferBuilder builder = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION_COLOR);
+
+        for (Haze haze : hazes) {
+            double cycle = ((now + haze.phase()) % haze.periodMs()) / haze.periodMs();
+            float wave = (float) Math.sin(cycle * Math.PI * 2);
+            float peakAlpha = haze.alpha() * (0.65f + 0.35f * wave);
+
+            float cx = haze.x() + wave * haze.driftX() + (float) (panX * haze.depth() * HAZE_PARALLAX_STRENGTH);
+            float cy = haze.y() + wave * haze.driftY() + (float) (panY * haze.depth() * HAZE_PARALLAX_STRENGTH);
+            float radius = haze.size() / 2f;
+
+            for (int ring = 0; ring < HAZE_RINGS; ring++) {
+                float innerRadius = radius * ring / HAZE_RINGS;
+                float outerRadius = radius * (ring + 1) / HAZE_RINGS;
+                int innerAlpha = hazeAlpha(peakAlpha, (float) ring / HAZE_RINGS);
+                int outerAlpha = hazeAlpha(peakAlpha, (float) (ring + 1) / HAZE_RINGS);
+
+                for (int segment = 0; segment < HAZE_SEGMENTS; segment++) {
+                    double angleA = Math.PI * 2 * segment / HAZE_SEGMENTS;
+                    double angleB = Math.PI * 2 * (segment + 1) / HAZE_SEGMENTS;
+                    float cosA = (float) Math.cos(angleA);
+                    float sinA = (float) Math.sin(angleA);
+                    float cosB = (float) Math.cos(angleB);
+                    float sinB = (float) Math.sin(angleB);
+
+                    hazeVertex(builder, matrix, cx + cosA * outerRadius, cy + sinA * outerRadius, outerAlpha);
+                    hazeVertex(builder, matrix, cx + cosB * outerRadius, cy + sinB * outerRadius, outerAlpha);
+                    hazeVertex(builder, matrix, cx + cosA * innerRadius, cy + sinA * innerRadius, innerAlpha);
+
+                    if (ring > 0) {
+                        hazeVertex(builder, matrix, cx + cosB * outerRadius, cy + sinB * outerRadius, outerAlpha);
+                        hazeVertex(builder, matrix, cx + cosB * innerRadius, cy + sinB * innerRadius, innerAlpha);
+                        hazeVertex(builder, matrix, cx + cosA * innerRadius, cy + sinA * innerRadius, innerAlpha);
+                    }
+                }
+            }
+        }
+
+        RenderSystem.disableCull();
+        RenderSystem.enableBlend();
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        BufferUploader.drawWithShader(builder.buildOrThrow());
+        RenderSystem.disableBlend();
+    }
+
+    private static int hazeAlpha(float peakAlpha, float distance) {
+        float falloff = (float) Math.pow(Math.max(0f, 1f - distance), HAZE_FALLOFF);
+        return Mth.clamp(Math.round(255f * peakAlpha * falloff), 0, 255);
+    }
+
+    private static void hazeVertex(BufferBuilder builder, Matrix4f matrix, float x, float y, int alpha) {
+        builder.addVertex(matrix, x, y, 0f)
+                .setColor(Math.round(HAZE_TINT_R * 255f), Math.round(HAZE_TINT_G * 255f), Math.round(HAZE_TINT_B * 255f), alpha);
     }
 
     private static float wrap(float value, int dimension) {
@@ -150,5 +250,35 @@ public final class CraftorioStarfield {
             generated.add(new Star(x, y, size, peakFrame, phase, riseMs, holdMs, decayMs, cooldownMs, depth, r, g, b));
         }
         stars = generated;
+        hazes = generateHaze(width, height, random);
+    }
+
+    private static List<Haze> generateHaze(int width, int height, RandomSource random) {
+        float startX = -0.1f * width;
+        float startY = 0.72f * height;
+        float endX = 1.1f * width;
+        float endY = 0.38f * height;
+        float dirX = endX - startX;
+        float dirY = endY - startY;
+        float length = Mth.sqrt(dirX * dirX + dirY * dirY);
+        float normalX = -dirY / length;
+        float normalY = dirX / length;
+
+        List<Haze> generated = new ArrayList<>(HAZE_COUNT);
+        for (int i = 0; i < HAZE_COUNT; i++) {
+            float t = random.nextFloat();
+            float offset = (float) random.nextGaussian() * HAZE_SPREAD * height;
+            float x = startX + dirX * t + normalX * offset;
+            float y = startY + dirY * t + normalY * offset;
+            int size = Math.round(width * (HAZE_MIN_SIZE + random.nextFloat() * (HAZE_MAX_SIZE - HAZE_MIN_SIZE)));
+            float alpha = HAZE_MIN_ALPHA + random.nextFloat() * (HAZE_MAX_ALPHA - HAZE_MIN_ALPHA);
+            float depth = 0.3f + random.nextFloat() * 0.7f;
+            double phase = random.nextDouble() * 100000.0;
+            double period = HAZE_MIN_PERIOD_MS + random.nextDouble() * (HAZE_MAX_PERIOD_MS - HAZE_MIN_PERIOD_MS);
+            float driftX = (random.nextFloat() * 2f - 1f) * 14f;
+            float driftY = (random.nextFloat() * 2f - 1f) * 6f;
+            generated.add(new Haze(x, y, size, alpha, depth, phase, period, driftX, driftY));
+        }
+        return generated;
     }
 }

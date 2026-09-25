@@ -984,7 +984,7 @@ public class SkillTreeCreatorScreen extends Screen {
     @Override
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         graphics.fill(0, 0, this.width, this.height, 0xFF101010);
-        CraftorioStarfield.render(graphics, this.width, this.height, panX, panY, 0x30FF5D);
+        CraftorioStarfield.render(graphics, this.width, this.height, panX, panY, zoom, 0x30FF5D);
         graphics.drawCenteredString(this.font, this.title, this.width / 2, 8, 0xFFFFFF);
 
         for (DraftNode node : nodes) {
