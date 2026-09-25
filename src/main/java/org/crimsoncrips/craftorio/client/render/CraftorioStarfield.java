@@ -30,7 +30,7 @@ public final class CraftorioStarfield {
 
     static {
         for (int i = 0; i < FRAME_COUNT; i++) {
-            GLITTER_FRAMES[i] = Craftorio.getGuiTexture("skill_tree_fx/glitter_" + i + ".png");
+            GLITTER_FRAMES[i] = Craftorio.getGuiTexture("skill_tree/particle/glitter_" + i + ".png");
         }
     }
 

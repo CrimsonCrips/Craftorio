@@ -5,7 +5,7 @@
     }
   },
   "display": {
-    "background": "craftorio:textures/gui/adv_bg.png",
+    "background": "craftorio:textures/gui/advancement/adv_bg.png",
     "description": {
       "translate": "advancements.craftorio.root.description"
     },

@@ -15,7 +15,7 @@ public abstract class CraftorioJadeOverlayMixin {
     private static final int PUSH_DOWN_PADDING = 10;
 
     @Inject(method = "updateExpectedRect", at = @At("TAIL"))
-    private void craftorioPushBelowPointsBar(TooltipRect rect, CallbackInfo ci) {
+    private void craftorio$updateExpectedRect(TooltipRect rect, CallbackInfo ci) {
         Rect2i pointsBarRect = ClientEvents.getPointsBarScreenRect();
         if (pointsBarRect == null) {
             return;

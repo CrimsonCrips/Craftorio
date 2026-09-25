@@ -13,7 +13,7 @@ import org.spongepowered.asm.mixin.Mixin;
 public abstract class CraftorioServerLevelMixin {
 
     @WrapMethod(method = "mayInteract")
-    private boolean gateCraftorioBorderInteraction(Player player, BlockPos pos, Operation<Boolean> original) {
+    private boolean craftorio$mayInteract(Player player, BlockPos pos, Operation<Boolean> original) {
         return original.call(player, pos)
                 && BorderCollisionHooks.isWithinCraftorioBorders(player, pos)
                 && ChunkCollisionHooks.isWithinClaimedChunk(player, pos);

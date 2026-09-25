@@ -16,7 +16,7 @@ import java.util.function.Supplier;
 public abstract class CraftorioContainerMenuMixin {
 
     @WrapMethod(method = "triggerSlotListeners")
-    private void craftorio$unlockOnInventoryChanged(int slotIndex, ItemStack stack, Supplier<ItemStack> supplier, Operation<Void> original) {
+    private void craftorio$triggerSlotListeners(int slotIndex, ItemStack stack, Supplier<ItemStack> supplier, Operation<Void> original) {
         original.call(slotIndex, stack, supplier);
 
         AbstractContainerMenu self = (AbstractContainerMenu) (Object) this;

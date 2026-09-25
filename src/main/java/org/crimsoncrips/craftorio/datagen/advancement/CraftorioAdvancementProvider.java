@@ -27,7 +27,7 @@ public class CraftorioAdvancementProvider implements AdvancementProvider.Advance
                 .display(CraftorioBlocks.SINKER.get(),
                         Component.translatable(getTitle("root")),
                         Component.translatable(getDescription("root")),
-                        Craftorio.getGuiTexture("adv_bg.png"), AdvancementType.TASK, true, true, false
+                        Craftorio.getGuiTexture("advancement/adv_bg.png"), AdvancementType.TASK, true, true, false
                 )
                 .addCriterion("tick", PlayerTrigger.TriggerInstance.tick())
                 .save(saver, Craftorio.prefix("root"), existingFileHelper);

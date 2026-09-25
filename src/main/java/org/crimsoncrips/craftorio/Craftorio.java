@@ -96,7 +96,6 @@ public class Craftorio {
             NeoForge.EVENT_BUS.addListener(ClientEvents::renderScanBox);
             NeoForge.EVENT_BUS.addListener(ClientEvents::renderBorders);
             NeoForge.EVENT_BUS.addListener(ClientEvents::renderClaimedChunkBorders);
-            NeoForge.EVENT_BUS.addListener(ClientEvents::renderPauseMenuIndicators);
             modEventBus.addListener(CraftorioKeyMappings::register);
             NeoForge.EVENT_BUS.addListener(CraftorioKeyMappings::onClientTick);
             NeoForge.EVENT_BUS.addListener(ClientEvents::tickUniversalProgressDisplay);

@@ -43,7 +43,7 @@ public abstract class CraftorioGuiMapMixin {
     @Inject(method = "getRightClickOptions", at = @At("TAIL"), remap = false)
     private void craftorio$getRightClickOptions(CallbackInfoReturnable<ArrayList<RightClickOption>> cir, @Local ArrayList<RightClickOption> options) {
 
-        if (mapTileSelection != null && player instanceof Player player1) {
+        if (mapTileSelection != null && player instanceof Player player1 && CraftorioMisc.chunkBased(player1.level())) {
 
 
             GuiMap guiMap = (GuiMap)(Object)this;

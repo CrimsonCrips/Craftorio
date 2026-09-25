@@ -24,7 +24,7 @@ import java.util.List;
 public class CraftorioEntityMixin {
 
     @WrapMethod(method = "collectColliders")
-    private static List<VoxelShape> addChunkColliders(@Nullable Entity entity, Level level, List<VoxelShape> collisions, AABB boundingBox, Operation<List<VoxelShape>> operation) {
+    private static List<VoxelShape> craftorio$collectColliders(@Nullable Entity entity, Level level, List<VoxelShape> collisions, AABB boundingBox, Operation<List<VoxelShape>> operation) {
         List<VoxelShape> original = operation.call(entity, level, collisions, boundingBox);
 
         if (entity instanceof Player player) {
@@ -39,7 +39,7 @@ public class CraftorioEntityMixin {
     }
 
     @WrapMethod(method = "collide")
-    private Vec3 clampToCraftorioBorder(Vec3 movement, Operation<Vec3> operation) {
+    private Vec3 craftorio$collide(Vec3 movement, Operation<Vec3> operation) {
         Vec3 result = operation.call(movement);
 
         Entity self = (Entity) (Object) this;

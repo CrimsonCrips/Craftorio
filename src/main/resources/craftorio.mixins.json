@@ -12,6 +12,7 @@
     "CraftorioServerLevelMixin"
   ],
   "client": [
+    "CraftorioBossHealthOverlayMixin",
     "CraftorioChatComponentMixin",
     "CraftorioMultiPlayerGameModeMixin",
     "CraftorioJadeOverlayMixin"

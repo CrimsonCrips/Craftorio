@@ -12,7 +12,6 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
-import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.achievement.StatsScreen;
 import net.minecraft.client.gui.screens.worldselection.CreateWorldScreen;
@@ -48,6 +47,7 @@ import org.crimsoncrips.craftorio.client.hud.PointsRateTracker;
 import org.crimsoncrips.craftorio.client.render.CraftorioHavenSkyEffects;
 import org.crimsoncrips.craftorio.client.screen.config.CraftorioConfigScreen;
 import org.crimsoncrips.craftorio.client.screen.config.CraftorioWorldCreationScreen;
+import org.crimsoncrips.craftorio.client.screen.widget.SheetIconButton;
 import org.crimsoncrips.craftorio.client.screen.contract.ContractRevealScreen;
 import org.crimsoncrips.craftorio.client.screen.devtools.contract_creator.ContractCreatorBountyScreen;
 import org.crimsoncrips.craftorio.client.screen.devtools.creator.SkillTreeCreatorScreen;
@@ -498,7 +498,8 @@ public class ClientEvents {
 			return;
 		if (minecraft.player == null)
 			return;
-
+		if (CraftorioMisc.isInHavenDimension(minecraft.level))
+			return;
 
 		Font font = minecraft.font;
 		BigInteger actualPoints = CraftorioMisc.getPoints(minecraft.player);
@@ -598,6 +599,7 @@ public class ClientEvents {
 	public static Rect2i getPointsBarScreenRect() {
 		Minecraft minecraft = Minecraft.getInstance();
 		if (minecraft.player == null) return null;
+		if (CraftorioMisc.isInHavenDimension(minecraft.level)) return null;
 
 		int screenWidth = minecraft.getWindow().getGuiScaledWidth();
 		int x = screenWidth / 2 - BADGE_ROW_WIDTH / 2;
@@ -673,17 +675,21 @@ public class ClientEvents {
 				(graphics, partialTicks) -> CraftorioToastManager.render(graphics));
 	}
 
-	public static final ResourceLocation STATUS_ICONS = Craftorio.getGuiTexture("status_icons.png");
+	public static final ResourceLocation STATUS_ICONS = Craftorio.getGuiTexture("line_icons.png");
 	public static final int STATUS_ICON_SIZE = 13;
-	public static final int STATUS_ICON_SHEET_WIDTH = 26;
+	public static final int STATUS_ICON_SHEET_WIDTH = 52;
 	public static final int STATUS_ICON_SHEET_HEIGHT = 39;
+	public static final int STATISTICS_ICON_U = 39;
+	public static final int STATISTICS_ICON_V = 0;
+	public static final int WORLD_SETTINGS_ICON_U = 39;
+	public static final int WORLD_SETTINGS_ICON_V = 13;
 	public static final int BORDER_MODE_INDICATOR_SIZE = STATUS_ICON_SIZE;
 	public static final int BORDER_MODE_INDICATOR_GAP = 4;
 	private static final int WORLD_CREATION_BUTTON_SIZE = 20;
 
-	private static final int CHUNK_BASED_ROW = 0;
-	private static final int UNIVERSAL_BASED_ROW = 1;
-	private static final int NO_BORDERS_ROW = 2;
+	public static final int CHUNK_BASED_ROW = 0;
+	public static final int UNIVERSAL_BASED_ROW = 1;
+	public static final int NO_BORDERS_ROW = 2;
 
 	public static void drawBorderModeIndicators(GuiGraphics graphics, Font font, int x, int y, int mouseX, int mouseY) {
 		Minecraft minecraft = Minecraft.getInstance();
@@ -703,24 +709,18 @@ public class ClientEvents {
 				Component.translatable("misc.craftorio.no_borders_based_label", CraftorioMisc.isNoBorders(level)));
 	}
 
-	private static void drawIndicator(GuiGraphics graphics, Font font, int x, int y, int mouseX, int mouseY, int row, boolean value, Component tooltip) {
+	public static void drawIndicatorIcon(GuiGraphics graphics, int x, int y, int row, boolean value) {
 		float u = value ? 0.0F : STATUS_ICON_SIZE;
 		float v = row * STATUS_ICON_SIZE;
 		graphics.blit(STATUS_ICONS, x, y, u, v, STATUS_ICON_SIZE, STATUS_ICON_SIZE, STATUS_ICON_SHEET_WIDTH, STATUS_ICON_SHEET_HEIGHT);
+	}
+
+	private static void drawIndicator(GuiGraphics graphics, Font font, int x, int y, int mouseX, int mouseY, int row, boolean value, Component tooltip) {
+		drawIndicatorIcon(graphics, x, y, row, value);
 
 		if (mouseX >= x && mouseX < x + BORDER_MODE_INDICATOR_SIZE && mouseY >= y && mouseY < y + BORDER_MODE_INDICATOR_SIZE) {
 			graphics.renderTooltip(font, tooltip, mouseX, mouseY);
 		}
-	}
-
-	public static void renderPauseMenuIndicators(ScreenEvent.Render.Post event) {
-		if (!(event.getScreen() instanceof PauseScreen)) return;
-
-		Minecraft minecraft = Minecraft.getInstance();
-		if (minecraft.level == null) return;
-
-		int x = minecraft.getWindow().getGuiScaledWidth() - BORDER_MODE_INDICATOR_SIZE - 8;
-		drawBorderModeIndicators(event.getGuiGraphics(), minecraft.font, x, 8, event.getMouseX(), event.getMouseY());
 	}
 
 	public static void addCraftorioStatsButton(ScreenEvent.Init.Post event) {
@@ -759,26 +759,8 @@ public class ClientEvents {
 						Craftorio.SERVER_CONFIG.NO_BORDERS.getAsBoolean())))
 				.bounds(x, y, WORLD_CREATION_BUTTON_SIZE, WORLD_CREATION_BUTTON_SIZE)
 				.tooltip(Tooltip.create(Component.translatable("misc.craftorio.world_creation_settings_title")))
-				.build(WorldCreationIconButton::new);
+				.build(builder -> new SheetIconButton(builder, WORLD_SETTINGS_ICON_U, WORLD_SETTINGS_ICON_V));
 		event.addListener(worldCreationButton);
-	}
-
-	private static class WorldCreationIconButton extends Button {
-		private static final ResourceLocation ICON = Craftorio.getGuiTexture("default_icon.png");
-		private static final int ICON_SIZE = 14;
-
-		private WorldCreationIconButton(Button.Builder builder) {
-			super(builder);
-		}
-
-		@Override
-		public void renderWidget(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-			super.renderWidget(guiGraphics, mouseX, mouseY, partialTick);
-
-			int iconX = getX() + (getWidth() - ICON_SIZE) / 2;
-			int iconY = getY() + (getHeight() - ICON_SIZE) / 2;
-			guiGraphics.blit(ICON, iconX, iconY, 0, 0, ICON_SIZE, ICON_SIZE, ICON_SIZE, ICON_SIZE);
-		}
 	}
 
 	public static void registerDimensionEffects(RegisterDimensionSpecialEffectsEvent event) {

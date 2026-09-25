@@ -3,6 +3,7 @@ package org.crimsoncrips.craftorio.client.screen.hub;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Player;
@@ -16,6 +17,7 @@ import org.crimsoncrips.craftorio.client.screen.effect.ActiveEffectsScreen;
 import org.crimsoncrips.craftorio.client.screen.purchase.BorderExpandScreen;
 import org.crimsoncrips.craftorio.client.screen.purchase.ClaimItemPurchaseScreen;
 import org.crimsoncrips.craftorio.client.screen.skill_tree.CraftorioBasicSkillTreeScreen;
+import org.crimsoncrips.craftorio.client.screen.widget.SheetIconButton;
 import org.crimsoncrips.craftorio.client.state.ClientContractOfferState;
 import org.crimsoncrips.craftorio.client.state.ClientShopState;
 import org.crimsoncrips.craftorio.events.ClientEvents;
@@ -99,14 +101,16 @@ public class CraftorioHubScreen extends Screen {
                 .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
 
         int statsSize = 20;
-        int statsX = this.width - statsSize - 8;
+        int statsX = 8;
         int statsY = this.height - statsSize - 8;
-        this.addRenderableWidget(Button.builder(Component.literal("?"), b -> this.minecraft.setScreen(new CraftorioStatisticsScreen()))
-                .bounds(statsX, statsY, statsSize, statsSize).build());
+        this.addRenderableWidget(Button.builder(Component.empty(), b -> this.minecraft.setScreen(new CraftorioStatisticsScreen()))
+                .bounds(statsX, statsY, statsSize, statsSize)
+                .tooltip(Tooltip.create(Component.translatable("misc.craftorio.stats_button")))
+                .build(builder -> new SheetIconButton(builder, ClientEvents.STATISTICS_ICON_U, ClientEvents.STATISTICS_ICON_V)));
 
         if (this.minecraft.player != null && this.minecraft.player.isCreative()) {
             int devToolsWidth = 100;
-            int devToolsY = statsY - BUTTON_HEIGHT - 4;
+            int devToolsY = this.height - BUTTON_HEIGHT - 8;
             this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_title"), b -> this.minecraft.setScreen(new DevToolsScreen(this)))
                     .bounds(this.width - devToolsWidth - 8, devToolsY, devToolsWidth, BUTTON_HEIGHT).build());
         }

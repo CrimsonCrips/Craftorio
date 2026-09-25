@@ -23,7 +23,7 @@ import javax.annotation.Nullable;
 public interface CraftorioCollisionGetter {
 
     @WrapMethod(method = "noCollision(Lnet/minecraft/world/entity/Entity;Lnet/minecraft/world/phys/AABB;)Z")
-    default boolean gatedNoCollision(@Nullable Entity entity, AABB collisionBox, Operation<Boolean> original) {
+    default boolean craftorio$noCollision(@Nullable Entity entity, AABB collisionBox, Operation<Boolean> original) {
         if (!original.call(entity, collisionBox)) {
             return false;
         }

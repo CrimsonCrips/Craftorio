@@ -22,7 +22,7 @@ public abstract class CraftorioChatComponentMixin {
 
     @WrapOperation(method = "render", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/client/gui/GuiGraphics;drawString(Lnet/minecraft/client/gui/Font;Lnet/minecraft/util/FormattedCharSequence;III)I"))
-    private int craftorio$glowHavenChatMessage(GuiGraphics instance, Font font, FormattedCharSequence text, int x, int y, int color,
+    private int craftorio$render(GuiGraphics instance, Font font, FormattedCharSequence text, int x, int y, int color,
                                                 Operation<Integer> original, @Local GuiMessage.Line line) {
         if (line.tag() != CraftorioGlowingChat.GLOW_TAG) {
             return original.call(instance, font, text, x, y, color);

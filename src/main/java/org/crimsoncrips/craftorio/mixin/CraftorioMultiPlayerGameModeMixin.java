@@ -24,7 +24,7 @@ public abstract class CraftorioMultiPlayerGameModeMixin {
     @Shadow @Final private Minecraft minecraft;
 
     @WrapMethod(method = "startDestroyBlock")
-    private boolean gateCraftorioBorderStartDestroy(BlockPos loc, Direction face, Operation<Boolean> original) {
+    private boolean craftorio$startDestroyBlock(BlockPos loc, Direction face, Operation<Boolean> original) {
         LocalPlayer player = this.minecraft.player;
         if (player != null && !(BorderCollisionHooks.isWithinCraftorioBorders(player, loc) && ChunkCollisionHooks.isWithinClaimedChunk(player, loc))) {
             return false;
@@ -33,7 +33,7 @@ public abstract class CraftorioMultiPlayerGameModeMixin {
     }
 
     @WrapMethod(method = "continueDestroyBlock")
-    private boolean gateCraftorioBorderContinueDestroy(BlockPos posBlock, Direction directionFacing, Operation<Boolean> original) {
+    private boolean craftorio$continueDestroyBlock(BlockPos posBlock, Direction directionFacing, Operation<Boolean> original) {
         LocalPlayer player = this.minecraft.player;
         if (player != null && !(BorderCollisionHooks.isWithinCraftorioBorders(player, posBlock) && ChunkCollisionHooks.isWithinClaimedChunk(player, posBlock))) {
             return false;
@@ -42,7 +42,7 @@ public abstract class CraftorioMultiPlayerGameModeMixin {
     }
 
     @WrapMethod(method = "useItemOn")
-    private InteractionResult gateCraftorioBorderUseItemOn(LocalPlayer player, InteractionHand hand, BlockHitResult result, Operation<InteractionResult> original) {
+    private InteractionResult craftorio$useItemOn(LocalPlayer player, InteractionHand hand, BlockHitResult result, Operation<InteractionResult> original) {
         boolean claimingChunk = player.getItemInHand(hand).getItem() instanceof ClaimChunkItem;
         if (!claimingChunk && !(BorderCollisionHooks.isWithinCraftorioBorders(player, result.getBlockPos()) && ChunkCollisionHooks.isWithinClaimedChunk(player, result.getBlockPos()))) {
             return InteractionResult.FAIL;
