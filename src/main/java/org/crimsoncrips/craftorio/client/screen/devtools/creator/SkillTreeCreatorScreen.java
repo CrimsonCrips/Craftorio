@@ -22,6 +22,7 @@ import org.crimsoncrips.craftorio.client.screen.devtools.DevToolsUpgradeTrees;
 import org.crimsoncrips.craftorio.networking.devtools.GenerateSkillTreeCodePacket;
 import org.crimsoncrips.craftorio.networking.devtools.SkillTreeNodeData;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.UpgradeTree;
 import org.crimsoncrips.craftorio.skill_tree.target.PlayerActionTarget;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioActionEffectUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioAttributeUpgrade;
@@ -66,7 +67,7 @@ public class SkillTreeCreatorScreen extends Screen {
     private int nodeCascade = 0;
     private boolean jsonExport = false;
     private boolean includeLang = false;
-    private boolean rebirth = false;
+    private UpgradeTree tree = UpgradeTree.BASIC;
     private String savedModId = "yourmodid";
     private double panX = 0, panY = 0;
     private double zoom = 1.0;
@@ -117,11 +118,11 @@ public class SkillTreeCreatorScreen extends Screen {
         this.parent = parent;
     }
 
-    public void loadFromRegistry(Minecraft minecraft, boolean rebirthTree) {
+    public void loadFromRegistry(Minecraft minecraft, UpgradeTree upgradeTree) {
         if (minecraft.level == null) return;
-        Registry<CraftorioUpgrade> registry = DevToolsUpgradeTrees.registry(minecraft, rebirthTree);
+        Registry<CraftorioUpgrade> registry = DevToolsUpgradeTrees.registry(minecraft, upgradeTree);
 
-        this.rebirth = rebirthTree;
+        this.tree = upgradeTree;
         this.selected = null;
         this.selectedNodes.clear();
         this.linkingFrom = null;
@@ -464,8 +465,8 @@ public class SkillTreeCreatorScreen extends Screen {
                 .bounds(rowX + (btnW + gap) * 2, barY2, btnW, 20).build());
 
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_edit_skill_tree"), b ->
-                        DevToolsUpgradeTrees.openTreePicker(this.minecraft, this, pickedRebirth -> {
-                            loadFromRegistry(this.minecraft, pickedRebirth);
+                        DevToolsUpgradeTrees.openTreePicker(this.minecraft, this, pickedTree -> {
+                            loadFromRegistry(this.minecraft, pickedTree);
                             this.minecraft.setScreen(this);
                         }))
                 .bounds(this.width - 108, this.height - 28, 100, 20).build());
@@ -705,7 +706,7 @@ public class SkillTreeCreatorScreen extends Screen {
                     node.y
             ));
         }
-        PacketDistributor.sendToServer(new GenerateSkillTreeCodePacket(data, includeLang, jsonExport, rebirth));
+        PacketDistributor.sendToServer(new GenerateSkillTreeCodePacket(data, includeLang, jsonExport, tree));
     }
 
     private static boolean isTickDurationTarget(DraftNode node) {

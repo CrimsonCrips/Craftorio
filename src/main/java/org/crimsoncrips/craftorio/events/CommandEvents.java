@@ -17,6 +17,7 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.networking.effect.EffectTimerPacket;
 import org.crimsoncrips.craftorio.server.haven.CraftorioHavenDimension;
+import org.crimsoncrips.craftorio.server.sacrifice.CraftorioSacrifice;
 
 import java.math.BigInteger;
 
@@ -43,6 +44,8 @@ public class CommandEvents {
                 .then(Commands.literal("haven").requires(cs -> cs.hasPermission(2))
                         .then(Commands.literal("enter").executes(CommandEvents::runHavenEnter))
                         .then(Commands.literal("leave").executes(CommandEvents::runHavenLeave)))
+                .then(Commands.literal("sacrifice").requires(cs -> cs.hasPermission(4)).executes(context -> runSacrifice(context, false))
+                        .then(Commands.literal("newseed").executes(context -> runSacrifice(context, true))))
         );
 
 
@@ -166,6 +169,10 @@ public class CommandEvents {
 
         CraftorioHavenDimension.leave(player);
         return 1;
+    }
+
+    private static int runSacrifice(CommandContext<CommandSourceStack> context, boolean newSeed) {
+        return CraftorioSacrifice.forceStart(context.getSource().getServer(), newSeed, context.getSource().getPlayer()) ? 1 : 0;
     }
 
 }

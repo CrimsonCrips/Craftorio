@@ -18,6 +18,7 @@ import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.server.devtools.CraftorioDevTools;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.UpgradeTree;
 import org.crimsoncrips.craftorio.skill_tree.target.AttributeTarget;
 import org.crimsoncrips.craftorio.skill_tree.target.ModifierTarget;
 import org.crimsoncrips.craftorio.skill_tree.target.PlayerActionTarget;
@@ -35,7 +36,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
-public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean includeLang, boolean jsonExport, boolean rebirth) implements CustomPacketPayload {
+public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean includeLang, boolean jsonExport, UpgradeTree tree) implements CustomPacketPayload {
 
     private static final ResourceLocation DEFAULT_ICON = Craftorio.getGuiTexture("default_icon.png");
 
@@ -45,13 +46,13 @@ public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean
                 SkillTreeNodeData.STREAM_CODEC.apply(ByteBufCodecs.list()).encode(buffer, message.nodes());
                 ByteBufCodecs.BOOL.encode(buffer, message.includeLang());
                 ByteBufCodecs.BOOL.encode(buffer, message.jsonExport());
-                ByteBufCodecs.BOOL.encode(buffer, message.rebirth());
+                ByteBufCodecs.VAR_INT.encode(buffer, message.tree().ordinal());
             },
             buffer -> new GenerateSkillTreeCodePacket(
                     SkillTreeNodeData.STREAM_CODEC.apply(ByteBufCodecs.list()).decode(buffer),
                     ByteBufCodecs.BOOL.decode(buffer),
                     ByteBufCodecs.BOOL.decode(buffer),
-                    ByteBufCodecs.BOOL.decode(buffer)
+                    UpgradeTree.byOrdinal(ByteBufCodecs.VAR_INT.decode(buffer))
             )
     );
 
@@ -130,7 +131,7 @@ public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean
                 }
             }
 
-            CraftorioDevTools.writeCodeFile(serverPlayer, "skill_tree", message.rebirth() ? code.toString().replace(".save(context,", ".saveRebirth(context,") : code.toString());
+            CraftorioDevTools.writeCodeFile(serverPlayer, "skill_tree", code.toString().replace(".save(context,", "." + message.tree().saveMethod() + "(context,"));
             PacketDistributor.sendToPlayer(serverPlayer, new SkillTreeGenerateResultPacket(true, "dev_tools_skill_tree_generated_code", String.valueOf(order.size())));
         });
     }

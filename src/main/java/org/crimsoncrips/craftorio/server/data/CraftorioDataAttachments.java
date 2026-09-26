@@ -9,6 +9,7 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredRegister;
@@ -20,6 +21,8 @@ import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.effect.ShopMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
 import org.crimsoncrips.craftorio.server.border.CraftorioBorder;
+import org.crimsoncrips.craftorio.server.sacrifice.SavedRespawn;
+import org.crimsoncrips.craftorio.server.sacrifice.WipeLogEntry;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -27,6 +30,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -227,6 +231,71 @@ public class CraftorioDataAttachments {
                     .serialize(ITEMS_SINKED_CODEC)
                     .copyOnDeath()
                     .sync(ByteBufCodecs.fromCodec(ITEMS_SINKED_CODEC))
+                    .build());
+
+    public static final Supplier<AttachmentType<Boolean>> SACRIFICE_PENDING = ATTACHMENT_TYPES.register(
+            "sacrifice_pending", () -> AttachmentType.builder(() -> false).serialize(Codec.BOOL).copyOnDeath().sync(ByteBufCodecs.BOOL).build()
+    );
+
+    public static final Supplier<AttachmentType<List<ItemStack>>> SACRIFICE_STORED_INVENTORY = ATTACHMENT_TYPES.register(
+            "sacrifice_stored_inventory", () -> AttachmentType.<List<ItemStack>>builder((holder) -> new ArrayList<>())
+                    .serialize(Codec.list(ItemStack.OPTIONAL_CODEC))
+                    .copyOnDeath()
+                    .build());
+
+    public static final Supplier<AttachmentType<Integer>> SACRIFICE_COUNT = ATTACHMENT_TYPES.register(
+            "sacrifice_count", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).build()
+    );
+
+    public static final Supplier<AttachmentType<Integer>> SACRIFICES_APPLIED = ATTACHMENT_TYPES.register(
+            "sacrifices_applied", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().build()
+    );
+
+    public static final Supplier<AttachmentType<Optional<SavedRespawn>>> SACRIFICE_SAVED_RESPAWN = ATTACHMENT_TYPES.register(
+            "sacrifice_saved_respawn", () -> AttachmentType.<Optional<SavedRespawn>>builder(() -> Optional.empty())
+                    .serialize(SavedRespawn.OPTIONAL_CODEC)
+                    .copyOnDeath()
+                    .build());
+
+    public static final Supplier<AttachmentType<Map<ResourceLocation, Integer>>> SACRIFICE_UPGRADES_UNLOCKED = ATTACHMENT_TYPES.register(
+            "sacrifice_upgrades_unlocked", () -> AttachmentType.<Map<ResourceLocation, Integer>>builder((holder) -> new HashMap<>())
+                    .serialize(UNLOCKED_UPGRADES_CODEC)
+                    .copyOnDeath()
+                    .sync(ByteBufCodecs.fromCodec(UNLOCKED_UPGRADES_CODEC))
+                    .build());
+
+    public static final Supplier<AttachmentType<BigInteger>> SACRIFICE_POINTS = ATTACHMENT_TYPES.register(
+            "sacrifice_points", () -> AttachmentType.builder(() -> BigInteger.ZERO).serialize(BIGINT_CODEC()).copyOnDeath().sync(ByteBufCodecs.fromCodec(BIGINT_CODEC())).build()
+    );
+
+    public static final Supplier<AttachmentType<Boolean>> AUTO_CONSENT_REBIRTH = ATTACHMENT_TYPES.register(
+            "auto_consent_rebirth", () -> AttachmentType.builder(() -> false).serialize(Codec.BOOL).copyOnDeath().sync(ByteBufCodecs.BOOL).build()
+    );
+
+    public static final Supplier<AttachmentType<Long>> SACRIFICE_DEADLINE = ATTACHMENT_TYPES.register(
+            "sacrifice_deadline", () -> AttachmentType.builder(() -> 0L).serialize(Codec.LONG).copyOnDeath().build()
+    );
+
+    public static final Supplier<AttachmentType<Long>> SACRIFICE_COOLDOWN_UNTIL = ATTACHMENT_TYPES.register(
+            "sacrifice_cooldown_until", () -> AttachmentType.builder(() -> 0L).serialize(Codec.LONG).copyOnDeath().build()
+    );
+
+    public static final Supplier<AttachmentType<Boolean>> SACRIFICE_WAITING = ATTACHMENT_TYPES.register(
+            "sacrifice_waiting", () -> AttachmentType.builder(() -> false).sync(ByteBufCodecs.BOOL).build()
+    );
+
+    private static final Codec<Set<Long>> CHUNK_SET_CODEC = Codec.LONG.listOf().xmap(list -> (Set<Long>) new HashSet<>(list), set -> new ArrayList<>(set));
+    private static final Codec<Map<String, Map<String, Set<Long>>>> OWNED_CHUNK_INDEX_CODEC =
+            Codec.unboundedMap(Codec.STRING, Codec.unboundedMap(Codec.STRING, CHUNK_SET_CODEC));
+
+    public static final Supplier<AttachmentType<Map<String, Map<String, Set<Long>>>>> OWNED_CHUNK_INDEX = ATTACHMENT_TYPES.register(
+            "owned_chunk_index", () -> AttachmentType.<Map<String, Map<String, Set<Long>>>>builder((holder) -> new HashMap<>())
+                    .serialize(OWNED_CHUNK_INDEX_CODEC)
+                    .build());
+
+    public static final Supplier<AttachmentType<List<WipeLogEntry>>> SACRIFICE_WIPE_LOG = ATTACHMENT_TYPES.register(
+            "sacrifice_wipe_log", () -> AttachmentType.<List<WipeLogEntry>>builder((holder) -> new ArrayList<>())
+                    .serialize(Codec.list(WipeLogEntry.CODEC))
                     .build());
 
 }

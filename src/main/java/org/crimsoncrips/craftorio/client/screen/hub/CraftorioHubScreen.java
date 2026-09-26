@@ -16,12 +16,12 @@ import org.crimsoncrips.craftorio.client.screen.devtools.DevToolsScreen;
 import org.crimsoncrips.craftorio.client.screen.effect.ActiveEffectsScreen;
 import org.crimsoncrips.craftorio.client.screen.purchase.BorderExpandScreen;
 import org.crimsoncrips.craftorio.client.screen.purchase.ClaimItemPurchaseScreen;
-import org.crimsoncrips.craftorio.client.screen.skill_tree.CraftorioBasicSkillTreeScreen;
 import org.crimsoncrips.craftorio.client.screen.widget.SheetIconButton;
 import org.crimsoncrips.craftorio.client.state.ClientContractOfferState;
 import org.crimsoncrips.craftorio.client.state.ClientShopState;
 import org.crimsoncrips.craftorio.events.ClientEvents;
 import org.crimsoncrips.craftorio.networking.contract.RequestContractOfferPacket;
+import org.crimsoncrips.craftorio.networking.sacrifice.RequestSacrificePacket;
 import org.crimsoncrips.craftorio.networking.shop.RequestOpenShopPacket;
 import org.crimsoncrips.craftorio.networking.shop.RequestOpenValueBrowserPacket;
 
@@ -85,15 +85,18 @@ public class CraftorioHubScreen extends Screen {
                 .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
         y += BUTTON_STRIDE;
 
-        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.skill_tree_button"), b -> this.minecraft.setScreen(new CraftorioBasicSkillTreeScreen("misc.craftorio.skill_tree_title")))
-                .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
-        y += BUTTON_STRIDE;
-
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.active_effects_button"), b -> this.minecraft.setScreen(new ActiveEffectsScreen(this)))
                 .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
         y += BUTTON_STRIDE;
 
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.rebirth_button"), b -> this.minecraft.setScreen(new CraftorioRebirthConfirmScreen(this)))
+                .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
+        y += BUTTON_STRIDE;
+
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.sacrifice_button").withStyle(ChatFormatting.DARK_RED), b -> {
+                    PacketDistributor.sendToServer(new RequestSacrificePacket());
+                    this.onClose();
+                })
                 .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
         y += BUTTON_STRIDE + DONE_EXTRA_GAP;
 
@@ -107,6 +110,9 @@ public class CraftorioHubScreen extends Screen {
                 .bounds(statsX, statsY, statsSize, statsSize)
                 .tooltip(Tooltip.create(Component.translatable("misc.craftorio.stats_button")))
                 .build(builder -> new SheetIconButton(builder, ClientEvents.STATISTICS_ICON_U, ClientEvents.STATISTICS_ICON_V)));
+
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.skill_trees_button"), b -> this.minecraft.setScreen(new CraftorioSkillTreeMenuScreen(this)))
+                .bounds(statsX + statsSize + 4, statsY, 90, statsSize).build());
 
         if (this.minecraft.player != null && this.minecraft.player.isCreative()) {
             int devToolsWidth = 100;

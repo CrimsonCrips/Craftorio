@@ -14,6 +14,7 @@ import java.io.UncheckedIOException;
 public final class CraftorioShaders {
 
     private static ShaderInstance skillTreeStarNest;
+    private static ShaderInstance shatterEye;
 
     private CraftorioShaders() {}
 
@@ -21,6 +22,8 @@ public final class CraftorioShaders {
         try {
             event.registerShader(new ShaderInstance(event.getResourceProvider(), Craftorio.prefix("skill_tree_starnest"), DefaultVertexFormat.POSITION),
                     shader -> skillTreeStarNest = shader);
+            event.registerShader(new ShaderInstance(event.getResourceProvider(), Craftorio.prefix("shatter_eye"), DefaultVertexFormat.POSITION),
+                    shader -> shatterEye = shader);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -28,5 +31,9 @@ public final class CraftorioShaders {
 
     public static ShaderInstance skillTreeStarNest() {
         return skillTreeStarNest;
+    }
+
+    public static ShaderInstance shatterEye() {
+        return shatterEye;
     }
 }

@@ -17,6 +17,7 @@ import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioDefaultCont
 import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioEffectBootstrap;
 import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioHavenDimensionBootstrap;
 import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioRebirthUpgradeBootstrap;
+import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioSacrificeUpgradeBootstrap;
 import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioUpgradeBootstrap;
 import org.crimsoncrips.craftorio.datagen.language.CraftLangGen;
 import org.crimsoncrips.craftorio.datagen.loot.CraftorioLootModifierProvider;
@@ -60,6 +61,7 @@ public class CraftorioDatagen {
                 .add(CraftorioContractTexture.REGISTRY_KEY, CraftorioDefaultContractTextureBootstrap::bootstrap)
                 .add(CraftorioUpgrade.REGISTRY_KEY, CraftorioUpgradeBootstrap::bootstrap)
                 .add(CraftorioUpgrade.REBIRTH_REGISTRY_KEY, CraftorioRebirthUpgradeBootstrap::bootstrap)
+                .add(CraftorioUpgrade.SACRIFICE_REGISTRY_KEY, CraftorioSacrificeUpgradeBootstrap::bootstrap)
                 .add(Registries.BIOME, CraftorioHavenDimensionBootstrap::bootstrapBiome)
                 .add(Registries.DIMENSION_TYPE, CraftorioHavenDimensionBootstrap::bootstrapDimensionType)
                 .add(Registries.LEVEL_STEM, CraftorioHavenDimensionBootstrap::bootstrapLevelStem);

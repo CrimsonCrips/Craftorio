@@ -14,6 +14,7 @@ import org.crimsoncrips.craftorio.client.screen.devtools.DevToolsHelpPanel;
 import org.crimsoncrips.craftorio.client.screen.devtools.DevToolsUpgradeTrees;
 import org.crimsoncrips.craftorio.networking.devtools.GenerateUpgradeCodePacket;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.UpgradeTree;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioActionEffectUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioAttributeUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioModifierUpgrade;
@@ -68,7 +69,7 @@ public class UpgradeCreatorScreen extends Screen {
     private EditBox nameBox;
     private boolean jsonExport = false;
     private Button exportButton;
-    private boolean rebirth = false;
+    private UpgradeTree tree = UpgradeTree.BASIC;
     private Button treeButton;
 
     private String prefillId = "";
@@ -97,7 +98,8 @@ public class UpgradeCreatorScreen extends Screen {
         int rowHeight = 22;
 
         this.treeButton = Button.builder(treeLabel(), b -> {
-            rebirth = !rebirth;
+            UpgradeTree[] trees = UpgradeTree.values();
+            tree = trees[(tree.ordinal() + 1) % trees.length];
             treeButton.setMessage(treeLabel());
         }).bounds(fieldX, y, fieldWidth, 16).build();
         this.addRenderableWidget(this.treeButton);
@@ -228,13 +230,13 @@ public class UpgradeCreatorScreen extends Screen {
     }
 
     private Component treeLabel() {
-        return Component.translatable(rebirth ? "misc.craftorio.dev_tools_tree_rebirth" : "misc.craftorio.dev_tools_tree_basic");
+        return Component.translatable(tree.translationKey());
     }
 
     private void openEditPicker() {
-        DevToolsUpgradeTrees.openTreePicker(this.minecraft, this, pickedRebirth ->
-                DevToolsUpgradeTrees.openUpgradePicker(this.minecraft, this.minecraft.screen, pickedRebirth, entry -> {
-                    loadUpgrade(entry.id(), entry.upgrade(), pickedRebirth);
+        DevToolsUpgradeTrees.openTreePicker(this.minecraft, this, pickedTree ->
+                DevToolsUpgradeTrees.openUpgradePicker(this.minecraft, this.minecraft.screen, pickedTree, entry -> {
+                    loadUpgrade(entry.id(), entry.upgrade(), pickedTree);
                     this.minecraft.setScreen(this);
                 }));
     }
@@ -246,8 +248,8 @@ public class UpgradeCreatorScreen extends Screen {
         return 0;
     }
 
-    private void loadUpgrade(ResourceLocation id, CraftorioUpgrade upgrade, boolean fromRebirthTree) {
-        this.rebirth = fromRebirthTree;
+    private void loadUpgrade(ResourceLocation id, CraftorioUpgrade upgrade, UpgradeTree fromTree) {
+        this.tree = fromTree;
         this.prefillId = id.getPath();
         this.prefillModId = id.getNamespace();
         this.prefillCost = CraftorioMisc.toScientificString(upgrade.getCost());
@@ -367,7 +369,7 @@ public class UpgradeCreatorScreen extends Screen {
                 includeLang,
                 nameBox.getValue(),
                 jsonExport,
-                rebirth
+                tree
         ));
     }
 

@@ -51,9 +51,9 @@ public class DevToolsScreen extends Screen {
         y += BUTTON_STRIDE;
 
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_edit_skill_tree"), b ->
-                DevToolsUpgradeTrees.openTreePicker(this.minecraft, this, pickedRebirth -> {
+                DevToolsUpgradeTrees.openTreePicker(this.minecraft, this, pickedTree -> {
                     SkillTreeCreatorScreen screen = new SkillTreeCreatorScreen(this);
-                    screen.loadFromRegistry(this.minecraft, pickedRebirth);
+                    screen.loadFromRegistry(this.minecraft, pickedTree);
                     this.minecraft.setScreen(screen);
                 })).bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
         y += BUTTON_STRIDE;

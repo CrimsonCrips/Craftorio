@@ -9,6 +9,7 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.UpgradeTree;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioActionEffectUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioAttributeUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioModifierUpgrade;
@@ -29,8 +30,8 @@ public final class DevToolsUpgradeTrees {
 
     private DevToolsUpgradeTrees() {}
 
-    public static Registry<CraftorioUpgrade> registry(Minecraft minecraft, boolean rebirth) {
-        return minecraft.level.registryAccess().registryOrThrow(rebirth ? CraftorioUpgrade.REBIRTH_REGISTRY_KEY : CraftorioUpgrade.REGISTRY_KEY);
+    public static Registry<CraftorioUpgrade> registry(Minecraft minecraft, UpgradeTree tree) {
+        return minecraft.level.registryAccess().registryOrThrow(tree.registryKey());
     }
 
     public static boolean isEditable(CraftorioUpgrade upgrade) {
@@ -73,23 +74,23 @@ public final class DevToolsUpgradeTrees {
         }
     }
 
-    public static void openTreePicker(Minecraft minecraft, Screen parent, Consumer<Boolean> onPick) {
+    public static void openTreePicker(Minecraft minecraft, Screen parent, Consumer<UpgradeTree> onPick) {
         if (minecraft.level == null) return;
 
         List<DevToolsPickerScreen.Option> options = new ArrayList<>();
-        options.add(new DevToolsPickerScreen.Option(Component.translatable("misc.craftorio.dev_tools_tree_basic"),
-                registry(minecraft, false).size() + " upgrades", 0, true, () -> onPick.accept(false)));
-        options.add(new DevToolsPickerScreen.Option(Component.translatable("misc.craftorio.dev_tools_tree_rebirth"),
-                registry(minecraft, true).size() + " upgrades", 0, true, () -> onPick.accept(true)));
+        for (UpgradeTree tree : UpgradeTree.values()) {
+            options.add(new DevToolsPickerScreen.Option(Component.translatable(tree.translationKey()),
+                    registry(minecraft, tree).size() + " upgrades", 0, true, () -> onPick.accept(tree)));
+        }
 
         minecraft.setScreen(new DevToolsPickerScreen(Component.translatable("misc.craftorio.dev_tools_pick_tree"), parent, options));
     }
 
-    public static void openUpgradePicker(Minecraft minecraft, Screen parent, boolean rebirth, Consumer<TreeEntry> onPick) {
+    public static void openUpgradePicker(Minecraft minecraft, Screen parent, UpgradeTree tree, Consumer<TreeEntry> onPick) {
         if (minecraft.level == null) return;
 
         List<DevToolsPickerScreen.Option> options = new ArrayList<>();
-        for (TreeEntry entry : orderedEntries(registry(minecraft, rebirth))) {
+        for (TreeEntry entry : orderedEntries(registry(minecraft, tree))) {
             boolean editable = isEditable(entry.upgrade());
             options.add(new DevToolsPickerScreen.Option(
                     Component.literal(Component.translatable(entry.upgrade().getNameKey()).getString()),

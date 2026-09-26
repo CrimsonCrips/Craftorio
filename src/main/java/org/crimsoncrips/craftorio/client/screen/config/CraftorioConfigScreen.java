@@ -133,6 +133,11 @@ public class CraftorioConfigScreen extends Screen {
         addServerRow("SINK_VALUE_BONUS_AMOUNT", intBox("SINK_VALUE_BONUS_AMOUNT", config.SINK_VALUE_BONUS_AMOUNT));
         addServerRow("SINK_VALUE_BONUS_THRESHOLD", intBox("SINK_VALUE_BONUS_THRESHOLD", config.SINK_VALUE_BONUS_THRESHOLD));
 
+        this.list.addHeader("misc.craftorio.config_group_sacrifice");
+        addServerRow("SACRIFICE_REQUIRED_LIFE", intBox("SACRIFICE_REQUIRED_LIFE", config.SACRIFICE_REQUIRED_LIFE));
+        addServerRow("SACRIFICE_TIME_LIMIT_MINUTES", intBox("SACRIFICE_TIME_LIMIT_MINUTES", config.SACRIFICE_TIME_LIMIT_MINUTES));
+        addServerRow("SACRIFICE_COOLDOWN_MINUTES", intBox("SACRIFICE_COOLDOWN_MINUTES", config.SACRIFICE_COOLDOWN_MINUTES));
+
         this.list.addHeader("misc.craftorio.config_group_rebirth");
         addServerRow("REBIRTH_BASE_COST", stringBox("REBIRTH_BASE_COST", config.REBIRTH_BASE_COST));
         addServerRow("REBIRTH_BASE_LIFE_POINTS", intBox("REBIRTH_BASE_LIFE_POINTS", config.REBIRTH_BASE_LIFE_POINTS));

@@ -30,6 +30,7 @@ import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.chunk.ChunkAccess;
+import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.client.state.ClientUniversalState;
@@ -43,6 +44,7 @@ import org.crimsoncrips.craftorio.registries.effect.*;
 import org.crimsoncrips.craftorio.server.advancement.CraftorioPointsAdvancements;
 import org.crimsoncrips.craftorio.server.border.CraftorioBorder;
 import org.crimsoncrips.craftorio.server.data.CraftorioDataAttachments;
+import org.crimsoncrips.craftorio.server.sacrifice.CraftorioWipeAreas;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.target.AttributeTarget;
 import org.crimsoncrips.craftorio.skill_tree.target.ModifierTarget;
@@ -454,6 +456,69 @@ public class CraftorioMisc {
         return newCount;
     }
 
+    //Sacrifice Skill Tree (sacrifice points, never reset by sacrificing)
+
+    public static Map<ResourceLocation, Integer> getSacrificeUpgradePurchaseCounts(Player player){
+        Level level = universalLevel(player);
+        if (universalBased(level)){
+            if (level.isClientSide() && ClientUniversalState.isAvailable()) {
+                return ClientUniversalState.getSacrificeUpgradePurchaseCounts();
+            }
+            return level.getData(CraftorioDataAttachments.SACRIFICE_UPGRADES_UNLOCKED);
+        } else {
+            return player.getData(CraftorioDataAttachments.SACRIFICE_UPGRADES_UNLOCKED);
+        }
+    }
+
+    public static boolean hasUnlockedSacrificeUpgrade(Player player, ResourceLocation id){
+        return getSacrificeUpgradePurchaseCounts(player).getOrDefault(id, 0) > 0;
+    }
+
+    public static int getSacrificeUpgradeCount(Player player, ResourceLocation id){
+        return getSacrificeUpgradePurchaseCounts(player).getOrDefault(id, 0);
+    }
+
+    public static int purchaseSacrificeUpgrade(Player player, ResourceLocation id, int maxPurchases){
+        Map<ResourceLocation, Integer> updated = new HashMap<>(getSacrificeUpgradePurchaseCounts(player));
+        int newCount = updated.getOrDefault(id, 0) + 1;
+        if (newCount > maxPurchases) return -1;
+        updated.put(id, newCount);
+
+        Level level = universalLevel(player);
+        if (universalBased(level)){
+            level.setData(CraftorioDataAttachments.SACRIFICE_UPGRADES_UNLOCKED, updated);
+        } else {
+            player.setData(CraftorioDataAttachments.SACRIFICE_UPGRADES_UNLOCKED, updated);
+        }
+
+        if (player instanceof ServerPlayer serverPlayer) {
+            ServerEvents.syncUniversalState(serverPlayer);
+        }
+
+        return newCount;
+    }
+
+    public static BigInteger getSacrificePoints(Player player){
+        Level level = universalLevel(player);
+        if (universalBased(level)){
+            if (level.isClientSide() && ClientUniversalState.isAvailable()) {
+                return ClientUniversalState.getSacrificePoints();
+            }
+            return level.getData(CraftorioDataAttachments.SACRIFICE_POINTS);
+        } else {
+            return player.getData(CraftorioDataAttachments.SACRIFICE_POINTS);
+        }
+    }
+
+    public static void setSacrificePoints(BigInteger points, Player player){
+        Level level = universalLevel(player);
+        if (universalBased(level)) {
+            level.setData(CraftorioDataAttachments.SACRIFICE_POINTS, points);
+        } else {
+            player.setData(CraftorioDataAttachments.SACRIFICE_POINTS, points);
+        }
+    }
+
     public static BigInteger getLifePoints(Player player){
         Level level = universalLevel(player);
         if (universalBased(level)){
@@ -510,6 +575,7 @@ public class CraftorioMisc {
         double sum = 0;
         sum += sumModifierUpgradesFrom(registryAccess.registryOrThrow(CraftorioUpgrade.REGISTRY_KEY), getUpgradePurchaseCounts(player), target, operation, contextStack);
         sum += sumModifierUpgradesFrom(registryAccess.registryOrThrow(CraftorioUpgrade.REBIRTH_REGISTRY_KEY), getRebirthUpgradePurchaseCounts(player), target, operation, contextStack);
+        sum += sumModifierUpgradesFrom(registryAccess.registryOrThrow(CraftorioUpgrade.SACRIFICE_REGISTRY_KEY), getSacrificeUpgradePurchaseCounts(player), target, operation, contextStack);
         return sum;
     }
 
@@ -555,6 +621,7 @@ public class CraftorioMisc {
         double sum = 0;
         sum += sumXpGainUpgradesFrom(registryAccess.registryOrThrow(CraftorioUpgrade.REGISTRY_KEY), getUpgradePurchaseCounts(player), operation);
         sum += sumXpGainUpgradesFrom(registryAccess.registryOrThrow(CraftorioUpgrade.REBIRTH_REGISTRY_KEY), getRebirthUpgradePurchaseCounts(player), operation);
+        sum += sumXpGainUpgradesFrom(registryAccess.registryOrThrow(CraftorioUpgrade.SACRIFICE_REGISTRY_KEY), getSacrificeUpgradePurchaseCounts(player), operation);
         return sum;
     }
 
@@ -845,14 +912,23 @@ public class CraftorioMisc {
                 List<String> ownedBy = new ArrayList<>(ownersOf(chunkAccess));
                 ownedBy.add(uuid);
                 chunkAccess.setData(OWNED_BY,ownedBy);
+                indexOwnership(chunkAccess, player, uuid, true);
             }
         } else {
             if (isOwnedBy(chunkAccess,player)){
                 List<String> ownedBy = new ArrayList<>(ownersOf(chunkAccess));
                 ownedBy.remove(uuid);
                 chunkAccess.setData(OWNED_BY,ownedBy);
+                indexOwnership(chunkAccess, player, uuid, false);
             }
         }
+    }
+
+    private static void indexOwnership(ChunkAccess chunkAccess, Player player, String uuid, boolean owned){
+        Level level = chunkAccess instanceof LevelChunk levelChunk ? levelChunk.getLevel() : player.level();
+        if (level.isClientSide()) return;
+
+        CraftorioWipeAreas.recordOwnership(level.getServer(), level.dimension().location().toString(), chunkAccess.getPos(), uuid, owned);
     }
 
     public static boolean isNoBorders(Level level){

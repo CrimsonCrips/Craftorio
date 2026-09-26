@@ -9,6 +9,7 @@
     "CraftorioEntityMixin",
     "CraftorioGamePacketListenerMixin",
     "CraftorioGuiMapMixin",
+    "CraftorioRegionFileMixin",
     "CraftorioServerLevelMixin"
   ],
   "client": [

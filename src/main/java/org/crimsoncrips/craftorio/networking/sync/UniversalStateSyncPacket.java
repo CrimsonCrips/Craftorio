@@ -38,6 +38,8 @@ public record UniversalStateSyncPacket(
         int life,
         BigInteger lifePoints,
         Map<ResourceLocation, Integer> rebirthUpgradesUnlocked,
+        Map<ResourceLocation, Integer> sacrificeUpgradesUnlocked,
+        BigInteger sacrificePoints,
         BigInteger overallHighestPoints,
         int overallContractsCompleted,
         Map<ResourceLocation, Long> overallItemsSinked
@@ -65,6 +67,8 @@ public record UniversalStateSyncPacket(
                 ByteBufCodecs.VAR_INT.encode(buffer, packet.life());
                 ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).encode(buffer, packet.lifePoints());
                 ByteBufCodecs.<RegistryFriendlyByteBuf, ResourceLocation, Integer, Map<ResourceLocation, Integer>>map(HashMap::new, ResourceLocation.STREAM_CODEC, ByteBufCodecs.VAR_INT).encode(buffer, packet.rebirthUpgradesUnlocked());
+                ByteBufCodecs.<RegistryFriendlyByteBuf, ResourceLocation, Integer, Map<ResourceLocation, Integer>>map(HashMap::new, ResourceLocation.STREAM_CODEC, ByteBufCodecs.VAR_INT).encode(buffer, packet.sacrificeUpgradesUnlocked());
+                ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).encode(buffer, packet.sacrificePoints());
                 ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).encode(buffer, packet.overallHighestPoints());
                 ByteBufCodecs.VAR_INT.encode(buffer, packet.overallContractsCompleted());
                 ByteBufCodecs.fromCodec(ITEMS_SINKED_CODEC).encode(buffer, packet.overallItemsSinked());
@@ -86,13 +90,15 @@ public record UniversalStateSyncPacket(
                 int life = ByteBufCodecs.VAR_INT.decode(buffer);
                 BigInteger lifePoints = ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).decode(buffer);
                 Map<ResourceLocation, Integer> rebirthUpgradesUnlocked = ByteBufCodecs.map(HashMap::new, ResourceLocation.STREAM_CODEC, ByteBufCodecs.VAR_INT).decode(buffer);
+                Map<ResourceLocation, Integer> sacrificeUpgradesUnlocked = ByteBufCodecs.map(HashMap::new, ResourceLocation.STREAM_CODEC, ByteBufCodecs.VAR_INT).decode(buffer);
+                BigInteger sacrificePoints = ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).decode(buffer);
                 BigInteger overallHighestPoints = ByteBufCodecs.fromCodec(CraftorioMisc.BIGINT_CODEC()).decode(buffer);
                 int overallContractsCompleted = ByteBufCodecs.VAR_INT.decode(buffer);
                 Map<ResourceLocation, Long> overallItemsSinked = ByteBufCodecs.fromCodec(ITEMS_SINKED_CODEC).decode(buffer);
                 return new UniversalStateSyncPacket(points, highestPoints, tempPoints, landAmount, unlockedUpgrades,
                         generalEffects, tagEffects, shopEffects, advancementMultiplierBonus, contracts, borders,
                         contractsCompleted, highestMultiplier, life, lifePoints, rebirthUpgradesUnlocked,
-                        overallHighestPoints, overallContractsCompleted, overallItemsSinked);
+                        sacrificeUpgradesUnlocked, sacrificePoints, overallHighestPoints, overallContractsCompleted, overallItemsSinked);
             }
     );
 
@@ -108,7 +114,7 @@ public record UniversalStateSyncPacket(
                 message.advancementMultiplierBonus(), message.contracts(), message.borders(),
                 message.contractsCompleted(), message.highestMultiplier(),
                 message.life(), message.lifePoints(), message.rebirthUpgradesUnlocked(),
-                message.overallHighestPoints(), message.overallContractsCompleted(), message.overallItemsSinked()
+                message.sacrificeUpgradesUnlocked(), message.sacrificePoints(), message.overallHighestPoints(), message.overallContractsCompleted(), message.overallItemsSinked()
         ));
     }
 }

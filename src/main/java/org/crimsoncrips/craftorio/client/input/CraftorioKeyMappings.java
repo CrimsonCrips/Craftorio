@@ -11,13 +11,14 @@ import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.client.screen.contract.OwnedContractsScreen;
 import org.crimsoncrips.craftorio.client.screen.effect.ActiveEffectsScreen;
 import org.crimsoncrips.craftorio.client.screen.hub.CraftorioHubScreen;
+import org.crimsoncrips.craftorio.client.screen.hub.CraftorioSacrificeConfirmScreen;
 import org.crimsoncrips.craftorio.client.screen.purchase.BorderExpandScreen;
 import org.crimsoncrips.craftorio.client.screen.purchase.ClaimItemPurchaseScreen;
-import org.crimsoncrips.craftorio.client.screen.skill_tree.CraftorioBasicSkillTreeScreen;
 import org.crimsoncrips.craftorio.networking.contract.RequestContractOfferPacket;
 import org.crimsoncrips.craftorio.networking.devtools.PrintScanPacket;
 import org.crimsoncrips.craftorio.networking.shop.RequestOpenShopPacket;
 import org.crimsoncrips.craftorio.networking.shop.RequestOpenValueBrowserPacket;
+import org.crimsoncrips.craftorio.server.data.CraftorioDataAttachments;
 
 public class CraftorioKeyMappings {
 
@@ -42,14 +43,6 @@ public class CraftorioKeyMappings {
             KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM,
             InputConstants.KEY_J,
-            "key.categories.craftorio"
-    );
-
-    public static final KeyMapping OPEN_SKILL_TREE = new KeyMapping(
-            "key.craftorio.open_skill_tree",
-            KeyConflictContext.IN_GAME,
-            InputConstants.Type.KEYSYM,
-            InputConstants.KEY_K,
             "key.categories.craftorio"
     );
 
@@ -97,7 +90,6 @@ public class CraftorioKeyMappings {
         event.register(OPEN_HUB);
         event.register(PRINT_SCAN);
         event.register(OPEN_ACTIVE_EFFECTS);
-        event.register(OPEN_SKILL_TREE);
         event.register(OPEN_MY_CONTRACTS);
         event.register(OPEN_AVAILABLE_CONTRACTS);
         event.register(OPEN_ITEM_VALUES);
@@ -114,16 +106,19 @@ public class CraftorioKeyMappings {
         boolean inHaven = minecraft.level != null && CraftorioMisc.isInHavenDimension(minecraft.level);
 
         while (OPEN_HUB.consumeClick()) {
-            if (inHaven) continue;
+            if (inHaven) {
+                if (minecraft.player != null && minecraft.screen == null) {
+                    if (minecraft.player.getData(CraftorioDataAttachments.SACRIFICE_PENDING) && !minecraft.player.getData(CraftorioDataAttachments.SACRIFICE_WAITING)) {
+                        minecraft.setScreen(new CraftorioSacrificeConfirmScreen());
+                    }
+                }
+                continue;
+            }
             minecraft.setScreen(new CraftorioHubScreen());
         }
         while (OPEN_ACTIVE_EFFECTS.consumeClick()) {
             if (inHaven) continue;
             minecraft.setScreen(new ActiveEffectsScreen(null));
-        }
-        while (OPEN_SKILL_TREE.consumeClick()) {
-            if (inHaven) continue;
-            minecraft.setScreen(new CraftorioBasicSkillTreeScreen("misc.craftorio.skill_tree_title"));
         }
         while (OPEN_MY_CONTRACTS.consumeClick()) {
             if (inHaven) continue;

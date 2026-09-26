@@ -93,7 +93,7 @@ public class CraftorioHavenDimension {
         player.setDeltaMovement(player.getDeltaMovement().x, 0, player.getDeltaMovement().z);
     }
 
-    public static void enterForRebirth(ServerPlayer player) {
+    public static void enterForSacrifice(ServerPlayer player) {
         if (player.level().dimension().equals(CraftorioDimensions.HAVEN_LEVEL_KEY)) return;
 
         MinecraftServer server = player.getServer();
@@ -102,13 +102,9 @@ public class CraftorioHavenDimension {
         ServerLevel havenLevel = server.getLevel(CraftorioDimensions.HAVEN_LEVEL_KEY);
         if (havenLevel == null) return;
 
-        GlobalPos returnPos = GlobalPos.of(player.level().dimension(), player.blockPosition());
-        player.setData(CraftorioDataAttachments.HAVEN_RETURN_POS, returnPos);
-
         placePlatformIfNeeded(havenLevel);
 
         BlockPos center = platformCenter();
         player.teleportTo(havenLevel, center.getX() + 0.5, center.getY() + 1, center.getZ() + 0.5, player.getYRot(), player.getXRot());
-        player.setRespawnPosition(CraftorioDimensions.HAVEN_LEVEL_KEY, center, 0F, true, false);
     }
 }

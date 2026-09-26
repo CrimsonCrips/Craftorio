@@ -102,7 +102,8 @@ public class CraftLangGen extends LanguageProvider {
 		this.addMisc("highest_multiplier_label", "Highest Multiplier Achieved: ");
 
 		this.addMisc("skill_tree_title", "Craftorio Skill Tree");
-		this.addMisc("skill_tree_button", "Skill Tree");
+		this.addMisc("skill_trees_button", "Skill Trees");
+		this.addMisc("skill_trees_title", "Skill Trees");
 
 		this.addMisc("active_effects_button", "Active Effects");
 		this.addMisc("active_effects_title", "Active Effects");
@@ -237,6 +238,7 @@ public class CraftLangGen extends LanguageProvider {
 		this.addMisc("config_group_shop", "Shop");
 		this.addMisc("config_group_contracts", "Contracts");
 		this.addMisc("config_group_sink_value", "Sink Value");
+		this.addMisc("config_group_sacrifice", "Sacrifice");
 		this.addMisc("config_group_rebirth", "Rebirth");
 		this.addMisc("config_point_formatting", "Point Formatting");
 		this.addMisc("config_skip_claim_animation", "Skip Claim Animation");
@@ -374,6 +376,31 @@ public class CraftLangGen extends LanguageProvider {
 		this.addMisc("haven_not_inside", "You are not in the Craftorio haven dimension.");
 		this.addMisc("haven_shaders_disabled", "The haven doesn't seem to appreciate your view on things.");
 
+		this.addMisc("sacrifice_button", "Sacrifice");
+		this.addMisc("sacrifice_requires_life", "You must reach Life %s before you can sacrifice (current: %s).");
+		this.addMisc("sacrifice_skill_tree_title", "Sacrifice Skill Tree");
+		this.addMisc("sacrifice_points_current", "Sacrificed Essence: %s");
+		this.addMisc("dev_tools_tree_sacrifice", "Sacrifice");
+		this.addMisc("rebirth_auto_consent", "Auto-Consent: %s");
+		this.addMisc("sacrifice_entered", "The Haven takes your belongings. Press %s to decide your sacrifice.");
+		this.addMisc("sacrifice_refused", "The Haven releases you. Nothing has changed.");
+		this.addMisc("sacrifice_consent_progress", "%s/%s players have agreed to the sacrifice. Enter the Haven and press the Craftorio key to agree.");
+		this.addMisc("sacrifice_consent_cancelled", "The pending sacrifice vote was cancelled.");
+		this.addMisc("sacrifice_purging", "The world unravels around you. Stay in the Haven until it is safe to return...");
+		this.addMisc("sacrifice_reborn", "The world has been remade.");
+		this.addMisc("sacrifice_confirm_title", "The Sacrifice");
+		this.addMisc("sacrifice_confirm_description", "Proceeding resets your advancements, wipes your items, contracts, effects, upgrades, rebirth upgrades and points, and resets the entire world (every dimension except the Haven, saved data, time and weather). Statistics and discovered shop items are kept.");
+		this.addMisc("sacrifice_confirm_new_seed", "New Seed: %s");
+		this.addMisc("sacrifice_confirm_description_individual", "Proceeding resets your advancements, items, contracts, effects, upgrades, rebirth upgrades, points, land and statistics, and regenerates the land you own (the chunks you claimed, or everything inside your border). Other players wait in the Haven until it is done. Overall statistics are kept.");
+		this.addMisc("sacrifice_cooldown", "You must wait %s more minute(s) before you can sacrifice again.");
+		this.addMisc("sacrifice_time_limit", "You have %s minutes to decide. If you run out of time you are cast out and cannot sacrifice for %s minutes.");
+		this.addMisc("sacrifice_time_warning", "One minute left to decide your sacrifice.");
+		this.addMisc("sacrifice_timed_out", "You took too long, the Haven casts you out. You cannot sacrifice for %s minutes.");
+		this.addMisc("sacrifice_in_progress", "A sacrifice is already in progress.");
+		this.addMisc("sacrifice_waiting", "Another player is sacrificing. Stay in the Haven until their land has been reset.");
+		this.addMisc("sacrifice_disconnect", "The sacrifice is complete. Rejoin to begin anew.");
+		this.addMisc("sacrifice_confirm_proceed", "Proceed");
+		this.addMisc("sacrifice_confirm_refuse", "Refuse");
 		this.addMisc("rebirth_button", "Rebirth");
 		this.addMisc("rebirth_confirm_title", "Rebirth");
 		this.addMisc("rebirth_confirm_button", "Rebirth");
@@ -381,8 +408,8 @@ public class CraftLangGen extends LanguageProvider {
 		this.addMisc("rebirth_consent_cancelled", "The pending rebirth vote was cancelled because a player joined or left.");
 		this.addMisc("rebirth_current_life", "Current Life: %s");
 		this.addMisc("rebirth_cost_label", "Cost: %s");
-		this.addMisc("rebirth_life_points_label", "Life Points Granted: %s");
-		this.addMisc("rebirth_life_points_current", "Life Points: %s");
+		this.addMisc("rebirth_life_points_label", "Rebirth Crystals Granted: %s");
+		this.addMisc("rebirth_life_points_current", "Rebirth Crystals: %s");
 		this.addMisc("rebirth_skip_on", "Skip Lives: ON (Max: %s)");
 		this.addMisc("rebirth_skip_off", "Skip Lives: OFF");
 		this.addMisc("rebirth_skill_tree_title", "Rebirth Skill Tree");
@@ -420,7 +447,6 @@ public class CraftLangGen extends LanguageProvider {
 		this.add("key.craftorio.open_hub", "Open Craftorio Menu");
 		this.add("key.craftorio.print_scan", "Print Scanner Stick Report");
 		this.add("key.craftorio.open_active_effects", "Open Active Effects");
-		this.add("key.craftorio.open_skill_tree", "Open Skill Tree");
 		this.add("key.craftorio.open_my_contracts", "Open My Contracts");
 		this.add("key.craftorio.open_available_contracts", "Open Available Contracts");
 		this.add("key.craftorio.open_item_values", "Open Item Values");

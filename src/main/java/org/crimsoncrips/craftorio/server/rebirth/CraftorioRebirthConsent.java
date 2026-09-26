@@ -6,7 +6,7 @@ import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.networking.skill_tree.OpenRebirthSkillTreeScreenPacket;
-import org.crimsoncrips.craftorio.server.haven.CraftorioHavenDimension;
+import org.crimsoncrips.craftorio.server.data.CraftorioDataAttachments;
 
 import java.util.HashSet;
 import java.util.List;
@@ -38,7 +38,27 @@ public class CraftorioRebirthConsent {
 
         pendingSkipCount = skipCount;
         consented.add(player.getUUID());
+        addAutoConsenters(server);
+        completeIfAgreed(server, player);
+    }
 
+    public static void onAutoConsentEnabled(ServerPlayer player) {
+        MinecraftServer server = player.getServer();
+        if (server == null || requiredPlayers == null) return;
+
+        addAutoConsenters(server);
+        completeIfAgreed(server, player);
+    }
+
+    private static void addAutoConsenters(MinecraftServer server) {
+        for (ServerPlayer online : server.getPlayerList().getPlayers()) {
+            if (online.getData(CraftorioDataAttachments.AUTO_CONSENT_REBIRTH)) {
+                consented.add(online.getUUID());
+            }
+        }
+    }
+
+    private static void completeIfAgreed(MinecraftServer server, ServerPlayer player) {
         if (!consented.containsAll(requiredPlayers)) {
             broadcastProgress(server);
             return;
@@ -51,7 +71,6 @@ public class CraftorioRebirthConsent {
         boolean success = CraftorioRebirth.performRebirth(player, finalSkip);
         for (ServerPlayer p : online) {
             if (success) {
-                CraftorioHavenDimension.enterForRebirth(p);
                 PacketDistributor.sendToPlayer(p, new OpenRebirthSkillTreeScreenPacket());
             } else {
                 p.sendSystemMessage(Component.translatable("misc.craftorio.not_enough_points").withStyle(ChatFormatting.RED));

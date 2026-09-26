@@ -33,6 +33,8 @@ public class ClientUniversalState {
     private static int life = 1;
     private static BigInteger lifePoints = BigInteger.ZERO;
     private static Map<ResourceLocation, Integer> rebirthUpgradesUnlocked = Map.of();
+    private static Map<ResourceLocation, Integer> sacrificeUpgradesUnlocked = Map.of();
+    private static BigInteger sacrificePoints = BigInteger.ZERO;
     private static BigInteger overallHighestPoints = BigInteger.ZERO;
     private static int overallContractsCompleted = 0;
     private static Map<ResourceLocation, Long> overallItemsSinked = Map.of();
@@ -53,6 +55,8 @@ public class ClientUniversalState {
                                int life,
                                BigInteger lifePoints,
                                Map<ResourceLocation, Integer> rebirthUpgradesUnlocked,
+                               Map<ResourceLocation, Integer> sacrificeUpgradesUnlocked,
+                               BigInteger sacrificePoints,
                                BigInteger overallHighestPoints,
                                int overallContractsCompleted,
                                Map<ResourceLocation, Long> overallItemsSinked) {
@@ -73,6 +77,8 @@ public class ClientUniversalState {
         ClientUniversalState.life = life;
         ClientUniversalState.lifePoints = lifePoints;
         ClientUniversalState.rebirthUpgradesUnlocked = rebirthUpgradesUnlocked;
+        ClientUniversalState.sacrificeUpgradesUnlocked = sacrificeUpgradesUnlocked;
+        ClientUniversalState.sacrificePoints = sacrificePoints;
         ClientUniversalState.overallHighestPoints = overallHighestPoints;
         ClientUniversalState.overallContractsCompleted = overallContractsCompleted;
         ClientUniversalState.overallItemsSinked = overallItemsSinked;
@@ -144,6 +150,14 @@ public class ClientUniversalState {
 
     public static BigInteger getLifePoints() {
         return lifePoints;
+    }
+
+    public static Map<ResourceLocation, Integer> getSacrificeUpgradePurchaseCounts() {
+        return sacrificeUpgradesUnlocked;
+    }
+
+    public static BigInteger getSacrificePoints() {
+        return sacrificePoints;
     }
 
     public static Map<ResourceLocation, Integer> getRebirthUpgradePurchaseCounts() {

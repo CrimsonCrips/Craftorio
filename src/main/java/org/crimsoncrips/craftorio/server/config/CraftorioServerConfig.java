@@ -35,6 +35,9 @@ public class CraftorioServerConfig {
 
     public final ModConfigSpec.BooleanValue INSTANT_DEATH_OUTSIDE_CLAIM;
 
+    public final ModConfigSpec.IntValue SACRIFICE_REQUIRED_LIFE;
+    public final ModConfigSpec.IntValue SACRIFICE_TIME_LIMIT_MINUTES;
+    public final ModConfigSpec.IntValue SACRIFICE_COOLDOWN_MINUTES;
     public final ModConfigSpec.ConfigValue<String> REBIRTH_BASE_COST;
     public final ModConfigSpec.IntValue REBIRTH_BASE_LIFE_POINTS;
     public final ModConfigSpec.DoubleValue REBIRTH_SKIP_BONUS_PERCENT;
@@ -92,10 +95,16 @@ public class CraftorioServerConfig {
 
         builder.pop();
 
+        builder.push("Sacrifice");
+        this.SACRIFICE_REQUIRED_LIFE = buildInt(builder, "SACRIFICE_REQUIRED_LIFE", 10000, 1, Integer.MAX_VALUE, "Life (rebirth count) a player must have reached before they can sacrifice");
+        this.SACRIFICE_TIME_LIMIT_MINUTES = buildInt(builder, "SACRIFICE_TIME_LIMIT_MINUTES", 10, 1, Integer.MAX_VALUE, "Minutes a player may stay in the Haven deciding a sacrifice before they are sent out");
+        this.SACRIFICE_COOLDOWN_MINUTES = buildInt(builder, "SACRIFICE_COOLDOWN_MINUTES", 30, 0, Integer.MAX_VALUE, "Minutes a player must wait before sacrificing again after running out of time in the Haven");
+        builder.pop();
+
         builder.push("Rebirth");
         this.REBIRTH_BASE_COST = buildString(builder, "REBIRTH_BASE_COST", "2.5e19", "Base points cost of a rebirth, all later lives scale from it (exponents work like 1e2, default 2.5e19 = 25 Qn)");
-        this.REBIRTH_BASE_LIFE_POINTS = buildInt(builder, "REBIRTH_BASE_LIFE_POINTS", 10, 0, Integer.MAX_VALUE, "Baseline rebirth skill tree points granted per life gained");
-        this.REBIRTH_SKIP_BONUS_PERCENT = buildDouble(builder, "REBIRTH_SKIP_BONUS_PERCENT", 0.20, 0, Double.MAX_VALUE, "Extra percent of REBIRTH_BASE_LIFE_POINTS granted per additional life skipped in a single rebirth (ex. 0.20 = +20% per life skipped)");
+        this.REBIRTH_BASE_LIFE_POINTS = buildInt(builder, "REBIRTH_BASE_LIFE_POINTS", 10, 0, Integer.MAX_VALUE, "Baseline rebirth crystals granted per life gained");
+        this.REBIRTH_SKIP_BONUS_PERCENT = buildDouble(builder, "REBIRTH_SKIP_BONUS_PERCENT", 0.20, 0, Double.MAX_VALUE, "Extra percent of REBIRTH_BASE_LIFE_POINTS (rebirth crystals) granted per additional life skipped in a single rebirth (ex. 0.20 = +20% per life skipped)");
         this.REBIRTH_MAX_SKIP = buildInt(builder, "REBIRTH_MAX_SKIP", 100, 0, Integer.MAX_VALUE, "Maximum number of extra lives that can be skipped in a single rebirth");
         builder.pop();
 

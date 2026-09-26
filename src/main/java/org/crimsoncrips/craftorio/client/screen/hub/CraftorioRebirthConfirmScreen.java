@@ -4,6 +4,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.network.chat.CommonComponents;
 import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
@@ -11,6 +12,8 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.networking.skill_tree.RequestRebirthPacket;
+import org.crimsoncrips.craftorio.networking.skill_tree.SetAutoConsentPacket;
+import org.crimsoncrips.craftorio.server.data.CraftorioDataAttachments;
 import org.crimsoncrips.craftorio.server.rebirth.CraftorioRebirth;
 
 import java.math.BigInteger;
@@ -29,7 +32,8 @@ public class CraftorioRebirthConfirmScreen extends Screen {
     private int panelLeft;
     private int panelTop;
     private final int panelWidth = 260;
-    private final int panelHeight = 160;
+    private int panelHeight = 160;
+    private boolean autoConsent = false;
 
     public CraftorioRebirthConfirmScreen(Screen parent) {
         super(Component.translatable("misc.craftorio.rebirth_confirm_title"));
@@ -46,8 +50,11 @@ public class CraftorioRebirthConfirmScreen extends Screen {
 
     @Override
     protected void init() {
+        boolean universal = this.minecraft.level != null && CraftorioMisc.universalBased(this.minecraft.level);
+        this.panelHeight = universal ? 184 : 160;
         this.panelLeft = (this.width - panelWidth) / 2;
         this.panelTop = (this.height - panelHeight) / 2;
+        this.autoConsent = this.minecraft.player != null && this.minecraft.player.getData(CraftorioDataAttachments.AUTO_CONSENT_REBIRTH);
 
         int centerX = panelLeft + panelWidth / 2;
         int y = panelTop + 70;
@@ -60,6 +67,14 @@ public class CraftorioRebirthConfirmScreen extends Screen {
         this.skipToggleButton.active = maxSkip > 0;
         this.addRenderableWidget(this.skipToggleButton);
 
+        y += universal ? 24 : 0;
+        if (universal) {
+            this.addRenderableWidget(Button.builder(autoConsentLabel(), b -> {
+                autoConsent = !autoConsent;
+                PacketDistributor.sendToServer(new SetAutoConsentPacket(autoConsent));
+                b.setMessage(autoConsentLabel());
+            }).bounds(centerX - 90, y, 180, 20).build());
+        }
         y += 34;
 
         this.confirmButton = Button.builder(Component.translatable("misc.craftorio.rebirth_confirm_button"), b -> {
@@ -74,6 +89,10 @@ public class CraftorioRebirthConfirmScreen extends Screen {
                 .bounds(centerX - 90, y, 180, 20).build());
 
         refresh();
+    }
+
+    private Component autoConsentLabel() {
+        return Component.translatable("misc.craftorio.rebirth_auto_consent", autoConsent ? CommonComponents.OPTION_ON : CommonComponents.OPTION_OFF);
     }
 
     private int skipCount() {

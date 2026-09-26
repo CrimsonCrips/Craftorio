@@ -17,6 +17,8 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LevelAccessor;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.attachment.AttachmentSync;
+import net.neoforged.neoforge.event.entity.EntityTravelToDimensionEvent;
+import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
 import net.neoforged.neoforge.event.entity.player.AdvancementEvent;
@@ -27,7 +29,9 @@ import net.neoforged.neoforge.event.entity.player.PlayerXpEvent;
 import net.neoforged.neoforge.event.entity.player.TradeWithVillagerEvent;
 import net.neoforged.neoforge.event.level.BlockEvent;
 import net.neoforged.neoforge.event.level.LevelEvent;
+import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
 import net.neoforged.neoforge.event.server.ServerStartedEvent;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.event.server.ServerStoppingEvent;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
 import net.neoforged.neoforge.event.tick.ServerTickEvent;
@@ -54,6 +58,9 @@ import org.crimsoncrips.craftorio.server.data.CraftorioDataAttachments;
 import org.crimsoncrips.craftorio.server.devtools.CraftorioContractDraftStore;
 import org.crimsoncrips.craftorio.server.haven.CraftorioHavenDimension;
 import org.crimsoncrips.craftorio.server.rebirth.CraftorioRebirthConsent;
+import org.crimsoncrips.craftorio.server.sacrifice.CraftorioSacrifice;
+import org.crimsoncrips.craftorio.server.sacrifice.CraftorioWipeAreas;
+import org.crimsoncrips.craftorio.server.sacrifice.CraftorioWorldWipe;
 import org.crimsoncrips.craftorio.server.shop.CraftorioShop;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.target.ModifierTarget;
@@ -78,6 +85,7 @@ public class ServerEvents {
 
     @SubscribeEvent
     public void serverStarted(ServerStartedEvent event) {
+        CraftorioWorldWipe.onServerStarted(event.getServer());
         CraftorioWorldCreationOverrides.Pending overrides = CraftorioWorldCreationOverrides.consume();
 
         for (ServerLevel level : event.getServer().getAllLevels()) {
@@ -102,7 +110,45 @@ public class ServerEvents {
     }
 
     @SubscribeEvent
+    public void serverAboutToStart(ServerAboutToStartEvent event) {
+        CraftorioWorldWipe.onServerAboutToStart(event.getServer());
+    }
+
+    @SubscribeEvent
+    public void playerRespawn(PlayerEvent.PlayerRespawnEvent event) {
+        if (event.getEntity() instanceof ServerPlayer serverPlayer) {
+            CraftorioSacrifice.onRespawn(serverPlayer);
+            CraftorioSacrifice.restoreStranded(serverPlayer);
+        }
+    }
+
+    @SubscribeEvent
+    public void chunkLoad(ChunkEvent.Load event) {
+        if (event.getLevel() instanceof ServerLevel serverLevel && CraftorioMisc.chunkBased(serverLevel)) {
+            CraftorioWipeAreas.indexLoadedChunk(serverLevel, event.getChunk());
+        }
+    }
+
+    @SubscribeEvent
+    public void sacrificeTravel(EntityTravelToDimensionEvent event) {
+        if (event.getEntity() instanceof ServerPlayer && CraftorioSacrifice.blocksTravel(event.getDimension())) {
+            event.setCanceled(true);
+        }
+    }
+
+    @SubscribeEvent
+    public void serverStopped(ServerStoppedEvent event) {
+        CraftorioWorldWipe.onServerStopped();
+    }
+
+    @SubscribeEvent
+    public void sacrificeTick(ServerTickEvent.Post event) {
+        CraftorioSacrifice.tick(event.getServer());
+    }
+
+    @SubscribeEvent
     public void serverStopping(ServerStoppingEvent event) {
+        CraftorioSacrifice.onServerStopping(event.getServer());
         CraftorioContractDraftStore.clearAll();
     }
 
@@ -187,8 +233,11 @@ public class ServerEvents {
         itemTooltipEvent.getToolTip().add(1, line);
     }
 
-    public void setArea(Player player,BlockPos blockPos,ResourceKey<Level> dimensionLevel){
+    public static void setArea(Player player,BlockPos blockPos,ResourceKey<Level> dimensionLevel){
         Level level = player.level();
+        if (player.getServer() != null && player.getServer().getLevel(dimensionLevel) != null) {
+            level = player.getServer().getLevel(dimensionLevel);
+        }
         if (CraftorioMisc.chunkBased(level)){
             CraftorioMisc.ownChunks(CraftorioMisc.startingLocations(level.getChunk(blockPos).getPos()),level,true,player,true);
         } else {
@@ -210,6 +259,8 @@ public class ServerEvents {
         Player player = dimensionEvent.getEntity();
 
         if (player instanceof ServerPlayer serverPlayer) {
+            CraftorioSacrifice.restoreStranded(serverPlayer);
+
             if (!dimensionEvent.getTo().equals(CraftorioDimensions.HAVEN_LEVEL_KEY)
                     && !CraftorioMisc.getDimensionsExplored(player).contains(dimensionEvent.getTo())) {
                 pendingDimensionAreaSetup.put(player.getUUID(), dimensionEvent.getTo());
@@ -227,76 +278,86 @@ public class ServerEvents {
     }
 
 
+    public static void giveFreshStart(Player player) {
+        Level level = player.level();
+
+        player.addItem(CraftorioBlocks.SINKER.get().asItem().getDefaultInstance());
+
+        Level universalLevel = CraftorioMisc.universalLevel(player);
+        boolean sharedProgressAlreadyStarted = CraftorioMisc.universalBased(level) && universalLevel.getData(UNIVERSAL_PROGRESS_STARTED);
+        if (!sharedProgressAlreadyStarted) {
+            CraftorioMisc.setPoints(CraftorioMisc.startingValue(), player);
+            if (CraftorioMisc.universalBased(level)) {
+                universalLevel.setData(UNIVERSAL_PROGRESS_STARTED, true);
+            }
+        }
+
+        CraftorioMisc.setContractRefreshTime(player, Craftorio.SERVER_CONFIG.CONTRACT_REFRESH_SECONDS.get() * CraftorioMisc.SECONDS_TO_TICKS);
+        CraftorioMisc.setRandomEffectTime(player, Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get() * CraftorioMisc.SECONDS_TO_TICKS);
+
+        List<CraftorioEffects> craftorioEffectsList = new ArrayList<>();
+
+        for (int i = 0; i < 2;i++){
+            craftorioEffectsList.add(CraftorioMisc.getRandomEffect(player.registryAccess(),player.getRandom()));
+        }
+
+
+
+        if (player instanceof ServerPlayer serverPlayer) {
+            ServerLevel serverLevel = CraftorioMisc.isInHavenDimension(serverPlayer.level()) ? serverPlayer.server.overworld() : (ServerLevel) serverPlayer.level();
+            BlockPos spawnPos = CraftorioMisc.findDispersedSpawnPos(serverLevel,
+                    Craftorio.SERVER_CONFIG.MIN_SPAWN_DISTANCE.get(),
+                    Craftorio.SERVER_CONFIG.MAX_SPAWN_DISTANCE.get()
+            );
+
+            if (CraftorioMisc.universalBased(level)){
+               spawnPos = serverLevel.getSharedSpawnPos();
+            }
+
+            List<ResourceKey<Level>> existingDimensions = CraftorioMisc.getDimensionsExplored(player);
+            if (!existingDimensions.contains(serverPlayer.getRespawnDimension())) {
+                List<ResourceKey<Level>> newDimensions = new ArrayList<>(existingDimensions);
+                newDimensions.add(serverPlayer.getRespawnDimension());
+                CraftorioMisc.setDimensionsExplored(player,newDimensions);
+            }
+
+            setArea(player,spawnPos,serverPlayer.getRespawnDimension());
+
+
+            GlobalPos origin = GlobalPos.of(serverLevel.dimension(), spawnPos);
+            serverPlayer.setData(CraftorioDataAttachments.SPAWN_ORIGIN.get(), origin);
+
+            serverPlayer.teleportTo(serverLevel, spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5, serverPlayer.getYRot(), serverPlayer.getXRot());
+            serverPlayer.setRespawnPosition(serverLevel.dimension(), spawnPos, 0F, true, false);
+
+        }
+
+
+
+        if ((CraftorioMisc.getLandAmount(player) <= 0 && CraftorioMisc.isNoBorders(level)) || !CraftorioMisc.isNoBorders(level)){
+            CraftorioMisc.setLandAmount(CraftorioMisc.startingLand(), player);
+        }
+
+        if (player instanceof ServerPlayer serverPlayer) {
+            PacketDistributor.sendToPlayer(serverPlayer, new WelcomeToastPacket());
+            PacketDistributor.sendToPlayer(serverPlayer, new ShopStatusPacket(CraftorioShop.isEnabled()));
+            CraftorioPointsAdvancements.checkAndGrant(serverPlayer, CraftorioMisc.getPoints(player));
+        }
+
+        player.setData(GIVEN, true);
+    }
+
     @SubscribeEvent
     public void playerLogin(PlayerEvent.PlayerLoggedInEvent event) {
+        if (event.getEntity() instanceof ServerPlayer loggingIn) {
+            CraftorioSacrifice.onLogin(loggingIn);
+        }
+
         Player player = event.getEntity();
         Level level = player.level();
 
-        if (!player.getData(GIVEN)) {
-            player.addItem(CraftorioBlocks.SINKER.get().asItem().getDefaultInstance());
-
-            Level universalLevel = CraftorioMisc.universalLevel(player);
-            boolean sharedProgressAlreadyStarted = CraftorioMisc.universalBased(level) && universalLevel.getData(UNIVERSAL_PROGRESS_STARTED);
-            if (!sharedProgressAlreadyStarted) {
-                CraftorioMisc.setPoints(CraftorioMisc.startingValue(), player);
-                if (CraftorioMisc.universalBased(level)) {
-                    universalLevel.setData(UNIVERSAL_PROGRESS_STARTED, true);
-                }
-            }
-
-            CraftorioMisc.setContractRefreshTime(player, Craftorio.SERVER_CONFIG.CONTRACT_REFRESH_SECONDS.get() * CraftorioMisc.SECONDS_TO_TICKS);
-            CraftorioMisc.setRandomEffectTime(player, Craftorio.SERVER_CONFIG.RANDOM_EFFECT_INTERVAL.get() * CraftorioMisc.SECONDS_TO_TICKS);
-
-            List<CraftorioEffects> craftorioEffectsList = new ArrayList<>();
-
-            for (int i = 0; i < 2;i++){
-                craftorioEffectsList.add(CraftorioMisc.getRandomEffect(player.registryAccess(),player.getRandom()));
-            }
-
-
-
-            if (player instanceof ServerPlayer serverPlayer) {
-                ServerLevel serverLevel = (ServerLevel) serverPlayer.level();
-                BlockPos spawnPos = CraftorioMisc.findDispersedSpawnPos(serverLevel,
-                        Craftorio.SERVER_CONFIG.MIN_SPAWN_DISTANCE.get(),
-                        Craftorio.SERVER_CONFIG.MAX_SPAWN_DISTANCE.get()
-                );
-
-                if (CraftorioMisc.universalBased(level)){
-                   spawnPos = serverLevel.getSharedSpawnPos();
-                }
-
-                List<ResourceKey<Level>> existingDimensions = CraftorioMisc.getDimensionsExplored(player);
-                if (!existingDimensions.contains(serverPlayer.getRespawnDimension())) {
-                    List<ResourceKey<Level>> newDimensions = new ArrayList<>(existingDimensions);
-                    newDimensions.add(serverPlayer.getRespawnDimension());
-                    CraftorioMisc.setDimensionsExplored(player,newDimensions);
-                }
-
-                setArea(player,spawnPos,serverPlayer.getRespawnDimension());
-
-
-                GlobalPos origin = GlobalPos.of(serverLevel.dimension(), spawnPos);
-                serverPlayer.setData(CraftorioDataAttachments.SPAWN_ORIGIN.get(), origin);
-
-                serverPlayer.teleportTo(spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5);
-                serverPlayer.setRespawnPosition(serverLevel.dimension(), spawnPos, 0F, true, false);
-
-            }
-
-
-
-            if ((CraftorioMisc.getLandAmount(player) <= 0 && CraftorioMisc.isNoBorders(level)) || !CraftorioMisc.isNoBorders(level)){
-                CraftorioMisc.setLandAmount(CraftorioMisc.startingLand(), player);
-            }
-
-            if (player instanceof ServerPlayer serverPlayer) {
-                PacketDistributor.sendToPlayer(serverPlayer, new WelcomeToastPacket());
-                PacketDistributor.sendToPlayer(serverPlayer, new ShopStatusPacket(CraftorioShop.isEnabled()));
-                CraftorioPointsAdvancements.checkAndGrant(serverPlayer, CraftorioMisc.getPoints(player));
-            }
-
-            player.setData(GIVEN, true);
+        if (!player.getData(GIVEN) && !CraftorioSacrifice.isRunning()) {
+            giveFreshStart(player);
         }
 
         if (player instanceof ServerPlayer serverPlayer) {
@@ -316,11 +377,16 @@ public class ServerEvents {
                 }
             }
 
-            if (CraftorioMisc.universalBased(player.level()) && CraftorioMisc.getLife(player) > 1) {
-                CraftorioHavenDimension.enterForRebirth(serverPlayer);
+            var sacrificeRegistry = player.level().registryAccess().registryOrThrow(CraftorioUpgrade.SACRIFICE_REGISTRY_KEY);
+            for (Map.Entry<ResourceLocation, Integer> entry : CraftorioMisc.getSacrificeUpgradePurchaseCounts(player).entrySet()) {
+                var upgrade = sacrificeRegistry.get(entry.getKey());
+                if (upgrade instanceof CraftorioAttributeUpgrade) {
+                    upgrade.onUnlock(serverPlayer, entry.getKey(), entry.getValue());
+                }
             }
 
             CraftorioRebirthConsent.onRosterChanged(serverPlayer.getServer());
+            CraftorioSacrifice.onRosterChanged(serverPlayer.getServer());
 
             syncUniversalState(serverPlayer);
         }
@@ -329,7 +395,9 @@ public class ServerEvents {
     @SubscribeEvent
     public void playerLogout(PlayerEvent.PlayerLoggedOutEvent event) {
         if (event.getEntity() instanceof ServerPlayer serverPlayer && serverPlayer.getServer() != null) {
+            CraftorioSacrifice.onLogout(serverPlayer);
             CraftorioRebirthConsent.onRosterChanged(serverPlayer.getServer());
+            CraftorioSacrifice.onRosterChanged(serverPlayer.getServer());
         }
     }
 
@@ -353,6 +421,8 @@ public class ServerEvents {
                 CraftorioMisc.getLife(player),
                 CraftorioMisc.getLifePoints(player),
                 CraftorioMisc.getRebirthUpgradePurchaseCounts(player),
+                CraftorioMisc.getSacrificeUpgradePurchaseCounts(player),
+                CraftorioMisc.getSacrificePoints(player),
                 CraftorioMisc.getOverallHighestPoints(player),
                 CraftorioMisc.getOverallContractsCompleted(player),
                 CraftorioMisc.getOverallItemsSinked(player)

@@ -36,6 +36,9 @@ public abstract class CraftorioUpgrade {
     public static final ResourceKey<Registry<CraftorioUpgrade>> REBIRTH_REGISTRY_KEY =
             ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "rebirth_upgrade"));
 
+    public static final ResourceKey<Registry<CraftorioUpgrade>> SACRIFICE_REGISTRY_KEY =
+            ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "sacrifice_upgrade"));
+
     private static Codec<CraftorioUpgrade> codecInstance;
 
     public static Codec<CraftorioUpgrade> dispatchCodec() {
@@ -203,6 +206,10 @@ public abstract class CraftorioUpgrade {
 
         public Holder.Reference<CraftorioUpgrade> saveRebirth(BootstrapContext<CraftorioUpgrade> context, ResourceLocation id, Function<Builder, ? extends CraftorioUpgrade> factory) {
             return saveTo(REBIRTH_REGISTRY_KEY, context, id, factory);
+        }
+
+        public Holder.Reference<CraftorioUpgrade> saveSacrifice(BootstrapContext<CraftorioUpgrade> context, ResourceLocation id, Function<Builder, ? extends CraftorioUpgrade> factory) {
+            return saveTo(SACRIFICE_REGISTRY_KEY, context, id, factory);
         }
 
         private Holder.Reference<CraftorioUpgrade> saveTo(ResourceKey<Registry<CraftorioUpgrade>> registryKey, BootstrapContext<CraftorioUpgrade> context, ResourceLocation id, Function<Builder, ? extends CraftorioUpgrade> factory) {

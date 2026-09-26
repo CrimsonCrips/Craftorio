@@ -16,6 +16,7 @@ import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.server.devtools.CraftorioDevTools;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.UpgradeTree;
 import org.crimsoncrips.craftorio.skill_tree.target.AttributeTarget;
 import org.crimsoncrips.craftorio.skill_tree.target.ModifierTarget;
 import org.crimsoncrips.craftorio.skill_tree.target.PlayerActionTarget;
@@ -29,7 +30,7 @@ import java.util.Map;
 
 public record GenerateUpgradeCodePacket(String category, String id, String modId, String description, String cost, String maxPurchases, String parent,
                                          String target, String operation, String value, String itemTag,
-                                         boolean includeLang, String name, boolean jsonExport, boolean rebirth) implements CustomPacketPayload {
+                                         boolean includeLang, String name, boolean jsonExport, UpgradeTree tree) implements CustomPacketPayload {
 
     private static final ResourceLocation DEFAULT_ICON = Craftorio.getGuiTexture("default_icon.png");
 
@@ -50,7 +51,7 @@ public record GenerateUpgradeCodePacket(String category, String id, String modId
                 ByteBufCodecs.BOOL.encode(buffer, message.includeLang());
                 ByteBufCodecs.STRING_UTF8.encode(buffer, message.name());
                 ByteBufCodecs.BOOL.encode(buffer, message.jsonExport());
-                ByteBufCodecs.BOOL.encode(buffer, message.rebirth());
+                ByteBufCodecs.VAR_INT.encode(buffer, message.tree().ordinal());
             },
             buffer -> new GenerateUpgradeCodePacket(
                     ByteBufCodecs.STRING_UTF8.decode(buffer),
@@ -67,7 +68,7 @@ public record GenerateUpgradeCodePacket(String category, String id, String modId
                     ByteBufCodecs.BOOL.decode(buffer),
                     ByteBufCodecs.STRING_UTF8.decode(buffer),
                     ByteBufCodecs.BOOL.decode(buffer),
-                    ByteBufCodecs.BOOL.decode(buffer)
+                    UpgradeTree.byOrdinal(ByteBufCodecs.VAR_INT.decode(buffer))
             )
     );
 
@@ -194,7 +195,7 @@ public record GenerateUpgradeCodePacket(String category, String id, String modId
                 }
             }
 
-            CraftorioDevTools.writeCodeFile(serverPlayer, "upgrade_" + id, message.rebirth() ? code.toString().replace(".save(context,", ".saveRebirth(context,") : code.toString());
+            CraftorioDevTools.writeCodeFile(serverPlayer, "upgrade_" + id, code.toString().replace(".save(context,", "." + message.tree().saveMethod() + "(context,"));
         });
     }
 

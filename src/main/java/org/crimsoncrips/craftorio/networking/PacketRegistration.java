@@ -46,7 +46,12 @@ import org.crimsoncrips.craftorio.networking.sink.SetAutoSinkerOwnerPacket;
 import org.crimsoncrips.craftorio.networking.sink.SetAutoSinkerThresholdPacket;
 import org.crimsoncrips.craftorio.networking.sink.SinkItemsPacket;
 import org.crimsoncrips.craftorio.networking.skill_tree.OpenRebirthSkillTreeScreenPacket;
+import org.crimsoncrips.craftorio.networking.sacrifice.RequestSacrificePacket;
+import org.crimsoncrips.craftorio.networking.sacrifice.SacrificeAnswerPacket;
+import org.crimsoncrips.craftorio.networking.sacrifice.SacrificeShatterPacket;
 import org.crimsoncrips.craftorio.networking.skill_tree.RequestRebirthPacket;
+import org.crimsoncrips.craftorio.networking.skill_tree.SetAutoConsentPacket;
+import org.crimsoncrips.craftorio.networking.skill_tree.UnlockSacrificeUpgradePacket;
 import org.crimsoncrips.craftorio.networking.skill_tree.UnlockRebirthUpgradePacket;
 import org.crimsoncrips.craftorio.networking.skill_tree.UnlockUpgradeFailedPacket;
 import org.crimsoncrips.craftorio.networking.skill_tree.UnlockUpgradePacket;
@@ -57,6 +62,8 @@ public class PacketRegistration {
 
     public void setupPackets(RegisterPayloadHandlersEvent event) {
         PayloadRegistrar registrar = event.registrar(Craftorio.MODID).versioned("1.0.0").optional();
+        registrar.playToServer(RequestSacrificePacket.TYPE, RequestSacrificePacket.STREAM_CODEC, RequestSacrificePacket::handle);
+        registrar.playToServer(SacrificeAnswerPacket.TYPE, SacrificeAnswerPacket.STREAM_CODEC, SacrificeAnswerPacket::handle);
         registrar.playToServer(OwnLandPacket.TYPE, OwnLandPacket.STREAM_CODEC, OwnLandPacket::handle);
         registrar.playToServer(SinkItemsPacket.TYPE, SinkItemsPacket.STREAM_CODEC, SinkItemsPacket::handle);
         registrar.playToServer(DoubleOrNothingPacket.TYPE, DoubleOrNothingPacket.STREAM_CODEC, DoubleOrNothingPacket::handle);
@@ -90,6 +97,8 @@ public class PacketRegistration {
         registrar.playToServer(LoadContractIntoCreatorPacket.TYPE, LoadContractIntoCreatorPacket.STREAM_CODEC, LoadContractIntoCreatorPacket::handle);
         registrar.playToServer(ClearEffectsPacket.TYPE, ClearEffectsPacket.STREAM_CODEC, ClearEffectsPacket::handle);
         registrar.playToServer(RequestRebirthPacket.TYPE, RequestRebirthPacket.STREAM_CODEC, RequestRebirthPacket::handle);
+        registrar.playToServer(UnlockSacrificeUpgradePacket.TYPE, UnlockSacrificeUpgradePacket.STREAM_CODEC, UnlockSacrificeUpgradePacket::handle);
+        registrar.playToServer(SetAutoConsentPacket.TYPE, SetAutoConsentPacket.STREAM_CODEC, SetAutoConsentPacket::handle);
         registrar.playToServer(UnlockRebirthUpgradePacket.TYPE, UnlockRebirthUpgradePacket.STREAM_CODEC, UnlockRebirthUpgradePacket::handle);
 
         registrar.playToClient(OpenShopScreenPacket.TYPE, OpenShopScreenPacket.STREAM_CODEC, OpenShopScreenPacket::handle);
@@ -105,6 +114,7 @@ public class PacketRegistration {
         registrar.playToClient(DoubleOrNothingResultPacket.TYPE, DoubleOrNothingResultPacket.STREAM_CODEC, DoubleOrNothingResultPacket::handle);
         registrar.playToClient(SkillTreeGenerateResultPacket.TYPE, SkillTreeGenerateResultPacket.STREAM_CODEC, SkillTreeGenerateResultPacket::handle);
         registrar.playToClient(UnlockUpgradeFailedPacket.TYPE, UnlockUpgradeFailedPacket.STREAM_CODEC, UnlockUpgradeFailedPacket::handle);
+        registrar.playToClient(SacrificeShatterPacket.TYPE, SacrificeShatterPacket.STREAM_CODEC, SacrificeShatterPacket::handle);
         registrar.playToClient(OpenRebirthSkillTreeScreenPacket.TYPE, OpenRebirthSkillTreeScreenPacket.STREAM_CODEC, OpenRebirthSkillTreeScreenPacket::handle);
     }
 }
