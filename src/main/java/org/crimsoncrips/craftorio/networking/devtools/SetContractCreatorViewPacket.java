@@ -9,11 +9,12 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.inventory.ContractCreatorMenu;
 
-public record SetContractCreatorViewPacket(boolean reward) implements CustomPacketPayload {
+public record SetContractCreatorViewPacket(boolean reward, int page) implements CustomPacketPayload {
 
     public static final Type<SetContractCreatorViewPacket> TYPE = new Type<>(Craftorio.prefix("set_contract_creator_view_packet"));
     public static final StreamCodec<RegistryFriendlyByteBuf, SetContractCreatorViewPacket> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.BOOL, SetContractCreatorViewPacket::reward,
+            ByteBufCodecs.VAR_INT, SetContractCreatorViewPacket::page,
             SetContractCreatorViewPacket::new
     );
 
@@ -32,6 +33,8 @@ public record SetContractCreatorViewPacket(boolean reward) implements CustomPack
             } else {
                 menu.showBountyView();
             }
+            menu.setPage(message.page());
+            menu.sendAllDataToRemote();
         });
     }
 }

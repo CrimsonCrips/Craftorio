@@ -18,7 +18,7 @@ public class DevToolsScreen extends Screen {
     private static final int BUTTON_WIDTH = 220;
     private static final int BUTTON_HEIGHT = 20;
     private static final int BUTTON_STRIDE = 24;
-    private static final int BUTTON_COUNT = 6;
+    private static final int BUTTON_COUNT = 5;
     private static final int DONE_EXTRA_GAP = 16;
 
     private final Screen parent;
@@ -48,14 +48,6 @@ public class DevToolsScreen extends Screen {
 
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_create_skill_tree"), b -> this.minecraft.setScreen(new SkillTreeCreatorScreen(this)))
                 .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
-        y += BUTTON_STRIDE;
-
-        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_edit_skill_tree"), b ->
-                DevToolsUpgradeTrees.openTreePicker(this.minecraft, this, pickedTree -> {
-                    SkillTreeCreatorScreen screen = new SkillTreeCreatorScreen(this);
-                    screen.loadFromRegistry(this.minecraft, pickedTree);
-                    this.minecraft.setScreen(screen);
-                })).bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
         y += BUTTON_STRIDE;
 
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_get_scanner_stick"), b -> PacketDistributor.sendToServer(new GiveScannerStickPacket()))

@@ -49,7 +49,7 @@ import org.crimsoncrips.craftorio.client.screen.config.CraftorioConfigScreen;
 import org.crimsoncrips.craftorio.client.screen.config.CraftorioWorldCreationScreen;
 import org.crimsoncrips.craftorio.client.screen.widget.SheetIconButton;
 import org.crimsoncrips.craftorio.client.screen.contract.ContractRevealScreen;
-import org.crimsoncrips.craftorio.client.screen.devtools.contract_creator.ContractCreatorBountyScreen;
+import org.crimsoncrips.craftorio.client.screen.devtools.contract_creator.ContractCreatorCardScreen;
 import org.crimsoncrips.craftorio.client.screen.devtools.creator.SkillTreeCreatorScreen;
 import org.crimsoncrips.craftorio.client.screen.hub.CraftorioStatisticsScreen;
 import org.crimsoncrips.craftorio.client.screen.machine.AutoSinkerScreen;
@@ -98,7 +98,7 @@ public class ClientEvents {
 		event.register(CraftorioMenuTypes.AUTO_SINKER.get(), AutoSinkerScreen::new);
 		event.register(CraftorioMenuTypes.VALUE_CONDENSER.get(), ValueCondenserScreen::new);
 		event.register(CraftorioMenuTypes.AUTO_VALUE_CONDENSER.get(), AutoValueCondenserScreen::new);
-		event.register(CraftorioMenuTypes.CONTRACT_CREATOR.get(), ContractCreatorBountyScreen::new);
+		event.register(CraftorioMenuTypes.CONTRACT_CREATOR.get(), ContractCreatorCardScreen::new);
 	}
 
 	public static void registerConfigScreen(ModContainer modContainer) {
@@ -494,7 +494,7 @@ public class ClientEvents {
 	public static void displayPoints(GuiGraphics graphics) {
 		Minecraft minecraft = Minecraft.getInstance();
 
-		if (minecraft.gui.getDebugOverlay().showDebugScreen() || minecraft.options.hideGui)
+		if (minecraft.gui.getDebugOverlay().showDebugScreen() || minecraft.options.hideGui || minecraft.screen != null)
 			return;
 		if (minecraft.player == null)
 			return;

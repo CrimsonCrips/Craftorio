@@ -235,10 +235,12 @@ public class UpgradeCreatorScreen extends Screen {
 
     private void openEditPicker() {
         DevToolsUpgradeTrees.openTreePicker(this.minecraft, this, pickedTree ->
-                DevToolsUpgradeTrees.openUpgradePicker(this.minecraft, this.minecraft.screen, pickedTree, entry -> {
-                    loadUpgrade(entry.id(), entry.upgrade(), pickedTree);
+                this.minecraft.setScreen(SkillTreeCreatorScreen.forPicking(this.minecraft.screen, this.minecraft, pickedTree, id -> {
+                    CraftorioUpgrade upgrade = DevToolsUpgradeTrees.registry(this.minecraft, pickedTree).get(id);
+                    if (upgrade == null) return;
+                    loadUpgrade(id, upgrade, pickedTree);
                     this.minecraft.setScreen(this);
-                }));
+                })));
     }
 
     private static int indexOf(String[] values, String value) {

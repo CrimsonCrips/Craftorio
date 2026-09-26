@@ -300,10 +300,10 @@ public class ContractRevealScreen extends Screen {
         int wrapWidth = (int) (innerWidth / textScale);
         float textTop = centerY - this.cardHeight / 2f + 14;
 
-        int nameColor = 0xa9a9a9;
-        int timeColor = 0xffd966;
-        int descColor = 0xa9a9a9;
-        int punishmentColor = 0xff0000;
+        int nameColor = card.contract.getTextColors().titleOr(0xa9a9a9);
+        int timeColor = card.contract.getTextColors().timeOr(0xffd966);
+        int descColor = card.contract.getTextColors().descriptionOr(0xa9a9a9);
+        int punishmentColor = card.contract.getTextColors().punishmentOr(0xff0000);
 
         graphics.pose().pushPose();
         graphics.pose().translate(card.restX, textTop, 0);

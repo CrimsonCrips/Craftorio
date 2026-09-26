@@ -1,31 +1,26 @@
 package org.crimsoncrips.craftorio.client.screen.devtools.contract_creator;
 
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.core.Holder;
-import net.minecraft.core.Registry;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.crimsoncrips.craftorio.client.screen.devtools.DevToolsPickerScreen;
-import org.crimsoncrips.craftorio.client.screen.devtools.DevToolsScreen;
 import org.crimsoncrips.craftorio.inventory.ContractCreatorMenu;
 import org.crimsoncrips.craftorio.networking.devtools.ClearContractCreatorGridPacket;
 import org.crimsoncrips.craftorio.networking.devtools.CopyInventoryToContractCreatorPacket;
-import org.crimsoncrips.craftorio.networking.devtools.LoadContractIntoCreatorPacket;
 import org.crimsoncrips.craftorio.networking.devtools.SetContractCreatorViewPacket;
-import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 
-import java.util.ArrayList;
-import java.util.List;
 
 public class ContractCreatorBountyScreen extends AbstractContainerScreen<ContractCreatorMenu> {
 
-    public ContractCreatorBountyScreen(ContractCreatorMenu menu, Inventory playerInventory, Component title) {
+    private final Screen returnTo;
+
+    public ContractCreatorBountyScreen(ContractCreatorMenu menu, Inventory playerInventory, Screen returnTo) {
         super(menu, playerInventory, Component.translatable("misc.craftorio.contract_creator_bounty_title"));
+        this.returnTo = returnTo;
         this.imageWidth = ContractCreatorMenu.PANEL_WIDTH;
         this.imageHeight = ContractCreatorMenu.GRID_TOP + ContractCreatorMenu.GRID_ROWS * 18 + ContractCreatorMenu.PLAYER_INV_GAP + 78;
         this.inventoryLabelY = ContractCreatorMenu.GRID_TOP + ContractCreatorMenu.GRID_ROWS * 18 + ContractCreatorMenu.PLAYER_INV_GAP - 4;
@@ -35,20 +30,13 @@ public class ContractCreatorBountyScreen extends AbstractContainerScreen<Contrac
     protected void init() {
         super.init();
         this.menu.showBountyView();
-        PacketDistributor.sendToServer(new SetContractCreatorViewPacket(false));
+        PacketDistributor.sendToServer(new SetContractCreatorViewPacket(false, this.menu.getPage()));
 
         int panelLeft = (this.width - this.imageWidth) / 2;
         int panelTop = (this.height - this.imageHeight) / 2;
 
-        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.back"), b -> {
-            if (this.minecraft.player != null) {
-                this.minecraft.player.closeContainer();
-            }
-            this.minecraft.setScreen(new DevToolsScreen(null));
-        }).bounds(panelLeft + 8, panelTop + 6, 52, 14).build());
-
-        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_next"), b -> this.minecraft.setScreen(new ContractCreatorRewardScreen(this.menu, this.minecraft.player.getInventory(), this.title)))
-                .bounds(panelLeft + this.imageWidth - 60, panelTop + 6, 52, 14).build());
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.back"), b -> this.minecraft.setScreen(this.returnTo))
+                .bounds(panelLeft + 8, panelTop + 6, 52, 14).build());
 
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_copy_from_inventory"), b -> PacketDistributor.sendToServer(new CopyInventoryToContractCreatorPacket()))
                 .bounds(panelLeft + 8, panelTop + 26, 130, 16).build());
@@ -56,29 +44,36 @@ public class ContractCreatorBountyScreen extends AbstractContainerScreen<Contrac
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_browse_items"), b -> this.minecraft.setScreen(new ContractCreatorItemBrowserScreen(this)))
                 .bounds(panelLeft + 142, panelTop + 26, 130, 16).build());
 
-        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_clear"), b -> PacketDistributor.sendToServer(new ClearContractCreatorGridPacket()))
-                .bounds(panelLeft + (this.imageWidth - 130) / 2, panelTop + 44, 130, 14).build());
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_clear_page"), b -> PacketDistributor.sendToServer(new ClearContractCreatorGridPacket()))
+                .bounds(panelLeft + (this.imageWidth - 80) / 2, panelTop + 44, 80, 14).build());
 
-        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_edit_contracts"), b -> openEditPicker())
-                .bounds(this.width - 108, this.height - 28, 100, 20).build());
+        this.addRenderableWidget(Button.builder(Component.literal("<"), b -> changePage(-1))
+                .bounds(panelLeft + (this.imageWidth - 80) / 2 - 24, panelTop + 44, 20, 14).build());
+        this.addRenderableWidget(Button.builder(Component.literal(">"), b -> changePage(1))
+                .bounds(panelLeft + (this.imageWidth + 80) / 2 + 4, panelTop + 44, 20, 14).build());
     }
 
-    private void openEditPicker() {
-        if (this.minecraft.level == null) return;
+    @Override
+    public void onClose() {
+        this.minecraft.setScreen(this.returnTo);
+    }
 
-        Registry<CraftorioContract> registry = this.minecraft.level.registryAccess().registryOrThrow(CraftorioContract.REGISTRY_KEY);
-        List<DevToolsPickerScreen.Option> options = new ArrayList<>();
-        for (Holder.Reference<CraftorioContract> holder : registry.holders().toList()) {
-            ResourceLocation id = holder.key().location();
-            CraftorioContract contract = holder.value();
-            options.add(new DevToolsPickerScreen.Option(Component.literal(contract.getActualName()), id.toString(), 0, true, () -> {
-                ContractCreatorDetailsScreen.loadIntoDraft(id, contract);
-                PacketDistributor.sendToServer(new LoadContractIntoCreatorPacket(id));
-                this.minecraft.setScreen(this);
-            }));
+    private void changePage(int direction) {
+        int step = hasShiftDown() ? 10 : 1;
+        this.menu.setPage(this.menu.getPage() + direction * step);
+        PacketDistributor.sendToServer(new SetContractCreatorViewPacket(false, this.menu.getPage()));
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        int gridLeft = (this.width - this.imageWidth) / 2 + ContractCreatorMenu.GRID_LEFT;
+        int gridTop = (this.height - this.imageHeight) / 2 + ContractCreatorMenu.GRID_TOP;
+        if (scrollY != 0 && mouseX >= gridLeft && mouseX < gridLeft + ContractCreatorMenu.GRID_COLUMNS * 18
+                && mouseY >= gridTop && mouseY < gridTop + ContractCreatorMenu.GRID_ROWS * 18) {
+            changePage(scrollY > 0 ? -1 : 1);
+            return true;
         }
-
-        this.minecraft.setScreen(new DevToolsPickerScreen(Component.translatable("misc.craftorio.dev_tools_pick_contract"), this, options));
+        return super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override
@@ -90,6 +85,8 @@ public class ContractCreatorBountyScreen extends AbstractContainerScreen<Contrac
         guiGraphics.renderOutline(i, j, this.imageWidth, this.imageHeight, 0xFF808080);
 
         guiGraphics.drawString(this.font, Component.translatable("misc.craftorio.dev_tools_bounty_items"), i + 8, j + ContractCreatorMenu.GRID_TOP - 10, 0xAAAAAA, false);
+        Component pageLabel = Component.translatable("misc.craftorio.dev_tools_page", this.menu.getPage() + 1, ContractCreatorMenu.PAGES);
+        guiGraphics.drawString(this.font, pageLabel, i + this.imageWidth - 8 - this.font.width(pageLabel), j + ContractCreatorMenu.GRID_TOP - 10, 0xAAAAAA, false);
 
         Slot destroySlot = this.menu.getDestroySlot();
         guiGraphics.drawString(this.font, Component.translatable("misc.craftorio.dev_tools_destroy_slot"), i + destroySlot.x - 15, j + destroySlot.y - 10, 0xFF5555, false);

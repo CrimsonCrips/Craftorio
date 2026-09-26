@@ -15,11 +15,13 @@ public class ContractCreatorMenu extends AbstractContainerMenu {
 
     public static final int GRID_COLUMNS = 10;
     public static final int GRID_ROWS = 10;
-    public static final int BOUNTY_SLOTS = GRID_COLUMNS * GRID_ROWS;
-    public static final int REWARD_SLOTS = GRID_COLUMNS * GRID_ROWS;
+    public static final int GRID_SLOTS = GRID_COLUMNS * GRID_ROWS;
+    public static final int PAGES = 100;
+    public static final int BOUNTY_SLOTS = GRID_SLOTS * PAGES;
+    public static final int REWARD_SLOTS = GRID_SLOTS * PAGES;
     public static final int TOTAL_SLOTS = BOUNTY_SLOTS + REWARD_SLOTS;
     public static final int PLAYER_INV_SLOT_COUNT = 36;
-    public static final int PLAYER_INV_END = TOTAL_SLOTS + PLAYER_INV_SLOT_COUNT;
+    public static final int PLAYER_INV_END = GRID_SLOTS + PLAYER_INV_SLOT_COUNT;
 
     public static final int PANEL_WIDTH = 280;
     public static final int GRID_LEFT = (PANEL_WIDTH - GRID_COLUMNS * 18) / 2;
@@ -31,6 +33,8 @@ public class ContractCreatorMenu extends AbstractContainerMenu {
     private final Slot destroySlot;
     private final Player player;
     private boolean showingReward = false;
+    private int bountyPage = 0;
+    private int rewardPage = 0;
 
     public static ContractCreatorMenu contractCreatorMenu(int containerId, Inventory playerInventory) {
         return new ContractCreatorMenu(CraftorioMenuTypes.CONTRACT_CREATOR.get(), containerId, playerInventory, new SimpleContainer(TOTAL_SLOTS));
@@ -51,14 +55,7 @@ public class ContractCreatorMenu extends AbstractContainerMenu {
         for (int row = 0; row < GRID_ROWS; ++row) {
             for (int col = 0; col < GRID_COLUMNS; ++col) {
                 int index = row * GRID_COLUMNS + col;
-                this.addSlot(new ViewSlot(container, index, GRID_LEFT + col * 18, GRID_TOP + row * 18, true));
-            }
-        }
-
-        for (int row = 0; row < GRID_ROWS; ++row) {
-            for (int col = 0; col < GRID_COLUMNS; ++col) {
-                int index = BOUNTY_SLOTS + row * GRID_COLUMNS + col;
-                this.addSlot(new ViewSlot(container, index, GRID_LEFT + col * 18, GRID_TOP + row * 18, false));
+                this.addSlot(new PagedSlot(container, index, GRID_LEFT + col * 18, GRID_TOP + row * 18));
             }
         }
 
@@ -90,19 +87,47 @@ public class ContractCreatorMenu extends AbstractContainerMenu {
         return showingReward;
     }
 
+    public int getPage() {
+        return showingReward ? rewardPage : bountyPage;
+    }
+
+    public void setPage(int page) {
+        int clamped = Math.max(0, Math.min(PAGES - 1, page));
+        if (showingReward) {
+            rewardPage = clamped;
+        } else {
+            bountyPage = clamped;
+        }
+    }
+
+    public int usedPages() {
+        int base = gridBase();
+        for (int page = PAGES - 1; page >= 0; page--) {
+            for (int i = 0; i < GRID_SLOTS; i++) {
+                if (!container.getItem(base + page * GRID_SLOTS + i).isEmpty()) return page + 1;
+            }
+        }
+        return 0;
+    }
+
+    private int gridBase() {
+        return showingReward ? BOUNTY_SLOTS : 0;
+    }
+
     public void clearActiveGrid() {
-        int start = showingReward ? BOUNTY_SLOTS : 0;
-        int end = showingReward ? TOTAL_SLOTS : BOUNTY_SLOTS;
-        for (int i = start; i < end; i++) {
+        int start = gridBase() + getPage() * GRID_SLOTS;
+        for (int i = start; i < start + GRID_SLOTS; i++) {
             container.setItem(i, ItemStack.EMPTY);
         }
     }
 
     public int findNextEmptySlot() {
-        int start = showingReward ? BOUNTY_SLOTS : 0;
-        int end = showingReward ? TOTAL_SLOTS : BOUNTY_SLOTS;
-        for (int i = start; i < end; i++) {
-            if (container.getItem(i).isEmpty()) return i;
+        int base = gridBase();
+        int size = showingReward ? REWARD_SLOTS : BOUNTY_SLOTS;
+        int offset = getPage() * GRID_SLOTS;
+        for (int i = 0; i < size; i++) {
+            int index = base + (offset + i) % size;
+            if (container.getItem(index).isEmpty()) return index;
         }
         return -1;
     }
@@ -129,14 +154,12 @@ public class ContractCreatorMenu extends AbstractContainerMenu {
         if (slot != null && slot.hasItem() && slot.isActive()) {
             ItemStack itemstack1 = slot.getItem();
             itemstack = itemstack1.copy();
-            if (index < TOTAL_SLOTS) {
-                if (!this.moveItemStackTo(itemstack1, TOTAL_SLOTS, PLAYER_INV_END, true)) {
+            if (index < GRID_SLOTS) {
+                if (!this.moveItemStackTo(itemstack1, GRID_SLOTS, PLAYER_INV_END, true)) {
                     return ItemStack.EMPTY;
                 }
             } else if (index < PLAYER_INV_END) {
-                int gridStart = showingReward ? BOUNTY_SLOTS : 0;
-                int gridEnd = showingReward ? TOTAL_SLOTS : BOUNTY_SLOTS;
-                if (!this.moveItemStackTo(itemstack1, gridStart, gridEnd, false)) {
+                if (!this.moveItemStackTo(itemstack1, 0, GRID_SLOTS, false)) {
                     return ItemStack.EMPTY;
                 }
             } else {
@@ -202,17 +225,37 @@ public class ContractCreatorMenu extends AbstractContainerMenu {
         }
     }
 
-    private class ViewSlot extends Slot {
-        private final boolean bountySlot;
+    private class PagedSlot extends Slot {
+        private final int offset;
 
-        public ViewSlot(Container container, int index, int x, int y, boolean bountySlot) {
-            super(container, index, x, y);
-            this.bountySlot = bountySlot;
+        public PagedSlot(Container container, int offset, int x, int y) {
+            super(container, offset, x, y);
+            this.offset = offset;
+        }
+
+        private int index() {
+            return gridBase() + getPage() * GRID_SLOTS + offset;
         }
 
         @Override
-        public boolean isActive() {
-            return bountySlot != showingReward;
+        public int getContainerSlot() {
+            return index();
+        }
+
+        @Override
+        public ItemStack getItem() {
+            return this.container.getItem(index());
+        }
+
+        @Override
+        public void set(ItemStack stack) {
+            this.container.setItem(index(), stack);
+            this.setChanged();
+        }
+
+        @Override
+        public ItemStack remove(int amount) {
+            return this.container.removeItem(index(), amount);
         }
     }
 }

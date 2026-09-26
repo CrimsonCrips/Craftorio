@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Consumer;
 
 @OnlyIn(Dist.CLIENT)
 public class SkillTreeCreatorScreen extends Screen {
@@ -74,6 +75,7 @@ public class SkillTreeCreatorScreen extends Screen {
 
     private final Screen parent;
     private final DevToolsHelpPanel helpPanel = new DevToolsHelpPanel();
+    private Consumer<ResourceLocation> pickCallback;
 
     private DraftNode selected;
     private final Set<DraftNode> selectedNodes = new HashSet<>();
@@ -118,6 +120,17 @@ public class SkillTreeCreatorScreen extends Screen {
         this.parent = parent;
     }
 
+    public static SkillTreeCreatorScreen forPicking(Screen parent, Minecraft minecraft, UpgradeTree upgradeTree, Consumer<ResourceLocation> onPick) {
+        SkillTreeCreatorScreen screen = new SkillTreeCreatorScreen(parent);
+        screen.loadFromRegistry(minecraft, upgradeTree);
+        screen.pickCallback = onPick;
+        return screen;
+    }
+
+    private boolean isPicking() {
+        return this.pickCallback != null;
+    }
+
     public void loadFromRegistry(Minecraft minecraft, UpgradeTree upgradeTree) {
         if (minecraft.level == null) return;
         Registry<CraftorioUpgrade> registry = DevToolsUpgradeTrees.registry(minecraft, upgradeTree);
@@ -143,6 +156,7 @@ public class SkillTreeCreatorScreen extends Screen {
 
             ResourceLocation id = holder.key().location();
             DraftNode node = new DraftNode(nextLocalId++, id.getPath());
+            node.location = id;
 
             node.cost = upgrade.getCost().toString();
             node.maxPurchases = String.valueOf(upgrade.getMaxPurchases());
@@ -311,6 +325,10 @@ public class SkillTreeCreatorScreen extends Screen {
 
     @Override
     protected void init() {
+        if (isPicking()) {
+            initPicking();
+            return;
+        }
         this.sidebarWidth = 260;
         this.canvasLeft = 8;
         this.canvasTop = 30;
@@ -474,6 +492,37 @@ public class SkillTreeCreatorScreen extends Screen {
         this.addRenderableWidget(this.helpPanel.createButton(this.width, 6, true, () -> {}));
 
         refreshSidebarFromSelection();
+    }
+
+    private void initPicking() {
+        this.canvasLeft = 8;
+        this.canvasTop = 30;
+        this.canvasWidth = Math.max(50, this.width - 16);
+        this.canvasHeight = Math.max(50, this.height - 40 - canvasTop);
+
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.back"), b -> this.minecraft.setScreen(this.parent))
+                .bounds(this.width / 2 - 55, this.height - 30, 110, 20).build());
+        this.addRenderableWidget(this.helpPanel.createButton(this.width, 6, true, () -> {}));
+    }
+
+    private void renderPicking(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        super.render(graphics, mouseX, mouseY, partialTick);
+
+        DraftNode hovered = isInCanvas(mouseX, mouseY) ? findNodeByBody(mouseX, mouseY) : null;
+        if (hovered != null) {
+            List<Component> lines = new ArrayList<>();
+            lines.add(Component.literal(hovered.name.isEmpty() ? hovered.id : hovered.name));
+            lines.add(Component.literal(hovered.location == null ? hovered.id : hovered.location.toString()).withStyle(style -> style.withColor(0x808080)));
+            if (hovered.manual) {
+                lines.add(Component.translatable("misc.craftorio.dev_tools_pick_upgrade_manual").withStyle(style -> style.withColor(0xFF5555)));
+            }
+            graphics.renderComponentTooltip(this.font, lines, mouseX, mouseY);
+        }
+
+        this.helpPanel.render(graphics, this.font, this.width, 30, true, List.of(
+                Component.translatable("misc.craftorio.dev_tools_pick_upgrade_help_1"),
+                Component.translatable("misc.craftorio.dev_tools_skill_tree_help_3")
+        ));
     }
 
     public void showGenerateResult(boolean success, Component message) {
@@ -827,6 +876,14 @@ public class SkillTreeCreatorScreen extends Screen {
 
         if (button != 0) return false;
 
+        if (isPicking()) {
+            DraftNode picked = findNodeByBody(mouseX, mouseY);
+            if (picked != null && !picked.manual && picked.location != null) {
+                this.pickCallback.accept(picked.location);
+            }
+            return true;
+        }
+
         DraftNode hitNub = findNodeByNub(mouseX, mouseY);
         if (hitNub != null) {
             this.linkingFrom = hitNub;
@@ -939,6 +996,8 @@ public class SkillTreeCreatorScreen extends Screen {
             graphics.drawString(this.font, "R", x + 2, y + 1, 0xFF55AAFF, true);
         }
 
+        if (isPicking()) return;
+
         int nubX = x + w / 2;
         int nubY = y + h + NUB_GAP;
         int nubColor = node.parentId != null ? 0xFF55FF55 : 0xFFFFFFFF;
@@ -986,7 +1045,7 @@ public class SkillTreeCreatorScreen extends Screen {
     public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
         graphics.fill(0, 0, this.width, this.height, 0xFF101010);
         CraftorioStarfield.render(graphics, this.width, this.height, panX, panY, zoom, 0x30FF5D);
-        graphics.drawCenteredString(this.font, this.title, this.width / 2, 8, 0xFFFFFF);
+        graphics.drawCenteredString(this.font, isPicking() ? Component.translatable("misc.craftorio.dev_tools_pick_upgrade") : this.title, this.width / 2, 8, 0xFFFFFF);
 
         for (DraftNode node : nodes) {
             if (node.lockedRoot) {
@@ -996,14 +1055,14 @@ public class SkillTreeCreatorScreen extends Screen {
         }
 
         int bannerY = canvasTop - 11;
-        if (hasManualNode()) {
+        if (hasManualNode() && !isPicking()) {
             graphics.drawCenteredString(this.font, Component.translatable("misc.craftorio.dev_tools_skill_tree_manual_reminder"),
                     this.width / 2, bannerY, 0xFFFFAA55);
             bannerY -= 11;
         }
 
         int rootCount = countRoots();
-        if (rootCount > 1) {
+        if (rootCount > 1 && !isPicking()) {
             graphics.drawCenteredString(this.font, Component.translatable("misc.craftorio.dev_tools_skill_tree_multiple_roots", rootCount),
                     this.width / 2, bannerY, 0xFFFF5555);
         }
@@ -1021,10 +1080,16 @@ public class SkillTreeCreatorScreen extends Screen {
         if (linkingFrom != null) {
             drawLinkToPoint(graphics, linkingFrom, linkCursorX, linkCursorY, 0xFFFFFF55);
         }
+        DraftNode hoveredNode = isPicking() && isInCanvas(mouseX, mouseY) ? findNodeByBody(mouseX, mouseY) : null;
         for (DraftNode node : nodes) {
-            drawNode(graphics, node, selectedNodes.contains(node));
+            drawNode(graphics, node, selectedNodes.contains(node) || node == hoveredNode);
         }
         graphics.disableScissor();
+
+        if (isPicking()) {
+            renderPicking(graphics, mouseX, mouseY, partialTick);
+            return;
+        }
 
         graphics.fill(sidebarLeft - 4, sidebarTop - 4, sidebarLeft + sidebarWidth + 4, this.height - 60, 0xE0202020);
 
@@ -1183,6 +1248,7 @@ public class SkillTreeCreatorScreen extends Screen {
         String externalParent = "craftorio:root";
         boolean manual = false;
         String manualLocation = "";
+        ResourceLocation location;
         boolean lockedRoot = false;
         boolean hasStoredPosition = false;
 

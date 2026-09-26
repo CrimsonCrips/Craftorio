@@ -208,7 +208,7 @@ public class OwnedContractsScreen extends Screen {
         float y = 0;
 
         for (var line : this.font.split(Component.literal(contract.getActualName()), wrapWidth)) {
-            graphics.drawString(this.font, line, -this.font.width(line) / 2, (int) y, 0xFFFFFF, true);
+            graphics.drawString(this.font, line, -this.font.width(line) / 2, (int) y, contract.getTextColors().titleOr(0xFFFFFF), true);
             y += this.font.lineHeight;
         }
 
@@ -219,7 +219,7 @@ public class OwnedContractsScreen extends Screen {
             graphics.drawString(this.font, line, -this.font.width(abandonedLine) / 2, (int) y, 0xFFFFFF, true);
         } else {
             String timeLine = Component.translatable("misc.craftorio.contract_time_remaining", CraftorioMisc.ticksToTimeString(contract.getTime())).getString();
-            graphics.drawString(this.font, timeLine, -this.font.width(timeLine) / 2, (int) y, 0xAAAAAA, true);
+            graphics.drawString(this.font, timeLine, -this.font.width(timeLine) / 2, (int) y, contract.getTextColors().timeOr(0xAAAAAA), true);
         }
         y += this.font.lineHeight;
 
@@ -251,7 +251,7 @@ public class OwnedContractsScreen extends Screen {
 
         return this.minecraft.level.registryAccess().registryOrThrow(CraftorioEffects.REGISTRY_KEY).getOptional(punishmentId)
                 .<Component>map(effect -> Component.translatable("misc.craftorio.contract_punishment_line", effect.getActualName())
-                        .withStyle(style -> style.withColor(ChatFormatting.RED).withBold(true)))
+                        .withStyle(style -> style.withColor(contract.getTextColors().punishmentOr(0xFF5555)).withBold(true)))
                 .orElse(Component.empty());
     }
 
