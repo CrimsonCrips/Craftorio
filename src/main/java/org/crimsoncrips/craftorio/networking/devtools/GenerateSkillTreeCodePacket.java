@@ -22,6 +22,7 @@ import org.crimsoncrips.craftorio.skill_tree.UpgradeTree;
 import org.crimsoncrips.craftorio.skill_tree.target.AttributeTarget;
 import org.crimsoncrips.craftorio.skill_tree.target.ModifierTarget;
 import org.crimsoncrips.craftorio.skill_tree.target.PlayerActionTarget;
+import org.crimsoncrips.craftorio.skill_tree.target.ActionEffectValue;
 import org.crimsoncrips.craftorio.skill_tree.target.UpgradeOperation;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioActionEffectUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioAttributeUpgrade;
@@ -168,7 +169,7 @@ public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean
         String cost = sanitize(node.cost()).isEmpty() ? "1000" : sanitize(node.cost());
         int maxPurchases = Math.max(1, parseInt(node.maxPurchases(), 1));
         double value = parseDouble(node.value(), 0.1);
-        if (node.operation().equals("ADD") && isTickDurationTarget(node.category(), node.target())) {
+        if ((node.operation().equals("ADD") || node.operation().equals("SUBTRACT")) && isTickDurationTarget(node.category(), node.target())) {
             value *= CraftorioMisc.SECONDS_TO_TICKS;
         }
         ResourceLocation ownLocation = ResourceLocation.fromNamespaceAndPath(modId, id);
@@ -196,8 +197,8 @@ public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean
 
         if (node.category().equals("action_effect")) {
             PlayerActionTarget targetEnum = PlayerActionTarget.valueOf(node.target());
-            String effectId = sanitize(node.value()).isEmpty() ? "craftorio:productive" : sanitize(node.value());
-            return CraftorioActionEffectUpgrade.of(builder, targetEnum, ResourceLocation.parse(effectId));
+            ActionEffectValue actionValue = ActionEffectValue.parse(node.value());
+            return CraftorioActionEffectUpgrade.of(builder, targetEnum, ResourceLocation.parse(actionValue.effect()), actionValue.chance());
         }
 
         AttributeTarget targetEnum = AttributeTarget.valueOf(node.target());
@@ -277,7 +278,7 @@ public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean
         String cost = sanitize(node.cost()).isEmpty() ? "1000" : sanitize(node.cost());
         int maxPurchases = Math.max(1, parseInt(node.maxPurchases(), 1));
         double value = parseDouble(node.value(), 0.1);
-        if (node.operation().equals("ADD") && isTickDurationTarget(node.category(), node.target())) {
+        if ((node.operation().equals("ADD") || node.operation().equals("SUBTRACT")) && isTickDurationTarget(node.category(), node.target())) {
             value *= CraftorioMisc.SECONDS_TO_TICKS;
         }
         String varName = toCamelCase(id) + "Upgrade";
@@ -324,9 +325,9 @@ public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean
                 code.append("                b -> CraftorioModifierUpgrade.of(b, ModifierTarget.").append(node.target()).append(", UpgradeOperation.").append(node.operation()).append(", ").append(value).append("));\n");
             }
         } else if (node.category().equals("action_effect")) {
-            String effectId = sanitize(node.value()).isEmpty() ? "craftorio:productive" : sanitize(node.value());
+            ActionEffectValue actionValue = ActionEffectValue.parse(node.value());
             code.append("        .save(context, ResourceLocation.fromNamespaceAndPath(\"").append(modId).append("\", \"").append(id).append("\"),\n");
-            code.append("                b -> CraftorioActionEffectUpgrade.of(b, PlayerActionTarget.").append(node.target()).append(", ResourceLocation.parse(\"").append(effectId).append("\")));\n");
+            code.append("                b -> CraftorioActionEffectUpgrade.of(b, PlayerActionTarget.").append(node.target()).append(", ResourceLocation.parse(\"").append(actionValue.effect()).append("\"), ").append(actionValue.chance()).append("));\n");
         } else {
             code.append("        .save(context, ResourceLocation.fromNamespaceAndPath(\"").append(modId).append("\", \"").append(id).append("\"),\n");
             code.append("                b -> CraftorioAttributeUpgrade.of(b, AttributeTarget.").append(node.target()).append(", UpgradeOperation.").append(node.operation()).append(", ").append(value).append("));\n");

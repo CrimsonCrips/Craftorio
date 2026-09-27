@@ -1,0 +1,14 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "package": "org.crimsoncrips.craftorio.mixin.create",
+  "plugin": "org.crimsoncrips.craftorio.mixin.create.CraftorioCreateMixinPlugin",
+  "compatibilityLevel": "JAVA_21",
+  "mixins": [
+    "CraftorioSchematicTableBlockEntityMixin",
+    "CraftorioSchematicTableInputSlotMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

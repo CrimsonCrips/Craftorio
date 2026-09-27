@@ -16,6 +16,7 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 import org.crimsoncrips.craftorio.networking.border.BorderExpandPacket;
 import org.crimsoncrips.craftorio.skill_tree.target.ModifierTarget;
 import org.jetbrains.annotations.Nullable;
@@ -24,7 +25,7 @@ import java.math.BigInteger;
 import java.util.List;
 
 @OnlyIn(Dist.CLIENT)
-public class BorderExpandScreen extends Screen {
+public class BorderExpandScreen extends Screen implements ScrollableScreen {
 
 	private static final int PANEL_WIDTH = 176;
 	private static final int PANEL_PADDING = 12;

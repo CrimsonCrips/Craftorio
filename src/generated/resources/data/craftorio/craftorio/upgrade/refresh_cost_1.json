@@ -6,9 +6,9 @@
   "icon": "craftorio:textures/gui/default_icon.png",
   "max_purchases": 1,
   "name": "misc.craftorio.upgrade_refresh_cost_1",
-  "operation": "MULTIPLY",
+  "operation": "DIVIDE",
   "target": "CONTRACT_REFRESH_COST",
-  "value": -0.12,
+  "value": 0.1364,
   "x": 237.33137676235734,
   "y": 264.57362386112555
 }

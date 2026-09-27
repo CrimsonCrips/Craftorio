@@ -8,12 +8,10 @@ import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.renderer.GameRenderer;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.util.RandomSource;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import org.crimsoncrips.craftorio.Craftorio;
 import org.joml.Matrix4f;
 
 import java.awt.Color;
@@ -53,15 +51,8 @@ public final class CraftorioStarfield {
     private static final float HAZE_TINT_B = 1.0f;
 
     private static final int[] PEAK_FRAMES = {1, 3, 5};
-    private static final ResourceLocation[] GLITTER_FRAMES = new ResourceLocation[6];
-    private static final int GLITTER_TEXTURE_SIZE = 8;
     private static final int FRAME_COUNT = 6;
-
-    static {
-        for (int i = 0; i < FRAME_COUNT; i++) {
-            GLITTER_FRAMES[i] = Craftorio.getGuiTexture("skill_tree/particle/glitter_" + i + ".png");
-        }
-    }
+    private static final float ARM_THICKNESS = 0.3f;
 
     private static final long SEED = 918273645L;
     private static final int STAR_COUNT = 130;
@@ -105,6 +96,10 @@ public final class CraftorioStarfield {
 
         renderHaze(graphics, panX, panY, now);
 
+        Matrix4f matrix = graphics.pose().last().pose();
+        BufferBuilder builder = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION_COLOR);
+        boolean any = false;
+
         for (Star star : stars) {
             double cyclePos = (now + star.phase()) % star.cycleMs();
 
@@ -125,27 +120,50 @@ public final class CraftorioStarfield {
 
             float rawX = star.x() + (float) (panX * star.depth() * PARALLAX_STRENGTH);
             float rawY = star.y() + (float) (panY * star.depth() * PARALLAX_STRENGTH);
-            int x = Math.round(wrap(rawX, width));
-            int y = Math.round(wrap(rawY, height));
-            int size = star.size();
-
-            ResourceLocation frameTexture = GLITTER_FRAMES[frame];
+            float centerX = wrap(rawX, width);
+            float centerY = wrap(rawY, height);
+            float size = star.size();
+            float armLength = size / 2f * (1f + frame / (float) (FRAME_COUNT - 1));
 
             float blurAmount = BASE_BLUR + star.depth() * (1f - BASE_BLUR);
-            int haloSize = Math.round(size * (1f + blurAmount * HALO_SIZE_FACTOR));
+            float haloLength = armLength * (1f + blurAmount * HALO_SIZE_FACTOR);
             float haloAlpha = alpha * blurAmount * HALO_ALPHA_FACTOR;
-            int hx = x - (haloSize - size) / 2;
-            int hy = y - (haloSize - size) / 2;
 
-            graphics.setColor(star.r(), star.g(), star.b(), haloAlpha);
-            graphics.blit(frameTexture, hx, hy, haloSize, haloSize, 0, 0, GLITTER_TEXTURE_SIZE, GLITTER_TEXTURE_SIZE, GLITTER_TEXTURE_SIZE, GLITTER_TEXTURE_SIZE);
-
-            graphics.setColor(star.r(), star.g(), star.b(), alpha);
-            graphics.blit(frameTexture, x, y, size, size, 0, 0, GLITTER_TEXTURE_SIZE, GLITTER_TEXTURE_SIZE, GLITTER_TEXTURE_SIZE, GLITTER_TEXTURE_SIZE);
+            addSparkle(builder, matrix, centerX, centerY, haloLength, haloLength * ARM_THICKNESS * 2f, star, haloAlpha);
+            addSparkle(builder, matrix, centerX, centerY, armLength, Math.max(0.5f, size * ARM_THICKNESS), star, alpha);
+            any = true;
         }
-        graphics.setColor(1f, 1f, 1f, 1f);
-        graphics.bufferSource().endLastBatch();
+
+        if (any) {
+            RenderSystem.disableCull();
+            RenderSystem.enableBlend();
+            RenderSystem.defaultBlendFunc();
+            RenderSystem.setShader(GameRenderer::getPositionColorShader);
+            BufferUploader.drawWithShader(builder.buildOrThrow());
+            RenderSystem.disableBlend();
+        } else {
+            builder.build();
+        }
         graphics.pose().popPose();
+    }
+
+    private static void addSparkle(BufferBuilder builder, Matrix4f matrix, float x, float y, float length, float thickness, Star star, float alpha) {
+        int red = Math.round(star.r() * 255f);
+        int green = Math.round(star.g() * 255f);
+        int blue = Math.round(star.b() * 255f);
+        int alphaByte = Mth.clamp(Math.round(alpha * 255f), 0, 255);
+
+        addDiamond(builder, matrix, x, y, length, thickness, red, green, blue, alphaByte);
+        addDiamond(builder, matrix, x, y, thickness, length, red, green, blue, alphaByte);
+    }
+
+    private static void addDiamond(BufferBuilder builder, Matrix4f matrix, float x, float y, float halfWidth, float halfHeight, int red, int green, int blue, int alpha) {
+        builder.addVertex(matrix, x - halfWidth, y, 0f).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, x, y + halfHeight, 0f).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, x + halfWidth, y, 0f).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, x + halfWidth, y, 0f).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, x, y - halfHeight, 0f).setColor(red, green, blue, alpha);
+        builder.addVertex(matrix, x - halfWidth, y, 0f).setColor(red, green, blue, alpha);
     }
 
     private static void renderHaze(GuiGraphics graphics, double panX, double panY, long now) {

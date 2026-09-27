@@ -10,6 +10,7 @@ import net.minecraft.util.FormattedCharSequence;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 import org.crimsoncrips.craftorio.client.state.ClientContractCreatorDraftState;
 import org.crimsoncrips.craftorio.inventory.ContractCreatorMenu;
 import org.crimsoncrips.craftorio.networking.devtools.ClearContractCreatorGridPacket;
@@ -18,7 +19,7 @@ import org.crimsoncrips.craftorio.networking.devtools.SetContractCreatorViewPack
 
 import java.util.List;
 
-public class ContractCreatorRewardScreen extends AbstractContainerScreen<ContractCreatorMenu> {
+public class ContractCreatorRewardScreen extends AbstractContainerScreen<ContractCreatorMenu> implements ScrollableScreen {
 
     private static final String REWARD_ROLLS_KEY = "contract_reward_rolls";
 

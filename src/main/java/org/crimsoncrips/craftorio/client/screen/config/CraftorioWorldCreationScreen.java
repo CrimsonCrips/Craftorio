@@ -6,11 +6,12 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 import org.crimsoncrips.craftorio.events.ClientEvents;
 import org.crimsoncrips.craftorio.server.config.CraftorioWorldCreationOverrides;
 
 @OnlyIn(Dist.CLIENT)
-public class CraftorioWorldCreationScreen extends Screen {
+public class CraftorioWorldCreationScreen extends Screen implements ScrollableScreen {
 
     private final Screen parent;
 

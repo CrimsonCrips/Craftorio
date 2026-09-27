@@ -6,12 +6,15 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 import org.crimsoncrips.craftorio.events.ClientEvents;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
@@ -22,13 +25,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 @OnlyIn(Dist.CLIENT)
-public class EffectDetailsScreen extends Screen {
+public class EffectDetailsScreen extends Screen implements ScrollableScreen {
 
     private static final int TOP_MARGIN = 40;
     private static final int ICON_SIZE = 24;
     private static final int TAG_COLUMNS = 6;
     private static final int TAG_CELL_SIZE = 24;
     private static final int TAG_ICON_SIZE = 16;
+    private static final ResourceLocation LOAN_SHARK_BADGE = Craftorio.getGuiTexture("loaned.png");
+    private static final int BADGE_SIZE = 14;
 
     private final Screen parent;
     private final CraftorioEffects effect;
@@ -72,13 +77,15 @@ public class EffectDetailsScreen extends Screen {
 
         if (this.effect.getIcon() != null) {
             graphics.blit(this.effect.getIcon(), leftColX - ICON_SIZE / 2, y, 0, 0, ICON_SIZE, ICON_SIZE, ICON_SIZE, ICON_SIZE);
+            if (this.effect.isLoanMarked()) {
+                graphics.blit(LOAN_SHARK_BADGE, leftColX + ICON_SIZE / 2 - BADGE_SIZE, y + ICON_SIZE - BADGE_SIZE, 0, 0, BADGE_SIZE, BADGE_SIZE, BADGE_SIZE, BADGE_SIZE);
+            }
             y += ICON_SIZE + 6;
         }
 
         y = drawLine(graphics, x, y, Component.translatable("misc.craftorio.effect_type_label", effectTypeName()).getString(), 0xFFFFFF);
         y = drawLine(graphics, x, y, effectMultiplierLine(), 0xFFDD55);
-        y = drawLine(graphics, x, y, Component.translatable("misc.craftorio.contract_time_remaining",
-                CraftorioMisc.ticksToTimeString(this.effect.getTime())).getString(), 0xAAAAAA);
+        y = drawLine(graphics, x, y, Component.translatable("misc.craftorio.contract_time_remaining", CraftorioMisc.effectDurationString(this.effect)).getString(), 0xAAAAAA);
 
         if (this.effect instanceof TagMultiplierEffect tagEffect) {
             String tagLine = Component.translatable("misc.craftorio.effect_tag_label",

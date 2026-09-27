@@ -30,6 +30,7 @@ public class AutoValueCondenserBlockEntity extends BlockEntity implements Contai
 
     private NonNullList<ItemStack> items = NonNullList.withSize(CONTAINER_SIZE, ItemStack.EMPTY);
     private UUID ownerId;
+    private boolean condensing;
 
     public AutoValueCondenserBlockEntity(BlockPos pos, BlockState blockState) {
         super(CraftorioBlockEntityTypes.AUTO_VALUE_CONDENSER.get(), pos, blockState);
@@ -59,25 +60,18 @@ public class AutoValueCondenserBlockEntity extends BlockEntity implements Contai
     }
 
     private void checkAutoCondense() {
-        if (level == null || level.isClientSide) return;
+        if (condensing || level == null || level.isClientSide) return;
 
         ItemStack carrier = items.get(CARRIER_SLOT_INDEX);
         if (carrier.isEmpty()) return;
 
         if (!(level.getServer().getPlayerList().getPlayer(ownerId) instanceof ServerPlayer owner)) return;
 
-        BigInteger valueToAdd = BigInteger.ZERO;
-        for (int i = 0; i < MAIN_SLOT_COUNT; i++) {
-            ItemStack stack = items.get(i);
-            if (stack.isEmpty()) continue;
-
-            valueToAdd = valueToAdd.add(CraftorioMisc.checkValue(stack, owner, false));
-            items.set(i, ItemStack.EMPTY);
-        }
-
-        if (valueToAdd.compareTo(BigInteger.ZERO) > 0) {
-            BigInteger existing = carrier.get(CraftorioDataComponents.CONDENSED_VALUE);
-            carrier.set(CraftorioDataComponents.CONDENSED_VALUE, (existing != null ? existing : BigInteger.ZERO).add(valueToAdd));
+        condensing = true;
+        try {
+            CraftorioMisc.condenseIntoCarrier(this, 0, MAIN_SLOT_COUNT, carrier, owner);
+        } finally {
+            condensing = false;
         }
     }
 

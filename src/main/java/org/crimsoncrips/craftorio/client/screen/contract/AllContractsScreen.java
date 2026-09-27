@@ -8,12 +8,13 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 
 import java.util.Comparator;
 import java.util.List;
 
-public class AllContractsScreen extends Screen {
+public class AllContractsScreen extends Screen implements ScrollableScreen {
 
     private static final int TOP_MARGIN = 40;
     private static final int BOTTOM_MARGIN = 40;

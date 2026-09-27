@@ -18,6 +18,7 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 import org.crimsoncrips.craftorio.client.screen.devtools.DevToolsHelpPanel;
 import org.crimsoncrips.craftorio.client.screen.devtools.DevToolsPickerScreen;
 import org.crimsoncrips.craftorio.client.screen.devtools.DevToolsScreen;
@@ -38,7 +39,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @OnlyIn(Dist.CLIENT)
-public class ContractCreatorCardScreen extends Screen implements MenuAccess<ContractCreatorMenu> {
+public class ContractCreatorCardScreen extends Screen implements MenuAccess<ContractCreatorMenu>, ScrollableScreen {
 
     private enum Region {
         TITLE(24, 17, 100, 12, "dev_tools_contract_region_title", false, ContractCreatorDraft.TITLE_COLOR, 0xA9A9A9),

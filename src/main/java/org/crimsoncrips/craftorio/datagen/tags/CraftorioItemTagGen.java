@@ -99,7 +99,9 @@ public class CraftorioItemTagGen extends ItemTagsProvider {
 				CraftorioItems.EFFECT_RUNE.get(),
 				CraftorioItems.MYSTERY_EFFECT_RUNE.get(),
 				Items.WRITTEN_BOOK,
-				CraftorioItems.SCANNER_STICK.get()
+				CraftorioItems.SCANNER_STICK.get(),
+				CraftorioItems.STRUCTURE_WAND.get(),
+				CraftorioItems.CHRONOSPHERE_STICK.get()
 		);
 
 		tag(FROGLIGHT).add(

@@ -22,9 +22,22 @@ public class ShopMultiplierEffect extends CraftorioEffects {
                     Codec.INT.fieldOf("seconds").forGetter(effect -> effect.getTime() / CraftorioMisc.SECONDS_TO_TICKS),
                     ResourceLocation.CODEC.optionalFieldOf("icon").forGetter(effect -> Optional.ofNullable(effect.getIcon())),
                     Codec.INT.optionalFieldOf("weight", 1).forGetter(ShopMultiplierEffect::getWeight),
-                    Codec.BOOL.optionalFieldOf("unobtainable", false).forGetter(ShopMultiplierEffect::isUnobtainable)
-            ).apply(instance, (multiplier, name, seconds, icon, weight, unobtainable) ->
-                    new ShopMultiplierEffect(multiplier, name, seconds, icon.orElse(null), weight, unobtainable))
+                    Codec.BOOL.optionalFieldOf("unobtainable", false).forGetter(ShopMultiplierEffect::isUnobtainable),
+                    Codec.BOOL.optionalFieldOf("loan_marked", false).forGetter(ShopMultiplierEffect::isLoanMarked)
+            ).apply(instance, (multiplier, name, seconds, icon, weight, unobtainable, loanMarked) -> {
+                    ShopMultiplierEffect effect = new ShopMultiplierEffect(multiplier, name, seconds, icon.orElse(null), weight, unobtainable);
+                    effect.setLoanMarked(loanMarked);
+                    return effect;
+            })
+    );
+
+    private record WeightFlags(int weight, boolean unobtainable, boolean loanMarked) {}
+
+    private static final StreamCodec<ByteBuf, WeightFlags> WEIGHT_FLAGS_STREAM = StreamCodec.composite(
+            ByteBufCodecs.INT, WeightFlags::weight,
+            ByteBufCodecs.BOOL, WeightFlags::unobtainable,
+            ByteBufCodecs.BOOL, WeightFlags::loanMarked,
+            WeightFlags::new
     );
 
     public static final StreamCodec<ByteBuf, ShopMultiplierEffect> CODEC_STREAM = StreamCodec.composite(
@@ -32,11 +45,11 @@ public class ShopMultiplierEffect extends CraftorioEffects {
             ByteBufCodecs.STRING_UTF8, ShopMultiplierEffect::getNameKey,
             ByteBufCodecs.INT, ShopMultiplierEffect::getTime,
             ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC), effect -> Optional.ofNullable(effect.getIcon()),
-            ByteBufCodecs.INT, ShopMultiplierEffect::getWeight,
-            ByteBufCodecs.BOOL, ShopMultiplierEffect::isUnobtainable,
-            (multiplier, name, time, icon, weight, unobtainable) -> {
-                ShopMultiplierEffect effect = new ShopMultiplierEffect(multiplier, name, time / CraftorioMisc.SECONDS_TO_TICKS, icon.orElse(null), weight, unobtainable);
+            WEIGHT_FLAGS_STREAM, effect -> new WeightFlags(effect.getWeight(), effect.isUnobtainable(), effect.isLoanMarked()),
+            (multiplier, name, time, icon, flags) -> {
+                ShopMultiplierEffect effect = new ShopMultiplierEffect(multiplier, name, time / CraftorioMisc.SECONDS_TO_TICKS, icon.orElse(null), flags.weight(), flags.unobtainable());
                 effect.setTime(time);
+                effect.setLoanMarked(flags.loanMarked());
                 return effect;
             }
     );
@@ -68,6 +81,7 @@ public class ShopMultiplierEffect extends CraftorioEffects {
     public ShopMultiplierEffect copy() {
         ShopMultiplierEffect copy = new ShopMultiplierEffect(getMultiplier(), getNameKey(), getTime() / CraftorioMisc.SECONDS_TO_TICKS, getIcon(), getWeight(), isUnobtainable());
         copy.setTime(getTime());
+        copy.setLoanMarked(isLoanMarked());
         return copy;
     }
 

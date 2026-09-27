@@ -17,6 +17,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 import org.crimsoncrips.craftorio.datagen.tags.CraftorioItemTagGen;
 import org.crimsoncrips.craftorio.inventory.SinkerMenu;
 import org.crimsoncrips.craftorio.networking.sink.CashOutDoubleOrNothingPacket;
@@ -29,7 +30,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
 
-public class SinkScreen extends AbstractContainerScreen<SinkerMenu>{
+public class SinkScreen extends AbstractContainerScreen<SinkerMenu> implements ScrollableScreen {
 
 	private static final ResourceLocation GOLD_INGOT_TEXTURE = ResourceLocation.fromNamespaceAndPath("minecraft", "textures/item/gold_ingot.png");
 

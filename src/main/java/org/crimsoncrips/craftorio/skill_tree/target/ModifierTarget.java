@@ -17,5 +17,6 @@ public enum ModifierTarget {
     MULT_PER_CONTRACT_DONE,
     BET_ODDS,
     BET_BONUS,
-    MANUAL_SINK_VALUE
+    MANUAL_SINK_VALUE,
+    VALUE_CONDENSER_CAP
 }

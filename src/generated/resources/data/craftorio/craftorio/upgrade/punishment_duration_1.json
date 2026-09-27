@@ -6,9 +6,9 @@
   "icon": "craftorio:textures/gui/default_icon.png",
   "max_purchases": 1,
   "name": "misc.craftorio.upgrade_punishment_duration_1",
-  "operation": "MULTIPLY",
+  "operation": "DIVIDE",
   "target": "PUNISHMENT_DURATION",
-  "value": -0.25,
+  "value": 0.3333,
   "x": 593.1775187094652,
   "y": 277.03869049792115
 }

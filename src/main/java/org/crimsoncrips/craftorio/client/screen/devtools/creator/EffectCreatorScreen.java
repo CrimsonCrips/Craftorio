@@ -12,6 +12,8 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
+import org.crimsoncrips.craftorio.client.screen.devtools.DevToolsDropdown;
 import org.crimsoncrips.craftorio.client.screen.devtools.DevToolsHelpPanel;
 import org.crimsoncrips.craftorio.client.screen.devtools.DevToolsPickerScreen;
 import org.crimsoncrips.craftorio.client.screen.devtools.DevToolsTimeConverterPanel;
@@ -25,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @OnlyIn(Dist.CLIENT)
-public class EffectCreatorScreen extends Screen {
+public class EffectCreatorScreen extends Screen implements ScrollableScreen {
 
     private static final String[] TYPES = {"general", "shop", "tag"};
 
@@ -39,7 +41,8 @@ public class EffectCreatorScreen extends Screen {
     private final int panelHeight = 344;
 
     private int typeIndex = 0;
-    private Button typeButton;
+    private DevToolsDropdown typeDropdown;
+    private final List<DevToolsDropdown> dropdowns = new ArrayList<>();
 
     private EditBox idBox;
     private EditBox modIdBox;
@@ -78,11 +81,14 @@ public class EffectCreatorScreen extends Screen {
         int y = panelTop + 24;
         int rowHeight = 22;
 
-        this.typeButton = Button.builder(Component.literal(TYPES[typeIndex]), b -> {
-            typeIndex = (typeIndex + 1) % TYPES.length;
-            typeButton.setMessage(Component.literal(TYPES[typeIndex]));
-        }).bounds(fieldX, y, fieldWidth, 16).build();
-        this.addRenderableWidget(this.typeButton);
+        this.dropdowns.clear();
+        List<Component> typeLabels = new ArrayList<>();
+        for (String type : TYPES) {
+            typeLabels.add(Component.literal(type));
+        }
+        this.typeDropdown = new DevToolsDropdown(this.font, fieldX, y, fieldWidth, 16, typeLabels, typeIndex, index -> typeIndex = index);
+        this.dropdowns.add(this.typeDropdown);
+        this.addRenderableWidget(this.typeDropdown);
         y += rowHeight;
 
         this.idBox = new EditBox(this.font, fieldX, y, fieldWidth, 16, Component.literal("id"));
@@ -244,6 +250,12 @@ public class EffectCreatorScreen extends Screen {
     }
 
     @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (DevToolsDropdown.handleClicks(this.dropdowns, mouseX, mouseY)) return true;
+        return super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
         guiGraphics.fill(panelLeft, panelTop, panelLeft + panelWidth, panelTop + panelHeight, 0xE0202020);
         guiGraphics.renderOutline(panelLeft, panelTop, panelWidth, panelHeight, 0xFF808080);
@@ -269,6 +281,7 @@ public class EffectCreatorScreen extends Screen {
         this.timeConverterPanel.updateAndRender(guiGraphics, this.width, 54);
 
         super.render(guiGraphics, mouseX, mouseY, partialTick);
+        DevToolsDropdown.renderAll(this.dropdowns, guiGraphics, mouseX, mouseY, this.width, this.height);
 
         CraftorioMisc.CraftorioTextEffects.drawEditBoxHint(guiGraphics, this.font, this.idBox, "e.g. my_effect");
         CraftorioMisc.CraftorioTextEffects.drawEditBoxHint(guiGraphics, this.font, this.modIdBox, "e.g. yourmodid");

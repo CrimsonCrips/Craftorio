@@ -16,9 +16,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Stream;
+import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 
 @OnlyIn(Dist.CLIENT)
-public abstract class CatalogScreen<T> extends Screen {
+public abstract class CatalogScreen<T> extends Screen implements ScrollableScreen {
 
     protected static final int MAX_COLS = 9;
     protected static final int MAX_ROWS = 16;
@@ -67,9 +68,14 @@ public abstract class CatalogScreen<T> extends Screen {
 
     protected void renderHeader(GuiGraphics guiGraphics, int centerX) {}
 
+    protected boolean isEntryVisible(T entry) {
+        return true;
+    }
+
     protected void updateFiltered() {
         String query = this.searchQuery.strip().toLowerCase(Locale.ROOT);
-        List<T> full = buildCatalog();
+        List<T> full = new ArrayList<>(buildCatalog());
+        full.removeIf(entry -> !isEntryVisible(entry));
 
         if (query.isEmpty()) {
             this.filtered = full;
@@ -136,6 +142,10 @@ public abstract class CatalogScreen<T> extends Screen {
 
     private void onSearchChanged(String value) {
         this.searchQuery = value;
+        this.refreshCatalog();
+    }
+
+    protected void refreshCatalog() {
         this.page = 0;
         this.updateFiltered();
         this.refreshWidgets();

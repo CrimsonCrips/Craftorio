@@ -9,14 +9,19 @@
     "CraftorioEntityMixin",
     "CraftorioGamePacketListenerMixin",
     "CraftorioGuiMapMixin",
+    "CraftorioRaidMixin",
     "CraftorioRegionFileMixin",
     "CraftorioServerLevelMixin"
   ],
   "client": [
     "CraftorioBossHealthOverlayMixin",
     "CraftorioChatComponentMixin",
+    "CraftorioGuiGraphicsMixin",
+    "CraftorioMouseHandlerMixin",
     "CraftorioMultiPlayerGameModeMixin",
-    "CraftorioJadeOverlayMixin"
+    "CraftorioJadeOverlayMixin",
+    "CraftorioScreenMixin",
+    "CraftorioTitleScreenAccessor"
   ],
   "injectors": {
     "defaultRequire": 1

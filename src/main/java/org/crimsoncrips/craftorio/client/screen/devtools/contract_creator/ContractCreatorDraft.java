@@ -9,6 +9,7 @@ import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.client.state.ClientContractCreatorDraftState;
 import org.crimsoncrips.craftorio.networking.devtools.GenerateContractCodePacket;
 import org.crimsoncrips.craftorio.registries.contract.ContractTextColors;
+import org.crimsoncrips.craftorio.registries.contract.ContractType;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContractItemReward;
 
@@ -35,6 +36,8 @@ public final class ContractCreatorDraft {
     public static final String TIME_COLOR = "contract_time_color";
     public static final String DESCRIPTION_COLOR = "contract_description_color";
     public static final String PUNISHMENT_COLOR = "contract_punishment_color";
+    public static final String TYPE = "contract_type";
+    public static final String STRUCTURE = "contract_structure";
 
     private ContractCreatorDraft() {}
 
@@ -44,6 +47,13 @@ public final class ContractCreatorDraft {
 
     public static void set(String key, String value) {
         ClientContractCreatorDraftState.set(key, value);
+    }
+
+    public static ContractType type() {
+        for (ContractType type : ContractType.values()) {
+            if (type.getSerializedName().equals(get(TYPE))) return type;
+        }
+        return ContractType.SINK;
     }
 
     public static boolean jsonExport() {
@@ -75,6 +85,9 @@ public final class ContractCreatorDraft {
         set(DESCRIPTION_COLOR, hex(colors.description()));
         set(PUNISHMENT_COLOR, hex(colors.punishment()));
 
+        set(TYPE, contract.getType().getSerializedName());
+        set(STRUCTURE, contract.getGoal().structure().map(ResourceLocation::toString).orElse(""));
+
         int rolls = contract.getRewards().stream().mapToInt(CraftorioContractItemReward::getRandomEffectCount).max().orElse(0);
         ContractCreatorRewardScreen.setRewardRollsValue(String.valueOf(rolls));
     }
@@ -105,7 +118,9 @@ public final class ContractCreatorDraft {
                 get(TITLE_COLOR),
                 get(TIME_COLOR),
                 get(DESCRIPTION_COLOR),
-                get(PUNISHMENT_COLOR)
+                get(PUNISHMENT_COLOR),
+                type().name(),
+                get(STRUCTURE)
         ));
     }
 }

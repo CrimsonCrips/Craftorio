@@ -19,6 +19,7 @@ import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -33,6 +34,7 @@ import net.minecraft.world.level.chunk.ChunkAccess;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.crimsoncrips.craftorio.client.state.ClientLoanState;
 import org.crimsoncrips.craftorio.client.state.ClientUniversalState;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
 import org.crimsoncrips.craftorio.events.ServerEvents;
@@ -42,6 +44,7 @@ import org.crimsoncrips.craftorio.registries.CraftorioDimensions;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 import org.crimsoncrips.craftorio.registries.effect.*;
 import org.crimsoncrips.craftorio.server.advancement.CraftorioPointsAdvancements;
+import org.crimsoncrips.craftorio.server.schematic.CraftorioSchematics;
 import org.crimsoncrips.craftorio.server.border.CraftorioBorder;
 import org.crimsoncrips.craftorio.server.data.CraftorioDataAttachments;
 import org.crimsoncrips.craftorio.server.sacrifice.CraftorioWipeAreas;
@@ -50,6 +53,7 @@ import org.crimsoncrips.craftorio.skill_tree.target.AttributeTarget;
 import org.crimsoncrips.craftorio.skill_tree.target.ModifierTarget;
 import org.crimsoncrips.craftorio.skill_tree.target.UpgradeOperation;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioAttributeUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioDifficultyUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioModifierUpgrade;
 
 import java.awt.*;
@@ -540,6 +544,70 @@ public class CraftorioMisc {
         }
     }
 
+    public static BigInteger getLoanOwed(Player player){
+        Level level = universalLevel(player);
+        if (universalBased(level)){
+            if (level.isClientSide() && ClientLoanState.isAvailable()) {
+                return ClientLoanState.getOwed();
+            }
+            return level.getData(CraftorioDataAttachments.LOAN_OWED);
+        } else {
+            return player.getData(CraftorioDataAttachments.LOAN_OWED);
+        }
+    }
+
+    public static void setLoanOwed(BigInteger owed, Player player){
+        Level level = universalLevel(player);
+        if (universalBased(level)) {
+            level.setData(CraftorioDataAttachments.LOAN_OWED, owed);
+        } else {
+            player.setData(CraftorioDataAttachments.LOAN_OWED, owed);
+        }
+    }
+
+    public static BigInteger getLoanBorrowed(Player player){
+        Level level = universalLevel(player);
+        if (universalBased(level)){
+            if (level.isClientSide() && ClientLoanState.isAvailable()) {
+                return ClientLoanState.getBorrowed();
+            }
+            return level.getData(CraftorioDataAttachments.LOAN_BORROWED);
+        } else {
+            return player.getData(CraftorioDataAttachments.LOAN_BORROWED);
+        }
+    }
+
+    public static void setLoanBorrowed(BigInteger borrowed, Player player){
+        Level level = universalLevel(player);
+        if (universalBased(level)) {
+            level.setData(CraftorioDataAttachments.LOAN_BORROWED, borrowed);
+        } else {
+            player.setData(CraftorioDataAttachments.LOAN_BORROWED, borrowed);
+        }
+    }
+
+    public static boolean isLoanSacrificed(Player player){
+        Level level = universalLevel(player);
+        if (universalBased(level)){
+            if (level.isClientSide() && ClientLoanState.isAvailable()) {
+                return ClientLoanState.isSacrificed();
+            }
+            return level.getData(CraftorioDataAttachments.LOAN_SACRIFICED);
+        } else {
+            return player.getData(CraftorioDataAttachments.LOAN_SACRIFICED);
+        }
+    }
+
+    public static void setLoanSacrificed(boolean sacrificed, Player player){
+        Level level = universalLevel(player);
+        if (universalBased(level)) {
+            level.setData(CraftorioDataAttachments.LOAN_SACRIFICED, sacrificed);
+        } else {
+            player.setData(CraftorioDataAttachments.LOAN_SACRIFICED, sacrificed);
+        }
+    }
+
+
     public static int getLife(Player player){
         Level level = universalLevel(player);
         if (universalBased(level)){
@@ -571,20 +639,29 @@ public class CraftorioMisc {
 
     private static double sumModifierUpgrades(Player player, ModifierTarget target, UpgradeOperation operation, ItemStack contextStack){
         RegistryAccess registryAccess = player.level().registryAccess();
+        Difficulty difficulty = player.level().getDifficulty();
 
-        double sum = 0;
-        sum += sumModifierUpgradesFrom(registryAccess.registryOrThrow(CraftorioUpgrade.REGISTRY_KEY), getUpgradePurchaseCounts(player), target, operation, contextStack);
-        sum += sumModifierUpgradesFrom(registryAccess.registryOrThrow(CraftorioUpgrade.REBIRTH_REGISTRY_KEY), getRebirthUpgradePurchaseCounts(player), target, operation, contextStack);
-        sum += sumModifierUpgradesFrom(registryAccess.registryOrThrow(CraftorioUpgrade.SACRIFICE_REGISTRY_KEY), getSacrificeUpgradePurchaseCounts(player), target, operation, contextStack);
-        return sum;
+        double[] totals = new double[UpgradeOperation.values().length];
+        accumulateModifierUpgrades(registryAccess.registryOrThrow(CraftorioUpgrade.REGISTRY_KEY), getUpgradePurchaseCounts(player), target, contextStack, difficulty, totals);
+        accumulateModifierUpgrades(registryAccess.registryOrThrow(CraftorioUpgrade.REBIRTH_REGISTRY_KEY), getRebirthUpgradePurchaseCounts(player), target, contextStack, difficulty, totals);
+        accumulateModifierUpgrades(registryAccess.registryOrThrow(CraftorioUpgrade.SACRIFICE_REGISTRY_KEY), getSacrificeUpgradePurchaseCounts(player), target, contextStack, difficulty, totals);
+        return UpgradeOperation.net(operation, totals[UpgradeOperation.ADD.ordinal()], totals[UpgradeOperation.SUBTRACT.ordinal()],
+                totals[UpgradeOperation.MULTIPLY.ordinal()], totals[UpgradeOperation.DIVIDE.ordinal()]);
     }
 
-    private static double sumModifierUpgradesFrom(Registry<CraftorioUpgrade> registry, Map<ResourceLocation, Integer> purchaseCounts, ModifierTarget target, UpgradeOperation operation, ItemStack contextStack){
-        double sum = 0;
+    private static void accumulateModifierUpgrades(Registry<CraftorioUpgrade> registry, Map<ResourceLocation, Integer> purchaseCounts, ModifierTarget target, ItemStack contextStack, Difficulty difficulty, double[] totals){
         for (Map.Entry<ResourceLocation, Integer> entry : purchaseCounts.entrySet()) {
             CraftorioUpgrade upgrade = registry.get(entry.getKey());
+
+            if (upgrade instanceof CraftorioDifficultyUpgrade difficultyUpgrade) {
+                if (difficultyUpgrade.getTarget() == target) {
+                    totals[difficultyUpgrade.getOperation().ordinal()] += difficultyUpgrade.valueFor(difficulty) * entry.getValue();
+                }
+                continue;
+            }
+
             if (!(upgrade instanceof CraftorioModifierUpgrade modifierUpgrade)) continue;
-            if (modifierUpgrade.getTarget() != target || modifierUpgrade.getOperation() != operation) continue;
+            if (modifierUpgrade.getTarget() != target) continue;
 
             if (target == ModifierTarget.ITEM_TAG_BASE_VALUE) {
                 if (contextStack == null) continue;
@@ -592,9 +669,8 @@ public class CraftorioMisc {
                 if (tag.isEmpty() || !contextStack.is(tag.get())) continue;
             }
 
-            sum += modifierUpgrade.getValue() * entry.getValue();
+            totals[modifierUpgrade.getOperation().ordinal()] += modifierUpgrade.getValue() * entry.getValue();
         }
-        return sum;
     }
 
     public static double applyUpgradeModifier(Player player, ModifierTarget target, double baseValue){
@@ -618,24 +694,21 @@ public class CraftorioMisc {
     public static double getXpGainModifierSum(Player player, UpgradeOperation operation){
         RegistryAccess registryAccess = player.level().registryAccess();
 
-        double sum = 0;
-        sum += sumXpGainUpgradesFrom(registryAccess.registryOrThrow(CraftorioUpgrade.REGISTRY_KEY), getUpgradePurchaseCounts(player), operation);
-        sum += sumXpGainUpgradesFrom(registryAccess.registryOrThrow(CraftorioUpgrade.REBIRTH_REGISTRY_KEY), getRebirthUpgradePurchaseCounts(player), operation);
-        sum += sumXpGainUpgradesFrom(registryAccess.registryOrThrow(CraftorioUpgrade.SACRIFICE_REGISTRY_KEY), getSacrificeUpgradePurchaseCounts(player), operation);
-        return sum;
+        double[] totals = new double[UpgradeOperation.values().length];
+        accumulateXpGainUpgrades(registryAccess.registryOrThrow(CraftorioUpgrade.REGISTRY_KEY), getUpgradePurchaseCounts(player), totals);
+        accumulateXpGainUpgrades(registryAccess.registryOrThrow(CraftorioUpgrade.REBIRTH_REGISTRY_KEY), getRebirthUpgradePurchaseCounts(player), totals);
+        accumulateXpGainUpgrades(registryAccess.registryOrThrow(CraftorioUpgrade.SACRIFICE_REGISTRY_KEY), getSacrificeUpgradePurchaseCounts(player), totals);
+        return UpgradeOperation.net(operation, totals[UpgradeOperation.ADD.ordinal()], totals[UpgradeOperation.SUBTRACT.ordinal()],
+                totals[UpgradeOperation.MULTIPLY.ordinal()], totals[UpgradeOperation.DIVIDE.ordinal()]);
     }
 
-    private static double sumXpGainUpgradesFrom(Registry<CraftorioUpgrade> registry, Map<ResourceLocation, Integer> purchaseCounts, UpgradeOperation operation){
-        double sum = 0;
+    private static void accumulateXpGainUpgrades(Registry<CraftorioUpgrade> registry, Map<ResourceLocation, Integer> purchaseCounts, double[] totals){
         for (Map.Entry<ResourceLocation, Integer> entry : purchaseCounts.entrySet()) {
             CraftorioUpgrade upgrade = registry.get(entry.getKey());
-            if (upgrade instanceof CraftorioAttributeUpgrade attributeUpgrade
-                    && attributeUpgrade.getTarget() == AttributeTarget.XP_GAIN
-                    && attributeUpgrade.getOperation() == operation) {
-                sum += attributeUpgrade.getValue() * entry.getValue();
+            if (upgrade instanceof CraftorioAttributeUpgrade attributeUpgrade && attributeUpgrade.getTarget() == AttributeTarget.XP_GAIN) {
+                totals[attributeUpgrade.getOperation().ordinal()] += attributeUpgrade.getValue() * entry.getValue();
             }
         }
-        return sum;
     }
 
     public static int applySpeedUpgrade(Player player, ModifierTarget target, int baseTicks){
@@ -765,6 +838,68 @@ public class CraftorioMisc {
         }
         String mantissa = significant.length() == 1 ? significant : significant.charAt(0) + "." + significant.substring(1);
         return sign + mantissa + "e" + (digits.length() - 1);
+    }
+
+    public static BigInteger valueCondenserBaseCap(){
+        try {
+            return new BigDecimal(Craftorio.SERVER_CONFIG.VALUE_CONDENSER_CAP.get().trim()).toBigInteger().max(BigInteger.ZERO);
+        } catch (Exception e){
+            Craftorio.LOGGER.debug("INCORRECT INPUT FOR VALUE_CONDENSER_CAP IN Craftorio Server Config");
+            return new BigInteger("1000000000000");
+        }
+    }
+
+    public static BigInteger valueCondenserCap(Player player){
+        return applyUpgradeModifier(player, ModifierTarget.VALUE_CONDENSER_CAP, new BigDecimal(valueCondenserBaseCap())).max(BigInteger.ZERO);
+    }
+
+    public static boolean condenseIntoCarrier(net.minecraft.world.Container container, int firstSlot, int lastSlotExclusive, ItemStack carrier, Player owner){
+        BigInteger cap = valueCondenserCap(owner);
+        BigInteger existing = carrier.getOrDefault(CraftorioDataComponents.CONDENSED_VALUE, BigInteger.ZERO);
+        BigInteger current = existing;
+        boolean capped = false;
+
+        for (int i = firstSlot; i < lastSlotExclusive; i++) {
+            ItemStack stack = container.getItem(i);
+            if (stack.isEmpty()) continue;
+
+            BigInteger total = checkValue(stack, owner, false);
+            if (total.signum() <= 0) {
+                container.setItem(i, ItemStack.EMPTY);
+                continue;
+            }
+
+            BigInteger remaining = cap.subtract(current);
+            if (remaining.signum() <= 0) {
+                capped = true;
+                continue;
+            }
+
+            if (total.compareTo(remaining) <= 0) {
+                current = current.add(total);
+                container.setItem(i, ItemStack.EMPTY);
+                continue;
+            }
+
+            BigInteger perItem = total.divide(BigInteger.valueOf(stack.getCount()));
+            capped = true;
+            if (perItem.signum() <= 0) continue;
+
+            BigInteger fits = remaining.divide(perItem).min(BigInteger.valueOf(stack.getCount()));
+            int amount = fits.intValue();
+            if (amount <= 0) continue;
+
+            current = current.add(perItem.multiply(fits));
+            stack.shrink(amount);
+            if (stack.isEmpty()) {
+                container.setItem(i, ItemStack.EMPTY);
+            }
+        }
+
+        if (current.compareTo(existing) > 0) {
+            carrier.set(CraftorioDataComponents.CONDENSED_VALUE, current);
+        }
+        return capped;
     }
 
     public static BigInteger pointThreshold(){
@@ -1365,18 +1500,59 @@ public class CraftorioMisc {
     public static void grantContract(Player player, ResourceLocation id) {
         getContractTemplate(player.level(), id).ifPresentOrElse(template -> {
             List<CraftorioContract> playerContract = new ArrayList<>(getCraftorioContracts(player));
-            playerContract.add(template.copy());
+            CraftorioContract granted = template.copy();
+            CraftorioSchematics.prepareContract(granted);
+            if (player instanceof ServerPlayer serverPlayer) {
+                CraftorioSchematics.giveSchematic(serverPlayer, granted, id);
+            }
+            playerContract.add(granted);
             setCraftorioContracts(player,playerContract);
         }, () -> Craftorio.LOGGER.warn("Tried to grant unknown contract {} to {}", id, player.getName().getString()));
     }
 
     public static void grantEffect(Player player, ResourceLocation id) {
         Registry<CraftorioEffects> registry = player.level().registryAccess().registryOrThrow(CraftorioEffects.REGISTRY_KEY);
-        registry.getOptional(id).ifPresent(effect -> grantEffect(player, effect));
+        registry.getOptional(id).ifPresent(effect -> grantEffect(player, effect.copy()));
     }
 
     public static void grantEffect(Player player, CraftorioEffects effect) {
         grantEffect(player, effect, false);
+    }
+
+    public static void grantLoanEffect(Player player, CraftorioEffects effect) {
+        effect.setLoanMarked(true);
+        effect.setTime(Integer.MAX_VALUE);
+
+        if (effect instanceof TagMultiplierEffect tagEffect) {
+            List<TagMultiplierEffect> list = new ArrayList<>(getTagEffects(player));
+            list.add(tagEffect);
+            setTagEffects(player, list);
+        } else if (effect instanceof GeneralMultiplierEffect generalEffect) {
+            List<GeneralMultiplierEffect> list = new ArrayList<>(getGeneralEffects(player));
+            list.add(generalEffect);
+            setGeneralEffects(player, list);
+        } else if (effect instanceof ShopMultiplierEffect shopEffect) {
+            List<ShopMultiplierEffect> list = new ArrayList<>(getShopEffects(player));
+            list.add(shopEffect);
+            setShopEffects(player, list);
+        }
+    }
+
+    public static void removeLoanMarkedEffects(Player player) {
+        List<TagMultiplierEffect> tagEffects = new ArrayList<>(getTagEffects(player));
+        if (tagEffects.removeIf(CraftorioEffects::isLoanMarked)) {
+            setTagEffects(player, tagEffects);
+        }
+
+        List<GeneralMultiplierEffect> generalEffects = new ArrayList<>(getGeneralEffects(player));
+        if (generalEffects.removeIf(CraftorioEffects::isLoanMarked)) {
+            setGeneralEffects(player, generalEffects);
+        }
+
+        List<ShopMultiplierEffect> shopEffects = new ArrayList<>(getShopEffects(player));
+        if (shopEffects.removeIf(CraftorioEffects::isLoanMarked)) {
+            setShopEffects(player, shopEffects);
+        }
     }
 
     public static void grantEffect(Player player, CraftorioEffects effect, boolean isPunishment) {
@@ -1410,6 +1586,10 @@ public class CraftorioMisc {
                 PacketDistributor.sendToPlayer(serverPlayer, new PunishmentToastPacket(message));
             }
         });
+    }
+
+    public static String effectDurationString(CraftorioEffects effect) {
+        return effect.isLoanMarked() ? "∞" : ticksToTimeString(effect.getTime());
     }
 
     public static String ticksToTimeString(int ticks) {
@@ -1500,6 +1680,17 @@ public class CraftorioMisc {
             level.setData(CONTRACTS,contracts);
         } else {
             player.setData(CONTRACTS,contracts);
+        }
+    }
+
+    public static void refreshContracts(Player player){
+        if (player.level().isClientSide()) return;
+
+        setCraftorioContracts(player, new ArrayList<>(getCraftorioContracts(player)));
+        if (player.getServer() != null && universalBased(universalLevel(player))) {
+            for (ServerPlayer online : player.getServer().getPlayerList().getPlayers()) {
+                ServerEvents.syncUniversalState(online);
+            }
         }
     }
 

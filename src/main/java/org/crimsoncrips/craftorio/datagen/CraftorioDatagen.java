@@ -13,6 +13,7 @@ import net.neoforged.neoforge.data.event.GatherDataEvent;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.datagen.advancement.CraftorioAdvancementProvider;
 import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioContractBootstrap;
+import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioDamageTypeBootstrap;
 import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioDefaultContractTextureBootstrap;
 import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioEffectBootstrap;
 import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioHavenDimensionBootstrap;
@@ -24,6 +25,7 @@ import org.crimsoncrips.craftorio.datagen.loot.CraftorioLootModifierProvider;
 import org.crimsoncrips.craftorio.datagen.maps.points.CraftorioPointsDeterminer;
 import org.crimsoncrips.craftorio.datagen.recipe.CraftorioRecipeGenerator;
 import org.crimsoncrips.craftorio.datagen.tags.CraftorioBlockTagGen;
+import org.crimsoncrips.craftorio.datagen.tags.CraftorioDamageTypeTagGen;
 import org.crimsoncrips.craftorio.datagen.tags.CraftorioItemTagGen;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContractTexture;
@@ -48,6 +50,7 @@ public class CraftorioDatagen {
         generator.addProvider(event.includeServer(), blocktags);
         generator.addProvider(event.includeServer(), new CraftorioItemTagGen(output, provider, blocktags.contentsGetter(), helper));
         generator.addProvider(event.includeServer(), new CraftorioPointsDeterminer(output, provider));
+        generator.addProvider(event.includeServer(), new CraftorioLoanEffectProvider(output));
         generator.addProvider(event.includeServer(), new CraftorioLootModifierProvider(output, provider));
         generator.addProvider(event.includeServer(), new CraftorioRecipeGenerator(output, provider));
         generator.addProvider(event.includeServer(), new AdvancementProvider(output, provider, helper, List.of(new CraftorioAdvancementProvider())));
@@ -64,10 +67,11 @@ public class CraftorioDatagen {
                 .add(CraftorioUpgrade.SACRIFICE_REGISTRY_KEY, CraftorioSacrificeUpgradeBootstrap::bootstrap)
                 .add(Registries.BIOME, CraftorioHavenDimensionBootstrap::bootstrapBiome)
                 .add(Registries.DIMENSION_TYPE, CraftorioHavenDimensionBootstrap::bootstrapDimensionType)
-                .add(Registries.LEVEL_STEM, CraftorioHavenDimensionBootstrap::bootstrapLevelStem);
+                .add(Registries.LEVEL_STEM, CraftorioHavenDimensionBootstrap::bootstrapLevelStem)
+                .add(Registries.DAMAGE_TYPE, CraftorioDamageTypeBootstrap::bootstrap);
 
-        generator.addProvider(event.includeServer(),
-                new DatapackBuiltinEntriesProvider(output, provider, registryBuilder, Set.of(Craftorio.MODID)));
-
+        DatapackBuiltinEntriesProvider datapackEntries = new DatapackBuiltinEntriesProvider(output, provider, registryBuilder, Set.of(Craftorio.MODID));
+        generator.addProvider(event.includeServer(), datapackEntries);
+        generator.addProvider(event.includeServer(), new CraftorioDamageTypeTagGen(output, datapackEntries.getRegistryProvider(), helper));
     }
 }

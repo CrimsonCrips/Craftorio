@@ -280,6 +280,22 @@ public class CraftorioDataAttachments {
             "sacrifice_cooldown_until", () -> AttachmentType.builder(() -> 0L).serialize(Codec.LONG).copyOnDeath().build()
     );
 
+    public static final Supplier<AttachmentType<BigInteger>> LOAN_OWED = ATTACHMENT_TYPES.register(
+            "loan_owed", () -> AttachmentType.builder(() -> BigInteger.ZERO).serialize(BIGINT_CODEC()).copyOnDeath().sync(ByteBufCodecs.fromCodec(BIGINT_CODEC())).build()
+    );
+
+    public static final Supplier<AttachmentType<BigInteger>> LOAN_BORROWED = ATTACHMENT_TYPES.register(
+            "loan_borrowed", () -> AttachmentType.builder(() -> BigInteger.ZERO).serialize(BIGINT_CODEC()).copyOnDeath().sync(ByteBufCodecs.fromCodec(BIGINT_CODEC())).build()
+    );
+
+    public static final Supplier<AttachmentType<Boolean>> LOAN_SACRIFICED = ATTACHMENT_TYPES.register(
+            "loan_sacrificed", () -> AttachmentType.builder(() -> false).serialize(Codec.BOOL).copyOnDeath().sync(ByteBufCodecs.BOOL).build()
+    );
+
+    public static final Supplier<AttachmentType<Boolean>> SACRIFICE_TREE_PENDING = ATTACHMENT_TYPES.register(
+            "sacrifice_tree_pending", () -> AttachmentType.builder(() -> false).serialize(Codec.BOOL).copyOnDeath().build()
+    );
+
     public static final Supplier<AttachmentType<Boolean>> SACRIFICE_WAITING = ATTACHMENT_TYPES.register(
             "sacrifice_waiting", () -> AttachmentType.builder(() -> false).sync(ByteBufCodecs.BOOL).build()
     );

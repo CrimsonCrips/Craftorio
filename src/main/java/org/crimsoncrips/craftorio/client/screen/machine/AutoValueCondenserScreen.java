@@ -7,10 +7,11 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 import org.crimsoncrips.craftorio.inventory.AutoValueCondenserMenu;
 
 @OnlyIn(Dist.CLIENT)
-public class AutoValueCondenserScreen extends AbstractContainerScreen<AutoValueCondenserMenu> {
+public class AutoValueCondenserScreen extends AbstractContainerScreen<AutoValueCondenserMenu> implements ScrollableScreen {
 
     private static final int BAR_WIDTH = 160;
     private static final int BAR_HEIGHT = 14;

@@ -9,12 +9,14 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.server.sacrifice.CraftorioSacrifice;
 
-public record SacrificeAnswerPacket(boolean accept, boolean newSeed) implements CustomPacketPayload {
+public record SacrificeAnswerPacket(boolean accept, String seed, int difficulty) implements CustomPacketPayload {
 
+    public static final int MAX_SEED_LENGTH = 32;
     public static final Type<SacrificeAnswerPacket> TYPE = new Type<>(Craftorio.prefix("sacrifice_answer_packet"));
     public static final StreamCodec<RegistryFriendlyByteBuf, SacrificeAnswerPacket> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.BOOL, SacrificeAnswerPacket::accept,
-            ByteBufCodecs.BOOL, SacrificeAnswerPacket::newSeed,
+            ByteBufCodecs.stringUtf8(MAX_SEED_LENGTH), SacrificeAnswerPacket::seed,
+            ByteBufCodecs.VAR_INT, SacrificeAnswerPacket::difficulty,
             SacrificeAnswerPacket::new
     );
 
@@ -28,7 +30,7 @@ public record SacrificeAnswerPacket(boolean accept, boolean newSeed) implements 
             if (!(ctx.player() instanceof ServerPlayer player)) return;
 
             if (message.accept()) {
-                CraftorioSacrifice.accept(player, message.newSeed());
+                CraftorioSacrifice.accept(player, message.seed(), message.difficulty());
             } else {
                 CraftorioSacrifice.refuse(player);
             }

@@ -10,12 +10,13 @@ import net.minecraft.world.entity.player.Inventory;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 import org.crimsoncrips.craftorio.inventory.AutoSinkerMenu;
 import org.crimsoncrips.craftorio.networking.sink.SetAutoSinkerOwnerPacket;
 import org.crimsoncrips.craftorio.networking.sink.SetAutoSinkerThresholdPacket;
 
 @OnlyIn(Dist.CLIENT)
-public class AutoSinkerScreen extends AbstractContainerScreen<AutoSinkerMenu> {
+public class AutoSinkerScreen extends AbstractContainerScreen<AutoSinkerMenu> implements ScrollableScreen {
 
     private static final int BAR_WIDTH = 160;
     private static final int BAR_HEIGHT = 14;

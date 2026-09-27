@@ -11,6 +11,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContractItem;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContractItemReward;
@@ -19,7 +20,7 @@ import java.math.BigInteger;
 import java.util.List;
 
 @OnlyIn(Dist.CLIENT)
-public class ContractDetailsScreen extends Screen {
+public class ContractDetailsScreen extends Screen implements ScrollableScreen {
 
     private static final int TOP_MARGIN = 70;
     private static final int BOTTOM_MARGIN = 40;
@@ -87,12 +88,13 @@ public class ContractDetailsScreen extends Screen {
         super.render(graphics, mouseX, mouseY, partialTick);
 
         graphics.drawCenteredString(this.font, this.contract.getActualName(), this.width / 2, 16, 0xFFFFFF);
+        ContractGoalText.line(this.contract).ifPresent(line -> graphics.drawCenteredString(this.font, line, this.width / 2, 27, 0xFFD966));
 
         int leftColX = this.width / 4;
         int rightColX = this.width * 3 / 4;
         int columnWidth = this.width / 2 - 20;
 
-        graphics.drawCenteredString(this.font, Component.translatable("misc.craftorio.contract_bounty"), leftColX, TOP_MARGIN - 14, 0xFFFFFF);
+        graphics.drawCenteredString(this.font, ContractGoalText.bountyHeader(this.contract), leftColX, TOP_MARGIN - 14, 0xFFFFFF);
         graphics.drawCenteredString(this.font, Component.translatable("misc.craftorio.contract_item_rewards"), rightColX, TOP_MARGIN - 14, 0xFFFFFF);
 
         int availableHeight = this.height - TOP_MARGIN - BOTTOM_MARGIN;

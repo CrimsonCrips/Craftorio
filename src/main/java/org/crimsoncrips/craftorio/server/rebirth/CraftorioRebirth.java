@@ -3,6 +3,8 @@ package org.crimsoncrips.craftorio.server.rebirth;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.Mth;
@@ -10,15 +12,18 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
+import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.events.ServerEvents;
+import org.crimsoncrips.craftorio.networking.contract.ContractOfferStatusPacket;
 import org.crimsoncrips.craftorio.server.data.CraftorioDataAttachments;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioAttributeUpgrade;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -119,12 +124,23 @@ public class CraftorioRebirth {
         BigInteger points = CraftorioMisc.getPoints(player);
         if (points.compareTo(cost) < 0) return false;
 
+        applyRebirth(player, 1 + skipCount, lifePointsEarned(skipCount));
+        return true;
+    }
+
+    public static void forceRebirth(ServerPlayer player) {
+        applyRebirth(player, 1, BigInteger.ZERO);
+    }
+
+    private static void applyRebirth(ServerPlayer player, int livesGained, BigInteger earned) {
         if (CraftorioMisc.universalBased(player.level()) && player.getServer() != null) {
             for (ServerPlayer online : player.getServer().getPlayerList().getPlayers()) {
                 removeAttributeModifiers(online);
+                renew(online);
             }
         } else {
             removeAttributeModifiers(player);
+            renew(player);
         }
 
         CraftorioMisc.setPoints(CraftorioMisc.startingValue(), player);
@@ -133,18 +149,41 @@ public class CraftorioRebirth {
         CraftorioMisc.setTagEffects(player, List.of());
         CraftorioMisc.setShopEffects(player, List.of());
         CraftorioMisc.setCraftorioContracts(player, List.of());
+        resetContractOffer(player);
         clearItemsSinked(player);
         clearContractsCompleted(player);
         clearHighestPoints(player);
 
-        int newLife = currentLife + 1 + skipCount;
-        CraftorioMisc.setLife(newLife, player);
-
-        BigInteger earned = lifePointsEarned(skipCount);
+        CraftorioMisc.setLife(CraftorioMisc.getLife(player) + livesGained, player);
         CraftorioMisc.setLifePoints(CraftorioMisc.getLifePoints(player).add(earned), player);
 
+        player.sendSystemMessage(Component.translatable("misc.craftorio.rebirth_notice").withStyle(ChatFormatting.ITALIC));
+
         ServerEvents.syncUniversalState(player);
-        return true;
+
+    }
+
+    private static void resetContractOffer(ServerPlayer player) {
+        boolean universal = CraftorioMisc.universalBased(player.level()) && player.getServer() != null;
+        int refreshTicks = Craftorio.SERVER_CONFIG.CONTRACT_REFRESH_SECONDS.get() * CraftorioMisc.SECONDS_TO_TICKS;
+
+        CraftorioMisc.setContractOffer(player, new ArrayList<>());
+        CraftorioMisc.setContractOfferClaimed(player, true);
+        if (universal) {
+            CraftorioMisc.setContractRefreshTime(player.getServer().overworld(), refreshTicks);
+        } else {
+            CraftorioMisc.setContractRefreshTime(player, refreshTicks);
+        }
+
+        List<ServerPlayer> affected = universal ? player.getServer().getPlayerList().getPlayers() : List.of(player);
+        for (ServerPlayer online : affected) {
+            PacketDistributor.sendToPlayer(online, new ContractOfferStatusPacket(false));
+        }
+    }
+
+    private static void renew(ServerPlayer player) {
+        player.removeAllEffects();
+        player.setHealth(player.getMaxHealth());
     }
 
     private static void removeAttributeModifiers(ServerPlayer player) {

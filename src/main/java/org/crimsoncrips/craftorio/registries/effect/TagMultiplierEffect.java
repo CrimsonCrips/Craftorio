@@ -28,14 +28,19 @@ public class TagMultiplierEffect extends CraftorioEffects {
                     Codec.INT.fieldOf("seconds").forGetter(effect -> effect.getTime() / CraftorioMisc.SECONDS_TO_TICKS),
                     ResourceLocation.CODEC.optionalFieldOf("icon").forGetter(effect -> Optional.ofNullable(effect.getIcon())),
                     Codec.INT.optionalFieldOf("weight", 1).forGetter(TagMultiplierEffect::getWeight),
-                    Codec.BOOL.optionalFieldOf("unobtainable", false).forGetter(TagMultiplierEffect::isUnobtainable)
-            ).apply(instance, (multiplier, name, itemTag, seconds, icon, weight, unobtainable) ->
-                    new TagMultiplierEffect(multiplier, name, itemTag, seconds, icon.orElse(null), weight, unobtainable))
+                    Codec.BOOL.optionalFieldOf("unobtainable", false).forGetter(TagMultiplierEffect::isUnobtainable),
+                    Codec.BOOL.optionalFieldOf("loan_marked", false).forGetter(TagMultiplierEffect::isLoanMarked)
+            ).apply(instance, (multiplier, name, itemTag, seconds, icon, weight, unobtainable, loanMarked) -> {
+                    TagMultiplierEffect effect = new TagMultiplierEffect(multiplier, name, itemTag, seconds, icon.orElse(null), weight, unobtainable);
+                    effect.setLoanMarked(loanMarked);
+                    return effect;
+            })
     );
 
     private static final StreamCodec<ByteBuf, WeightUnobtainable> WEIGHT_UNOBTAINABLE_STREAM = StreamCodec.composite(
             ByteBufCodecs.INT, WeightUnobtainable::weight,
             ByteBufCodecs.BOOL, WeightUnobtainable::unobtainable,
+            ByteBufCodecs.BOOL, WeightUnobtainable::loanMarked,
             WeightUnobtainable::new
     );
 
@@ -45,15 +50,16 @@ public class TagMultiplierEffect extends CraftorioEffects {
             ByteBufCodecs.fromCodec(TagKey.hashedCodec(Registries.ITEM)), TagMultiplierEffect::getItemTag,
             ByteBufCodecs.INT, TagMultiplierEffect::getTime,
             ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC), effect -> Optional.ofNullable(effect.getIcon()),
-            WEIGHT_UNOBTAINABLE_STREAM, effect -> new WeightUnobtainable(effect.getWeight(), effect.isUnobtainable()),
+            WEIGHT_UNOBTAINABLE_STREAM, effect -> new WeightUnobtainable(effect.getWeight(), effect.isUnobtainable(), effect.isLoanMarked()),
             (multiplier, name, itemTag, time, icon, weightUnobtainable) -> {
                 TagMultiplierEffect effect = new TagMultiplierEffect(multiplier, name, itemTag, time / CraftorioMisc.SECONDS_TO_TICKS, icon.orElse(null), weightUnobtainable.weight(), weightUnobtainable.unobtainable());
                 effect.setTime(time);
+                effect.setLoanMarked(weightUnobtainable.loanMarked());
                 return effect;
             }
     );
 
-    private record WeightUnobtainable(int weight, boolean unobtainable) {}
+    private record WeightUnobtainable(int weight, boolean unobtainable, boolean loanMarked) {}
 
     public TagMultiplierEffect(float multiplier, String key, TagKey<Item> itemTag, int seconds, ResourceLocation icon, int weight, boolean unobtainable){
         super(key, seconds * CraftorioMisc.SECONDS_TO_TICKS, icon, weight, unobtainable);
@@ -82,6 +88,7 @@ public class TagMultiplierEffect extends CraftorioEffects {
     public TagMultiplierEffect copy() {
         TagMultiplierEffect copy = new TagMultiplierEffect(getMultiplier(), getNameKey(), getItemTag(), getTime() / CraftorioMisc.SECONDS_TO_TICKS, getIcon(), getWeight(), isUnobtainable());
         copy.setTime(getTime());
+        copy.setLoanMarked(isLoanMarked());
         return copy;
     }
 }

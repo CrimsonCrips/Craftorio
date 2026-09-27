@@ -15,13 +15,14 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 import org.crimsoncrips.craftorio.inventory.ValueCondenserMenu;
 import org.crimsoncrips.craftorio.networking.sink.CondenseValuePacket;
 
 import java.math.BigInteger;
 import java.util.List;
 
-public class ValueCondenserScreen extends AbstractContainerScreen<ValueCondenserMenu> {
+public class ValueCondenserScreen extends AbstractContainerScreen<ValueCondenserMenu> implements ScrollableScreen {
 
 	private BigInteger cachedCondenserValue = BigInteger.ZERO;
 

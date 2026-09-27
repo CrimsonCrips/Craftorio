@@ -6,19 +6,22 @@ import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 import org.crimsoncrips.craftorio.client.screen.devtools.creator.EffectCreatorScreen;
 import org.crimsoncrips.craftorio.client.screen.devtools.creator.SkillTreeCreatorScreen;
 import org.crimsoncrips.craftorio.client.screen.devtools.creator.UpgradeCreatorScreen;
 import org.crimsoncrips.craftorio.networking.devtools.GiveScannerStickPacket;
+import org.crimsoncrips.craftorio.networking.devtools.GiveChronosphereStickPacket;
+import org.crimsoncrips.craftorio.networking.devtools.GiveStructureWandPacket;
 import org.crimsoncrips.craftorio.networking.devtools.OpenContractCreatorPacket;
 
 @OnlyIn(Dist.CLIENT)
-public class DevToolsScreen extends Screen {
+public class DevToolsScreen extends Screen implements ScrollableScreen {
 
     private static final int BUTTON_WIDTH = 220;
     private static final int BUTTON_HEIGHT = 20;
     private static final int BUTTON_STRIDE = 24;
-    private static final int BUTTON_COUNT = 5;
+    private static final int BUTTON_COUNT = 6;
     private static final int DONE_EXTRA_GAP = 16;
 
     private final Screen parent;
@@ -51,6 +54,14 @@ public class DevToolsScreen extends Screen {
         y += BUTTON_STRIDE;
 
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_get_scanner_stick"), b -> PacketDistributor.sendToServer(new GiveScannerStickPacket()))
+                .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
+        y += BUTTON_STRIDE;
+
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_get_chronosphere_stick"), b -> PacketDistributor.sendToServer(new GiveChronosphereStickPacket()))
+                .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
+        y += BUTTON_STRIDE;
+
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_get_structure_wand"), b -> PacketDistributor.sendToServer(new GiveStructureWandPacket()))
                 .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
         y += BUTTON_STRIDE + DONE_EXTRA_GAP;
 

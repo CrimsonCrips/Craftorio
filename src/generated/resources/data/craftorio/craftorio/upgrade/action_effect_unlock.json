@@ -1,0 +1,10 @@
+{
+  "type": "craftorio:action_effect_unlock",
+  "parent": "craftorio:manual_sink_value_1",
+  "cost": "25000000000000000",
+  "description": "misc.craftorio.upgrade_action_effect_unlock_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "name": "misc.craftorio.upgrade_action_effect_unlock",
+  "x": -118.36978072713401,
+  "y": -860.0454193636273
+}

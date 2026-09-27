@@ -150,6 +150,7 @@ public class SinkerMenu extends AbstractContainerMenu {
 		for (CraftorioContract contract : new ArrayList<>(CraftorioMisc.getCraftorioContracts(player))){
 			contract.addSinkedListValue(sinkedItems,player);
 		}
+		CraftorioMisc.refreshContracts(player);
 	}
 
 	public Container getContainer() {

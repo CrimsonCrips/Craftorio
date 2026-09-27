@@ -35,6 +35,8 @@ public class CraftorioServerConfig {
 
     public final ModConfigSpec.BooleanValue INSTANT_DEATH_OUTSIDE_CLAIM;
 
+    public final ModConfigSpec.ConfigValue<String> VALUE_CONDENSER_CAP;
+    public final ModConfigSpec.DoubleValue LOAN_INTEREST_PERCENT;
     public final ModConfigSpec.IntValue SACRIFICE_REQUIRED_LIFE;
     public final ModConfigSpec.IntValue SACRIFICE_TIME_LIMIT_MINUTES;
     public final ModConfigSpec.IntValue SACRIFICE_COOLDOWN_MINUTES;
@@ -42,6 +44,10 @@ public class CraftorioServerConfig {
     public final ModConfigSpec.IntValue REBIRTH_BASE_LIFE_POINTS;
     public final ModConfigSpec.DoubleValue REBIRTH_SKIP_BONUS_PERCENT;
     public final ModConfigSpec.IntValue REBIRTH_MAX_SKIP;
+
+    public final ModConfigSpec.ConfigValue<String> EFFECT_RUNE_BASE_PRICE;
+    public final ModConfigSpec.IntValue EFFECT_RUNE_PRICE_MULTIPLIER;
+    public final ModConfigSpec.IntValue EFFECT_RUNE_MAX_EFFECTS;
 
 
     public CraftorioServerConfig(final ModConfigSpec.Builder builder) {
@@ -95,8 +101,16 @@ public class CraftorioServerConfig {
 
         builder.pop();
 
+        builder.push("Value Condenser");
+        this.VALUE_CONDENSER_CAP = buildString(builder, "VALUE_CONDENSER_CAP", "1e12", "Maximum total value a condensed item (the carrier) can hold, accepts whole numbers and exponents (ex. 1e12 = one trillion), raised or lowered by upgrades");
+        builder.pop();
+
+        builder.push("Loan Shark");
+        this.LOAN_INTEREST_PERCENT = buildDouble(builder, "LOAN_INTEREST_PERCENT", 20.0, 0, 1000, "Percent added on top of a loan's principal when it is taken (ex. 20 = the player owes 120% of what they were given)");
+        builder.pop();
+
         builder.push("Sacrifice");
-        this.SACRIFICE_REQUIRED_LIFE = buildInt(builder, "SACRIFICE_REQUIRED_LIFE", 10000, 1, Integer.MAX_VALUE, "Life (rebirth count) a player must have reached before they can sacrifice");
+        this.SACRIFICE_REQUIRED_LIFE = buildInt(builder, "SACRIFICE_REQUIRED_LIFE", 1000, 1, Integer.MAX_VALUE, "Life (rebirth count) a player must have reached before they can sacrifice");
         this.SACRIFICE_TIME_LIMIT_MINUTES = buildInt(builder, "SACRIFICE_TIME_LIMIT_MINUTES", 10, 1, Integer.MAX_VALUE, "Minutes a player may stay in the Haven deciding a sacrifice before they are sent out");
         this.SACRIFICE_COOLDOWN_MINUTES = buildInt(builder, "SACRIFICE_COOLDOWN_MINUTES", 30, 0, Integer.MAX_VALUE, "Minutes a player must wait before sacrificing again after running out of time in the Haven");
         builder.pop();
@@ -106,6 +120,12 @@ public class CraftorioServerConfig {
         this.REBIRTH_BASE_LIFE_POINTS = buildInt(builder, "REBIRTH_BASE_LIFE_POINTS", 10, 0, Integer.MAX_VALUE, "Baseline rebirth crystals granted per life gained");
         this.REBIRTH_SKIP_BONUS_PERCENT = buildDouble(builder, "REBIRTH_SKIP_BONUS_PERCENT", 0.20, 0, Double.MAX_VALUE, "Extra percent of REBIRTH_BASE_LIFE_POINTS (rebirth crystals) granted per additional life skipped in a single rebirth (ex. 0.20 = +20% per life skipped)");
         this.REBIRTH_MAX_SKIP = buildInt(builder, "REBIRTH_MAX_SKIP", 100, 0, Integer.MAX_VALUE, "Maximum number of extra lives that can be skipped in a single rebirth");
+        builder.pop();
+
+        builder.push("Effect Rune Shop");
+        this.EFFECT_RUNE_BASE_PRICE = buildString(builder, "EFFECT_RUNE_BASE_PRICE", "1e18", "Price of an Effect Rune with 1 random effect (exponents work like 1e18 = 1 Qn), each extra effect multiplies the price by EFFECT_RUNE_PRICE_MULTIPLIER");
+        this.EFFECT_RUNE_PRICE_MULTIPLIER = buildInt(builder, "EFFECT_RUNE_PRICE_MULTIPLIER", 1000, 2, Integer.MAX_VALUE, "Price multiplier applied per extra effect on an Effect Rune");
+        this.EFFECT_RUNE_MAX_EFFECTS = buildInt(builder, "EFFECT_RUNE_MAX_EFFECTS", 10, 1, 100, "Maximum number of random effects that can be put on a single Effect Rune");
         builder.pop();
 
     }

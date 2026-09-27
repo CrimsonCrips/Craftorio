@@ -48,6 +48,16 @@ public class CraftorioEffectBootstrap {
         );
 
         context.register(
+                ResourceKey.create(CraftorioEffects.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "contract_momentum")),
+                new GeneralMultiplierEffect(2.5F, "registry.contract_momentum", 300, DEFAULT_ICON, 1, true)
+        );
+
+        context.register(
+                ResourceKey.create(CraftorioEffects.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "spoils_of_war")),
+                new GeneralMultiplierEffect(6.0F, "registry.spoils_of_war", 1200, DEFAULT_ICON, 1, true)
+        );
+
+        context.register(
                 ResourceKey.create(CraftorioEffects.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath("craftorio", "universal_demand")),
                 new GeneralMultiplierEffect(100.0F, "registry.universal_demand", 60, DEFAULT_ICON, 1, false)
         );

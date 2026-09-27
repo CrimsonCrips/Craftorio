@@ -18,13 +18,14 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.client.config.CraftorioClientConfig;
+import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 import org.crimsoncrips.craftorio.server.config.CraftorioServerConfig;
 
 import java.util.List;
 import java.util.function.Function;
 
 @OnlyIn(Dist.CLIENT)
-public class CraftorioConfigScreen extends Screen {
+public class CraftorioConfigScreen extends Screen implements ScrollableScreen {
 
     private enum Tab {
         CLIENT("misc.craftorio.config_tab_client"),
@@ -50,6 +51,8 @@ public class CraftorioConfigScreen extends Screen {
     private static final int CONTROL_HEIGHT = 18;
 
     private final Screen parent;
+    private final CraftorioServerDefaultsFile serverDefaults = new CraftorioServerDefaultsFile();
+    private boolean editingServer;
     private Tab tab = Tab.CLIENT;
     private ConfigList list;
 
@@ -73,6 +76,7 @@ public class CraftorioConfigScreen extends Screen {
         }
 
         this.list = new ConfigList(this.minecraft);
+        this.editingServer = this.tab == Tab.SERVER;
         if (this.tab == Tab.CLIENT) {
             populateClient(Craftorio.CLIENT_CONFIG);
         } else {
@@ -92,9 +96,14 @@ public class CraftorioConfigScreen extends Screen {
         this.list.addHeader("misc.craftorio.config_group_animations");
         this.list.addRow(Component.translatable("misc.craftorio.config_skip_claim_animation"), booleanButton(config.SKIP_CONTRACT_CLAIM_ANIMATION));
         this.list.addRow(Component.translatable("misc.craftorio.gold_rain_intensity_label"), intBox("gold_rain", config.GOLD_RAIN_INTENSITY));
+        this.list.addRow(Component.translatable("misc.craftorio.config_skill_tree_effects"), booleanButton(config.SKILL_TREE_EFFECTS));
+
+        this.list.addHeader("misc.craftorio.config_group_accessibility");
+        this.list.addRow(Component.translatable("misc.craftorio.config_photosensitive_mode"), booleanButton(config.PHOTOSENSITIVE_MODE));
     }
 
     private void populateServer(CraftorioServerConfig config) {
+        this.list.addHeader("misc.craftorio.config_server_defaults_note");
         this.list.addHeader("misc.craftorio.config_group_general");
         addServerRow("UNIVERSAL_PROGRESSION", booleanButton(config.UNIVERSAL_PROGRESSION));
         addServerRow("STARTING_POINTS", stringBox("STARTING_POINTS", config.STARTING_POINTS));
@@ -133,6 +142,12 @@ public class CraftorioConfigScreen extends Screen {
         addServerRow("SINK_VALUE_BONUS_AMOUNT", intBox("SINK_VALUE_BONUS_AMOUNT", config.SINK_VALUE_BONUS_AMOUNT));
         addServerRow("SINK_VALUE_BONUS_THRESHOLD", intBox("SINK_VALUE_BONUS_THRESHOLD", config.SINK_VALUE_BONUS_THRESHOLD));
 
+        this.list.addHeader("misc.craftorio.config_group_value_condenser");
+        addServerRow("VALUE_CONDENSER_CAP", stringBox("VALUE_CONDENSER_CAP", config.VALUE_CONDENSER_CAP));
+
+        this.list.addHeader("misc.craftorio.config_group_loan_shark");
+        addServerRow("LOAN_INTEREST_PERCENT", doubleBox("LOAN_INTEREST_PERCENT", config.LOAN_INTEREST_PERCENT));
+
         this.list.addHeader("misc.craftorio.config_group_sacrifice");
         addServerRow("SACRIFICE_REQUIRED_LIFE", intBox("SACRIFICE_REQUIRED_LIFE", config.SACRIFICE_REQUIRED_LIFE));
         addServerRow("SACRIFICE_TIME_LIMIT_MINUTES", intBox("SACRIFICE_TIME_LIMIT_MINUTES", config.SACRIFICE_TIME_LIMIT_MINUTES));
@@ -143,16 +158,34 @@ public class CraftorioConfigScreen extends Screen {
         addServerRow("REBIRTH_BASE_LIFE_POINTS", intBox("REBIRTH_BASE_LIFE_POINTS", config.REBIRTH_BASE_LIFE_POINTS));
         addServerRow("REBIRTH_SKIP_BONUS_PERCENT", doubleBox("REBIRTH_SKIP_BONUS_PERCENT", config.REBIRTH_SKIP_BONUS_PERCENT));
         addServerRow("REBIRTH_MAX_SKIP", intBox("REBIRTH_MAX_SKIP", config.REBIRTH_MAX_SKIP));
+
+        this.list.addHeader("misc.craftorio.config_group_effect_rune_shop");
+        addServerRow("EFFECT_RUNE_BASE_PRICE", stringBox("EFFECT_RUNE_BASE_PRICE", config.EFFECT_RUNE_BASE_PRICE));
+        addServerRow("EFFECT_RUNE_PRICE_MULTIPLIER", intBox("EFFECT_RUNE_PRICE_MULTIPLIER", config.EFFECT_RUNE_PRICE_MULTIPLIER));
+        addServerRow("EFFECT_RUNE_MAX_EFFECTS", intBox("EFFECT_RUNE_MAX_EFFECTS", config.EFFECT_RUNE_MAX_EFFECTS));
     }
 
     private void addServerRow(String name, AbstractWidget control) {
         this.list.addRow(Component.literal(name), control);
     }
 
+    private <T> T read(ModConfigSpec.ConfigValue<T> value, boolean server) {
+        return server ? this.serverDefaults.get(value) : value.get();
+    }
+
+    private <T> void write(ModConfigSpec.ConfigValue<T> value, T newValue, boolean server) {
+        if (server) {
+            this.serverDefaults.set(value, newValue);
+        } else {
+            value.set(newValue);
+        }
+    }
+
     private Button booleanButton(ModConfigSpec.BooleanValue value) {
-        return Button.builder(booleanLabel(value.get()), b -> {
-            value.set(!value.get());
-            b.setMessage(booleanLabel(value.get()));
+        boolean server = this.editingServer;
+        return Button.builder(booleanLabel(read(value, server)), b -> {
+            write(value, !read(value, server), server);
+            b.setMessage(booleanLabel(read(value, server)));
         }).bounds(0, 0, CONTROL_WIDTH, CONTROL_HEIGHT).build();
     }
 
@@ -161,29 +194,33 @@ public class CraftorioConfigScreen extends Screen {
     }
 
     private <E extends Enum<E>> Button enumButton(ModConfigSpec.EnumValue<E> value) {
-        return Button.builder(Component.literal(value.get().name()), b -> {
-            E[] constants = value.get().getDeclaringClass().getEnumConstants();
-            value.set(constants[(value.get().ordinal() + 1) % constants.length]);
-            b.setMessage(Component.literal(value.get().name()));
+        boolean server = this.editingServer;
+        return Button.builder(Component.literal(read(value, server).name()), b -> {
+            E current = read(value, server);
+            E[] constants = current.getDeclaringClass().getEnumConstants();
+            write(value, constants[(current.ordinal() + 1) % constants.length], server);
+            b.setMessage(Component.literal(read(value, server).name()));
         }).bounds(0, 0, CONTROL_WIDTH, CONTROL_HEIGHT).build();
     }
 
     private Button formatButton(ModConfigSpec.IntValue value) {
+        boolean server = this.editingServer;
         Function<Integer, Component> label = index -> Component.translatable("misc.craftorio." + FORMAT_KEYS[Mth.clamp(index, 0, FORMAT_KEYS.length - 1)]);
-        return Button.builder(label.apply(value.get()), b -> {
-            value.set((value.get() + 1) % FORMAT_KEYS.length);
-            b.setMessage(label.apply(value.get()));
+        return Button.builder(label.apply(read(value, server)), b -> {
+            write(value, (read(value, server) + 1) % FORMAT_KEYS.length, server);
+            b.setMessage(label.apply(read(value, server)));
         }).bounds(0, 0, CONTROL_WIDTH, CONTROL_HEIGHT).build();
     }
 
     private EditBox intBox(String name, ModConfigSpec.IntValue value) {
+        boolean server = this.editingServer;
         ModConfigSpec.Range<Integer> range = value.getSpec().getRange();
         EditBox box = new EditBox(this.font, 0, 0, CONTROL_WIDTH, CONTROL_HEIGHT, Component.literal(name));
         box.setMaxLength(32);
-        box.setValue(String.valueOf(value.get()));
+        box.setValue(String.valueOf(read(value, server)));
         box.setResponder(text -> {
             try {
-                value.set(Mth.clamp(Integer.parseInt(text.trim()), range.getMin(), range.getMax()));
+                write(value, Mth.clamp(Integer.parseInt(text.trim()), range.getMin(), range.getMax()), server);
             } catch (NumberFormatException ignored) {
             }
         });
@@ -191,13 +228,14 @@ public class CraftorioConfigScreen extends Screen {
     }
 
     private EditBox doubleBox(String name, ModConfigSpec.DoubleValue value) {
+        boolean server = this.editingServer;
         ModConfigSpec.Range<Double> range = value.getSpec().getRange();
         EditBox box = new EditBox(this.font, 0, 0, CONTROL_WIDTH, CONTROL_HEIGHT, Component.literal(name));
         box.setMaxLength(32);
-        box.setValue(String.valueOf(value.get()));
+        box.setValue(String.valueOf(read(value, server)));
         box.setResponder(text -> {
             try {
-                value.set(Mth.clamp(Double.parseDouble(text.trim()), range.getMin(), range.getMax()));
+                write(value, Mth.clamp(Double.parseDouble(text.trim()), range.getMin(), range.getMax()), server);
             } catch (NumberFormatException ignored) {
             }
         });
@@ -205,10 +243,11 @@ public class CraftorioConfigScreen extends Screen {
     }
 
     private EditBox stringBox(String name, ModConfigSpec.ConfigValue<String> value) {
+        boolean server = this.editingServer;
         EditBox box = new EditBox(this.font, 0, 0, CONTROL_WIDTH, CONTROL_HEIGHT, Component.literal(name));
         box.setMaxLength(256);
-        box.setValue(value.get());
-        box.setResponder(value::set);
+        box.setValue(read(value, server));
+        box.setResponder(text -> write(value, text, server));
         return box;
     }
 
@@ -221,7 +260,7 @@ public class CraftorioConfigScreen extends Screen {
     @Override
     public void onClose() {
         Craftorio.CLIENT_CONFIG_SPEC.save();
-        Craftorio.SERVER_CONFIG_SPEC.save();
+        this.serverDefaults.save();
         this.minecraft.setScreen(this.parent);
     }
 

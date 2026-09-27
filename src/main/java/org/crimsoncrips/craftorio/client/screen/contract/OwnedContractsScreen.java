@@ -13,6 +13,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 import org.crimsoncrips.craftorio.networking.contract.AbandonContractPacket;
 import org.crimsoncrips.craftorio.networking.contract.ForceCompleteContractPacket;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
@@ -22,7 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @OnlyIn(Dist.CLIENT)
-public class OwnedContractsScreen extends Screen {
+public class OwnedContractsScreen extends Screen implements ScrollableScreen {
 
     private static final int BASE_CARD_WIDTH = 120;
     private static final int BASE_CARD_HEIGHT = 144;
@@ -222,6 +223,14 @@ public class OwnedContractsScreen extends Screen {
             graphics.drawString(this.font, timeLine, -this.font.width(timeLine) / 2, (int) y, contract.getTextColors().timeOr(0xAAAAAA), true);
         }
         y += this.font.lineHeight;
+
+        var goalLine = ContractGoalText.line(contract);
+        if (goalLine.isPresent()) {
+            for (var line : this.font.split(goalLine.get(), wrapWidth)) {
+                graphics.drawString(this.font, line, -this.font.width(line) / 2, (int) y, 0xFFD966, true);
+                y += this.font.lineHeight;
+            }
+        }
 
         Component punishmentLine = punishmentLine(contract);
         if (!punishmentLine.getString().isEmpty()) {

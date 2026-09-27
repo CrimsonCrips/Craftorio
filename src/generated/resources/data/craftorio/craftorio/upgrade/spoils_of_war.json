@@ -1,0 +1,14 @@
+{
+  "type": "craftorio:action_effect",
+  "parent": "craftorio:wake_up_productive",
+  "chance": 0.25,
+  "cost": "50000000000000000",
+  "description": "misc.craftorio.upgrade_spoils_of_war_description",
+  "effect": "craftorio:spoils_of_war",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "max_purchases": 4,
+  "name": "misc.craftorio.upgrade_spoils_of_war",
+  "target": "RAID_WIN",
+  "x": -200.0,
+  "y": -1000.0
+}

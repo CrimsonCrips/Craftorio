@@ -6,9 +6,9 @@
   "icon": "craftorio:textures/gui/default_icon.png",
   "max_purchases": 1,
   "name": "misc.craftorio.upgrade_expansion_cost_1",
-  "operation": "MULTIPLY",
+  "operation": "DIVIDE",
   "target": "EXPANSION_COST",
-  "value": -0.1,
+  "value": 0.1111,
   "x": 267.3897041911375,
   "y": -140.39923781967815
 }

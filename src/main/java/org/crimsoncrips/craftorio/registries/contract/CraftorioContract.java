@@ -10,11 +10,15 @@ import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.fml.ModList;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.events.ServerEvents;
+import org.crimsoncrips.craftorio.server.schematic.CraftorioSchematics;
+import org.crimsoncrips.craftorio.skill_tree.target.PlayerActionTarget;
 
 
 import java.math.BigDecimal;
@@ -43,6 +47,8 @@ public class CraftorioContract {
     private String requiredModId;
     private ResourceKey<CraftorioContractTexture> cardTexture;
     private ContractTextColors textColors = ContractTextColors.EMPTY;
+    private ContractGoal goal = ContractGoal.SINK;
+    private ContractProgress progress = ContractProgress.EMPTY;
 
     public static final ResourceKey<Registry<CraftorioContract>> REGISTRY_KEY =
             ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "contract"));
@@ -64,9 +70,12 @@ public class CraftorioContract {
                     SCIENTIFIC_BIGINT_CODEC().optionalFieldOf("max_point_threshold", CraftorioMisc.pointThreshold()).forGetter(CraftorioContract::getMaxPointThreshold),
                     Codec.STRING.optionalFieldOf("required_mod_id").forGetter(contract -> Optional.ofNullable(contract.getRequiredModId())),
                     ResourceKey.codec(CraftorioContractTexture.REGISTRY_KEY).optionalFieldOf("card_texture").forGetter(contract -> Optional.ofNullable(contract.getCardTexture())),
-                    ContractTextColors.CODEC.optionalFieldOf("text_colors", ContractTextColors.EMPTY).forGetter(CraftorioContract::getTextColors)
-            ).apply(instance, (itemBounty, name, description, seconds, basePointValue, rewards, punishment, weight, pointThreshold, minPointThreshold, maxPointThreshold, requiredModId, cardTexture, textColors) ->
-                    new CraftorioContract(itemBounty, name, description, seconds, basePointValue, rewards, punishment, weight, pointThreshold, minPointThreshold, maxPointThreshold, requiredModId, cardTexture, textColors))
+                    ContractTextColors.CODEC.optionalFieldOf("text_colors", ContractTextColors.EMPTY).forGetter(CraftorioContract::getTextColors),
+                    ContractGoal.CODEC.optionalFieldOf("goal", ContractGoal.SINK).forGetter(CraftorioContract::getGoal),
+                    ContractProgress.CODEC.optionalFieldOf("progress", ContractProgress.EMPTY).forGetter(CraftorioContract::getProgress)
+            ).apply(instance, (itemBounty, name, description, seconds, basePointValue, rewards, punishment, weight, pointThreshold, minPointThreshold, maxPointThreshold, requiredModId, cardTexture, textColors, goal, progress) ->
+                    new CraftorioContract(itemBounty, name, description, seconds, basePointValue, rewards, punishment, weight, pointThreshold, minPointThreshold, maxPointThreshold, requiredModId, cardTexture, textColors)
+                            .withGoal(goal).withProgress(progress))
     );
 
     public static final StreamCodec<RegistryFriendlyByteBuf, CraftorioContract> CODEC_STREAM = StreamCodec.of(
@@ -86,6 +95,8 @@ public class CraftorioContract {
                 ByteBufCodecs.optional(ByteBufCodecs.STRING_UTF8).encode(buffer, Optional.ofNullable(contract.getRequiredModId()));
                 ByteBufCodecs.optional(ResourceKey.streamCodec(CraftorioContractTexture.REGISTRY_KEY)).encode(buffer, Optional.ofNullable(contract.getCardTexture()));
                 ContractTextColors.STREAM_CODEC.encode(buffer, contract.getTextColors());
+                ContractGoal.STREAM_CODEC.encode(buffer, contract.getGoal());
+                ContractProgress.STREAM_CODEC.encode(buffer, contract.getProgress());
             },
             buffer -> {
                 List<CraftorioContractItem> itemBounty = CraftorioContractItem.CODEC_STREAM.apply(ByteBufCodecs.list()).decode(buffer);
@@ -103,7 +114,11 @@ public class CraftorioContract {
                 Optional<String> requiredModId = ByteBufCodecs.optional(ByteBufCodecs.STRING_UTF8).decode(buffer);
                 Optional<ResourceKey<CraftorioContractTexture>> cardTexture = ByteBufCodecs.optional(ResourceKey.streamCodec(CraftorioContractTexture.REGISTRY_KEY)).decode(buffer);
                 ContractTextColors textColors = ContractTextColors.STREAM_CODEC.decode(buffer);
-                CraftorioContract contract = new CraftorioContract(itemBounty, name, description, time / SECONDS_TO_TICKS, basePointValue, rewards, punishment, weight, pointThreshold, minPointThreshold, maxPointThreshold, requiredModId, cardTexture, textColors);
+                ContractGoal goal = ContractGoal.STREAM_CODEC.decode(buffer);
+                ContractProgress progress = ContractProgress.STREAM_CODEC.decode(buffer);
+                CraftorioContract contract = new CraftorioContract(itemBounty, name, description, time / SECONDS_TO_TICKS, basePointValue, rewards, punishment, weight, pointThreshold, minPointThreshold, maxPointThreshold, requiredModId, cardTexture, textColors)
+                        .withGoal(goal).withProgress(progress);
+                contract.setAbandoned(abandoned);
                 contract.setTime(time);
                 return contract;
             }
@@ -154,7 +169,36 @@ public class CraftorioContract {
                 finished = false;
             }
         }
-        return finished;
+        return switch (goal.type()) {
+            case SINK -> finished;
+            case BUILDING -> finished && progress.submitted();
+        };
+    }
+
+    public CraftorioContract withGoal(ContractGoal goal) {
+        this.goal = goal != null ? goal : ContractGoal.SINK;
+        return this;
+    }
+
+    public CraftorioContract withProgress(ContractProgress progress) {
+        this.progress = progress != null ? progress : ContractProgress.EMPTY;
+        return this;
+    }
+
+    public ContractGoal getGoal() {
+        return goal;
+    }
+
+    public ContractType getType() {
+        return goal.type();
+    }
+
+    public ContractProgress getProgress() {
+        return progress;
+    }
+
+    public void setProgress(ContractProgress progress) {
+        this.progress = progress != null ? progress : ContractProgress.EMPTY;
     }
 
     public CraftorioContract copy() {
@@ -162,8 +206,10 @@ public class CraftorioContract {
         for (CraftorioContractItem item : itemBounty) {
             copiedItems.add(item.copy());
         }
-        CraftorioContract copy = new CraftorioContract(copiedItems, getActualName(), getDescription(), getTime() / SECONDS_TO_TICKS, getBasePointValue(), getRewards(), Optional.ofNullable(getPunishment()), getWeight(), getPointThreshold(), getMinPointThreshold(), getMaxPointThreshold(), Optional.ofNullable(getRequiredModId()), Optional.ofNullable(getCardTexture()), getTextColors());
+        CraftorioContract copy = new CraftorioContract(copiedItems, getActualName(), getDescription(), getTime() / SECONDS_TO_TICKS, getBasePointValue(), getRewards(), Optional.ofNullable(getPunishment()), getWeight(), getPointThreshold(), getMinPointThreshold(), getMaxPointThreshold(), Optional.ofNullable(getRequiredModId()), Optional.ofNullable(getCardTexture()), getTextColors())
+                .withGoal(getGoal()).withProgress(getProgress());
         copy.setTime(getTime());
+        copy.setAbandoned(isAbandoned());
         return copy;
     }
 
@@ -172,6 +218,7 @@ public class CraftorioContract {
     }
 
     public void addSinkedListValue(List<ItemStack> itemsSinked, Player player){
+        if (goal.type() != ContractType.SINK) return;
         for (ItemStack itemStack : itemsSinked){
             for (CraftorioContractItem contractItem : getItemBounty()){
                 if (!contractItem.isComplete() && contractItem.matches(itemStack)){
@@ -344,10 +391,18 @@ public class CraftorioContract {
         for (CraftorioContractItemReward itemReward : getRewards()){
             itemReward.giveItems(player);
         }
+        grantCompletionEffects(player);
+        CraftorioSchematics.onContractEnded(player, this);
 
         List<CraftorioContract> newContract = new ArrayList<>(CraftorioMisc.getCraftorioContracts(player));
         newContract.remove(this);
         CraftorioMisc.setCraftorioContracts(player,newContract);
+    }
+
+    private static void grantCompletionEffects(Player player) {
+        if (player instanceof ServerPlayer serverPlayer) {
+            ServerEvents.grantActionEffects(serverPlayer, PlayerActionTarget.CONTRACT_COMPLETE);
+        }
     }
 
     public void tick(Player player){
@@ -359,12 +414,15 @@ public class CraftorioContract {
                 for (CraftorioContractItemReward itemReward : getRewards()){
                     itemReward.giveItems(player);
                 }
+                grantCompletionEffects(player);
             } else {
                 setTime(0);
                 if (getPunishment() != null) {
                     CraftorioMisc.punishContractFailure(player, this, getPunishment());
                 }
             }
+
+            CraftorioSchematics.onContractEnded(player, this);
 
             List<CraftorioContract> newContract = new ArrayList<>(CraftorioMisc.getCraftorioContracts(player));
             newContract.remove(this);

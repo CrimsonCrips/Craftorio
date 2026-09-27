@@ -15,6 +15,7 @@ import net.minecraft.world.item.Items;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +24,7 @@ import java.util.Map;
 import static org.crimsoncrips.craftorio.CraftorioMisc.getHighestPoints;
 
 @OnlyIn(Dist.CLIENT)
-public class CraftorioStatisticsScreen extends Screen {
+public class CraftorioStatisticsScreen extends Screen implements ScrollableScreen {
 
     private static final ResourceLocation SLOT_SPRITE = ResourceLocation.withDefaultNamespace("container/slot");
     private static final int LIST_WIDTH = 280;

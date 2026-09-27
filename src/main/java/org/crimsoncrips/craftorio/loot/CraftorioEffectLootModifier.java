@@ -23,7 +23,7 @@ public class CraftorioEffectLootModifier extends LootModifier {
     public static final MapCodec<CraftorioEffectLootModifier> MAP_CODEC = RecordCodecBuilder.mapCodec(instance ->
             codecStart(instance).apply(instance, CraftorioEffectLootModifier::new));
 
-    private static final float SPAWN_CHANCE = 0.003f;
+    private static final float SPAWN_CHANCE = 0.03f;
 
     public CraftorioEffectLootModifier(LootItemCondition[] conditions) {
         super(conditions);

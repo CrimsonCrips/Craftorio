@@ -22,6 +22,7 @@ public abstract class CraftorioEffects {
     private ResourceLocation icon;
     private int weight;
     private boolean unobtainable;
+    private boolean loanMarked;
 
     public static final ResourceKey<Registry<MapCodec<? extends CraftorioEffects>>> TYPE_REGISTRY_KEY =
             ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "craftorio_effect_type"));
@@ -95,7 +96,16 @@ public abstract class CraftorioEffects {
         this.unobtainable = unobtainable;
     }
 
+    public boolean isLoanMarked() {
+        return loanMarked;
+    }
+
+    public void setLoanMarked(boolean loanMarked) {
+        this.loanMarked = loanMarked;
+    }
+
     public void tick(Player player){
+        if (loanMarked) return;
         setTime(time - 1);
 
         if (shouldEnd()) {

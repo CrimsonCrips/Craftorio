@@ -84,11 +84,15 @@ public class CraftorioAttributeUpgrade extends CraftorioUpgrade {
         AttributeInstance instance = player.getAttribute(attribute);
         if (instance == null) return;
 
-        AttributeModifier.Operation op = operation == UpgradeOperation.ADD
-                ? AttributeModifier.Operation.ADD_VALUE
-                : AttributeModifier.Operation.ADD_MULTIPLIED_BASE;
+        double total = value * purchaseCount;
+        AttributeModifier modifier = switch (operation) {
+            case ADD -> new AttributeModifier(id, total, AttributeModifier.Operation.ADD_VALUE);
+            case SUBTRACT -> new AttributeModifier(id, -total, AttributeModifier.Operation.ADD_VALUE);
+            case MULTIPLY -> new AttributeModifier(id, total, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+            case DIVIDE -> new AttributeModifier(id, 1.0 / Math.max(1.0 + total, 1.0E-6) - 1.0, AttributeModifier.Operation.ADD_MULTIPLIED_BASE);
+        };
 
-        instance.addOrReplacePermanentModifier(new AttributeModifier(id, value * purchaseCount, op));
+        instance.addOrReplacePermanentModifier(modifier);
     }
 
     @Override

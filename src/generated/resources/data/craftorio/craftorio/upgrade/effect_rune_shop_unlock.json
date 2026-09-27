@@ -1,0 +1,10 @@
+{
+  "type": "craftorio:effect_rune_shop_unlock",
+  "parent": "craftorio:root",
+  "cost": "31000000",
+  "description": "misc.craftorio.upgrade_effect_rune_shop_unlock_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "name": "misc.craftorio.upgrade_effect_rune_shop_unlock",
+  "x": 347.4890348148663,
+  "y": -50.0
+}

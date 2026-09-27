@@ -9,6 +9,7 @@ import net.minecraft.world.item.Items;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.datagen.tags.CraftorioItemTagGen;
 import org.crimsoncrips.craftorio.item.CraftorioItems;
+import org.crimsoncrips.craftorio.registries.contract.ContractGoal;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContractItem;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContractItemReward;
@@ -507,6 +508,32 @@ public class CraftorioContractBootstrap {
                         scientificToInt("1e3"), scientificToInt("0"), scientificToInt("1e6"),
                         Optional.empty()
                 )
+        );
+
+        context.register(
+                ResourceKey.create(CraftorioContract.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "villager_house")),
+                new CraftorioContract(
+                        List.of(),
+                        "villager_house", 3000, scientificToInt("6000"),
+                        List.of(),
+                        Optional.empty(),
+                        10,
+                        scientificToInt("0"), scientificToInt("0"), scientificToInt("1e8"),
+                        Optional.empty()
+                ).withGoal(ContractGoal.building(ResourceLocation.parse("minecraft:village/plains/houses/plains_small_house_1")))
+        );
+
+        context.register(
+                ResourceKey.create(CraftorioContract.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "end_ship")),
+                new CraftorioContract(
+                        List.of(),
+                        "end_ship", 10800, scientificToInt("250000"),
+                        List.of(),
+                        Optional.empty(),
+                        5,
+                        scientificToInt("1e6"), scientificToInt("1e5"), scientificToInt("1e10"),
+                        Optional.empty()
+                ).withGoal(ContractGoal.building(ResourceLocation.parse("minecraft:end_city/ship")))
         );
 
     }

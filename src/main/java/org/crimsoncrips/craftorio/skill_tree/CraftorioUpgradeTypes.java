@@ -6,7 +6,10 @@ import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.*;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.manual.AdvancementMultiplierUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.manual.ContractCompletionScalingUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.manual.ActionEffectUnlockUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.manual.DoubleOrNothingUnlockUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.manual.EffectRuneShopUnlockUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.manual.EffectTimerDisplayUnlockUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.manual.SinkValueScalingUpgrade;
 
 import java.util.function.Supplier;
@@ -25,6 +28,12 @@ public class CraftorioUpgradeTypes {
     public static final Supplier<MapCodec<CraftorioActionEffectUpgrade>> ACTION_EFFECT =
             TYPES.register("action_effect", () -> CraftorioActionEffectUpgrade.CODEC);
 
+    public static final Supplier<MapCodec<CraftorioDifficultyUpgrade>> DIFFICULTY =
+            TYPES.register("difficulty", () -> CraftorioDifficultyUpgrade.CODEC);
+
+    public static final Supplier<MapCodec<ActionEffectUnlockUpgrade>> ACTION_EFFECT_UNLOCK =
+            TYPES.register("action_effect_unlock", () -> ActionEffectUnlockUpgrade.CODEC);
+
     public static final Supplier<MapCodec<AdvancementMultiplierUpgrade>> ADVANCEMENT_MULTIPLIER =
             TYPES.register("advancement_multiplier", () -> AdvancementMultiplierUpgrade.CODEC);
 
@@ -36,4 +45,9 @@ public class CraftorioUpgradeTypes {
 
     public static final Supplier<MapCodec<DoubleOrNothingUnlockUpgrade>> DOUBLE_OR_NOTHING_UNLOCK =
             TYPES.register("double_or_nothing_unlock", () -> DoubleOrNothingUnlockUpgrade.CODEC);
+
+    public static final Supplier<MapCodec<EffectRuneShopUnlockUpgrade>> EFFECT_RUNE_SHOP_UNLOCK =
+            TYPES.register("effect_rune_shop_unlock", () -> EffectRuneShopUnlockUpgrade.CODEC);
+    public static final Supplier<MapCodec<EffectTimerDisplayUnlockUpgrade>> EFFECT_TIMER_DISPLAY_UNLOCK =
+            TYPES.register("effect_timer_display_unlock", () -> EffectTimerDisplayUnlockUpgrade.CODEC);
 }

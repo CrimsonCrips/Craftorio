@@ -1,0 +1,15 @@
+{
+  "type": "craftorio:difficulty",
+  "parent": "craftorio:mult_5",
+  "cost": "500000000000",
+  "description": "misc.craftorio.upgrade_difficulty_multiplier_description",
+  "easy": 0.5,
+  "hard": 2.5,
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "name": "misc.craftorio.upgrade_difficulty_multiplier",
+  "normal": 1.0,
+  "operation": "ADD",
+  "target": "MULTIPLIER",
+  "x": 300.0,
+  "y": -440.0
+}

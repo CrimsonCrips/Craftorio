@@ -1,0 +1,10 @@
+{
+  "type": "craftorio:effect_timer_display_unlock",
+  "parent": "craftorio:effect_timer_1",
+  "cost": "1000000000",
+  "description": "misc.craftorio.upgrade_effect_timer_display_unlock_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "name": "misc.craftorio.upgrade_effect_timer_display_unlock",
+  "x": -143.6797028147919,
+  "y": -110.0
+}

@@ -17,12 +17,14 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.client.render.CraftorioStarfield;
+import org.crimsoncrips.craftorio.client.screen.devtools.DevToolsDropdown;
 import org.crimsoncrips.craftorio.client.screen.devtools.DevToolsHelpPanel;
 import org.crimsoncrips.craftorio.client.screen.devtools.DevToolsUpgradeTrees;
 import org.crimsoncrips.craftorio.networking.devtools.GenerateSkillTreeCodePacket;
 import org.crimsoncrips.craftorio.networking.devtools.SkillTreeNodeData;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.UpgradeTree;
+import org.crimsoncrips.craftorio.skill_tree.target.ActionEffectValue;
 import org.crimsoncrips.craftorio.skill_tree.target.PlayerActionTarget;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioActionEffectUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioAttributeUpgrade;
@@ -51,8 +53,8 @@ public class SkillTreeCreatorScreen extends Screen {
     private static final String[] ATTRIBUTE_TARGETS = {
             "HEALTH", "SPEED", "DEFENSE", "DAMAGE", "BLOCK_REACH", "JUMP_HEIGHT", "XP_GAIN", "RESISTANCE"
     };
-    private static final String[] PLAYER_ACTION_TARGETS = {"WAKE_UP", "TRADE"};
-    private static final String[] OPERATIONS = {"ADD", "MULTIPLY"};
+    private static final String[] PLAYER_ACTION_TARGETS = {"WAKE_UP", "TRADE", "CONTRACT_COMPLETE", "RAID_WIN"};
+    private static final String[] OPERATIONS = {"ADD", "SUBTRACT", "MULTIPLY", "DIVIDE"};
 
     private static final int NODE_W = 64;
     private static final int NODE_H = 24;
@@ -93,11 +95,13 @@ public class SkillTreeCreatorScreen extends Screen {
     private boolean panning;
     private double panStartMouseX, panStartMouseY, panStartX, panStartY;
 
-    private Button categoryButton;
-    private Button modifierTargetButton;
-    private Button attributeTargetButton;
-    private Button playerActionTargetButton;
-    private Button operationButton;
+    private DevToolsDropdown categoryDropdown;
+    private DevToolsDropdown modifierTargetDropdown;
+    private DevToolsDropdown attributeTargetDropdown;
+    private DevToolsDropdown playerActionTargetDropdown;
+    private DevToolsDropdown operationDropdown;
+    private final List<DevToolsDropdown> dropdowns = new ArrayList<>();
+    private EditBox chanceBox;
     private Button duplicateButton;
     private Button deleteButton;
     private Button unlinkButton;
@@ -174,7 +178,7 @@ public class SkillTreeCreatorScreen extends Screen {
                 node.modifierTargetIndex = indexOf(MODIFIER_TARGETS, modifierUpgrade.getTarget().name());
                 node.operationIndex = indexOf(OPERATIONS, modifierUpgrade.getOperation().name());
                 double value = modifierUpgrade.getValue();
-                if (modifierUpgrade.getOperation().name().equals("ADD") && isTickDurationTarget(node)) {
+                if ((modifierUpgrade.getOperation().name().equals("ADD") || modifierUpgrade.getOperation().name().equals("SUBTRACT")) && isTickDurationTarget(node)) {
                     value /= CraftorioMisc.SECONDS_TO_TICKS;
                 }
                 node.value = String.valueOf(value);
@@ -188,6 +192,7 @@ public class SkillTreeCreatorScreen extends Screen {
                 node.category = "action_effect";
                 node.playerActionTargetIndex = indexOf(PLAYER_ACTION_TARGETS, actionEffectUpgrade.getTarget().name());
                 node.value = actionEffectUpgrade.getEffect().toString();
+                node.chance = String.valueOf(actionEffectUpgrade.getChancePerPurchase());
             }
 
             nodeByLocation.put(id, node);
@@ -357,12 +362,12 @@ public class SkillTreeCreatorScreen extends Screen {
         this.addRenderableWidget(this.includeLangButton);
         y += rowHeight;
 
-        this.categoryButton = Button.builder(Component.literal("modifier"), b -> {
+        this.dropdowns.clear();
+        this.categoryDropdown = dropdown(fieldX, y, fieldWidth, literals(CATEGORIES), index -> {
             if (selected == null) return;
-            selected.category = CATEGORIES[(indexOf(CATEGORIES, selected.category) + 1) % CATEGORIES.length];
+            selected.category = CATEGORIES[index];
             refreshSidebarFromSelection();
-        }).bounds(fieldX, y, fieldWidth, 16).build();
-        this.addRenderableWidget(this.categoryButton);
+        });
         y += rowHeight;
 
         this.idBox = new EditBox(this.font, fieldX, y, fieldWidth, 16, Component.literal("id"));
@@ -393,34 +398,32 @@ public class SkillTreeCreatorScreen extends Screen {
         this.addRenderableWidget(this.maxPurchasesBox);
         y += rowHeight;
 
-        this.modifierTargetButton = Button.builder(Component.literal(MODIFIER_TARGETS[0]), b -> {
+        this.modifierTargetDropdown = dropdown(fieldX, y, fieldWidth, literals(MODIFIER_TARGETS), index -> {
             if (selected == null) return;
-            selected.modifierTargetIndex = (selected.modifierTargetIndex + 1) % MODIFIER_TARGETS.length;
+            selected.modifierTargetIndex = index;
             refreshSidebarFromSelection();
-        }).bounds(fieldX, y, fieldWidth, 16).build();
-        this.addRenderableWidget(this.modifierTargetButton);
-
-        this.attributeTargetButton = Button.builder(Component.literal(ATTRIBUTE_TARGETS[0]), b -> {
+        });
+        this.attributeTargetDropdown = dropdown(fieldX, y, fieldWidth, literals(ATTRIBUTE_TARGETS), index -> {
             if (selected == null) return;
-            selected.attributeTargetIndex = (selected.attributeTargetIndex + 1) % ATTRIBUTE_TARGETS.length;
+            selected.attributeTargetIndex = index;
             refreshSidebarFromSelection();
-        }).bounds(fieldX, y, fieldWidth, 16).build();
-        this.addRenderableWidget(this.attributeTargetButton);
-
-        this.playerActionTargetButton = Button.builder(Component.literal(PLAYER_ACTION_TARGETS[0]), b -> {
+        });
+        this.playerActionTargetDropdown = dropdown(fieldX, y, fieldWidth, literals(PLAYER_ACTION_TARGETS), index -> {
             if (selected == null) return;
-            selected.playerActionTargetIndex = (selected.playerActionTargetIndex + 1) % PLAYER_ACTION_TARGETS.length;
+            selected.playerActionTargetIndex = index;
             refreshSidebarFromSelection();
-        }).bounds(fieldX, y, fieldWidth, 16).build();
-        this.addRenderableWidget(this.playerActionTargetButton);
+        });
         y += rowHeight;
 
-        this.operationButton = Button.builder(Component.literal(OPERATIONS[0]), b -> {
+        this.operationDropdown = dropdown(fieldX, y, fieldWidth, literals(OPERATIONS), index -> {
             if (selected == null) return;
-            selected.operationIndex = (selected.operationIndex + 1) % OPERATIONS.length;
+            selected.operationIndex = index;
             refreshSidebarFromSelection();
-        }).bounds(fieldX, y, fieldWidth, 16).build();
-        this.addRenderableWidget(this.operationButton);
+        });
+        this.chanceBox = new EditBox(this.font, fieldX, y, fieldWidth, 16, Component.literal("chance"));
+        this.chanceBox.setMaxLength(16);
+        this.chanceBox.setResponder(value -> { if (selected != null) selected.chance = value; });
+        this.addRenderableWidget(this.chanceBox);
         y += rowHeight;
 
         this.valueBox = new EditBox(this.font, fieldX, y, fieldWidth, 16, Component.literal("value"));
@@ -530,6 +533,21 @@ public class SkillTreeCreatorScreen extends Screen {
         this.statusSuccess = success;
     }
 
+    private DevToolsDropdown dropdown(int x, int y, int width, List<Component> options, java.util.function.IntConsumer onChange) {
+        DevToolsDropdown dropdown = new DevToolsDropdown(this.font, x, y, width, 16, options, 0, onChange);
+        this.dropdowns.add(dropdown);
+        this.addRenderableWidget(dropdown);
+        return dropdown;
+    }
+
+    private static List<Component> literals(String[] values) {
+        List<Component> components = new ArrayList<>(values.length);
+        for (String value : values) {
+            components.add(Component.literal(value));
+        }
+        return components;
+    }
+
     private Component exportLabel() {
         return Component.translatable(jsonExport ? "misc.craftorio.dev_tools_export_json" : "misc.craftorio.dev_tools_export_code");
     }
@@ -537,8 +555,8 @@ public class SkillTreeCreatorScreen extends Screen {
     private void refreshSidebarFromSelection() {
         boolean has = selected != null;
 
-        this.categoryButton.visible = has;
-        this.categoryButton.active = has;
+        this.categoryDropdown.visible = has;
+        this.categoryDropdown.active = has;
         this.idBox.visible = has;
         this.idBox.active = has;
         this.costBox.visible = has;
@@ -547,8 +565,10 @@ public class SkillTreeCreatorScreen extends Screen {
         this.costScientificButton.active = has;
         this.maxPurchasesBox.visible = has;
         this.maxPurchasesBox.active = has;
-        this.operationButton.visible = has;
-        this.operationButton.active = has;
+        this.operationDropdown.visible = has;
+        this.operationDropdown.active = has;
+        this.chanceBox.visible = false;
+        this.chanceBox.active = false;
         this.valueBox.visible = has;
         this.valueBox.active = has;
 
@@ -556,12 +576,12 @@ public class SkillTreeCreatorScreen extends Screen {
         this.deleteButton.active = has;
 
         if (!has) {
-            this.modifierTargetButton.visible = false;
-            this.modifierTargetButton.active = false;
-            this.attributeTargetButton.visible = false;
-            this.attributeTargetButton.active = false;
-            this.playerActionTargetButton.visible = false;
-            this.playerActionTargetButton.active = false;
+            this.modifierTargetDropdown.visible = false;
+            this.modifierTargetDropdown.active = false;
+            this.attributeTargetDropdown.visible = false;
+            this.attributeTargetDropdown.active = false;
+            this.playerActionTargetDropdown.visible = false;
+            this.playerActionTargetDropdown.active = false;
             this.itemTagBox.visible = false;
             this.itemTagBox.active = false;
             this.nameBox.visible = false;
@@ -596,48 +616,53 @@ public class SkillTreeCreatorScreen extends Screen {
         this.unlinkButton.active = linked;
 
         if (selected.manual) {
-            this.categoryButton.visible = false;
-            this.categoryButton.active = false;
+            this.categoryDropdown.visible = false;
+            this.categoryDropdown.active = false;
             this.idBox.visible = false;
             this.idBox.active = false;
             this.maxPurchasesBox.visible = false;
             this.maxPurchasesBox.active = false;
-            this.operationButton.visible = false;
-            this.operationButton.active = false;
+            this.operationDropdown.visible = false;
+            this.operationDropdown.active = false;
+            this.chanceBox.visible = false;
+            this.chanceBox.active = false;
             this.valueBox.visible = false;
             this.valueBox.active = false;
-            this.modifierTargetButton.visible = false;
-            this.modifierTargetButton.active = false;
-            this.attributeTargetButton.visible = false;
-            this.attributeTargetButton.active = false;
-            this.playerActionTargetButton.visible = false;
-            this.playerActionTargetButton.active = false;
+            this.modifierTargetDropdown.visible = false;
+            this.modifierTargetDropdown.active = false;
+            this.attributeTargetDropdown.visible = false;
+            this.attributeTargetDropdown.active = false;
+            this.playerActionTargetDropdown.visible = false;
+            this.playerActionTargetDropdown.active = false;
             this.itemTagBox.visible = false;
             this.itemTagBox.active = false;
             return;
         }
 
-        this.categoryButton.setMessage(Component.literal(selected.category));
+        this.categoryDropdown.setSelected(indexOf(CATEGORIES, selected.category));
         this.idBox.setValue(selected.id);
-        this.operationButton.setMessage(Component.literal(OPERATIONS[selected.operationIndex]));
+        this.operationDropdown.setSelected(selected.operationIndex);
         this.valueBox.setValue(selected.value);
 
         boolean isModifier = selected.category.equals("modifier");
         boolean isActionEffect = selected.category.equals("action_effect");
         boolean isAttribute = !isModifier && !isActionEffect;
 
-        this.modifierTargetButton.visible = isModifier;
-        this.modifierTargetButton.active = isModifier;
-        this.modifierTargetButton.setMessage(Component.literal(MODIFIER_TARGETS[selected.modifierTargetIndex]));
-        this.attributeTargetButton.visible = isAttribute;
-        this.attributeTargetButton.active = isAttribute;
-        this.attributeTargetButton.setMessage(Component.literal(ATTRIBUTE_TARGETS[selected.attributeTargetIndex]));
-        this.playerActionTargetButton.visible = isActionEffect;
-        this.playerActionTargetButton.active = isActionEffect;
-        this.playerActionTargetButton.setMessage(Component.literal(PLAYER_ACTION_TARGETS[selected.playerActionTargetIndex]));
+        this.modifierTargetDropdown.visible = isModifier;
+        this.modifierTargetDropdown.active = isModifier;
+        this.modifierTargetDropdown.setSelected(selected.modifierTargetIndex);
+        this.attributeTargetDropdown.visible = isAttribute;
+        this.attributeTargetDropdown.active = isAttribute;
+        this.attributeTargetDropdown.setSelected(selected.attributeTargetIndex);
+        this.playerActionTargetDropdown.visible = isActionEffect;
+        this.playerActionTargetDropdown.active = isActionEffect;
+        this.playerActionTargetDropdown.setSelected(selected.playerActionTargetIndex);
 
-        this.operationButton.visible = !isActionEffect;
-        this.operationButton.active = !isActionEffect;
+        this.operationDropdown.visible = !isActionEffect;
+        this.operationDropdown.active = !isActionEffect;
+        this.chanceBox.visible = isActionEffect;
+        this.chanceBox.active = isActionEffect;
+        this.chanceBox.setValue(selected.chance);
 
         boolean usesTag = isModifier && MODIFIER_TARGETS[selected.modifierTargetIndex].equals("ITEM_TAG_BASE_VALUE");
         this.itemTagBox.visible = usesTag;
@@ -747,7 +772,7 @@ public class SkillTreeCreatorScreen extends Screen {
                             : node.category.equals("action_effect") ? PLAYER_ACTION_TARGETS[node.playerActionTargetIndex]
                             : ATTRIBUTE_TARGETS[node.attributeTargetIndex],
                     OPERATIONS[node.operationIndex],
-                    node.value,
+                    node.category.equals("action_effect") ? ActionEffectValue.parse(node.value + "|" + node.chance).format() : node.value,
                     node.itemTag,
                     node.name,
                     node.manual,
@@ -769,7 +794,7 @@ public class SkillTreeCreatorScreen extends Screen {
         if (node.category.equals("action_effect")) {
             return "e.g. craftorio:productive";
         }
-        if (isTickDurationTarget(node) && OPERATIONS[node.operationIndex].equals("ADD")) {
+        if (isTickDurationTarget(node) && (OPERATIONS[node.operationIndex].equals("ADD") || OPERATIONS[node.operationIndex].equals("SUBTRACT"))) {
             return "e.g. 10 (seconds)";
         }
         return "e.g. 0.1";
@@ -862,6 +887,7 @@ public class SkillTreeCreatorScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (DevToolsDropdown.handleClicks(this.dropdowns, mouseX, mouseY)) return true;
         if (super.mouseClicked(mouseX, mouseY, button)) return true;
         if (!isInCanvas(mouseX, mouseY)) return false;
 
@@ -1156,11 +1182,8 @@ public class SkillTreeCreatorScreen extends Screen {
             };
             boolean isActionEffectSelected = selected.category.equals("action_effect");
             for (String key : moreLabelKeys) {
-                if (key.equals("dev_tools_label_operation") && isActionEffectSelected) {
-                    y += rowHeight;
-                    continue;
-                }
-                graphics.drawString(this.font, Component.translatable("misc.craftorio." + key), labelX, y + 4, 0xAAAAAA, false);
+                String labelKey = key.equals("dev_tools_label_operation") && isActionEffectSelected ? "dev_tools_label_chance" : key;
+                graphics.drawString(this.font, Component.translatable("misc.craftorio." + labelKey), labelX, y + 4, 0xAAAAAA, false);
                 y += rowHeight;
             }
 
@@ -1216,6 +1239,8 @@ public class SkillTreeCreatorScreen extends Screen {
             }
         }
 
+        DevToolsDropdown.renderAll(this.dropdowns, graphics, mouseX, mouseY, this.width, this.height);
+
         this.helpPanel.render(graphics, this.font, this.width, 30, true, List.of(
                 Component.translatable("misc.craftorio.dev_tools_skill_tree_help_1"),
                 Component.translatable("misc.craftorio.dev_tools_skill_tree_help_2"),
@@ -1245,6 +1270,7 @@ public class SkillTreeCreatorScreen extends Screen {
         String value = "0.1";
         String itemTag = "";
         String name = "";
+        String chance = "0.2";
         String externalParent = "craftorio:root";
         boolean manual = false;
         String manualLocation = "";

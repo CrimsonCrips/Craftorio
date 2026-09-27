@@ -15,11 +15,12 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.RegisterCommandsEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.CraftorioMisc;
-import org.crimsoncrips.craftorio.networking.effect.EffectTimerPacket;
-import org.crimsoncrips.craftorio.server.haven.CraftorioHavenDimension;
+import org.crimsoncrips.craftorio.networking.skill_tree.OpenRebirthSkillTreeScreenPacket;
+import org.crimsoncrips.craftorio.server.rebirth.CraftorioRebirth;
 import org.crimsoncrips.craftorio.server.sacrifice.CraftorioSacrifice;
 
 import java.math.BigInteger;
+import java.util.List;
 
 import static org.crimsoncrips.craftorio.CraftorioMisc.pointThreshold;
 
@@ -36,19 +37,26 @@ public class CommandEvents {
                                 .then(Commands.literal("set").requires(cs -> cs.hasPermission(3)).then(Commands.argument("amount",StringArgumentType.string()).executes(ctx -> modifyPoints(ctx, PointsOp.SET))))
                                 .then(Commands.literal("subtract").requires(cs -> cs.hasPermission(3)).then(Commands.argument("amount",StringArgumentType.string()).executes(ctx -> modifyPoints(ctx, PointsOp.SUBTRACT))))
                                 .then(Commands.literal("give").then(Commands.argument("target", EntityArgument.player()).then(Commands.argument("amount",StringArgumentType.string()).executes(CommandEvents::runGivePoints)))))
-                .then(Commands.literal("toggle_effect_timer").requires(cs -> cs.hasPermission(4)).executes(CommandEvents::runToggleEffectTimer))
                 .then(Commands.literal("contract_refresh_time").requires(cs -> cs.hasPermission(3))
                         .then(Commands.argument("seconds", IntegerArgumentType.integer(0)).executes(CommandEvents::runSetContractRefreshTime)))
+                .then(Commands.literal("life").requires(cs -> cs.hasPermission(3))
+                        .then(Commands.argument("amount", IntegerArgumentType.integer(0)).executes(CommandEvents::runSetLife)))
                 .then(Commands.literal("effect_timer_time").requires(cs -> cs.hasPermission(3))
                         .then(Commands.argument("seconds", IntegerArgumentType.integer(0)).executes(CommandEvents::runSetEffectTimerTime)))
-                .then(Commands.literal("haven").requires(cs -> cs.hasPermission(2))
-                        .then(Commands.literal("enter").executes(CommandEvents::runHavenEnter))
-                        .then(Commands.literal("leave").executes(CommandEvents::runHavenLeave)))
-                .then(Commands.literal("sacrifice").requires(cs -> cs.hasPermission(4)).executes(context -> runSacrifice(context, false))
-                        .then(Commands.literal("newseed").executes(context -> runSacrifice(context, true))))
+                .then(Commands.literal("sacrifice").requires(cs -> cs.hasPermission(4)).executes(context -> runSacrifice(context, null))
+                        .then(Commands.argument("target", EntityArgument.player()).executes(context -> runSacrifice(context, EntityArgument.getPlayer(context, "target")))))
+                .then(Commands.literal("rebirth").requires(cs -> cs.hasPermission(3)).executes(context -> runRebirth(context, null))
+                        .then(Commands.argument("target", EntityArgument.player()).executes(context -> runRebirth(context, EntityArgument.getPlayer(context, "target")))))
         );
 
 
+    }
+
+    private static int runSetLife(CommandContext<CommandSourceStack> context) {
+        ServerPlayer player = context.getSource().getPlayer();
+        int lifeAmount = IntegerArgumentType.getInteger(context, "amount");
+        CraftorioMisc.setLife(lifeAmount,player);
+        return 1;
     }
 
 
@@ -107,22 +115,6 @@ public class CommandEvents {
         return 1;
     }
 
-    private static int runToggleEffectTimer(CommandContext<CommandSourceStack> context) {
-
-        ServerPlayer serverPlayer = context.getSource().getPlayer();
-        if (serverPlayer == null) return 0;
-
-        boolean nowEnabled = ServerEvents.toggleEffectTimerViewer(serverPlayer);
-        int current = CraftorioMisc.universalBased(serverPlayer.level())
-                ? CraftorioMisc.getRandomEffectTime(serverPlayer.level())
-                : CraftorioMisc.getRandomEffectTime(serverPlayer);
-        current = Math.max(current, 0);
-        PacketDistributor.sendToPlayer(serverPlayer, new EffectTimerPacket(nowEnabled, current));
-
-        context.getSource().sendSuccess(() -> Component.translatable(nowEnabled ? "misc.craftorio.effect_timer_enabled" : "misc.craftorio.effect_timer_disabled"), true);
-        return 1;
-    }
-
     private static int runSetContractRefreshTime(CommandContext<CommandSourceStack> context) {
         int seconds = IntegerArgumentType.getInteger(context, "seconds");
         ServerLevel level = context.getSource().getLevel();
@@ -155,24 +147,28 @@ public class CommandEvents {
         return 1;
     }
 
-    private static int runHavenEnter(CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = context.getSource().getPlayer();
-        if (player == null) return 0;
-
-        CraftorioHavenDimension.enter(player);
+    private static int runSacrifice(CommandContext<CommandSourceStack> context, ServerPlayer target) {
+        ServerPlayer player = target != null ? target : context.getSource().getPlayer();
+        if (player == null || !CraftorioSacrifice.enter(player, true)) {
+            context.getSource().sendFailure(Component.translatable("misc.craftorio.command_sacrifice_failed"));
+            return 0;
+        }
+        context.getSource().sendSuccess(() -> Component.translatable("misc.craftorio.command_sacrifice_started", player.getDisplayName()), true);
         return 1;
     }
 
-    private static int runHavenLeave(CommandContext<CommandSourceStack> context) {
-        ServerPlayer player = context.getSource().getPlayer();
+    private static int runRebirth(CommandContext<CommandSourceStack> context, ServerPlayer target) {
+        ServerPlayer player = target != null ? target : context.getSource().getPlayer();
         if (player == null) return 0;
 
-        CraftorioHavenDimension.leave(player);
+        CraftorioRebirth.forceRebirth(player);
+        List<ServerPlayer> reborn = CraftorioMisc.universalBased(CraftorioMisc.universalLevel(player))
+                ? context.getSource().getServer().getPlayerList().getPlayers() : List.of(player);
+        for (ServerPlayer rebornPlayer : reborn) {
+            PacketDistributor.sendToPlayer(rebornPlayer, new OpenRebirthSkillTreeScreenPacket());
+        }
+        context.getSource().sendSuccess(() -> Component.translatable("misc.craftorio.command_rebirth_done", player.getDisplayName()), true);
         return 1;
-    }
-
-    private static int runSacrifice(CommandContext<CommandSourceStack> context, boolean newSeed) {
-        return CraftorioSacrifice.forceStart(context.getSource().getServer(), newSeed, context.getSource().getPlayer()) ? 1 : 0;
     }
 
 }

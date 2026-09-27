@@ -1,0 +1,14 @@
+{
+  "effects": {
+    "craftorio:black_holdover": 4,
+    "craftorio:dense_traffic": 10,
+    "craftorio:general/inquisitors_wrath": 3,
+    "craftorio:inflated_valuables": 10,
+    "craftorio:monopolized": 8,
+    "craftorio:oversupplied": 10,
+    "craftorio:rugpulled": 8,
+    "craftorio:shop/kingdom_tariff": 3,
+    "craftorio:strait_to_deficits": 10,
+    "craftorio:tag/copper_deficiency": 3
+  }
+}

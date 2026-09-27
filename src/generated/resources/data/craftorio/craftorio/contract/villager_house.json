@@ -1,0 +1,13 @@
+{
+  "basePointValue": "6000",
+  "description": "registry.villager_house.description",
+  "goal": {
+    "type": "building",
+    "structure": "minecraft:village/plains/houses/plains_small_house_1"
+  },
+  "itemBounty": [],
+  "max_point_threshold": "100000000",
+  "name": "registry.villager_house.title",
+  "seconds": 3000,
+  "weight": 10
+}

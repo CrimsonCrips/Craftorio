@@ -14,11 +14,17 @@ import net.neoforged.neoforge.event.AddReloadListenerEvent;
 import org.apache.commons.lang3.tuple.Pair;
 import org.crimsoncrips.craftorio.block.CraftorioBlocks;
 import org.crimsoncrips.craftorio.block.blockentity.CraftorioBlockEntityTypes;
+import org.crimsoncrips.craftorio.client.schematic.ClientSchematics;
+import org.crimsoncrips.craftorio.client.schematic.CraftorioChronosphere;
+import org.crimsoncrips.craftorio.client.schematic.CraftorioSchematicRenderer;
 import org.crimsoncrips.craftorio.client.compat.IrisCompat;
 import org.crimsoncrips.craftorio.client.compat.XaeroWorldMapCompat;
 import org.crimsoncrips.craftorio.client.config.CraftorioClientConfig;
 import org.crimsoncrips.craftorio.client.input.CraftorioKeyMappings;
+import org.crimsoncrips.craftorio.client.render.CraftorioRebirthHealthEffect;
+import org.crimsoncrips.craftorio.client.render.CraftorioScreenFade;
 import org.crimsoncrips.craftorio.client.render.CraftorioShaders;
+import org.crimsoncrips.craftorio.client.screen.CraftorioScreenScroll;
 import org.crimsoncrips.craftorio.client.render.CraftorioShatterEffect;
 import org.crimsoncrips.craftorio.datagen.CraftorioDatagen;
 import org.crimsoncrips.craftorio.datagen.maps.CraftorioDataMaps;
@@ -36,6 +42,7 @@ import org.crimsoncrips.craftorio.server.advancement.CraftorioAdvancementMultipl
 import org.crimsoncrips.craftorio.server.advancement.CraftorioAdvancementPoints;
 import org.crimsoncrips.craftorio.server.advancement.CraftorioPointsAdvancements;
 import org.crimsoncrips.craftorio.server.config.CraftorioServerConfig;
+import org.crimsoncrips.craftorio.server.loan.CraftorioLoanEffects;
 import org.crimsoncrips.craftorio.server.data.CraftorioDataAttachments;
 import org.crimsoncrips.craftorio.server.unlocks.CraftorioUnlockedItemsManager;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgradeTypes;
@@ -54,6 +61,7 @@ public class Craftorio {
 
     public static final CraftorioServerConfig SERVER_CONFIG;
     public static final ModConfigSpec SERVER_CONFIG_SPEC;
+    public static final String SERVER_CONFIG_FILE = "craftorio-general.toml";
 
     public static final CraftorioClientConfig CLIENT_CONFIG;
     public static final ModConfigSpec CLIENT_CONFIG_SPEC;
@@ -80,6 +88,7 @@ public class Craftorio {
 
         NeoForge.EVENT_BUS.addListener((AddReloadListenerEvent event) -> event.addListener(new CraftorioAdvancementPoints()));
         NeoForge.EVENT_BUS.addListener((AddReloadListenerEvent event) -> event.addListener(new CraftorioAdvancementMultipliers()));
+        NeoForge.EVENT_BUS.addListener((AddReloadListenerEvent event) -> event.addListener(new CraftorioLoanEffects()));
 
         NeoForge.EVENT_BUS.register(new CommandEvents());
         NeoForge.EVENT_BUS.register(new ServerEvents());
@@ -99,7 +108,20 @@ public class Craftorio {
             NeoForge.EVENT_BUS.addListener(CraftorioShatterEffect::onLoggingOut);
             NeoForge.EVENT_BUS.addListener(CraftorioShatterEffect::onLoggingIn);
             NeoForge.EVENT_BUS.addListener(CraftorioShatterEffect::onScreenOpening);
-            modEventBus.addListener(ClientEvents::showEffectTimer);
+            NeoForge.EVENT_BUS.addListener(CraftorioScreenScroll::onScreenInit);
+            NeoForge.EVENT_BUS.addListener(CraftorioScreenScroll::onMouseScrolled);
+            modEventBus.addListener(CraftorioRebirthHealthEffect::registerLayer);
+            NeoForge.EVENT_BUS.addListener(CraftorioRebirthHealthEffect::renderOverScreen);
+            NeoForge.EVENT_BUS.addListener(CraftorioRebirthHealthEffect::hideVanillaHearts);
+            NeoForge.EVENT_BUS.addListener(CraftorioRebirthHealthEffect::onLoggingOut);
+            modEventBus.addListener(CraftorioScreenFade::registerLayer);
+            NeoForge.EVENT_BUS.addListener(CraftorioScreenFade::renderOverScreen);
+            NeoForge.EVENT_BUS.addListener(CraftorioScreenFade::onLoggingOut);
+            modEventBus.addListener(CraftorioSchematicRenderer::registerLayer);
+            NeoForge.EVENT_BUS.addListener(CraftorioSchematicRenderer::onRenderLevel);
+            NeoForge.EVENT_BUS.addListener(ClientSchematics::onLoggingOut);
+            NeoForge.EVENT_BUS.addListener(CraftorioChronosphere::onRenderLevel);
+            NeoForge.EVENT_BUS.addListener(CraftorioChronosphere::onLoggingOut);
             modEventBus.addListener(ClientEvents::showToasts);
             NeoForge.EVENT_BUS.addListener(ClientEvents::renderScanBox);
             NeoForge.EVENT_BUS.addListener(ClientEvents::renderBorders);
@@ -134,7 +156,7 @@ public class Craftorio {
         CraftorioFeatures.FEATURES.register(modEventBus);
 
         //Config
-        modContainer.registerConfig(ModConfig.Type.COMMON, SERVER_CONFIG_SPEC, "craftorio-general.toml");
+        modContainer.registerConfig(ModConfig.Type.SERVER, SERVER_CONFIG_SPEC, SERVER_CONFIG_FILE);
         modContainer.registerConfig(ModConfig.Type.CLIENT, CLIENT_CONFIG_SPEC, "craftorio-client.toml");
     }
 

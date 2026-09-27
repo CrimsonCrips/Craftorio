@@ -10,19 +10,23 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
+import org.crimsoncrips.craftorio.client.screen.devtools.DevToolsDropdown;
 import org.crimsoncrips.craftorio.client.screen.devtools.DevToolsHelpPanel;
 import org.crimsoncrips.craftorio.client.screen.devtools.DevToolsUpgradeTrees;
 import org.crimsoncrips.craftorio.networking.devtools.GenerateUpgradeCodePacket;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.UpgradeTree;
+import org.crimsoncrips.craftorio.skill_tree.target.ActionEffectValue;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioActionEffectUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioAttributeUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioModifierUpgrade;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @OnlyIn(Dist.CLIENT)
-public class UpgradeCreatorScreen extends Screen {
+public class UpgradeCreatorScreen extends Screen implements ScrollableScreen {
 
     private static final String[] CATEGORIES = {"modifier", "attribute", "action_effect"};
     private static final String[] MODIFIER_TARGETS = {
@@ -34,8 +38,8 @@ public class UpgradeCreatorScreen extends Screen {
     private static final String[] ATTRIBUTE_TARGETS = {
             "HEALTH", "SPEED", "DEFENSE", "DAMAGE", "BLOCK_REACH", "JUMP_HEIGHT", "XP_GAIN", "RESISTANCE"
     };
-    private static final String[] PLAYER_ACTION_TARGETS = {"WAKE_UP", "TRADE"};
-    private static final String[] OPERATIONS = {"ADD", "MULTIPLY"};
+    private static final String[] PLAYER_ACTION_TARGETS = {"WAKE_UP", "TRADE", "CONTRACT_COMPLETE", "RAID_WIN"};
+    private static final String[] OPERATIONS = {"ADD", "SUBTRACT", "MULTIPLY", "DIVIDE"};
 
     private final Screen parent;
     private final DevToolsHelpPanel helpPanel = new DevToolsHelpPanel();
@@ -50,11 +54,14 @@ public class UpgradeCreatorScreen extends Screen {
     private int attributeTargetIndex = 0;
     private int playerActionTargetIndex = 0;
     private int operationIndex = 0;
-    private Button categoryButton;
-    private Button modifierTargetButton;
-    private Button attributeTargetButton;
-    private Button playerActionTargetButton;
-    private Button operationButton;
+    private DevToolsDropdown categoryDropdown;
+    private DevToolsDropdown modifierTargetDropdown;
+    private DevToolsDropdown attributeTargetDropdown;
+    private DevToolsDropdown playerActionTargetDropdown;
+    private DevToolsDropdown operationDropdown;
+    private DevToolsDropdown treeDropdown;
+    private final List<DevToolsDropdown> dropdowns = new ArrayList<>();
+    private EditBox chanceBox;
 
     private EditBox idBox;
     private EditBox modIdBox;
@@ -70,7 +77,6 @@ public class UpgradeCreatorScreen extends Screen {
     private boolean jsonExport = false;
     private Button exportButton;
     private UpgradeTree tree = UpgradeTree.BASIC;
-    private Button treeButton;
 
     private String prefillId = "";
     private String prefillModId = "";
@@ -81,6 +87,7 @@ public class UpgradeCreatorScreen extends Screen {
     private String prefillValue = "";
     private String prefillItemTag = "";
     private String prefillName = "";
+    private String prefillChance = "0.2";
 
     public UpgradeCreatorScreen(Screen parent) {
         super(Component.translatable("misc.craftorio.upgrade_creator_title"));
@@ -97,21 +104,19 @@ public class UpgradeCreatorScreen extends Screen {
         int y = panelTop + 24;
         int rowHeight = 22;
 
-        this.treeButton = Button.builder(treeLabel(), b -> {
-            UpgradeTree[] trees = UpgradeTree.values();
-            tree = trees[(tree.ordinal() + 1) % trees.length];
-            treeButton.setMessage(treeLabel());
-        }).bounds(fieldX, y, fieldWidth, 16).build();
-        this.addRenderableWidget(this.treeButton);
+        this.dropdowns.clear();
+        List<Component> treeLabels = new ArrayList<>();
+        for (UpgradeTree candidate : UpgradeTree.values()) {
+            treeLabels.add(Component.translatable(candidate.translationKey()));
+        }
+        this.treeDropdown = dropdown(fieldX, y, fieldWidth, treeLabels, tree.ordinal(), index -> tree = UpgradeTree.values()[index]);
         y += rowHeight;
 
-        this.categoryButton = Button.builder(Component.literal(CATEGORIES[categoryIndex]), b -> {
-            categoryIndex = (categoryIndex + 1) % CATEGORIES.length;
-            categoryButton.setMessage(Component.literal(CATEGORIES[categoryIndex]));
+        this.categoryDropdown = dropdown(fieldX, y, fieldWidth, literals(CATEGORIES), categoryIndex, index -> {
+            categoryIndex = index;
             updateTargetVisibility();
             updateItemTagVisibility();
-        }).bounds(fieldX, y, fieldWidth, 16).build();
-        this.addRenderableWidget(this.categoryButton);
+        });
         y += rowHeight;
 
         this.idBox = new EditBox(this.font, fieldX, y, fieldWidth, 16, Component.literal("id"));
@@ -145,33 +150,20 @@ public class UpgradeCreatorScreen extends Screen {
         this.addRenderableWidget(this.parentBox);
         y += rowHeight;
 
-        this.modifierTargetButton = Button.builder(Component.literal(MODIFIER_TARGETS[modifierTargetIndex]), b -> {
-            modifierTargetIndex = (modifierTargetIndex + 1) % MODIFIER_TARGETS.length;
-            modifierTargetButton.setMessage(Component.literal(MODIFIER_TARGETS[modifierTargetIndex]));
+        this.modifierTargetDropdown = dropdown(fieldX, y, fieldWidth, literals(MODIFIER_TARGETS), modifierTargetIndex, index -> {
+            modifierTargetIndex = index;
             updateItemTagVisibility();
-        }).bounds(fieldX, y, fieldWidth, 16).build();
-        this.addRenderableWidget(this.modifierTargetButton);
-
-        this.attributeTargetButton = Button.builder(Component.literal(ATTRIBUTE_TARGETS[attributeTargetIndex]), b -> {
-            attributeTargetIndex = (attributeTargetIndex + 1) % ATTRIBUTE_TARGETS.length;
-            attributeTargetButton.setMessage(Component.literal(ATTRIBUTE_TARGETS[attributeTargetIndex]));
-        }).bounds(fieldX, y, fieldWidth, 16).build();
-        this.addRenderableWidget(this.attributeTargetButton);
-
-        this.playerActionTargetButton = Button.builder(Component.literal(PLAYER_ACTION_TARGETS[playerActionTargetIndex]), b -> {
-            playerActionTargetIndex = (playerActionTargetIndex + 1) % PLAYER_ACTION_TARGETS.length;
-            playerActionTargetButton.setMessage(Component.literal(PLAYER_ACTION_TARGETS[playerActionTargetIndex]));
-        }).bounds(fieldX, y, fieldWidth, 16).build();
-        this.addRenderableWidget(this.playerActionTargetButton);
-
-        updateTargetVisibility();
+        });
+        this.attributeTargetDropdown = dropdown(fieldX, y, fieldWidth, literals(ATTRIBUTE_TARGETS), attributeTargetIndex, index -> attributeTargetIndex = index);
+        this.playerActionTargetDropdown = dropdown(fieldX, y, fieldWidth, literals(PLAYER_ACTION_TARGETS), playerActionTargetIndex, index -> playerActionTargetIndex = index);
         y += rowHeight;
 
-        this.operationButton = Button.builder(Component.literal(OPERATIONS[operationIndex]), b -> {
-            operationIndex = (operationIndex + 1) % OPERATIONS.length;
-            operationButton.setMessage(Component.literal(OPERATIONS[operationIndex]));
-        }).bounds(fieldX, y, fieldWidth, 16).build();
-        this.addRenderableWidget(this.operationButton);
+        this.operationDropdown = dropdown(fieldX, y, fieldWidth, literals(OPERATIONS), operationIndex, index -> operationIndex = index);
+        this.chanceBox = new EditBox(this.font, fieldX, y, fieldWidth, 16, Component.literal("chance"));
+        this.chanceBox.setMaxLength(16);
+        this.chanceBox.setValue(prefillChance);
+        this.chanceBox.setResponder(value -> prefillChance = value);
+        this.addRenderableWidget(this.chanceBox);
         y += rowHeight;
 
         this.valueBox = new EditBox(this.font, fieldX, y, fieldWidth, 16, Component.literal("value"));
@@ -206,6 +198,7 @@ public class UpgradeCreatorScreen extends Screen {
         this.valueBox.setValue(prefillValue);
         this.itemTagBox.setValue(prefillItemTag);
         this.nameBox.setValue(prefillName);
+        updateTargetVisibility();
 
         refreshLangVisibility();
 
@@ -229,8 +222,19 @@ public class UpgradeCreatorScreen extends Screen {
         this.addRenderableWidget(this.helpPanel.createButton(this.width, 6, () -> {}));
     }
 
-    private Component treeLabel() {
-        return Component.translatable(tree.translationKey());
+    private DevToolsDropdown dropdown(int x, int y, int width, List<Component> options, int selected, java.util.function.IntConsumer onChange) {
+        DevToolsDropdown dropdown = new DevToolsDropdown(this.font, x, y, width, 16, options, selected, onChange);
+        this.dropdowns.add(dropdown);
+        this.addRenderableWidget(dropdown);
+        return dropdown;
+    }
+
+    private static List<Component> literals(String[] values) {
+        List<Component> components = new ArrayList<>(values.length);
+        for (String value : values) {
+            components.add(Component.literal(value));
+        }
+        return components;
     }
 
     private void openEditPicker() {
@@ -264,7 +268,7 @@ public class UpgradeCreatorScreen extends Screen {
             this.modifierTargetIndex = indexOf(MODIFIER_TARGETS, modifierUpgrade.getTarget().name());
             this.operationIndex = indexOf(OPERATIONS, modifierUpgrade.getOperation().name());
             double value = modifierUpgrade.getValue();
-            if (modifierUpgrade.getOperation().name().equals("ADD") && isTickDurationTarget()) {
+            if ((modifierUpgrade.getOperation().name().equals("ADD") || modifierUpgrade.getOperation().name().equals("SUBTRACT")) && isTickDurationTarget()) {
                 value /= CraftorioMisc.SECONDS_TO_TICKS;
             }
             this.prefillValue = String.valueOf(value);
@@ -278,6 +282,7 @@ public class UpgradeCreatorScreen extends Screen {
             this.categoryIndex = 2;
             this.playerActionTargetIndex = indexOf(PLAYER_ACTION_TARGETS, actionEffectUpgrade.getTarget().name());
             this.prefillValue = actionEffectUpgrade.getEffect().toString();
+            this.prefillChance = String.valueOf(actionEffectUpgrade.getChancePerPurchase());
         }
 
         String translatedName = Component.translatable(upgrade.getNameKey()).getString();
@@ -305,16 +310,22 @@ public class UpgradeCreatorScreen extends Screen {
         boolean isActionEffect = isActionEffectCategory();
         boolean isAttribute = !isModifier && !isActionEffect;
 
-        this.modifierTargetButton.visible = isModifier;
-        this.modifierTargetButton.active = isModifier;
-        this.attributeTargetButton.visible = isAttribute;
-        this.attributeTargetButton.active = isAttribute;
-        this.playerActionTargetButton.visible = isActionEffect;
-        this.playerActionTargetButton.active = isActionEffect;
+        setVisible(this.modifierTargetDropdown, isModifier);
+        setVisible(this.attributeTargetDropdown, isAttribute);
+        setVisible(this.playerActionTargetDropdown, isActionEffect);
+        setVisible(this.operationDropdown, !isActionEffect);
+        if (this.chanceBox != null) {
+            this.chanceBox.visible = isActionEffect;
+            this.chanceBox.active = isActionEffect;
+        }
+    }
 
-        if (this.operationButton != null) {
-            this.operationButton.visible = !isActionEffect;
-            this.operationButton.active = !isActionEffect;
+    private static void setVisible(DevToolsDropdown dropdown, boolean visible) {
+        if (dropdown == null) return;
+        dropdown.visible = visible;
+        dropdown.active = visible;
+        if (!visible) {
+            dropdown.collapse();
         }
     }
 
@@ -366,13 +377,19 @@ public class UpgradeCreatorScreen extends Screen {
                 parentBox.getValue(),
                 selectedTarget,
                 OPERATIONS[operationIndex],
-                valueBox.getValue(),
+                isActionEffectCategory() ? ActionEffectValue.parse(valueBox.getValue() + "|" + chanceBox.getValue()).format() : valueBox.getValue(),
                 itemTagBox.getValue(),
                 includeLang,
                 nameBox.getValue(),
                 jsonExport,
                 tree
         ));
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (DevToolsDropdown.handleClicks(this.dropdowns, mouseX, mouseY)) return true;
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
@@ -401,11 +418,11 @@ public class UpgradeCreatorScreen extends Screen {
             boolean show = switch (key) {
                 case "dev_tools_label_item_tag_target" -> usesItemTag();
                 case "dev_tools_label_description" -> includeLang;
-                case "dev_tools_label_operation" -> !isActionEffectCategory();
                 default -> true;
             };
             if (show) {
-                guiGraphics.drawString(this.font, Component.translatable("misc.craftorio." + key), labelX, y + 4, 0xAAAAAA, false);
+                String labelKey = key.equals("dev_tools_label_operation") && isActionEffectCategory() ? "dev_tools_label_chance" : key;
+                guiGraphics.drawString(this.font, Component.translatable("misc.craftorio." + labelKey), labelX, y + 4, 0xAAAAAA, false);
             }
             y += rowHeight;
         }
@@ -425,12 +442,17 @@ public class UpgradeCreatorScreen extends Screen {
         CraftorioMisc.CraftorioTextEffects.drawEditBoxHint(guiGraphics, this.font, this.maxPurchasesBox, "e.g. 1");
         CraftorioMisc.CraftorioTextEffects.drawEditBoxHint(guiGraphics, this.font, this.parentBox, "e.g. craftorio:root");
         CraftorioMisc.CraftorioTextEffects.drawEditBoxHint(guiGraphics, this.font, this.valueBox, valueHint());
+        if (isActionEffectCategory()) {
+            CraftorioMisc.CraftorioTextEffects.drawEditBoxHint(guiGraphics, this.font, this.chanceBox, "e.g. 0.2 (per purchase)");
+        }
         if (usesItemTag()) {
             CraftorioMisc.CraftorioTextEffects.drawEditBoxHint(guiGraphics, this.font, this.itemTagBox, "e.g. craftorio:copper");
         }
         if (includeLang) {
             CraftorioMisc.CraftorioTextEffects.drawEditBoxHint(guiGraphics, this.font, this.nameBox, "e.g. My Upgrade");
         }
+
+        DevToolsDropdown.renderAll(this.dropdowns, guiGraphics, mouseX, mouseY, this.width, this.height);
 
         this.helpPanel.render(guiGraphics, this.font, this.width, 30, List.of(
                 Component.translatable("misc.craftorio.dev_tools_help_location"),

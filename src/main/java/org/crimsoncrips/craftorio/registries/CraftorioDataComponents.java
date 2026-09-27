@@ -11,6 +11,8 @@ import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.item.schematic.SchematicData;
+import org.crimsoncrips.craftorio.item.structure.StructureWandSettings;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.jetbrains.annotations.NotNull;
 
@@ -32,6 +34,12 @@ public class CraftorioDataComponents {
 
 	public static final DeferredHolder<DataComponentType<?>, DataComponentType<BlockPos>> SCAN_POS_2 =
 			register("scan_pos_2", BlockPos.CODEC, ByteBufCodecs.fromCodec(BlockPos.CODEC));
+
+	public static final DeferredHolder<DataComponentType<?>, DataComponentType<SchematicData>> SCHEMATIC =
+			register("schematic", SchematicData.CODEC, SchematicData.STREAM_CODEC);
+
+	public static final DeferredHolder<DataComponentType<?>, DataComponentType<StructureWandSettings>> STRUCTURE_WAND =
+			register("structure_wand", StructureWandSettings.CODEC, StructureWandSettings.STREAM_CODEC);
 
 
 

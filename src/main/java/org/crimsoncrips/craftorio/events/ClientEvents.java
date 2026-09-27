@@ -5,6 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
+import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.client.Camera;
 import net.minecraft.client.Minecraft;
@@ -36,6 +37,7 @@ import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.client.event.RegisterDimensionSpecialEffectsEvent;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
+import net.neoforged.neoforge.common.ModConfigSpec;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.client.hud.CraftorioToastManager;
@@ -45,6 +47,8 @@ import org.crimsoncrips.craftorio.client.hud.PointsAnimation;
 import org.crimsoncrips.craftorio.client.hud.PointsPopup;
 import org.crimsoncrips.craftorio.client.hud.PointsRateTracker;
 import org.crimsoncrips.craftorio.client.render.CraftorioHavenSkyEffects;
+import org.crimsoncrips.craftorio.client.render.CraftorioRebirthHealthEffect;
+import org.crimsoncrips.craftorio.client.render.CraftorioScreenFade;
 import org.crimsoncrips.craftorio.client.screen.config.CraftorioConfigScreen;
 import org.crimsoncrips.craftorio.client.screen.config.CraftorioWorldCreationScreen;
 import org.crimsoncrips.craftorio.client.screen.widget.SheetIconButton;
@@ -59,8 +63,10 @@ import org.crimsoncrips.craftorio.client.screen.machine.ValueCondenserScreen;
 import org.crimsoncrips.craftorio.client.screen.purchase.ShopScreen;
 import org.crimsoncrips.craftorio.client.screen.purchase.ValueBrowserScreen;
 import org.crimsoncrips.craftorio.client.screen.skill_tree.CraftorioRebirthSkillTreeScreen;
+import org.crimsoncrips.craftorio.client.screen.skill_tree.CraftorioSacrificeSkillTreeScreen;
 import org.crimsoncrips.craftorio.client.screen.skill_tree.CraftorioSkillTreeScreenBase;
 import org.crimsoncrips.craftorio.client.state.ClientContractCreatorDraftState;
+import org.crimsoncrips.craftorio.client.state.ClientLoanState;
 import org.crimsoncrips.craftorio.item.ScannerStickItem;
 import org.crimsoncrips.craftorio.networking.contract.OpenContractOfferScreenPacket;
 import org.crimsoncrips.craftorio.networking.devtools.SkillTreeGenerateResultPacket;
@@ -90,6 +96,7 @@ public class ClientEvents {
 	@SubscribeEvent
 	public void loggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
 		ClientContractCreatorDraftState.clear();
+		ClientLoanState.clear();
 	}
 
 	@SubscribeEvent
@@ -110,8 +117,16 @@ public class ClientEvents {
 		Minecraft.getInstance().setScreen(new ShopScreen(message.allUnlocked(), new HashSet<>(message.unlockedItems())));
 	}
 
+	public static void updateLoanState(java.math.BigInteger owed, java.math.BigInteger borrowed, boolean sacrificed, double interestPercent) {
+		ClientLoanState.update(owed, borrowed, sacrificed, interestPercent);
+	}
+
 	public static void openRebirthSkillTreeScreen() {
-		Minecraft.getInstance().setScreen(new CraftorioRebirthSkillTreeScreen());
+		CraftorioRebirthHealthEffect.start(() -> CraftorioScreenFade.start(() -> Minecraft.getInstance().setScreen(new CraftorioRebirthSkillTreeScreen())));
+	}
+
+	public static void openSacrificeSkillTreeScreen() {
+		CraftorioScreenFade.start(() -> Minecraft.getInstance().setScreen(new CraftorioSacrificeSkillTreeScreen()));
 	}
 
 	public static void openValueBrowserScreen(OpenValueBrowserScreenPacket message) {
@@ -493,8 +508,9 @@ public class ClientEvents {
 
 	public static void displayPoints(GuiGraphics graphics) {
 		Minecraft minecraft = Minecraft.getInstance();
+		Screen mainScreen = minecraft.screen;
 
-		if (minecraft.gui.getDebugOverlay().showDebugScreen() || minecraft.options.hideGui || minecraft.screen != null)
+		if (minecraft.gui.getDebugOverlay().showDebugScreen() || minecraft.options.hideGui || mainScreen != null && !(mainScreen instanceof ChatScreen))
 			return;
 		if (minecraft.player == null)
 			return;
@@ -614,7 +630,7 @@ public class ClientEvents {
 		if (minecraft.player == null || minecraft.level == null) return;
 
 		for (CraftorioEffects effect : CraftorioMisc.getCraftorioEffects(minecraft.player)) {
-			if (effect.getTime() > 0) {
+			if (!effect.isLoanMarked() && effect.getTime() > 0) {
 				effect.setTime(effect.getTime() - 1);
 			}
 		}
@@ -635,37 +651,23 @@ public class ClientEvents {
 	}
 
 
-	private static final ResourceLocation effectTimerLayer = Craftorio.prefix("effect_timer");
-	private static boolean effectTimerEnabled = false;
+	private static boolean effectTimerKnown = false;
 	private static int effectTimerTicksRemaining = 0;
+	private static long effectTimerReceivedMillis = 0L;
 
 	public static void setEffectTimerDisplay(boolean enabled, int ticksRemaining) {
-		effectTimerEnabled = enabled;
+		effectTimerKnown = enabled;
 		effectTimerTicksRemaining = ticksRemaining;
+		effectTimerReceivedMillis = Util.getMillis();
 	}
 
-	public static void displayEffectTimer(GuiGraphics graphics) {
-		Minecraft minecraft = Minecraft.getInstance();
-
-		if (!effectTimerEnabled)
-			return;
-		if (minecraft.gui.getDebugOverlay().showDebugScreen())
-			return;
-		if (minecraft.player == null)
-			return;
-
-		Font font = minecraft.font;
-		String next_effect_in = Component.translatable("misc.craftorio.next_effect_in").getString();
-		String text = next_effect_in + CraftorioMisc.ticksToTimeString(effectTimerTicksRemaining);
-		int screenWidth = minecraft.getWindow().getGuiScaledWidth();
-		int rightEdge = screenWidth - 4;
-
-		graphics.drawString(font, text, rightEdge - font.width(text), 5, 0xFFFFFF, true);
+	public static boolean isEffectTimerKnown() {
+		return effectTimerKnown;
 	}
 
-	public static void showEffectTimer(RegisterGuiLayersEvent e) {
-		e.registerBelow(VanillaGuiLayers.EXPERIENCE_BAR, effectTimerLayer,
-				(graphics, partialTicks) -> ClientEvents.displayEffectTimer(graphics));
+	public static int effectTimerTicksNow() {
+		long elapsedTicks = (Util.getMillis() - effectTimerReceivedMillis) / 50L;
+		return (int) Math.max(0L, effectTimerTicksRemaining - elapsedTicks);
 	}
 
 	private static final ResourceLocation toastLayer = Craftorio.prefix("craftorio_toasts");
@@ -683,6 +685,8 @@ public class ClientEvents {
 	public static final int STATISTICS_ICON_V = 0;
 	public static final int WORLD_SETTINGS_ICON_U = 39;
 	public static final int WORLD_SETTINGS_ICON_V = 13;
+	public static final int LOAN_SHARK_ICON_U = 39;
+	public static final int LOAN_SHARK_ICON_V = 26;
 	public static final int BORDER_MODE_INDICATOR_SIZE = STATUS_ICON_SIZE;
 	public static final int BORDER_MODE_INDICATOR_GAP = 4;
 	private static final int WORLD_CREATION_BUTTON_SIZE = 20;
@@ -746,6 +750,10 @@ public class ClientEvents {
 		worldCreationButton.setY(32);
 	}
 
+	private static boolean serverConfigOrDefault(ModConfigSpec.BooleanValue value) {
+		return Craftorio.SERVER_CONFIG_SPEC.isLoaded() ? value.getAsBoolean() : value.getDefault();
+	}
+
 	public static void addCraftorioWorldCreationButton(ScreenEvent.Init.Post event) {
 		if (!(event.getScreen() instanceof CreateWorldScreen createWorldScreen)) return;
 
@@ -754,9 +762,9 @@ public class ClientEvents {
 
 		worldCreationButton = Button.builder(Component.empty(), b -> Minecraft.getInstance().setScreen(new CraftorioWorldCreationScreen(
 						createWorldScreen,
-						Craftorio.SERVER_CONFIG.UNIVERSAL_PROGRESSION.getAsBoolean(),
-						Craftorio.SERVER_CONFIG.CHUNK_BASED_EXPANSION.getAsBoolean(),
-						Craftorio.SERVER_CONFIG.NO_BORDERS.getAsBoolean())))
+						serverConfigOrDefault(Craftorio.SERVER_CONFIG.UNIVERSAL_PROGRESSION),
+						serverConfigOrDefault(Craftorio.SERVER_CONFIG.CHUNK_BASED_EXPANSION),
+						serverConfigOrDefault(Craftorio.SERVER_CONFIG.NO_BORDERS))))
 				.bounds(x, y, WORLD_CREATION_BUTTON_SIZE, WORLD_CREATION_BUTTON_SIZE)
 				.tooltip(Tooltip.create(Component.translatable("misc.craftorio.world_creation_settings_title")))
 				.build(builder -> new SheetIconButton(builder, WORLD_SETTINGS_ICON_U, WORLD_SETTINGS_ICON_V));

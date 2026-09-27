@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
+import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import org.crimsoncrips.craftorio.Craftorio;
 
@@ -16,7 +17,11 @@ import java.util.Map;
 
 public class CraftorioDevTools {
 
-    private static final String DEV_TOOLS_DIR_NAME = "craftorio_dev_tools";
+    public static final String DEV_TOOLS_DIR_NAME = "craftorio_dev_tools";
+
+    public static Path directory(MinecraftServer server) {
+        return server.getServerDirectory().resolve(DEV_TOOLS_DIR_NAME);
+    }
 
     public static String toPrettyJson(JsonElement json) {
         return new GsonBuilder().setPrettyPrinting().create().toJson(json);
@@ -36,7 +41,7 @@ public class CraftorioDevTools {
 
     public static void writeFile(ServerPlayer player, String fileNamePrefix, String content, String extension) {
         try {
-            Path dir = player.getServer().getServerDirectory().resolve(DEV_TOOLS_DIR_NAME);
+            Path dir = directory(player.getServer());
             Files.createDirectories(dir);
             String fileName = fileNamePrefix + "_" + System.currentTimeMillis() + "." + extension;
             Files.writeString(dir.resolve(fileName), content, StandardCharsets.UTF_8);
@@ -50,7 +55,7 @@ public class CraftorioDevTools {
 
     public static void writeBundle(ServerPlayer player, String folderNamePrefix, Map<String, String> files) {
         try {
-            Path dir = player.getServer().getServerDirectory().resolve(DEV_TOOLS_DIR_NAME).resolve(folderNamePrefix + "_" + System.currentTimeMillis());
+            Path dir = directory(player.getServer()).resolve(folderNamePrefix + "_" + System.currentTimeMillis());
             Files.createDirectories(dir);
             for (Map.Entry<String, String> entry : files.entrySet()) {
                 Files.writeString(dir.resolve(entry.getKey()), entry.getValue(), StandardCharsets.UTF_8);

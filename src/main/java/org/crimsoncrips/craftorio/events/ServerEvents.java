@@ -3,6 +3,7 @@ package org.crimsoncrips.craftorio.events;
 import com.google.common.collect.ImmutableList;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Registry;
 import net.minecraft.core.GlobalPos;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.MutableComponent;
@@ -18,6 +19,7 @@ import net.minecraft.world.level.LevelAccessor;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.attachment.AttachmentSync;
 import net.neoforged.neoforge.event.entity.EntityTravelToDimensionEvent;
+import net.neoforged.neoforge.event.OnDatapackSyncEvent;
 import net.neoforged.neoforge.event.level.ChunkEvent;
 import net.neoforged.neoforge.event.entity.living.LivingFallEvent;
 import net.neoforged.neoforge.event.entity.living.LivingIncomingDamageEvent;
@@ -43,6 +45,7 @@ import org.crimsoncrips.craftorio.networking.contract.ContractOfferStatusPacket;
 import org.crimsoncrips.craftorio.networking.contract.OpenContractOfferScreenPacket;
 import org.crimsoncrips.craftorio.networking.effect.EffectTimerPacket;
 import org.crimsoncrips.craftorio.networking.shop.ShopStatusPacket;
+import org.crimsoncrips.craftorio.networking.loan.LoanStateSyncPacket;
 import org.crimsoncrips.craftorio.networking.sync.UniversalStateSyncPacket;
 import org.crimsoncrips.craftorio.networking.sync.WelcomeToastPacket;
 import org.crimsoncrips.craftorio.registries.CraftorioDimensions;
@@ -51,6 +54,7 @@ import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.crimsoncrips.craftorio.server.advancement.CraftorioAdvancementMultipliers;
 import org.crimsoncrips.craftorio.server.advancement.CraftorioAdvancementPoints;
 import org.crimsoncrips.craftorio.server.advancement.CraftorioPointsAdvancements;
+import org.crimsoncrips.craftorio.server.schematic.CraftorioSchematics;
 import org.crimsoncrips.craftorio.server.border.ChunkCollisionHooks;
 import org.crimsoncrips.craftorio.server.border.CraftorioBorder;
 import org.crimsoncrips.craftorio.server.config.CraftorioWorldCreationOverrides;
@@ -68,6 +72,7 @@ import org.crimsoncrips.craftorio.skill_tree.target.PlayerActionTarget;
 import org.crimsoncrips.craftorio.skill_tree.target.UpgradeOperation;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioActionEffectUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioAttributeUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.manual.EffectTimerDisplayUnlockUpgrade;
 
 
 import java.math.BigInteger;
@@ -123,6 +128,13 @@ public class ServerEvents {
     }
 
     @SubscribeEvent
+    public void datapackSync(OnDatapackSyncEvent event) {
+        if (event.getPlayer() == null) {
+            CraftorioSchematics.clearCache();
+        }
+    }
+
+    @SubscribeEvent
     public void chunkLoad(ChunkEvent.Load event) {
         if (event.getLevel() instanceof ServerLevel serverLevel && CraftorioMisc.chunkBased(serverLevel)) {
             CraftorioWipeAreas.indexLoadedChunk(serverLevel, event.getChunk());
@@ -139,6 +151,7 @@ public class ServerEvents {
     @SubscribeEvent
     public void serverStopped(ServerStoppedEvent event) {
         CraftorioWorldWipe.onServerStopped();
+        CraftorioSchematics.clearCache();
     }
 
     @SubscribeEvent
@@ -427,6 +440,12 @@ public class ServerEvents {
                 CraftorioMisc.getOverallContractsCompleted(player),
                 CraftorioMisc.getOverallItemsSinked(player)
         ));
+        PacketDistributor.sendToPlayer(player, new LoanStateSyncPacket(
+                CraftorioMisc.getLoanOwed(player),
+                CraftorioMisc.getLoanBorrowed(player),
+                CraftorioMisc.isLoanSacrificed(player),
+                Craftorio.SERVER_CONFIG.LOAN_INTEREST_PERCENT.get()
+        ));
     }
 
     @SubscribeEvent
@@ -537,11 +556,20 @@ public class ServerEvents {
         }
     }
 
-    private void grantActionEffects(ServerPlayer player, PlayerActionTarget actionTarget) {
-        var registry = player.level().registryAccess().registryOrThrow(CraftorioUpgrade.REGISTRY_KEY);
-        for (ResourceLocation id : CraftorioMisc.getUnlockedUpgrades(player)) {
-            CraftorioUpgrade upgrade = registry.get(id);
-            if (upgrade instanceof CraftorioActionEffectUpgrade actionEffectUpgrade && actionEffectUpgrade.getTarget() == actionTarget) {
+    public static void grantActionEffects(ServerPlayer player, PlayerActionTarget actionTarget) {
+        if (!CraftorioMisc.hasUnlockedUpgrade(player, Craftorio.prefix("action_effect_unlock"))) return;
+
+        grantActionEffects(player, actionTarget, CraftorioUpgrade.REGISTRY_KEY, CraftorioMisc.getUpgradePurchaseCounts(player));
+        grantActionEffects(player, actionTarget, CraftorioUpgrade.REBIRTH_REGISTRY_KEY, CraftorioMisc.getRebirthUpgradePurchaseCounts(player));
+        grantActionEffects(player, actionTarget, CraftorioUpgrade.SACRIFICE_REGISTRY_KEY, CraftorioMisc.getSacrificeUpgradePurchaseCounts(player));
+    }
+
+    private static void grantActionEffects(ServerPlayer player, PlayerActionTarget actionTarget, ResourceKey<Registry<CraftorioUpgrade>> registryKey, Map<ResourceLocation, Integer> purchases) {
+        var registry = player.level().registryAccess().registryOrThrow(registryKey);
+        for (Map.Entry<ResourceLocation, Integer> entry : purchases.entrySet()) {
+            CraftorioUpgrade upgrade = registry.get(entry.getKey());
+            if (upgrade instanceof CraftorioActionEffectUpgrade actionEffectUpgrade && actionEffectUpgrade.getTarget() == actionTarget
+                    && player.getRandom().nextDouble() < actionEffectUpgrade.chanceFor(entry.getValue())) {
                 CraftorioMisc.grantEffect(player, actionEffectUpgrade.getEffect());
             }
         }
@@ -549,6 +577,7 @@ public class ServerEvents {
 
     @SubscribeEvent
     public void serverTick(ServerTickEvent.Post event) {
+        CraftorioSchematics.tick(event.getServer());
         if (!pendingDimensionAreaSetup.isEmpty()) {
             for (ServerPlayer player : event.getServer().getPlayerList().getPlayers()) {
                 ResourceKey<Level> pendingDimension = pendingDimensionAreaSetup.remove(player.getUUID());
@@ -617,15 +646,8 @@ public class ServerEvents {
         pendingContractScreenPush.add(player.getUUID());
     }
 
-    private static final Set<UUID> effectTimerViewers = new HashSet<>();
-
-    public static boolean toggleEffectTimerViewer(ServerPlayer player) {
-        UUID id = player.getUUID();
-        if (effectTimerViewers.remove(id)) {
-            return false;
-        }
-        effectTimerViewers.add(id);
-        return true;
+    private static boolean canSeeEffectTimer(ServerPlayer player) {
+        return CraftorioMisc.hasUnlockedUpgrade(player, EffectTimerDisplayUnlockUpgrade.ID);
     }
 
     @SubscribeEvent
@@ -643,7 +665,7 @@ public class ServerEvents {
             for (ServerPlayer player : level.players()) {
                 int timeUntilNextEffect = CraftorioMisc.getRandomEffectTime(player) - 1;
 
-                if (level.getGameTime() % 20 == 0 && effectTimerViewers.contains(player.getUUID())) {
+                if (level.getGameTime() % 20 == 0 && canSeeEffectTimer(player)) {
                     PacketDistributor.sendToPlayer(player, new EffectTimerPacket(true, Math.max(timeUntilNextEffect, 0)));
                 }
 
@@ -667,9 +689,9 @@ public class ServerEvents {
         int timeUntilNextEffect = CraftorioMisc.getRandomEffectTime(overworld) - 1;
         List<ServerPlayer> allPlayers = server.getPlayerList().getPlayers();
 
-        if (!effectTimerViewers.isEmpty() && overworld.getGameTime() % 20 == 0) {
+        if (overworld.getGameTime() % 20 == 0) {
             for (ServerPlayer player : allPlayers) {
-                if (effectTimerViewers.contains(player.getUUID())) {
+                if (canSeeEffectTimer(player)) {
                     PacketDistributor.sendToPlayer(player, new EffectTimerPacket(true, Math.max(timeUntilNextEffect, 0)));
                 }
             }

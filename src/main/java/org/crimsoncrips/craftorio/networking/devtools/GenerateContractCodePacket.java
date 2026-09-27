@@ -18,7 +18,9 @@ import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.inventory.ContractCreatorMenu;
 import org.crimsoncrips.craftorio.item.rune.EffectRune;
+import org.crimsoncrips.craftorio.registries.contract.ContractGoal;
 import org.crimsoncrips.craftorio.registries.contract.ContractTextColors;
+import org.crimsoncrips.craftorio.registries.contract.ContractType;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContractItem;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContractItemReward;
@@ -38,7 +40,8 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
                                           String punishment, String requiredModId, String rewardRandomEffectCount,
                                           boolean includeLang, String title, String description, String cardTexture,
                                           boolean jsonExport, String titleColor, String timeColor,
-                                          String descriptionColor, String punishmentColor) implements CustomPacketPayload {
+                                          String descriptionColor, String punishmentColor,
+                                          String contractType, String structure) implements CustomPacketPayload {
 
     public static final Type<GenerateContractCodePacket> TYPE = new Type<>(Craftorio.prefix("generate_contract_code_packet"));
     public static final StreamCodec<RegistryFriendlyByteBuf, GenerateContractCodePacket> STREAM_CODEC = StreamCodec.of(
@@ -63,6 +66,8 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
                 ByteBufCodecs.STRING_UTF8.encode(buffer, message.timeColor());
                 ByteBufCodecs.STRING_UTF8.encode(buffer, message.descriptionColor());
                 ByteBufCodecs.STRING_UTF8.encode(buffer, message.punishmentColor());
+                ByteBufCodecs.STRING_UTF8.encode(buffer, message.contractType());
+                ByteBufCodecs.STRING_UTF8.encode(buffer, message.structure());
             },
             buffer -> new GenerateContractCodePacket(
                     ByteBufCodecs.STRING_UTF8.decode(buffer),
@@ -81,6 +86,8 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
                     ByteBufCodecs.STRING_UTF8.decode(buffer),
                     ByteBufCodecs.STRING_UTF8.decode(buffer),
                     ByteBufCodecs.BOOL.decode(buffer),
+                    ByteBufCodecs.STRING_UTF8.decode(buffer),
+                    ByteBufCodecs.STRING_UTF8.decode(buffer),
                     ByteBufCodecs.STRING_UTF8.decode(buffer),
                     ByteBufCodecs.STRING_UTF8.decode(buffer),
                     ByteBufCodecs.STRING_UTF8.decode(buffer),
@@ -116,6 +123,7 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
             String cardTexture = sanitize(message.cardTexture());
             int randomEffectCount = parseInt(message.rewardRandomEffectCount(), 0);
             String modId = sanitize(message.modId()).isEmpty() ? "yourmodid" : sanitize(message.modId());
+            ContractGoal goal = parseGoal(message.contractType(), sanitize(message.structure()));
             ContractTextColors textColors = new ContractTextColors(
                     ContractTextColors.tryParse(message.titleColor()),
                     ContractTextColors.tryParse(message.timeColor()),
@@ -136,7 +144,7 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
 
             if (message.jsonExport()) {
                 List<CraftorioContractItem> bountyItems = new ArrayList<>();
-                for (int i = 0; i < ContractCreatorMenu.BOUNTY_SLOTS; i++) {
+                for (int i = 0; goal.type() == ContractType.SINK && i < ContractCreatorMenu.BOUNTY_SLOTS; i++) {
                     ItemStack stack = container.getItem(i);
                     if (stack.isEmpty()) continue;
                     bountyItems.add(new CraftorioContractItem(stack.getCount(), stack.getItem()));
@@ -160,7 +168,7 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
                 BigInteger max = CraftorioMisc.scientificToInt(maxThreshold);
 
                 CraftorioContract contract = new CraftorioContract(bountyItems, id, seconds, basePoints, rewardItems,
-                        punishmentLoc, weight, claim, min, max, requiredModOpt, cardTextureKey, textColors);
+                        punishmentLoc, weight, claim, min, max, requiredModOpt, cardTextureKey, textColors).withGoal(goal);
 
                 CraftorioContract.CODEC.encodeStart(JsonOps.INSTANCE, contract).resultOrPartial(Craftorio.LOGGER::error)
                         .ifPresentOrElse(
@@ -180,7 +188,7 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
             }
 
             StringBuilder bounty = new StringBuilder();
-            for (int i = 0; i < ContractCreatorMenu.BOUNTY_SLOTS; i++) {
+            for (int i = 0; goal.type() == ContractType.SINK && i < ContractCreatorMenu.BOUNTY_SLOTS; i++) {
                 ItemStack stack = container.getItem(i);
                 if (stack.isEmpty()) continue;
                 bounty.append("                        new CraftorioContractItem(").append(stack.getCount())
@@ -237,13 +245,16 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
                         .append(colorExpr(textColors.description())).append(", ")
                         .append(colorExpr(textColors.punishment())).append(")\n");
             }
-            code.append("        )\n");
+            code.append("        )").append(goalExpr(goal)).append("\n");
             code.append(");\n");
             code.append("\n// Requires: import static org.crimsoncrips.craftorio.CraftorioMisc.scientificToInt;\n");
             code.append("// Requires: import static org.crimsoncrips.craftorio.CraftorioMisc.toItem;\n");
             code.append("// Requires: import org.crimsoncrips.craftorio.registries.contract.CraftorioContractTexture;\n");
             if (!textColors.isEmpty()) {
                 code.append("// Requires: import org.crimsoncrips.craftorio.registries.contract.ContractTextColors;\n");
+            }
+            if (goal.type() != ContractType.SINK) {
+                code.append("// Requires: import org.crimsoncrips.craftorio.registries.contract.ContractGoal;\n");
             }
 
             if (!langEntries.isEmpty()) {
@@ -255,6 +266,29 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
 
             CraftorioDevTools.writeCodeFile(serverPlayer, "contract_" + id, code.toString());
         });
+    }
+
+    private static ContractGoal parseGoal(String type, String structure) {
+        ContractType contractType;
+        try {
+            contractType = ContractType.valueOf(type.trim().toUpperCase(java.util.Locale.ROOT));
+        } catch (IllegalArgumentException e) {
+            contractType = ContractType.SINK;
+        }
+        return switch (contractType) {
+            case SINK -> ContractGoal.SINK;
+            case BUILDING -> {
+                ResourceLocation id = ResourceLocation.tryParse(structure);
+                yield id == null || structure.isEmpty() ? ContractGoal.SINK : ContractGoal.building(id);
+            }
+        };
+    }
+
+    private static String goalExpr(ContractGoal goal) {
+        return switch (goal.type()) {
+            case SINK -> "";
+            case BUILDING -> ".withGoal(ContractGoal.building(ResourceLocation.parse(\"" + goal.structure().map(Object::toString).orElse("") + "\")))";
+        };
     }
 
     private static String colorExpr(Optional<Integer> color) {

@@ -1,5 +1,7 @@
 package org.crimsoncrips.craftorio.inventory;
 
+import net.minecraft.ChatFormatting;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -106,18 +108,10 @@ public class ValueCondenserMenu extends AbstractContainerMenu {
         ItemStack carrier = container.getItem(CARRIER_SLOT_INDEX);
         if (carrier.isEmpty()) return;
 
-        BigInteger valueToAdd = BigInteger.ZERO;
-        for (int i = 0; i < MAIN_SLOT_COUNT; i++) {
-            ItemStack item = container.getItem(i);
-            if (!item.isEmpty()) {
-                valueToAdd = valueToAdd.add(CraftorioMisc.checkValue(item, player, false));
-                container.setItem(i, ItemStack.EMPTY);
-            }
-        }
-
-        if (valueToAdd.compareTo(BigInteger.ZERO) > 0) {
-            BigInteger existing = carrier.get(CraftorioDataComponents.CONDENSED_VALUE);
-            carrier.set(CraftorioDataComponents.CONDENSED_VALUE, (existing != null ? existing : BigInteger.ZERO).add(valueToAdd));
+        boolean capped = CraftorioMisc.condenseIntoCarrier(container, 0, MAIN_SLOT_COUNT, carrier, player);
+        container.setChanged();
+        if (capped) {
+            player.displayClientMessage(Component.translatable("misc.craftorio.value_condenser_full", CraftorioMisc.bigIntFormat(CraftorioMisc.valueCondenserCap(player))).withStyle(ChatFormatting.YELLOW), true);
         }
     }
 

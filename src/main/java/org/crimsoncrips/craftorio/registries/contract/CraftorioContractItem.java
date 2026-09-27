@@ -29,7 +29,8 @@ public class CraftorioContractItem {
                     Codec.INT.fieldOf("amountRequired").forGetter(CraftorioContractItem::getAmountRequired),
                     BuiltInRegistries.ITEM.byNameCodec().optionalFieldOf("contract_item").forGetter(CraftorioContractItem::getItemNeeded),
                     TagKey.hashedCodec(Registries.ITEM).optionalFieldOf("contract_tag").forGetter(CraftorioContractItem::getItemTag),
-                    ItemStack.CODEC.optionalFieldOf("contract_item_stack").forGetter(CraftorioContractItem::getStackNeeded)
+                    ItemStack.CODEC.optionalFieldOf("contract_item_stack").forGetter(CraftorioContractItem::getStackNeeded),
+                    Codec.INT.optionalFieldOf("items_given", 0).forGetter(CraftorioContractItem::getItemsGiven)
                     ).apply(instance, CraftorioContractItem::new)
     );
 
@@ -38,6 +39,7 @@ public class CraftorioContractItem {
             ByteBufCodecs.optional(ByteBufCodecs.fromCodec(BuiltInRegistries.ITEM.byNameCodec())), CraftorioContractItem::getItemNeeded,
             ByteBufCodecs.optional(ByteBufCodecs.fromCodec(TagKey.hashedCodec(Registries.ITEM))), CraftorioContractItem::getItemTag,
             ByteBufCodecs.optional(ItemStack.STREAM_CODEC), CraftorioContractItem::getStackNeeded,
+            ByteBufCodecs.VAR_INT, CraftorioContractItem::getItemsGiven,
             CraftorioContractItem::new
     );
 
@@ -46,6 +48,11 @@ public class CraftorioContractItem {
         this.itemNeeded = itemNeeded;
         this.itemTag = itemTag;
         this.stackNeeded = stackNeeded;
+    }
+
+    public CraftorioContractItem(int amountRequired, Optional<Item> itemNeeded, Optional<TagKey<Item>> itemTag, Optional<ItemStack> stackNeeded, int itemsGiven){
+        this(amountRequired, itemNeeded, itemTag, stackNeeded);
+        this.itemsGiven = itemsGiven;
     }
 
     public CraftorioContractItem(int amountRequired, Item itemNeeded){

@@ -15,6 +15,7 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 import org.crimsoncrips.craftorio.networking.contract.ClaimContractPacket;
 import org.crimsoncrips.craftorio.networking.contract.ForceContractRefreshPacket;
 import org.crimsoncrips.craftorio.networking.contract.RefreshContractOfferPacket;
@@ -26,7 +27,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @OnlyIn(Dist.CLIENT)
-public class ContractRevealScreen extends Screen {
+public class ContractRevealScreen extends Screen implements ScrollableScreen {
 
     private static final int BASE_CARD_WIDTH = 150;
     private static final int BASE_CARD_HEIGHT = 180;
@@ -140,8 +141,10 @@ public class ContractRevealScreen extends Screen {
             });
         }
 
+        int doneX = centerX - 50;
+        int doneY = this.height - 30;
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.done"), b -> this.onClose())
-                .bounds(centerX - 50, this.height - 30, 100, 20).build());
+                .bounds(doneX, doneY, 100, 20).build());
 
         this.refreshButton = Button.builder(Component.translatable("misc.craftorio.refresh_contracts_button"),
                         b -> PacketDistributor.sendToServer(new RefreshContractOfferPacket()))
@@ -156,8 +159,16 @@ public class ContractRevealScreen extends Screen {
 
             this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.view_all_contracts_button"),
                             b -> this.minecraft.setScreen(new AllContractsScreen(this)))
-                    .bounds(10, 6, 120, 16).build());
+                    .bounds(this.width - 130, 30, 120, 16).build());
         }
+
+        int ownedX = 10;
+        int ownedWidth = 120;
+        int ownedHeight = 16;
+        boolean overlapsDone = ownedX + ownedWidth + 4 > doneX;
+        int ownedY = overlapsDone ? doneY - ownedHeight - 4 : doneY + (20 - ownedHeight) / 2;
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.owned_contracts_button"), b -> this.minecraft.setScreen(new OwnedContractsScreen(this)))
+                .bounds(ownedX, ownedY, ownedWidth, ownedHeight).build());
     }
 
     public void updateOffer(List<ResourceLocation> contractIds, int ticksUntilRefresh) {

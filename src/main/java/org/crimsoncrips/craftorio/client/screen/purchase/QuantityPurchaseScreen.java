@@ -9,9 +9,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 
 @OnlyIn(Dist.CLIENT)
-public abstract class QuantityPurchaseScreen extends Screen {
+public abstract class QuantityPurchaseScreen extends Screen implements ScrollableScreen {
 
     private final ItemStack displayStack;
 

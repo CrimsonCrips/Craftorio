@@ -3,6 +3,7 @@ package org.crimsoncrips.craftorio.client.screen.purchase;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.AbstractWidget;
+import net.minecraft.client.gui.components.Checkbox;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
@@ -36,6 +37,7 @@ public class ShopScreen extends CatalogScreen<CatalogEntry> {
     private static final ResourceLocation LOCKED_TEXTURE = Craftorio.getGuiTexture("locked.png");
 
     private static List<CatalogEntry> catalog;
+    private static boolean unlockedOnly;
 
     private final boolean allUnlocked;
     private final Set<ResourceLocation> unlockedItems;
@@ -65,6 +67,25 @@ public class ShopScreen extends CatalogScreen<CatalogEntry> {
             catalog = entries;
         }
         return catalog;
+    }
+
+    @Override
+    protected boolean isEntryVisible(CatalogEntry entry) {
+        return !unlockedOnly || isUnlocked(entry);
+    }
+
+    @Override
+    protected void addExtraWidgets() {
+        if (this.allUnlocked) return;
+
+        this.addRenderableWidget(Checkbox.builder(Component.translatable("misc.craftorio.shop_unlocked_only"), this.font)
+                .pos(6, 6)
+                .selected(unlockedOnly)
+                .onValueChange((checkbox, selected) -> {
+                    unlockedOnly = selected;
+                    this.refreshCatalog();
+                })
+                .build());
     }
 
     @Override

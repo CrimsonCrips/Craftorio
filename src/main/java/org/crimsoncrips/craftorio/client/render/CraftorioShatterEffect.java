@@ -125,9 +125,12 @@ public final class CraftorioShatterEffect {
         }
 
         float progress = Mth.clamp((Util.getMillis() - startMillis) / (float) DURATION_MS, 0f, 1f);
+        boolean photosensitive = Craftorio.CLIENT_CONFIG.PHOTOSENSITIVE_MODE.get();
         playSounds(minecraft, progress);
-        ensureNoiseTexture();
-        updateNoise(progress);
+        if (!photosensitive) {
+            ensureNoiseTexture();
+            updateNoise(progress);
+        }
 
         Matrix4f matrix = graphics.pose().last().pose();
         RenderSystem.disableDepthTest();
@@ -135,10 +138,14 @@ public final class CraftorioShatterEffect {
         RenderSystem.enableBlend();
         RenderSystem.defaultBlendFunc();
 
-        drawNoise(matrix, width, height);
-        drawEye(minecraft, progress);
-        drawGlitchBars(matrix, width, height, progress);
-        float shake = shakeAmount(progress);
+        if (photosensitive) {
+            drawBlack(matrix, width, height);
+        } else {
+            drawNoise(matrix, width, height);
+            drawEye(minecraft, progress);
+            drawGlitchBars(matrix, width, height, progress);
+        }
+        float shake = photosensitive ? 0f : shakeAmount(progress);
         float shakeX = (random.nextFloat() - 0.5f) * 2f * shake;
         float shakeY = (random.nextFloat() - 0.5f) * 2f * shake;
         float zoomX = 1f + 2f * shake / width;
@@ -277,6 +284,16 @@ public final class CraftorioShatterEffect {
         BufferUploader.drawWithShader(builder.buildOrThrow());
     }
 
+    private static void drawBlack(Matrix4f matrix, int width, int height) {
+        BufferBuilder builder = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION_COLOR);
+        builder.addVertex(matrix, 0f, height, 0f).setColor(0, 0, 0, 255);
+        builder.addVertex(matrix, width, height, 0f).setColor(0, 0, 0, 255);
+        builder.addVertex(matrix, width, 0f, 0f).setColor(0, 0, 0, 255);
+        builder.addVertex(matrix, 0f, 0f, 0f).setColor(0, 0, 0, 255);
+        RenderSystem.setShader(GameRenderer::getPositionColorShader);
+        BufferUploader.drawWithShader(builder.buildOrThrow());
+    }
+
     private static void drawEye(Minecraft minecraft, float progress) {
         ShaderInstance shader = CraftorioShaders.shatterEye();
         float strength = Mth.clamp((progress - SHATTER_START + 0.02f) / 0.14f, 0f, 1f);
@@ -393,10 +410,9 @@ public final class CraftorioShatterEffect {
                 float y1 = (startY - height / 2f) * zoomY + height / 2f;
                 float x2 = (endX - width / 2f) * zoomX + width / 2f;
                 float y2 = (endY - height / 2f) * zoomY + height / 2f;
-                addLine(builder, matrix, x1, y1, x2, y2, 2.2f, 0, 0, 0, 200);
-                addLine(builder, matrix, x1, y1, x2, y2, 0.9f, 255, 255, 255, 220);
+                any |= addLine(builder, matrix, x1, y1, x2, y2, 2.2f, 0, 0, 0, 200);
+                any |= addLine(builder, matrix, x1, y1, x2, y2, 0.9f, 255, 255, 255, 220);
             }
-            any = true;
         }
 
         if (!any) return;
@@ -405,11 +421,11 @@ public final class CraftorioShatterEffect {
         BufferUploader.drawWithShader(builder.buildOrThrow());
     }
 
-    private static void addLine(BufferBuilder builder, Matrix4f matrix, float x1, float y1, float x2, float y2, float thickness, int red, int green, int blue, int alpha) {
+    private static boolean addLine(BufferBuilder builder, Matrix4f matrix, float x1, float y1, float x2, float y2, float thickness, int red, int green, int blue, int alpha) {
         float dx = x2 - x1;
         float dy = y2 - y1;
         float length = (float) Math.sqrt(dx * dx + dy * dy);
-        if (length < 0.001f) return;
+        if (length < 0.001f) return false;
 
         float nx = -dy / length * thickness * 0.5f;
         float ny = dx / length * thickness * 0.5f;
@@ -417,6 +433,7 @@ public final class CraftorioShatterEffect {
         builder.addVertex(matrix, x2 + nx, y2 + ny, 0f).setColor(red, green, blue, alpha);
         builder.addVertex(matrix, x2 - nx, y2 - ny, 0f).setColor(red, green, blue, alpha);
         builder.addVertex(matrix, x1 - nx, y1 - ny, 0f).setColor(red, green, blue, alpha);
+        return true;
     }
 
     private static void playSounds(Minecraft minecraft, float progress) {

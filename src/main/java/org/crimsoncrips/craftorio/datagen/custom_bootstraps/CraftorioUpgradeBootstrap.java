@@ -10,10 +10,14 @@ import org.crimsoncrips.craftorio.skill_tree.target.PlayerActionTarget;
 import org.crimsoncrips.craftorio.skill_tree.target.UpgradeOperation;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioActionEffectUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioAttributeUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioDifficultyUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioModifierUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.manual.ActionEffectUnlockUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.manual.AdvancementMultiplierUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.manual.ContractCompletionScalingUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.manual.DoubleOrNothingUnlockUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.manual.EffectRuneShopUnlockUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.manual.EffectTimerDisplayUnlockUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.manual.SinkValueScalingUpgrade;
 
 import static org.crimsoncrips.craftorio.CraftorioMisc.scientificToInt;
@@ -123,6 +127,16 @@ public class CraftorioUpgradeBootstrap {
                 .save(context, ResourceLocation.fromNamespaceAndPath("craftorio", "double_or_nothing_unlock"),
                         DoubleOrNothingUnlockUpgrade::of);
 
+        CraftorioUpgrade.builder()
+                .name("misc.craftorio.upgrade_effect_rune_shop_unlock")
+                .icon(DEFAULT_ICON)
+                .parent(ResourceLocation.parse("craftorio:root"))
+                .description("misc.craftorio.upgrade_effect_rune_shop_unlock_description")
+                .cost(scientificToInt("31000000"))
+                .position(347.4890348148663, -50.0)
+                .save(context, ResourceLocation.fromNamespaceAndPath("craftorio", "effect_rune_shop_unlock"),
+                        EffectRuneShopUnlockUpgrade::of);
+
         Holder.Reference<CraftorioUpgrade> effectTimer1Upgrade = CraftorioUpgrade.builder()
                 .name("misc.craftorio.upgrade_effect_timer_1")
                 .icon(DEFAULT_ICON)
@@ -132,6 +146,16 @@ public class CraftorioUpgradeBootstrap {
                 .position(-143.6797028147919, -13.54766696385628)
                 .save(context, ResourceLocation.fromNamespaceAndPath("craftorio", "effect_timer_1"),
                         b -> CraftorioModifierUpgrade.of(b, ModifierTarget.EFFECT_TIMER_SPEED, UpgradeOperation.ADD, 1.0));
+
+        CraftorioUpgrade.builder()
+                .name("misc.craftorio.upgrade_effect_timer_display_unlock")
+                .icon(DEFAULT_ICON)
+                .parent(effectTimer1Upgrade)
+                .description("misc.craftorio.upgrade_effect_timer_display_unlock_description")
+                .cost(scientificToInt("1000000000"))
+                .position(-143.6797028147919, -110.0)
+                .save(context, ResourceLocation.fromNamespaceAndPath("craftorio", "effect_timer_display_unlock"),
+                        EffectTimerDisplayUnlockUpgrade::of);
 
         Holder.Reference<CraftorioUpgrade> effectTimer2Upgrade = CraftorioUpgrade.builder()
                 .name("misc.craftorio.upgrade_effect_timer_2")
@@ -171,7 +195,7 @@ public class CraftorioUpgradeBootstrap {
                 .cost(scientificToInt("7000000000000"))
                 .position(267.3897041911375, -140.39923781967815)
                 .save(context, ResourceLocation.fromNamespaceAndPath("craftorio", "expansion_cost_1"),
-                        b -> CraftorioModifierUpgrade.of(b, ModifierTarget.EXPANSION_COST, UpgradeOperation.MULTIPLY, -0.1));
+                        b -> CraftorioModifierUpgrade.of(b, ModifierTarget.EXPANSION_COST, UpgradeOperation.DIVIDE, 0.1111));
 
         Holder.Reference<CraftorioUpgrade> expansionCost2Upgrade = CraftorioUpgrade.builder()
                 .name("misc.craftorio.upgrade_expansion_cost_2")
@@ -181,7 +205,7 @@ public class CraftorioUpgradeBootstrap {
                 .cost(scientificToInt("700000000000000000000000000000000000000000"))
                 .position(312.86387622763084, -261.9502549086048)
                 .save(context, ResourceLocation.fromNamespaceAndPath("craftorio", "expansion_cost_2"),
-                        b -> CraftorioModifierUpgrade.of(b, ModifierTarget.EXPANSION_COST, UpgradeOperation.MULTIPLY, -0.3));
+                        b -> CraftorioModifierUpgrade.of(b, ModifierTarget.EXPANSION_COST, UpgradeOperation.DIVIDE, 0.4286));
 
         Holder.Reference<CraftorioUpgrade> mult1Upgrade = CraftorioUpgrade.builder()
                 .name("misc.craftorio.upgrade_mult_1")
@@ -251,7 +275,7 @@ public class CraftorioUpgradeBootstrap {
                 .cost(scientificToInt("5500000000000000000"))
                 .position(593.1775187094652, 277.03869049792115)
                 .save(context, ResourceLocation.fromNamespaceAndPath("craftorio", "punishment_duration_1"),
-                        b -> CraftorioModifierUpgrade.of(b, ModifierTarget.PUNISHMENT_DURATION, UpgradeOperation.MULTIPLY, -0.25));
+                        b -> CraftorioModifierUpgrade.of(b, ModifierTarget.PUNISHMENT_DURATION, UpgradeOperation.DIVIDE, 0.3333));
 
         Holder.Reference<CraftorioUpgrade> rarerContract1Upgrade = CraftorioUpgrade.builder()
                 .name("misc.craftorio.upgrade_rarer_contract_1")
@@ -371,7 +395,7 @@ public class CraftorioUpgradeBootstrap {
                 .cost(scientificToInt("870000000000000"))
                 .position(237.33137676235734, 264.57362386112555)
                 .save(context, ResourceLocation.fromNamespaceAndPath("craftorio", "refresh_cost_1"),
-                        b -> CraftorioModifierUpgrade.of(b, ModifierTarget.CONTRACT_REFRESH_COST, UpgradeOperation.MULTIPLY, -0.12));
+                        b -> CraftorioModifierUpgrade.of(b, ModifierTarget.CONTRACT_REFRESH_COST, UpgradeOperation.DIVIDE, 0.1364));
 
         Holder.Reference<CraftorioUpgrade> refreshCost2Upgrade = CraftorioUpgrade.builder()
                 .name("misc.craftorio.upgrade_refresh_cost_2")
@@ -381,7 +405,7 @@ public class CraftorioUpgradeBootstrap {
                 .cost(scientificToInt("24000000000000000000000000"))
                 .position(246.8313767623573, 349.07362386112555)
                 .save(context, ResourceLocation.fromNamespaceAndPath("craftorio", "refresh_cost_2"),
-                        b -> CraftorioModifierUpgrade.of(b, ModifierTarget.CONTRACT_REFRESH_COST, UpgradeOperation.MULTIPLY, -0.28));
+                        b -> CraftorioModifierUpgrade.of(b, ModifierTarget.CONTRACT_REFRESH_COST, UpgradeOperation.DIVIDE, 0.3889));
 
         Holder.Reference<CraftorioUpgrade> baseValue1Upgrade = CraftorioUpgrade.builder()
                 .name("misc.craftorio.upgrade_base_value_1")
@@ -473,25 +497,99 @@ public class CraftorioUpgradeBootstrap {
                 .save(context, ResourceLocation.fromNamespaceAndPath("craftorio", "manual_sink_value_1"),
                         b -> CraftorioModifierUpgrade.of(b, ModifierTarget.MANUAL_SINK_VALUE, UpgradeOperation.MULTIPLY, 0.25));
 
+        Holder.Reference<CraftorioUpgrade> actionEffectUnlockUpgrade = CraftorioUpgrade.builder()
+                .name("misc.craftorio.upgrade_action_effect_unlock")
+                .icon(DEFAULT_ICON)
+                .parent(manualSinkValue1Upgrade)
+                .description("misc.craftorio.upgrade_action_effect_unlock_description")
+                .cost(scientificToInt("25000000000000000"))
+                .position(-118.36978072713401, -860.0454193636273)
+                .save(context, ResourceLocation.fromNamespaceAndPath("craftorio", "action_effect_unlock"),
+                        ActionEffectUnlockUpgrade::of);
+
         Holder.Reference<CraftorioUpgrade> wakeUpProductiveUpgrade = CraftorioUpgrade.builder()
                 .name("misc.craftorio.upgrade_wake_up_productive")
                 .icon(DEFAULT_ICON)
-                .parent(manualSinkValue1Upgrade)
+                .parent(actionEffectUnlockUpgrade)
                 .description("misc.craftorio.upgrade_wake_up_productive_description")
                 .cost(scientificToInt("30000000000000000"))
-                .position(-160.19353890940016, -860.0454193636273)
+                .maxPurchases(5)
+                .position(-200.0, -930.0)
                 .save(context, ResourceLocation.fromNamespaceAndPath("craftorio", "wake_up_productive"),
-                        b -> CraftorioActionEffectUpgrade.of(b, PlayerActionTarget.WAKE_UP, Craftorio.prefix("productive")));
+                        b -> CraftorioActionEffectUpgrade.of(b, PlayerActionTarget.WAKE_UP, Craftorio.prefix("productive"), 0.2));
 
         Holder.Reference<CraftorioUpgrade> tradeEconomicBoomUpgrade = CraftorioUpgrade.builder()
                 .name("misc.craftorio.upgrade_trade_economic_boom")
                 .icon(DEFAULT_ICON)
-                .parent(manualSinkValue1Upgrade)
+                .parent(actionEffectUnlockUpgrade)
                 .description("misc.craftorio.upgrade_trade_economic_boom_description")
                 .cost(scientificToInt("30000000000000000"))
-                .position(-76.51602254486786, -860.0454193636273)
+                .maxPurchases(5)
+                .position(-36.0, -930.0)
                 .save(context, ResourceLocation.fromNamespaceAndPath("craftorio", "trade_economic_boom"),
-                        b -> CraftorioActionEffectUpgrade.of(b, PlayerActionTarget.TRADE, Craftorio.prefix("economic_boom")));
+                        b -> CraftorioActionEffectUpgrade.of(b, PlayerActionTarget.TRADE, Craftorio.prefix("economic_boom"), 0.2));
+
+        CraftorioUpgrade.builder()
+                .name("misc.craftorio.upgrade_contract_momentum")
+                .icon(DEFAULT_ICON)
+                .parent(tradeEconomicBoomUpgrade)
+                .description("misc.craftorio.upgrade_contract_momentum_description")
+                .cost(scientificToInt("50000000000000000"))
+                .maxPurchases(4)
+                .position(-36.0, -1000.0)
+                .save(context, ResourceLocation.fromNamespaceAndPath("craftorio", "contract_momentum"),
+                        b -> CraftorioActionEffectUpgrade.of(b, PlayerActionTarget.CONTRACT_COMPLETE, Craftorio.prefix("contract_momentum"), 0.25));
+
+        CraftorioUpgrade.builder()
+                .name("misc.craftorio.upgrade_spoils_of_war")
+                .icon(DEFAULT_ICON)
+                .parent(wakeUpProductiveUpgrade)
+                .description("misc.craftorio.upgrade_spoils_of_war_description")
+                .cost(scientificToInt("50000000000000000"))
+                .maxPurchases(4)
+                .position(-200.0, -1000.0)
+                .save(context, ResourceLocation.fromNamespaceAndPath("craftorio", "spoils_of_war"),
+                        b -> CraftorioActionEffectUpgrade.of(b, PlayerActionTarget.RAID_WIN, Craftorio.prefix("spoils_of_war"), 0.25));
+
+        Holder.Reference<CraftorioUpgrade> condenserCap1Upgrade = CraftorioUpgrade.builder()
+                .name("misc.craftorio.upgrade_condenser_cap_1")
+                .icon(DEFAULT_ICON)
+                .parent(baseValue6Upgrade)
+                .description("misc.craftorio.upgrade_condenser_cap_1_description")
+                .cost(scientificToInt("50000000000"))
+                .position(-430.0, -540.0)
+                .save(context, ResourceLocation.fromNamespaceAndPath("craftorio", "condenser_cap_1"),
+                        b -> CraftorioModifierUpgrade.of(b, ModifierTarget.VALUE_CONDENSER_CAP, UpgradeOperation.MULTIPLY, 1.0));
+
+        Holder.Reference<CraftorioUpgrade> condenserCap2Upgrade = CraftorioUpgrade.builder()
+                .name("misc.craftorio.upgrade_condenser_cap_2")
+                .icon(DEFAULT_ICON)
+                .parent(condenserCap1Upgrade)
+                .description("misc.craftorio.upgrade_condenser_cap_2_description")
+                .cost(scientificToInt("50000000000000"))
+                .position(-540.0, -600.0)
+                .save(context, ResourceLocation.fromNamespaceAndPath("craftorio", "condenser_cap_2"),
+                        b -> CraftorioModifierUpgrade.of(b, ModifierTarget.VALUE_CONDENSER_CAP, UpgradeOperation.MULTIPLY, 4.0));
+
+        CraftorioUpgrade.builder()
+                .name("misc.craftorio.upgrade_condenser_cap_3")
+                .icon(DEFAULT_ICON)
+                .parent(condenserCap2Upgrade)
+                .description("misc.craftorio.upgrade_condenser_cap_3_description")
+                .cost(scientificToInt("50000000000000000"))
+                .position(-650.0, -660.0)
+                .save(context, ResourceLocation.fromNamespaceAndPath("craftorio", "condenser_cap_3"),
+                        b -> CraftorioModifierUpgrade.of(b, ModifierTarget.VALUE_CONDENSER_CAP, UpgradeOperation.ADD, 100000000000000.0));
+
+        CraftorioUpgrade.builder()
+                .name("misc.craftorio.upgrade_difficulty_multiplier")
+                .icon(DEFAULT_ICON)
+                .parent(mult5Upgrade)
+                .description("misc.craftorio.upgrade_difficulty_multiplier_description")
+                .cost(scientificToInt("500000000000"))
+                .position(300.0, -440.0)
+                .save(context, ResourceLocation.fromNamespaceAndPath("craftorio", "difficulty_multiplier"),
+                        b -> CraftorioDifficultyUpgrade.of(b, ModifierTarget.MULTIPLIER, UpgradeOperation.ADD, 0.0, 0.5, 1.0, 2.5));
 
         Holder.Reference<CraftorioUpgrade> effectDuration1Upgrade = CraftorioUpgrade.builder()
                 .name("misc.craftorio.upgrade_effect_duration_1")

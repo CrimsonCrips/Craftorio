@@ -2,6 +2,7 @@ package org.crimsoncrips.craftorio.client.screen.hub;
 
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
+import net.minecraft.client.gui.components.SplashRenderer;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.network.chat.Component;
@@ -10,9 +11,11 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 
 import java.util.List;
+import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
+import org.crimsoncrips.craftorio.mixin.CraftorioTitleScreenAccessor;
 
 @OnlyIn(Dist.CLIENT)
-public class CraftorioSacrificeDisconnectScreen extends Screen {
+public class CraftorioSacrificeDisconnectScreen extends Screen implements ScrollableScreen {
 
     private static final int BUTTON_WIDTH = 200;
     private static final int BUTTON_HEIGHT = 20;
@@ -35,7 +38,7 @@ public class CraftorioSacrificeDisconnectScreen extends Screen {
         this.titleTop = top;
         this.textTop = top + this.font.lineHeight + 12;
 
-        this.addRenderableWidget(Button.builder(Component.translatable("gui.toTitle"), b -> this.minecraft.setScreen(new TitleScreen()))
+        this.addRenderableWidget(Button.builder(Component.translatable("gui.toTitle"), b -> this.minecraft.setScreen(sacrificeTitleScreen()))
                 .bounds((this.width - BUTTON_WIDTH) / 2, this.textTop + textHeight + 20, BUTTON_WIDTH, BUTTON_HEIGHT).build());
     }
 
@@ -49,6 +52,13 @@ public class CraftorioSacrificeDisconnectScreen extends Screen {
             guiGraphics.drawCenteredString(this.font, line, this.width / 2, y, 0xFFFFFF);
             y += this.font.lineHeight + 1;
         }
+    }
+
+    private static TitleScreen sacrificeTitleScreen() {
+        TitleScreen titleScreen = new TitleScreen();
+        ((CraftorioTitleScreenAccessor) titleScreen).craftorio$setSplash(
+                new SplashRenderer(Component.translatable("misc.craftorio.sacrifice_splash").getString()));
+        return titleScreen;
     }
 
     @Override

@@ -10,12 +10,13 @@ import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 
 import java.util.List;
 import java.util.Locale;
 
 @OnlyIn(Dist.CLIENT)
-public class DevToolsPickerScreen extends Screen {
+public class DevToolsPickerScreen extends Screen implements ScrollableScreen {
 
     public record Option(Component label, String detail, int indent, boolean selectable, Runnable onPick) {}
 

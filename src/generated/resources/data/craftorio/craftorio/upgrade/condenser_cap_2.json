@@ -1,0 +1,14 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:condenser_cap_1",
+  "cost": "50000000000000",
+  "description": "misc.craftorio.upgrade_condenser_cap_2_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "max_purchases": 1,
+  "name": "misc.craftorio.upgrade_condenser_cap_2",
+  "operation": "MULTIPLY",
+  "target": "VALUE_CONDENSER_CAP",
+  "value": 4.0,
+  "x": -540.0,
+  "y": -600.0
+}

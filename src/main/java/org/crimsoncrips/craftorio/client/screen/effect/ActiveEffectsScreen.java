@@ -4,22 +4,26 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.client.hud.CraftorioToastManager;
+import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 import org.crimsoncrips.craftorio.events.ClientEvents;
 import org.crimsoncrips.craftorio.networking.effect.ClearEffectsPacket;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
+import org.crimsoncrips.craftorio.skill_tree.upgrade_types.manual.EffectTimerDisplayUnlockUpgrade;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @OnlyIn(Dist.CLIENT)
-public class ActiveEffectsScreen extends Screen {
+public class ActiveEffectsScreen extends Screen implements ScrollableScreen {
 
     private static final int ROW_HEIGHT = 36;
     private static final int ROW_GAP = 4;
@@ -31,6 +35,8 @@ public class ActiveEffectsScreen extends Screen {
     private static final float SCROLL_SPEED = 20f;
     private static final int SCROLLBAR_WIDTH = 4;
     private static final int SCROLLBAR_GAP = 6;
+    private static final ResourceLocation LOAN_SHARK_BADGE = Craftorio.getGuiTexture("loaned.png");
+    private static final int BADGE_SIZE = 12;
 
     private final Screen parent;
     private final List<CraftorioEffects> effects = new ArrayList<>();
@@ -91,6 +97,13 @@ public class ActiveEffectsScreen extends Screen {
 
         graphics.drawCenteredString(this.font, this.getTitle(), this.width / 2, 12, 0xFFFFFF);
 
+        Player player = this.minecraft.player;
+        if (player != null && ClientEvents.isEffectTimerKnown() && CraftorioMisc.hasUnlockedUpgrade(player, EffectTimerDisplayUnlockUpgrade.ID)) {
+            Component timer = Component.translatable("misc.craftorio.next_effect_in")
+                    .append(CraftorioMisc.ticksToTimeString(ClientEvents.effectTimerTicksNow()));
+            graphics.drawCenteredString(this.font, timer, this.width / 2, 22, 0xAAAAAA);
+        }
+
         if (this.effects.isEmpty()) {
             graphics.drawCenteredString(this.font, Component.translatable("misc.craftorio.no_active_effects"),
                     this.width / 2, (this.viewportTop + this.viewportBottom) / 2, 0xFFFFFF);
@@ -131,13 +144,15 @@ public class ActiveEffectsScreen extends Screen {
         if (effect.getIcon() != null) {
             graphics.blit(effect.getIcon(), iconX, iconY, 0, 0, ICON_SIZE, ICON_SIZE, ICON_SIZE, ICON_SIZE);
         }
+        if (effect.isLoanMarked()) {
+            graphics.blit(LOAN_SHARK_BADGE, iconX + ICON_SIZE - BADGE_SIZE, iconY + ICON_SIZE - BADGE_SIZE, 0, 0, BADGE_SIZE, BADGE_SIZE, BADGE_SIZE, BADGE_SIZE);
+        }
 
         int textX = iconX + ICON_SIZE + ICON_GAP;
 
         graphics.drawString(this.font, effect.getActualName(), textX, top + 7, ClientEvents.activeEffectColor(effect), true);
 
-        String duration = Component.translatable("misc.craftorio.contract_time_remaining",
-                CraftorioMisc.ticksToTimeString(effect.getTime())).getString();
+        String duration = Component.translatable("misc.craftorio.contract_time_remaining", CraftorioMisc.effectDurationString(effect)).getString();
         graphics.drawString(this.font, duration, textX, top + ROW_HEIGHT - this.font.lineHeight - 6, 0xAAAAAA, true);
     }
 

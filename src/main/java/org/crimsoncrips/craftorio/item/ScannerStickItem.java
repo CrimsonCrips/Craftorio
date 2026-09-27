@@ -17,17 +17,12 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.storage.LevelResource;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
-import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.registries.CraftorioDataComponents;
+import org.crimsoncrips.craftorio.server.devtools.CraftorioDevTools;
 
-import java.io.IOException;
 import java.math.BigInteger;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -35,8 +30,6 @@ import java.util.TreeMap;
 public class ScannerStickItem extends Item {
 
     public static final long MAX_VOLUME = 262144L;
-
-    private static final LevelResource SCANS_DIR = new LevelResource(Craftorio.MODID + "/area_scans");
 
     public ScannerStickItem(Properties properties) {
         super(properties);
@@ -156,16 +149,6 @@ public class ScannerStickItem extends Item {
 
         builder.append("\nGrand total value: ").append(grandTotal).append("\n");
 
-        try {
-            Path dir = player.getServer().getWorldPath(SCANS_DIR);
-            Files.createDirectories(dir);
-            String fileName = "area_scan_" + min.getX() + "_" + min.getY() + "_" + min.getZ() + "_" + System.currentTimeMillis() + ".txt";
-            Files.writeString(dir.resolve(fileName), builder.toString(), StandardCharsets.UTF_8);
-
-            player.sendSystemMessage(Component.translatable("misc.craftorio.area_scan_success", fileName).withStyle(ChatFormatting.GREEN));
-        } catch (IOException e) {
-            Craftorio.LOGGER.error("Failed to write area scan report", e);
-            player.sendSystemMessage(Component.translatable("misc.craftorio.area_scan_failed").withStyle(ChatFormatting.RED));
-        }
+        CraftorioDevTools.writeFile(player, "area_scan_" + min.getX() + "_" + min.getY() + "_" + min.getZ(), builder.toString(), "txt");
     }
 }

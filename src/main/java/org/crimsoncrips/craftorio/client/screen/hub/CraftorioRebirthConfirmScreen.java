@@ -11,6 +11,7 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 import org.crimsoncrips.craftorio.networking.skill_tree.RequestRebirthPacket;
 import org.crimsoncrips.craftorio.networking.skill_tree.SetAutoConsentPacket;
 import org.crimsoncrips.craftorio.server.data.CraftorioDataAttachments;
@@ -19,7 +20,7 @@ import org.crimsoncrips.craftorio.server.rebirth.CraftorioRebirth;
 import java.math.BigInteger;
 
 @OnlyIn(Dist.CLIENT)
-public class CraftorioRebirthConfirmScreen extends Screen {
+public class CraftorioRebirthConfirmScreen extends Screen implements ScrollableScreen {
 
     private final Screen parent;
     private final int currentLife;

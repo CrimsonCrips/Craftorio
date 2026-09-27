@@ -8,13 +8,14 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.inventory.Slot;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 import org.crimsoncrips.craftorio.inventory.ContractCreatorMenu;
 import org.crimsoncrips.craftorio.networking.devtools.ClearContractCreatorGridPacket;
 import org.crimsoncrips.craftorio.networking.devtools.CopyInventoryToContractCreatorPacket;
 import org.crimsoncrips.craftorio.networking.devtools.SetContractCreatorViewPacket;
 
 
-public class ContractCreatorBountyScreen extends AbstractContainerScreen<ContractCreatorMenu> {
+public class ContractCreatorBountyScreen extends AbstractContainerScreen<ContractCreatorMenu> implements ScrollableScreen {
 
     private final Screen returnTo;
 

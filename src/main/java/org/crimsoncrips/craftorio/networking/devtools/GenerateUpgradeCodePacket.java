@@ -20,6 +20,7 @@ import org.crimsoncrips.craftorio.skill_tree.UpgradeTree;
 import org.crimsoncrips.craftorio.skill_tree.target.AttributeTarget;
 import org.crimsoncrips.craftorio.skill_tree.target.ModifierTarget;
 import org.crimsoncrips.craftorio.skill_tree.target.PlayerActionTarget;
+import org.crimsoncrips.craftorio.skill_tree.target.ActionEffectValue;
 import org.crimsoncrips.craftorio.skill_tree.target.UpgradeOperation;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioActionEffectUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioAttributeUpgrade;
@@ -95,7 +96,7 @@ public record GenerateUpgradeCodePacket(String category, String id, String modId
             int maxPurchases = Math.max(1, parseInt(message.maxPurchases(), 1));
             String parent = sanitize(message.parent()).isEmpty() ? "craftorio:root" : sanitize(message.parent());
             double value = parseDouble(message.value(), 0.1);
-            if (message.operation().equals("ADD") && isTickDurationTarget(message.category(), message.target())) {
+            if ((message.operation().equals("ADD") || message.operation().equals("SUBTRACT")) && isTickDurationTarget(message.category(), message.target())) {
                 value *= CraftorioMisc.SECONDS_TO_TICKS;
             }
             String modId = sanitize(message.modId()).isEmpty() ? "yourmodid" : sanitize(message.modId());
@@ -132,8 +133,8 @@ public record GenerateUpgradeCodePacket(String category, String id, String modId
                     }
                 } else if (isActionEffect) {
                     PlayerActionTarget targetEnum = PlayerActionTarget.valueOf(message.target());
-                    String effectId = sanitize(message.value()).isEmpty() ? "craftorio:productive" : sanitize(message.value());
-                    upgrade = CraftorioActionEffectUpgrade.of(builder, targetEnum, ResourceLocation.parse(effectId));
+                    ActionEffectValue actionValue = ActionEffectValue.parse(message.value());
+                    upgrade = CraftorioActionEffectUpgrade.of(builder, targetEnum, ResourceLocation.parse(actionValue.effect()), actionValue.chance());
                 } else {
                     AttributeTarget targetEnum = AttributeTarget.valueOf(message.target());
                     upgrade = CraftorioAttributeUpgrade.of(builder, targetEnum, operationEnum, value);
@@ -177,9 +178,9 @@ public record GenerateUpgradeCodePacket(String category, String id, String modId
                     code.append("                b -> CraftorioModifierUpgrade.of(b, ModifierTarget.").append(message.target()).append(", UpgradeOperation.").append(message.operation()).append(", ").append(value).append("));\n");
                 }
             } else if (isActionEffect) {
-                String effectId = sanitize(message.value()).isEmpty() ? "craftorio:productive" : sanitize(message.value());
+                ActionEffectValue actionValue = ActionEffectValue.parse(message.value());
                 code.append("        .save(context, ResourceLocation.fromNamespaceAndPath(\"").append(modId).append("\", \"").append(id).append("\"),\n");
-                code.append("                b -> CraftorioActionEffectUpgrade.of(b, PlayerActionTarget.").append(message.target()).append(", ResourceLocation.parse(\"").append(effectId).append("\")));\n");
+                code.append("                b -> CraftorioActionEffectUpgrade.of(b, PlayerActionTarget.").append(message.target()).append(", ResourceLocation.parse(\"").append(actionValue.effect()).append("\"), ").append(actionValue.chance()).append("));\n");
             } else {
                 code.append("        .save(context, ResourceLocation.fromNamespaceAndPath(\"").append(modId).append("\", \"").append(id).append("\"),\n");
                 code.append("                b -> CraftorioAttributeUpgrade.of(b, AttributeTarget.").append(message.target()).append(", UpgradeOperation.").append(message.operation()).append(", ").append(value).append("));\n");

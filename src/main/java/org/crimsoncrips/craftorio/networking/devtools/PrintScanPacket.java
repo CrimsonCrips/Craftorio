@@ -8,6 +8,7 @@ import net.minecraft.world.InteractionHand;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.crimsoncrips.craftorio.Craftorio;
+import org.crimsoncrips.craftorio.item.ChronosphereStickItem;
 import org.crimsoncrips.craftorio.item.ScannerStickItem;
 
 public record PrintScanPacket() implements CustomPacketPayload {
@@ -27,7 +28,11 @@ public record PrintScanPacket() implements CustomPacketPayload {
             ItemStack mainHand = serverPlayer.getItemInHand(InteractionHand.MAIN_HAND);
             ItemStack offHand = serverPlayer.getItemInHand(InteractionHand.OFF_HAND);
 
-            if (mainHand.getItem() instanceof ScannerStickItem) {
+            if (mainHand.getItem() instanceof ChronosphereStickItem) {
+                ChronosphereStickItem.activate(serverPlayer, mainHand);
+            } else if (offHand.getItem() instanceof ChronosphereStickItem) {
+                ChronosphereStickItem.activate(serverPlayer, offHand);
+            } else if (mainHand.getItem() instanceof ScannerStickItem) {
                 ScannerStickItem.scanAndWriteFile(serverPlayer, mainHand);
             } else if (offHand.getItem() instanceof ScannerStickItem) {
                 ScannerStickItem.scanAndWriteFile(serverPlayer, offHand);

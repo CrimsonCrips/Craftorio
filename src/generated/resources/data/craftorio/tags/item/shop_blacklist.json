@@ -25,6 +25,8 @@
     "craftorio:effect_rune",
     "craftorio:mystery_effect_rune",
     "minecraft:written_book",
-    "craftorio:scanner_stick"
+    "craftorio:scanner_stick",
+    "craftorio:structure_wand",
+    "craftorio:chronosphere_stick"
   ]
 }
