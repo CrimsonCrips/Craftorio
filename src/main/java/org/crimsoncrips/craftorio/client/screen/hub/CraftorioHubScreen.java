@@ -50,6 +50,7 @@ public class CraftorioHubScreen extends Screen implements ScrollableScreen {
     private static final int DONE_EXTRA_GAP = 16;
     private static final int LIFT_OFFSET = 20;
 
+    private static final int SACRIFICE_REVEAL_STEPS = 10;
     private static final long SKILL_TREE_PANEL_ANIM_MS = 250L;
     private static final int SKILL_TREE_PANEL_WIDTH = 150;
     private static final int SKILL_TREE_PANEL_PADDING = 6;
@@ -84,19 +85,18 @@ public class CraftorioHubScreen extends Screen implements ScrollableScreen {
 
         boolean chunkBased = this.minecraft.level != null && CraftorioMisc.chunkBased(this.minecraft.level);
 
-        if(CraftorioMisc.getLife(getMinecraft().player) >= Craftorio.SERVER_CONFIG.SACRIFICE_REQUIRED_LIFE.getAsInt()){
-            if (this.sacrificeButton != null) {
-                this.sacrificeButton.release();
-            }
-
-            this.sacrificeButton = (AssemblingButton) Button.builder(Component.literal("Sacrifice"), b -> {
-                        PacketDistributor.sendToServer(new RequestSacrificePacket());
-                        this.onClose();
-                    })
-                    .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build(builder -> new AssemblingButton(builder, 1.6f));
-            this.addRenderableWidget(this.sacrificeButton);
-            y += BUTTON_STRIDE + DONE_EXTRA_GAP;
+        if (this.sacrificeButton != null) {
+            this.sacrificeButton.release();
         }
+
+        this.sacrificeButton = (AssemblingButton) Button.builder(Component.literal("Sacrifice"), b -> {
+                    PacketDistributor.sendToServer(new RequestSacrificePacket());
+                    this.onClose();
+                })
+                .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build(builder -> new AssemblingButton(builder, 1.6f));
+        this.addRenderableWidget(this.sacrificeButton);
+        updateSacrificeButton();
+        y += BUTTON_STRIDE + DONE_EXTRA_GAP;
 
 
 
@@ -199,6 +199,16 @@ public class CraftorioHubScreen extends Screen implements ScrollableScreen {
         super.removed();
     }
 
+    private void updateSacrificeButton() {
+        Player player = this.minecraft.player;
+        int required = Craftorio.SERVER_CONFIG.SACRIFICE_REQUIRED_LIFE.getAsInt();
+        float progress = player == null ? 0f : Math.min(1f, CraftorioMisc.getLife(player) / (float) required);
+        float fraction = Mth.floor(progress * SACRIFICE_REVEAL_STEPS) / (float) SACRIFICE_REVEAL_STEPS;
+
+        this.sacrificeButton.visible = fraction > 0f;
+        this.sacrificeButton.setRevealFraction(fraction);
+    }
+
     private void updateLoanSharkButton() {
         Player player = this.minecraft.player;
         boolean show = player != null && (CraftorioMisc.getPoints(player).signum() < 0 || CraftorioMisc.getLoanOwed(player).signum() > 0);
@@ -215,6 +225,7 @@ public class CraftorioHubScreen extends Screen implements ScrollableScreen {
 
     @Override
     public void tick() {
+        updateSacrificeButton();
         updateLoanSharkButton();
         updateEffectRuneShopButton();
     }

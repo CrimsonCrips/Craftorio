@@ -157,7 +157,7 @@ public class CraftorioRebirth {
         CraftorioMisc.setLife(CraftorioMisc.getLife(player) + livesGained, player);
         CraftorioMisc.setLifePoints(CraftorioMisc.getLifePoints(player).add(earned), player);
 
-        player.sendSystemMessage(Component.translatable("misc.craftorio.rebirth_notice").withStyle(ChatFormatting.ITALIC));
+        player.sendSystemMessage(Component.translatable("misc.craftorio.rebirth_notice").withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC));
 
         ServerEvents.syncUniversalState(player);
 

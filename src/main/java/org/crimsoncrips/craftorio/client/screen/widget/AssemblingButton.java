@@ -68,7 +68,7 @@ public class AssemblingButton extends Button {
 
     private record Shard(float[] xs, float[] ys, float centerX, float centerY,
                          float orbitRadiusX, float orbitRadiusY, float orbitPhase, float orbitSpeed,
-                         float spinPhase, float spinSpeed) {}
+                         float spinPhase, float spinSpeed, float revealOrder) {}
 
     private final RandomSource random = RandomSource.create();
     private final float textScale;
@@ -91,6 +91,7 @@ public class AssemblingButton extends Button {
     private float orbitCenterX;
     private float orbitCenterY;
     private Shard[] shards = new Shard[0];
+    private float revealFraction = 1f;
 
     public AssemblingButton(Button.Builder builder, float textScale) {
         super(builder);
@@ -114,7 +115,7 @@ public class AssemblingButton extends Button {
         float dt = Math.max(0L, now - this.lastFrameMillis);
         this.lastFrameMillis = now;
 
-        boolean hovered = this.isHovered();
+        boolean hovered = this.isHovered() && isFullyRevealed();
         if (hovered != this.forming) {
             this.forming = hovered;
             this.fromEased = this.eased;
@@ -173,6 +174,15 @@ public class AssemblingButton extends Button {
             drawShards(guiGraphics, this.textCapture, decay, elapsed);
             pose.popPose();
         }
+    }
+
+    public void setRevealFraction(float fraction) {
+        this.revealFraction = Mth.clamp(fraction, 0f, 1f);
+        this.active = isFullyRevealed();
+    }
+
+    public boolean isFullyRevealed() {
+        return this.revealFraction >= 1f;
     }
 
     public void release() {
@@ -288,7 +298,10 @@ public class AssemblingButton extends Button {
 
         this.buttonCapture = createCaptureTarget(main);
         this.buttonCapture.bindWrite(true);
+        boolean wasActive = this.active;
+        this.active = true;
         super.renderWidget(guiGraphics, mouseX, mouseY, partialTick);
+        this.active = wasActive;
         guiGraphics.flush();
 
         this.textCapture = createCaptureTarget(main);
@@ -360,7 +373,8 @@ public class AssemblingButton extends Button {
                             this.random.nextFloat() * (float) TWO_PI,
                             ORBIT_SPEED_MIN + this.random.nextFloat() * (ORBIT_SPEED_MAX - ORBIT_SPEED_MIN),
                             this.random.nextFloat() * (float) TWO_PI,
-                            (this.random.nextFloat() - 0.5f) * 2f * SPIN_SPEED_RANGE);
+                            (this.random.nextFloat() - 0.5f) * 2f * SPIN_SPEED_RANGE,
+                            this.random.nextFloat());
                 }
             }
         }
@@ -437,6 +451,8 @@ public class AssemblingButton extends Button {
 
         BufferBuilder builder = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION_TEX);
         for (Shard shard : this.shards) {
+            if (shard.revealOrder() >= this.revealFraction) continue;
+
             double orbitAngle = shard.orbitPhase() + elapsed * (double) shard.orbitSpeed();
             float orbitX = this.orbitCenterX + (float) Math.cos(orbitAngle) * shard.orbitRadiusX();
             float orbitY = this.orbitCenterY + (float) Math.sin(orbitAngle) * shard.orbitRadiusY();
