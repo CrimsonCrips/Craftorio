@@ -87,7 +87,11 @@ public class CraftorioUnlockedItemsManager {
             Craftorio.LOGGER.error("Failed to save unlocked items for {}", player.getGameProfile().getName(), e);
         }
 
-        PacketDistributor.sendToPlayer(player, new ItemDiscoveredPacket(id));
+        if (CraftorioMisc.universalBased(player.level())) {
+            PacketDistributor.sendToAllPlayers(new ItemDiscoveredPacket(id));
+        } else {
+            PacketDistributor.sendToPlayer(player, new ItemDiscoveredPacket(id));
+        }
 
         return true;
     }

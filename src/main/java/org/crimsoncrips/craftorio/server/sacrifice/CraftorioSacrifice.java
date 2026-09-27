@@ -33,6 +33,8 @@ import org.crimsoncrips.craftorio.networking.sacrifice.OpenSacrificeSkillTreeScr
 import org.crimsoncrips.craftorio.networking.sacrifice.SacrificeShatterPacket;
 import org.crimsoncrips.craftorio.registries.CraftorioDimensions;
 import org.crimsoncrips.craftorio.server.data.CraftorioDataAttachments;
+import org.crimsoncrips.craftorio.networking.consent.ConsentKind;
+import org.crimsoncrips.craftorio.server.consent.CraftorioConsentSync;
 import org.crimsoncrips.craftorio.server.haven.CraftorioHavenDimension;
 import org.crimsoncrips.craftorio.server.loan.CraftorioLoanShark;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
@@ -50,15 +52,19 @@ import java.util.UUID;
 
 public class CraftorioSacrifice {
 
-    private enum Stage { IDLE, UNLOADING, SETTLING, WAITING, SHATTERING }
+    private enum Stage { IDLE, COUNTDOWN, UNLOADING, SETTLING, WAITING, SHATTERING }
 
     private static final BigInteger SACRIFICE_POINTS_PER_SACRIFICE = BigInteger.ONE;
+    private static final int COUNTDOWN_TICKS = 200;
     private static final int UNLOAD_TIMEOUT_TICKS = 1200;
     private static final int SETTLE_TICKS = 60;
     private static final int SHATTER_TICKS = 160;
     private static final int CUTOFF_MARGIN_SECONDS = 3;
     private static final int TREE_OPEN_DELAY_TICKS = 60;
     public static final int KEEP_DIFFICULTY = -1;
+    private static final List<UUID> pendingParticipants = new ArrayList<>();
+    private static Long pendingSeed = null;
+    private static int pendingDifficulty = KEEP_DIFFICULTY;
     private static final long MILLIS_PER_MINUTE = 60_000L;
 
     private static Stage stage = Stage.IDLE;
@@ -79,6 +85,8 @@ public class CraftorioSacrifice {
 
     private static Set<UUID> requiredPlayers = null;
     private static final Set<UUID> consented = new HashSet<>();
+    private static UUID voteProposer = null;
+    private static long voteDeadline = 0L;
 
     private CraftorioSacrifice() {}
 
@@ -157,24 +165,37 @@ public class CraftorioSacrifice {
     public static void refuse(ServerPlayer player) {
         if (isRunning() || !isPending(player)) return;
 
-        release(player, false);
+        release(player, ReleaseReason.REFUSED);
     }
 
-    private static void release(ServerPlayer player, boolean timedOut) {
+    private enum ReleaseReason { REFUSED, TIMED_OUT, VOTE_FAILED }
+
+    private static void release(ServerPlayer player, ReleaseReason reason) {
         MinecraftServer server = player.getServer();
         lifeWaived.remove(player.getUUID());
         cancelVote(server, player);
-        restoreInventory(player);
+        clearPending(player);
 
         if (server != null && inHaven(player)) {
-            teleportToRespawn(server, player);
+            CraftorioHavenDimension.leaveHaven(player, target -> {
+                teleportToRespawn(server, target);
+                restoreStoredItems(target);
+            });
+        } else {
+            restoreStoredItems(player);
         }
 
-        if (timedOut) {
-            player.setData(CraftorioDataAttachments.SACRIFICE_COOLDOWN_UNTIL, System.currentTimeMillis() + cooldownMillis());
-            player.sendSystemMessage(Component.translatable("misc.craftorio.sacrifice_timed_out", Craftorio.SERVER_CONFIG.SACRIFICE_COOLDOWN_MINUTES.get()).withStyle(ChatFormatting.RED));
-        } else {
-            player.sendSystemMessage(Component.translatable("misc.craftorio.sacrifice_refused").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
+        int cooldownMinutes = Craftorio.SERVER_CONFIG.SACRIFICE_COOLDOWN_MINUTES.get();
+        switch (reason) {
+            case TIMED_OUT -> {
+                player.setData(CraftorioDataAttachments.SACRIFICE_COOLDOWN_UNTIL, System.currentTimeMillis() + cooldownMillis());
+                player.sendSystemMessage(Component.translatable("misc.craftorio.sacrifice_timed_out", cooldownMinutes).withStyle(ChatFormatting.RED));
+            }
+            case REFUSED -> {
+                player.setData(CraftorioDataAttachments.SACRIFICE_COOLDOWN_UNTIL, System.currentTimeMillis() + cooldownMillis());
+                player.sendSystemMessage(Component.translatable("misc.craftorio.sacrifice_refused_cooldown", cooldownMinutes).withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
+            }
+            case VOTE_FAILED -> player.sendSystemMessage(Component.translatable("misc.craftorio.sacrifice_refused").withStyle(ChatFormatting.GRAY, ChatFormatting.ITALIC));
         }
     }
 
@@ -192,14 +213,18 @@ public class CraftorioSacrifice {
     private static void checkDeadlines(MinecraftServer server) {
         long now = System.currentTimeMillis();
         for (ServerPlayer player : new ArrayList<>(server.getPlayerList().getPlayers())) {
-            if (!isPending(player) || !inHaven(player)) continue;
+            if (!isPending(player)) continue;
+            if (!inHaven(player)) {
+                restoreStranded(player);
+                continue;
+            }
 
             long deadline = player.getData(CraftorioDataAttachments.SACRIFICE_DEADLINE);
             if (deadline <= 0) {
                 player.setData(CraftorioDataAttachments.SACRIFICE_DEADLINE, now + timeLimitMillis());
             } else if (now >= deadline) {
                 deadlineWarned.remove(player.getUUID());
-                release(player, true);
+                release(player, ReleaseReason.TIMED_OUT);
             } else if (deadline - now <= MILLIS_PER_MINUTE && deadlineWarned.add(player.getUUID())) {
                 player.sendSystemMessage(Component.translatable("misc.craftorio.sacrifice_time_warning").withStyle(ChatFormatting.YELLOW));
             }
@@ -207,22 +232,25 @@ public class CraftorioSacrifice {
     }
 
     public static void restoreStranded(ServerPlayer player) {
-        if (isRunning() || !isPending(player) || inHaven(player)) return;
+        if (isRunning() || !isPending(player) || inHaven(player) || CraftorioHavenDimension.isTransitioning(player)) return;
 
-        cancelVote(player.getServer(), player);
-        restoreInventory(player);
+        deadlineWarned.remove(player.getUUID());
+        release(player, ReleaseReason.REFUSED);
     }
 
-    private static void restoreInventory(ServerPlayer player) {
-        Inventory inventory = player.getInventory();
+    private static void restoreStoredItems(ServerPlayer player) {
         List<ItemStack> stored = player.getData(CraftorioDataAttachments.SACRIFICE_STORED_INVENTORY);
+        if (stored.isEmpty()) return;
 
+        Inventory inventory = player.getInventory();
         inventory.clearContent();
         for (int slot = 0; slot < stored.size() && slot < inventory.getContainerSize(); slot++) {
             inventory.setItem(slot, stored.get(slot).copy());
         }
-
         player.setData(CraftorioDataAttachments.SACRIFICE_STORED_INVENTORY, new ArrayList<>());
+    }
+
+    private static void clearPending(ServerPlayer player) {
         player.setData(CraftorioDataAttachments.SACRIFICE_PENDING, false);
         player.setData(CraftorioDataAttachments.SACRIFICE_DEADLINE, 0L);
     }
@@ -238,6 +266,76 @@ public class CraftorioSacrifice {
     }
 
     public static void accept(ServerPlayer player, String seed, int difficulty) {
+        acceptVote(player, seed, difficulty);
+        if (requiredPlayers == null || !consented.contains(player.getUUID())) {
+            CraftorioConsentSync.sendInactive(player, ConsentKind.SACRIFICE);
+        }
+    }
+
+    public static void withdrawConsent(ServerPlayer player) {
+        MinecraftServer server = player.getServer();
+        if (server == null || requiredPlayers == null || !consented.remove(player.getUUID())) return;
+
+        CraftorioConsentSync.notifyWithdrawn(server, player);
+        if (consented.isEmpty()) {
+            failVote(server, null);
+            return;
+        }
+        broadcastVoteStatus(server);
+    }
+
+    public static void voteConsent(ServerPlayer player, boolean agree) {
+        MinecraftServer server = player.getServer();
+        if (server == null) return;
+        if (requiredPlayers == null) {
+            CraftorioConsentSync.sendInactive(player, ConsentKind.SACRIFICE);
+            return;
+        }
+
+        if (agree) {
+            accept(player, "", KEEP_DIFFICULTY);
+            return;
+        }
+
+        CraftorioConsentSync.notifyDeclined(server, player);
+        failVote(server, null);
+    }
+
+    private static void failVote(MinecraftServer server, ServerPlayer exclude) {
+        clearVote();
+        requestedSeed = null;
+        requestedDifficulty = KEEP_DIFFICULTY;
+        releaseWaiting(server, exclude);
+    }
+
+    private static void releaseWaiting(MinecraftServer server, ServerPlayer exclude) {
+        if (server == null || isRunning()) return;
+        for (ServerPlayer online : new ArrayList<>(server.getPlayerList().getPlayers())) {
+            if (online != exclude && isPending(online) && inHaven(online)) {
+                release(online, ReleaseReason.VOTE_FAILED);
+            }
+        }
+    }
+
+    private static void checkVoteTimeout(MinecraftServer server) {
+        if (requiredPlayers == null || System.currentTimeMillis() < voteDeadline) return;
+
+        CraftorioConsentSync.notifyTimedOut(server);
+        failVote(server, null);
+    }
+
+    private static void broadcastVoteStatus(MinecraftServer server) {
+        Component seedDetail = requestedSeed == null
+                ? Component.translatable("misc.craftorio.consent_detail_seed_keep")
+                : Component.translatable("misc.craftorio.consent_detail_seed", String.valueOf(requestedSeed));
+        Component difficultyValue = requestedDifficulty == KEEP_DIFFICULTY
+                ? Component.translatable("misc.craftorio.sacrifice_difficulty_keep")
+                : Difficulty.byId(requestedDifficulty).getDisplayName();
+        List<Component> details = List.of(seedDetail, Component.translatable("misc.craftorio.sacrifice_difficulty", difficultyValue));
+        CraftorioConsentSync.broadcast(server, ConsentKind.SACRIFICE, voteProposer, requiredPlayers, consented, details, voteDeadline);
+    }
+
+    private static void acceptVote(ServerPlayer player, String seed, int difficulty) {
         MinecraftServer server = player.getServer();
         if (server == null || !isPending(player) || !inHaven(player)) return;
         if (isRunning()) {
@@ -253,25 +351,24 @@ public class CraftorioSacrifice {
         if (CraftorioMisc.universalBased(server.overworld())) {
             Set<UUID> onlineIds = onlineIds(server);
             if (requiredPlayers != null && !requiredPlayers.equals(onlineIds)) {
-                cancelVote(server, null);
+                clearVoteState(server, null);
             }
             if (requiredPlayers == null) {
                 requiredPlayers = onlineIds;
                 consented.clear();
+                voteProposer = player.getUUID();
+                voteDeadline = System.currentTimeMillis() + CraftorioConsentSync.VOTE_DURATION_MS;
+                OptionalLong parsedSeed = WorldOptions.parseSeed(seed);
+                requestedSeed = parsedSeed.isPresent() ? parsedSeed.getAsLong() : null;
+                requestedDifficulty = difficulty;
             }
 
             consented.add(player.getUUID());
-            OptionalLong parsedSeed = WorldOptions.parseSeed(seed);
-            if (parsedSeed.isPresent()) {
-                requestedSeed = parsedSeed.getAsLong();
-            }
-            if (difficulty != KEEP_DIFFICULTY) {
-                requestedDifficulty = difficulty;
-            }
             if (!consented.containsAll(requiredPlayers)) {
                 for (ServerPlayer online : server.getPlayerList().getPlayers()) {
                     online.sendSystemMessage(Component.translatable("misc.craftorio.sacrifice_consent_progress", consented.size(), requiredPlayers.size()).withStyle(ChatFormatting.YELLOW));
                 }
+                broadcastVoteStatus(server);
                 return;
             }
 
@@ -282,6 +379,9 @@ public class CraftorioSacrifice {
                     for (ServerPlayer online : participants) {
                         online.sendSystemMessage(Component.translatable("misc.craftorio.sacrifice_consent_cancelled").withStyle(ChatFormatting.RED));
                     }
+                    requestedSeed = null;
+                    requestedDifficulty = KEEP_DIFFICULTY;
+                    releaseWaiting(server, null);
                     return;
                 }
             }
@@ -295,8 +395,82 @@ public class CraftorioSacrifice {
         requestedSeed = null;
         int difficultyChoice = requestedDifficulty;
         requestedDifficulty = KEEP_DIFFICULTY;
-        execute(server, participants, seedChoice, true);
-        chosenDifficulty = areaMode ? KEEP_DIFFICULTY : difficultyChoice;
+        beginCountdown(server, participants, seedChoice, difficultyChoice);
+    }
+
+    private static void beginCountdown(MinecraftServer server, List<ServerPlayer> participants, Long seed, int difficulty) {
+        pendingParticipants.clear();
+        for (ServerPlayer participant : participants) {
+            pendingParticipants.add(participant.getUUID());
+        }
+        pendingSeed = seed;
+        pendingDifficulty = difficulty;
+        stage = Stage.COUNTDOWN;
+        stageTicks = 0;
+
+        int seconds = COUNTDOWN_TICKS / 20;
+        Component sacrificer = participants.size() == 1 ? participants.get(0).getDisplayName() : null;
+        for (ServerPlayer online : server.getPlayerList().getPlayers()) {
+            if (pendingParticipants.contains(online.getUUID())) {
+                online.sendSystemMessage(Component.translatable("misc.craftorio.sacrifice_countdown_self_chat", seconds).withStyle(ChatFormatting.DARK_RED, ChatFormatting.ITALIC));
+            } else {
+                warnPulled(online, sacrificer, seconds);
+            }
+        }
+    }
+
+    private static void warnPulled(ServerPlayer player, Component sacrificer, int seconds) {
+        Component message = sacrificer != null
+                ? Component.translatable("misc.craftorio.sacrifice_countdown_warning", sacrificer, seconds)
+                : Component.translatable("misc.craftorio.sacrifice_countdown_warning_generic", seconds);
+        player.sendSystemMessage(message.copy().withStyle(ChatFormatting.DARK_RED));
+    }
+
+    private static void tickCountdown(MinecraftServer server) {
+        int remainingTicks = COUNTDOWN_TICKS - stageTicks;
+        if (remainingTicks > 0) {
+            if (remainingTicks % 20 == 0) {
+                int seconds = remainingTicks / 20;
+                for (ServerPlayer online : server.getPlayerList().getPlayers()) {
+                    String key = pendingParticipants.contains(online.getUUID()) ? "misc.craftorio.sacrifice_countdown_self" : "misc.craftorio.sacrifice_countdown_others";
+                    online.displayClientMessage(Component.translatable(key, seconds).withStyle(ChatFormatting.DARK_RED), true);
+                }
+            }
+            return;
+        }
+
+        List<ServerPlayer> participants = new ArrayList<>();
+        for (UUID id : pendingParticipants) {
+            ServerPlayer player = server.getPlayerList().getPlayer(id);
+            if (player != null && isPending(player) && inHaven(player)) {
+                participants.add(player);
+            }
+        }
+        boolean complete = participants.size() == pendingParticipants.size();
+        if (complete && CraftorioMisc.universalBased(server.overworld())) {
+            for (ServerPlayer online : server.getPlayerList().getPlayers()) {
+                if (!participants.contains(online)) {
+                    participants.add(online);
+                }
+            }
+        }
+        Long seed = pendingSeed;
+        int difficulty = pendingDifficulty;
+        pendingParticipants.clear();
+        pendingSeed = null;
+        pendingDifficulty = KEEP_DIFFICULTY;
+        stage = Stage.IDLE;
+        stageTicks = 0;
+
+        if (!complete || participants.isEmpty()) {
+            for (ServerPlayer online : server.getPlayerList().getPlayers()) {
+                online.sendSystemMessage(Component.translatable("misc.craftorio.sacrifice_countdown_cancelled").withStyle(ChatFormatting.RED));
+            }
+            return;
+        }
+
+        execute(server, participants, seed, true);
+        chosenDifficulty = areaMode ? KEEP_DIFFICULTY : difficulty;
     }
 
     public static void onRosterChanged(MinecraftServer server) {
@@ -308,6 +482,7 @@ public class CraftorioSacrifice {
     private static void cancelVote(MinecraftServer server, ServerPlayer refusing) {
         if (requiredPlayers == null) return;
         clearVoteState(server, refusing);
+        releaseWaiting(server, refusing);
     }
 
     private static void clearVoteState(MinecraftServer server, ServerPlayer refusing) {
@@ -323,8 +498,13 @@ public class CraftorioSacrifice {
     }
 
     private static void clearVote() {
+        boolean wasActive = requiredPlayers != null;
         requiredPlayers = null;
+        voteProposer = null;
         consented.clear();
+        if (wasActive) {
+            CraftorioConsentSync.broadcastInactive(ConsentKind.SACRIFICE);
+        }
     }
 
     private static Set<UUID> onlineIds(MinecraftServer server) {
@@ -394,6 +574,10 @@ public class CraftorioSacrifice {
     }
 
     private static void gather(ServerPlayer player) {
+        gather(player, false);
+    }
+
+    private static void gather(ServerPlayer player, boolean immediate) {
         if (player.getData(CraftorioDataAttachments.SACRIFICE_SAVED_RESPAWN).isEmpty()) {
             BlockPos respawn = player.getRespawnPosition();
             GlobalPos origin;
@@ -408,7 +592,11 @@ public class CraftorioSacrifice {
         }
 
         if (!inHaven(player)) {
-            CraftorioHavenDimension.enterForSacrifice(player);
+            if (immediate) {
+                CraftorioHavenDimension.enterForSacrificeNow(player);
+            } else {
+                CraftorioHavenDimension.enterForSacrifice(player);
+            }
         }
         gatheredIds.add(player.getUUID());
         saveRespawn(player);
@@ -473,12 +661,12 @@ public class CraftorioSacrifice {
     }
 
     public static boolean blocksTravel(ResourceKey<Level> destination) {
-        return isRunning() && !releasing && !destination.equals(CraftorioDimensions.HAVEN_LEVEL_KEY);
+        return isRunning() && stage != Stage.COUNTDOWN && !releasing && !destination.equals(CraftorioDimensions.HAVEN_LEVEL_KEY);
     }
 
     public static void onRespawn(ServerPlayer player) {
-        if (isRunning() && !releasing && !inHaven(player)) {
-            CraftorioHavenDimension.enterForSacrifice(player);
+        if (isPurging() && !releasing && !inHaven(player)) {
+            CraftorioHavenDimension.enterForSacrificeNow(player);
         }
     }
 
@@ -491,6 +679,9 @@ public class CraftorioSacrifice {
 
     public static void reset() {
         lifeWaived.clear();
+        pendingParticipants.clear();
+        pendingSeed = null;
+        pendingDifficulty = KEEP_DIFFICULTY;
         stage = Stage.IDLE;
         stageTicks = 0;
         releasing = false;
@@ -507,6 +698,7 @@ public class CraftorioSacrifice {
     }
 
     public static void tick(MinecraftServer server) {
+        checkVoteTimeout(server);
         if (server.getTickCount() % 20 == 0) {
             openDueTrees(server);
             if (stage == Stage.IDLE) {
@@ -517,7 +709,12 @@ public class CraftorioSacrifice {
         stageTicks++;
 
         switch (stage) {
+            case COUNTDOWN -> tickCountdown(server);
             case UNLOADING -> {
+                if (!everyoneInHaven(server)) {
+                    stageTicks = 0;
+                    return;
+                }
                 boolean timedOut = stageTicks >= UNLOAD_TIMEOUT_TICKS;
                 if (stageTicks % 20 == 0 && (allUnloaded(server) || timedOut)) {
                     if (timedOut) {
@@ -551,6 +748,18 @@ public class CraftorioSacrifice {
         }
     }
 
+    private static boolean everyoneInHaven(MinecraftServer server) {
+        boolean allPresent = true;
+        for (ServerPlayer online : server.getPlayerList().getPlayers()) {
+            if (inHaven(online)) continue;
+            allPresent = false;
+            if (!CraftorioHavenDimension.isTransitioning(online)) {
+                CraftorioHavenDimension.enterForSacrifice(online);
+            }
+        }
+        return allPresent;
+    }
+
     private static boolean allUnloaded(MinecraftServer server) {
         for (ServerLevel level : server.getAllLevels()) {
             if (isHavenLevel(level)) continue;
@@ -565,8 +774,12 @@ public class CraftorioSacrifice {
         return level.dimension().equals(CraftorioDimensions.HAVEN_LEVEL_KEY);
     }
 
+    private static boolean restartRequired() {
+        return !areaMode && chosenSeed != null;
+    }
+
     private static void startShattering(MinecraftServer server) {
-        Craftorio.LOGGER.info("Sacrifice: world reset, shattering the players' screens before disconnecting");
+        Craftorio.LOGGER.info("Sacrifice: world reset, shattering the players' screens");
         for (ServerPlayer online : server.getPlayerList().getPlayers()) {
             if (!areaMode || participantIds.contains(online.getUUID())) {
                 PacketDistributor.sendToPlayer(online, new SacrificeShatterPacket());
@@ -577,7 +790,12 @@ public class CraftorioSacrifice {
     }
 
     private static void complete(MinecraftServer server) {
-        boolean halt = !areaMode;
+        if (!areaMode && !restartRequired()) {
+            completeLive(server);
+            return;
+        }
+
+        boolean halt = restartRequired();
         Craftorio.LOGGER.info(halt ? "Sacrifice complete, disconnecting players so the world can be finalized" : "Sacrifice complete, disconnecting the sacrificing player");
 
         List<ServerPlayer> leaving = new ArrayList<>();
@@ -594,6 +812,21 @@ public class CraftorioSacrifice {
         }
         if (halt) {
             server.halt(false);
+        }
+    }
+
+    private static void completeLive(MinecraftServer server) {
+        Craftorio.LOGGER.info("Sacrifice complete, resetting the world live and disconnecting everyone (the server keeps running)");
+
+        List<ServerPlayer> online = new ArrayList<>(server.getPlayerList().getPlayers());
+        finish(server);
+        CraftorioWorldWipe.resetWorldStateLive(server);
+
+        Component reason = Component.translatable("misc.craftorio.sacrifice_disconnect");
+        for (ServerPlayer player : online) {
+            player.setData(CraftorioDataAttachments.SACRIFICE_SAVED_RESPAWN, Optional.empty());
+            ServerEvents.giveFreshStart(player);
+            player.connection.disconnect(reason);
         }
     }
 
@@ -616,12 +849,17 @@ public class CraftorioSacrifice {
             } else if (gatheredIds.contains(online.getUUID())) {
                 online.setData(CraftorioDataAttachments.SACRIFICE_WAITING, false);
                 if (isPending(online)) {
-                    restoreInventory(online);
+                    clearPending(online);
                 }
                 restoreRespawn(online);
                 if (areaMode) {
-                    returnFromHaven(server, online, false);
+                    CraftorioHavenDimension.leaveHaven(online, target -> {
+                        returnFromHaven(server, target, false);
+                        restoreStoredItems(target);
+                    });
                     online.setData(CraftorioDataAttachments.SACRIFICES_APPLIED, count);
+                } else {
+                    restoreStoredItems(online);
                 }
             }
         }
@@ -630,13 +868,17 @@ public class CraftorioSacrifice {
             restoreForced(server);
             CraftorioWipeAreas.log(server, count, areaRects);
             for (UUID participant : participantIds) {
+                CraftorioWipeAreas.revokeSharedClaims(server, participant.toString());
                 CraftorioWipeAreas.forgetChunks(server, areaRects, participant.toString());
+                CraftorioWipeAreas.forgetBorders(server, participant.toString());
             }
         } else {
             if (chosenDifficulty != KEEP_DIFFICULTY) {
                 server.setDifficulty(Difficulty.byId(chosenDifficulty), true);
             }
-            CraftorioWorldWipe.writeFinalizeMarker(server, chosenSeed);
+            if (chosenSeed != null) {
+                CraftorioWorldWipe.writeFinalizeMarker(server, chosenSeed);
+            }
         }
         reset();
     }
@@ -650,6 +892,10 @@ public class CraftorioSacrifice {
         player.setData(CraftorioDataAttachments.SACRIFICES_APPLIED, server.overworld().getData(CraftorioDataAttachments.SACRIFICE_COUNT) + 1);
     }
 
+    public static boolean isPurging() {
+        return isRunning() && stage != Stage.COUNTDOWN;
+    }
+
     public static boolean isRunning() {
         return stage != Stage.IDLE;
     }
@@ -658,18 +904,22 @@ public class CraftorioSacrifice {
         MinecraftServer server = player.getServer();
         if (server == null) return;
 
-        if (isRunning()) {
+        if (stage == Stage.COUNTDOWN && !pendingParticipants.contains(player.getUUID())) {
+            warnPulled(player, null, Math.max(1, (COUNTDOWN_TICKS - stageTicks) / 20));
+        }
+
+        if (isRunning() && stage != Stage.COUNTDOWN) {
             if (!areaMode) {
                 participantIds.add(player.getUUID());
             }
 
             if (participantIds.contains(player.getUUID())) {
                 if (!inHaven(player)) {
-                    CraftorioHavenDimension.enterForSacrifice(player);
+                    CraftorioHavenDimension.enterForSacrificeNow(player);
                 }
                 setHavenRespawn(player);
             } else {
-                gather(player);
+                gather(player, true);
             }
             return;
         }
@@ -680,10 +930,13 @@ public class CraftorioSacrifice {
         if (inHaven(player) && !isPending(player) && player.getData(CraftorioDataAttachments.SACRIFICE_SAVED_RESPAWN).isPresent()) {
             GlobalPos origin = player.getData(CraftorioDataAttachments.HAVEN_RETURN_POS);
             boolean wiped = CraftorioWipeAreas.wipedSince(server, applied, origin.dimension().location().toString(), new ChunkPos(origin.pos()));
-            returnFromHaven(server, player, wiped);
+            CraftorioHavenDimension.leaveHavenNow(player, target -> returnFromHaven(server, target, wiped));
         }
         restoreRespawn(player);
         restoreStranded(player);
+        if (!inHaven(player) && !isPending(player)) {
+            restoreStoredItems(player);
+        }
 
         if (applied >= count) return;
 
@@ -716,6 +969,7 @@ public class CraftorioSacrifice {
         resetProgress(player);
         player.setData(CraftorioDataAttachments.GIVEN, false);
         player.setData(CraftorioDataAttachments.SPAWN_ORIGIN, GlobalPos.of(Level.OVERWORLD, BlockPos.ZERO));
+        CraftorioMisc.recordSpawnOrigin(player.getServer(), player.getStringUUID(), null);
         player.setRespawnPosition(Level.OVERWORLD, null, 0F, false, false);
 
         revokeAdvancements(player);
@@ -747,6 +1001,7 @@ public class CraftorioSacrifice {
         holder.setData(CraftorioDataAttachments.PLAYER_BORDERS, new ArrayList<>());
         holder.setData(CraftorioDataAttachments.DIMENSIONS_EXPLORED, new ArrayList<>());
         holder.setData(CraftorioDataAttachments.UNIVERSAL_PROGRESS_STARTED, false);
+        holder.setData(CraftorioDataAttachments.REWARDED_ADVANCEMENTS, new HashSet<>());
     }
 
     private static void removeUpgradeModifiers(ServerPlayer player) {

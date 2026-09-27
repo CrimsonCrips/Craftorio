@@ -1,5 +1,8 @@
 package org.crimsoncrips.craftorio.server.sacrifice;
 
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.ResourceKey;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -54,9 +57,105 @@ public final class CraftorioWipeAreas {
         if (owners == null || owners.isEmpty()) return;
 
         String dimension = level.dimension().location().toString();
+        owners = applyRevokedClaims(level, dimension, chunk, owners);
         for (String owner : owners) {
             recordOwnership(level.getServer(), dimension, chunk.getPos(), owner, true);
         }
+    }
+
+    private static List<String> applyRevokedClaims(ServerLevel level, String dimension, ChunkAccess chunk, List<String> owners) {
+        ServerLevel overworld = level.getServer().overworld();
+        Map<String, Map<String, Set<Long>>> revoked = overworld.getData(CraftorioDataAttachments.REVOKED_CLAIMS);
+        if (revoked.isEmpty()) return owners;
+
+        long packed = chunk.getPos().toLong();
+        List<String> remaining = new ArrayList<>(owners);
+        Map<String, Map<String, Set<Long>>> copy = null;
+        for (String owner : owners) {
+            Set<Long> chunks = revoked.getOrDefault(owner, Map.of()).get(dimension);
+            if (chunks == null || !chunks.contains(packed)) continue;
+
+            remaining.remove(owner);
+            if (copy == null) copy = copyIndex(revoked);
+            removeFrom(copy, owner, dimension, packed);
+        }
+        if (copy == null) return owners;
+
+        chunk.setData(CraftorioDataAttachments.OWNED_BY, remaining);
+        overworld.setData(CraftorioDataAttachments.REVOKED_CLAIMS, copy);
+        return remaining;
+    }
+
+    public static void revokeSharedClaims(MinecraftServer server, String uuid) {
+        ServerLevel overworld = server.overworld();
+        Map<String, Map<String, Set<Long>>> index = overworld.getData(CraftorioDataAttachments.OWNED_CHUNK_INDEX);
+        Map<String, Set<Long>> own = index.get(uuid);
+        if (own == null) return;
+
+        Map<String, Map<String, Set<Long>>> revoked = copyIndex(overworld.getData(CraftorioDataAttachments.REVOKED_CLAIMS));
+        boolean changed = false;
+        for (Map.Entry<String, Set<Long>> entry : own.entrySet()) {
+            for (long packed : entry.getValue()) {
+                if (!ownedByOther(index, uuid, entry.getKey(), packed)) continue;
+
+                ServerLevel level = levelFor(server, entry.getKey());
+                ChunkAccess loaded = level == null ? null : level.getChunkSource().getChunkNow(ChunkPos.getX(packed), ChunkPos.getZ(packed));
+                if (loaded != null) {
+                    List<String> owners = new ArrayList<>(loaded.getData(CraftorioDataAttachments.OWNED_BY));
+                    owners.remove(uuid);
+                    loaded.setData(CraftorioDataAttachments.OWNED_BY, owners);
+                } else {
+                    revoked.computeIfAbsent(uuid, key -> new HashMap<>()).computeIfAbsent(entry.getKey(), key -> new HashSet<>()).add(packed);
+                    changed = true;
+                }
+            }
+        }
+        if (changed) {
+            overworld.setData(CraftorioDataAttachments.REVOKED_CLAIMS, revoked);
+        }
+    }
+
+    public static void recordBorders(MinecraftServer server, String uuid, List<CraftorioBorder> borders) {
+        if (server == null) return;
+
+        ServerLevel overworld = server.overworld();
+        Map<String, List<ChunkRect>> copy = new HashMap<>(overworld.getData(CraftorioDataAttachments.BORDER_AREA_INDEX));
+        List<ChunkRect> rects = borderRects(borders);
+        if (rects.isEmpty()) {
+            if (copy.remove(uuid) == null) return;
+        } else {
+            if (rects.equals(copy.get(uuid))) return;
+            copy.put(uuid, rects);
+        }
+        overworld.setData(CraftorioDataAttachments.BORDER_AREA_INDEX, copy);
+    }
+
+    public static void forgetBorders(MinecraftServer server, String uuid) {
+        recordBorders(server, uuid, List.of());
+    }
+
+    private static boolean ownedByOther(Map<String, Map<String, Set<Long>>> index, String uuid, String dimension, long packed) {
+        for (Map.Entry<String, Map<String, Set<Long>>> owner : index.entrySet()) {
+            if (owner.getKey().equals(uuid)) continue;
+            Set<Long> chunks = owner.getValue().get(dimension);
+            if (chunks != null && chunks.contains(packed)) return true;
+        }
+        return false;
+    }
+
+    private static ServerLevel levelFor(MinecraftServer server, String dimension) {
+        ResourceLocation id = ResourceLocation.tryParse(dimension);
+        return id == null ? null : server.getLevel(ResourceKey.create(Registries.DIMENSION, id));
+    }
+
+    private static void removeFrom(Map<String, Map<String, Set<Long>>> index, String uuid, String dimension, long packed) {
+        Map<String, Set<Long>> byDimension = index.get(uuid);
+        if (byDimension == null) return;
+        Set<Long> chunks = byDimension.get(dimension);
+        if (chunks == null) return;
+        chunks.remove(packed);
+        if (chunks.isEmpty()) byDimension.remove(dimension);
+        if (byDimension.isEmpty()) index.remove(uuid);
     }
 
     public static void forgetChunks(MinecraftServer server, List<ChunkRect> rects, String uuid) {
@@ -79,15 +178,51 @@ public final class CraftorioWipeAreas {
     }
 
     public static List<ChunkRect> forPlayer(MinecraftServer server, ServerPlayer player) {
+        String uuid = player.getStringUUID();
         if (CraftorioMisc.chunkBased(server.overworld())) {
-            return ownedChunkRects(server, player.getStringUUID());
+            return ownedChunkRects(server, uuid);
         }
-        return borderRects(player.getData(CraftorioDataAttachments.PLAYER_BORDERS));
+
+        List<ChunkRect> rects = borderRects(player.getData(CraftorioDataAttachments.PLAYER_BORDERS));
+        for (Map.Entry<String, List<ChunkRect>> other : server.overworld().getData(CraftorioDataAttachments.BORDER_AREA_INDEX).entrySet()) {
+            if (other.getKey().equals(uuid)) continue;
+            for (ChunkRect protectedRect : other.getValue()) {
+                rects = subtract(rects, protectedRect);
+            }
+        }
+        return rects;
+    }
+
+    private static List<ChunkRect> subtract(List<ChunkRect> rects, ChunkRect cut) {
+        List<ChunkRect> result = new ArrayList<>();
+        for (ChunkRect rect : rects) {
+            if (!rect.dimension().equals(cut.dimension()) || cut.minX() > rect.maxX() || cut.maxX() < rect.minX()
+                    || cut.minZ() > rect.maxZ() || cut.maxZ() < rect.minZ()) {
+                result.add(rect);
+                continue;
+            }
+            if (cut.minZ() > rect.minZ()) {
+                result.add(new ChunkRect(rect.dimension(), rect.minX(), rect.minZ(), rect.maxX(), cut.minZ() - 1));
+            }
+            if (cut.maxZ() < rect.maxZ()) {
+                result.add(new ChunkRect(rect.dimension(), rect.minX(), cut.maxZ() + 1, rect.maxX(), rect.maxZ()));
+            }
+            int middleMinZ = Math.max(rect.minZ(), cut.minZ());
+            int middleMaxZ = Math.min(rect.maxZ(), cut.maxZ());
+            if (cut.minX() > rect.minX()) {
+                result.add(new ChunkRect(rect.dimension(), rect.minX(), middleMinZ, cut.minX() - 1, middleMaxZ));
+            }
+            if (cut.maxX() < rect.maxX()) {
+                result.add(new ChunkRect(rect.dimension(), cut.maxX() + 1, middleMinZ, rect.maxX(), middleMaxZ));
+            }
+        }
+        return result;
     }
 
     private static List<ChunkRect> ownedChunkRects(MinecraftServer server, String uuid) {
         List<ChunkRect> rects = new ArrayList<>();
-        Map<String, Set<Long>> byDimension = server.overworld().getData(CraftorioDataAttachments.OWNED_CHUNK_INDEX).get(uuid);
+        Map<String, Map<String, Set<Long>>> index = server.overworld().getData(CraftorioDataAttachments.OWNED_CHUNK_INDEX);
+        Map<String, Set<Long>> byDimension = index.get(uuid);
         if (byDimension == null) return rects;
 
         for (Map.Entry<String, Set<Long>> entry : byDimension.entrySet()) {
@@ -95,10 +230,12 @@ public final class CraftorioWipeAreas {
 
             Map<Integer, List<Integer>> rows = new HashMap<>();
             for (long packed : entry.getValue()) {
+                if (ownedByOther(index, uuid, entry.getKey(), packed)) continue;
                 rows.computeIfAbsent(ChunkPos.getZ(packed), key -> new ArrayList<>()).add(ChunkPos.getX(packed));
             }
             for (Map.Entry<Integer, List<Integer>> row : rows.entrySet()) {
                 List<Integer> xs = row.getValue();
+                if (xs.isEmpty()) continue;
                 xs.sort(Integer::compare);
                 int start = xs.get(0);
                 int previous = start;

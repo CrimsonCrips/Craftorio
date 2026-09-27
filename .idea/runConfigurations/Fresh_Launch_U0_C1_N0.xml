@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Fresh Launch (Universal Off, Chunk On, No Borders Off)" type="CompoundRunConfigurationType">
+    <toRun name="Launch Part: Client" type="GradleRunConfiguration" />
+    <toRun name="Launch Part: Client 2" type="GradleRunConfiguration" />
+    <toRun name="Launch Part: Fresh Server (Universal Off, Chunk On, No Borders Off)" type="GradleRunConfiguration" />
+    <method v="2" />
+  </configuration>
+</component>

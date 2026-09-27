@@ -23,6 +23,9 @@ import org.crimsoncrips.craftorio.client.config.CraftorioClientConfig;
 import org.crimsoncrips.craftorio.client.input.CraftorioKeyMappings;
 import org.crimsoncrips.craftorio.client.render.CraftorioRebirthHealthEffect;
 import org.crimsoncrips.craftorio.client.render.CraftorioScreenFade;
+import org.crimsoncrips.craftorio.server.config.CraftorioDevServerOptions;
+import org.crimsoncrips.craftorio.client.render.CraftorioHavenTransition;
+import org.crimsoncrips.craftorio.client.render.CraftorioPlayerDissolve;
 import org.crimsoncrips.craftorio.client.render.CraftorioShaders;
 import org.crimsoncrips.craftorio.client.screen.CraftorioScreenScroll;
 import org.crimsoncrips.craftorio.client.render.CraftorioShatterEffect;
@@ -80,6 +83,9 @@ public class Craftorio {
     }
 
     public Craftorio(IEventBus modEventBus, ModContainer modContainer) {
+        if (FMLEnvironment.dist.isDedicatedServer()) {
+            CraftorioDevServerOptions.deleteWorldIfRequested();
+        }
         modEventBus.addListener(CraftorioPointsAdvancements::registerTrigger);
 
         // Register the commonSetup method for modloading
@@ -117,7 +123,15 @@ public class Craftorio {
             modEventBus.addListener(CraftorioScreenFade::registerLayer);
             NeoForge.EVENT_BUS.addListener(CraftorioScreenFade::renderOverScreen);
             NeoForge.EVENT_BUS.addListener(CraftorioScreenFade::onLoggingOut);
-            modEventBus.addListener(CraftorioSchematicRenderer::registerLayer);
+            modEventBus.addListener(CraftorioHavenTransition::registerLayer);
+            NeoForge.EVENT_BUS.addListener(CraftorioHavenTransition::hideLoadingScreen);
+            NeoForge.EVENT_BUS.addListener(CraftorioHavenTransition::renderOverScreen);
+            NeoForge.EVENT_BUS.addListener(CraftorioHavenTransition::onLoggingOut);
+            NeoForge.EVENT_BUS.addListener(CraftorioPlayerDissolve::onRenderPlayer);
+            NeoForge.EVENT_BUS.addListener(CraftorioPlayerDissolve::onClientTick);
+            NeoForge.EVENT_BUS.addListener(CraftorioPlayerDissolve::onEntityLeave);
+            NeoForge.EVENT_BUS.addListener(CraftorioPlayerDissolve::onClone);
+            NeoForge.EVENT_BUS.addListener(CraftorioPlayerDissolve::onLoggingOut);
             NeoForge.EVENT_BUS.addListener(CraftorioSchematicRenderer::onRenderLevel);
             NeoForge.EVENT_BUS.addListener(ClientSchematics::onLoggingOut);
             NeoForge.EVENT_BUS.addListener(CraftorioChronosphere::onRenderLevel);

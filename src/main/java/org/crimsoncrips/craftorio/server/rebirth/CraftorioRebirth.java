@@ -132,6 +132,12 @@ public class CraftorioRebirth {
         applyRebirth(player, 1, BigInteger.ZERO);
     }
 
+    public static final float SACRIFICE_REVEAL_FIRST_STAGE = 0.1f;
+
+    public static boolean reachedSacrificeRevealStage(int life) {
+        return life >= SACRIFICE_REVEAL_FIRST_STAGE * Craftorio.SERVER_CONFIG.SACRIFICE_REQUIRED_LIFE.getAsInt();
+    }
+
     private static void applyRebirth(ServerPlayer player, int livesGained, BigInteger earned) {
         if (CraftorioMisc.universalBased(player.level()) && player.getServer() != null) {
             for (ServerPlayer online : player.getServer().getPlayerList().getPlayers()) {
@@ -154,10 +160,17 @@ public class CraftorioRebirth {
         clearContractsCompleted(player);
         clearHighestPoints(player);
 
-        CraftorioMisc.setLife(CraftorioMisc.getLife(player) + livesGained, player);
+        int previousLife = CraftorioMisc.getLife(player);
+        CraftorioMisc.setLife(previousLife + livesGained, player);
         CraftorioMisc.setLifePoints(CraftorioMisc.getLifePoints(player).add(earned), player);
 
-        player.sendSystemMessage(Component.translatable("misc.craftorio.rebirth_notice").withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC));
+        if (!reachedSacrificeRevealStage(previousLife) && reachedSacrificeRevealStage(CraftorioMisc.getLife(player))) {
+            Component notice = Component.translatable("misc.craftorio.rebirth_notice").withStyle(ChatFormatting.DARK_PURPLE, ChatFormatting.ITALIC);
+            List<ServerPlayer> recipients = CraftorioMisc.universalBased(player.level()) ? player.getServer().getPlayerList().getPlayers() : List.of(player);
+            for (ServerPlayer recipient : recipients) {
+                recipient.sendSystemMessage(notice);
+            }
+        }
 
         ServerEvents.syncUniversalState(player);
 

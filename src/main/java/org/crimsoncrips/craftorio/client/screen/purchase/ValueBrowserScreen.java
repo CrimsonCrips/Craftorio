@@ -28,8 +28,8 @@ import java.util.stream.Stream;
 public class ValueBrowserScreen extends CatalogScreen<Item> {
 
 
-    private static List<Item> baseCatalog;
-    private static Map<Item, BigInteger> valueCache;
+    private List<Item> baseCatalog;
+    private Map<Item, BigInteger> valueCache;
 
     private final boolean allUnlocked;
     private final Set<ResourceLocation> unlockedItems;
@@ -42,8 +42,8 @@ public class ValueBrowserScreen extends CatalogScreen<Item> {
         this.unlockedItems = unlockedItems;
     }
 
-    private static void ensureCatalogBuilt(Player player) {
-        if (baseCatalog != null) return;
+    private void ensureCatalogBuilt(Player player) {
+        if (this.baseCatalog != null) return;
 
         List<Item> items = new ArrayList<>();
         Map<Item, BigInteger> values = new HashMap<>();
@@ -53,8 +53,8 @@ public class ValueBrowserScreen extends CatalogScreen<Item> {
             values.put(item, CraftorioMisc.checkValue(new ItemStack(item), player, false));
         }
 
-        baseCatalog = items;
-        valueCache = values;
+        this.baseCatalog = items;
+        this.valueCache = values;
     }
 
     @Override

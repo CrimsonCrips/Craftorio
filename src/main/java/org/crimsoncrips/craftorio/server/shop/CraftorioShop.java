@@ -49,11 +49,7 @@ public class CraftorioShop {
     public static void purchase(ServerPlayer player, ItemStack template, int quantity) {
         if (quantity <= 0) return;
 
-        CraftorioShopMode mode = Craftorio.SERVER_CONFIG.SHOP_MODE.get();
-        if (mode == CraftorioShopMode.DISABLED) {
-            player.sendSystemMessage(Component.translatable("misc.craftorio.shop_disabled").withStyle(ChatFormatting.RED));
-            return;
-        }
+        if (!isEnabled()) return;
 
         BigInteger unitPrice = getUnitPrice(player, template, true);
         if (unitPrice.signum() <= 0) {

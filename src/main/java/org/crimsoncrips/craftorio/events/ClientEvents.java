@@ -37,7 +37,6 @@ import net.neoforged.neoforge.client.event.*;
 import net.neoforged.neoforge.client.event.RegisterDimensionSpecialEffectsEvent;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
-import net.neoforged.neoforge.common.ModConfigSpec;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.client.hud.CraftorioToastManager;
@@ -49,6 +48,8 @@ import org.crimsoncrips.craftorio.client.hud.PointsRateTracker;
 import org.crimsoncrips.craftorio.client.render.CraftorioHavenSkyEffects;
 import org.crimsoncrips.craftorio.client.render.CraftorioRebirthHealthEffect;
 import org.crimsoncrips.craftorio.client.render.CraftorioScreenFade;
+import org.crimsoncrips.craftorio.server.config.CraftorioWorldCreationOverrides;
+import org.crimsoncrips.craftorio.client.screen.consent.ClientConsentState;
 import org.crimsoncrips.craftorio.client.screen.config.CraftorioConfigScreen;
 import org.crimsoncrips.craftorio.client.screen.config.CraftorioWorldCreationScreen;
 import org.crimsoncrips.craftorio.client.screen.widget.SheetIconButton;
@@ -95,6 +96,7 @@ public class ClientEvents {
 
 	@SubscribeEvent
 	public void loggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
+		ClientConsentState.clear();
 		ClientContractCreatorDraftState.clear();
 		ClientLoanState.clear();
 	}
@@ -750,10 +752,6 @@ public class ClientEvents {
 		worldCreationButton.setY(32);
 	}
 
-	private static boolean serverConfigOrDefault(ModConfigSpec.BooleanValue value) {
-		return Craftorio.SERVER_CONFIG_SPEC.isLoaded() ? value.getAsBoolean() : value.getDefault();
-	}
-
 	public static void addCraftorioWorldCreationButton(ScreenEvent.Init.Post event) {
 		if (!(event.getScreen() instanceof CreateWorldScreen createWorldScreen)) return;
 
@@ -762,9 +760,9 @@ public class ClientEvents {
 
 		worldCreationButton = Button.builder(Component.empty(), b -> Minecraft.getInstance().setScreen(new CraftorioWorldCreationScreen(
 						createWorldScreen,
-						serverConfigOrDefault(Craftorio.SERVER_CONFIG.UNIVERSAL_PROGRESSION),
-						serverConfigOrDefault(Craftorio.SERVER_CONFIG.CHUNK_BASED_EXPANSION),
-						serverConfigOrDefault(Craftorio.SERVER_CONFIG.NO_BORDERS))))
+						CraftorioWorldCreationOverrides.DEFAULTS.universalProgression(),
+						CraftorioWorldCreationOverrides.DEFAULTS.chunkBasedExpansion(),
+						CraftorioWorldCreationOverrides.DEFAULTS.noBorders())))
 				.bounds(x, y, WORLD_CREATION_BUTTON_SIZE, WORLD_CREATION_BUTTON_SIZE)
 				.tooltip(Tooltip.create(Component.translatable("misc.craftorio.world_creation_settings_title")))
 				.build(builder -> new SheetIconButton(builder, WORLD_SETTINGS_ICON_U, WORLD_SETTINGS_ICON_V));

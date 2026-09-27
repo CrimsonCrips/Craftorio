@@ -14,6 +14,7 @@ import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.attachment.AttachmentType;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import net.neoforged.neoforge.registries.NeoForgeRegistries;
+import org.crimsoncrips.craftorio.server.sacrifice.ChunkRect;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
@@ -169,6 +170,11 @@ public class CraftorioDataAttachments {
             "contract_refresh_time", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().build()
     );
 
+    public static final Supplier<AttachmentType<Set<String>>> REWARDED_ADVANCEMENTS = ATTACHMENT_TYPES.register(
+            "rewarded_advancements", () -> AttachmentType.<Set<String>>builder(() -> new HashSet<>())
+                    .serialize(Codec.STRING.listOf().xmap(list -> (Set<String>) new HashSet<>(list), set -> new ArrayList<>(set))).build()
+    );
+
     public static final Supplier<AttachmentType<Boolean>> UNIVERSAL_PROGRESS_STARTED = ATTACHMENT_TYPES.register(
             "universal_progress_started", () -> AttachmentType.builder(() -> false).serialize(Codec.BOOL).build()
     );
@@ -292,6 +298,10 @@ public class CraftorioDataAttachments {
             "loan_sacrificed", () -> AttachmentType.builder(() -> false).serialize(Codec.BOOL).copyOnDeath().sync(ByteBufCodecs.BOOL).build()
     );
 
+    public static final Supplier<AttachmentType<Boolean>> SACRIFICE_INTRO_SEEN = ATTACHMENT_TYPES.register(
+            "sacrifice_intro_seen", () -> AttachmentType.builder(() -> false).serialize(Codec.BOOL).copyOnDeath().sync(ByteBufCodecs.BOOL).build()
+    );
+
     public static final Supplier<AttachmentType<Boolean>> SACRIFICE_TREE_PENDING = ATTACHMENT_TYPES.register(
             "sacrifice_tree_pending", () -> AttachmentType.builder(() -> false).serialize(Codec.BOOL).copyOnDeath().build()
     );
@@ -307,6 +317,21 @@ public class CraftorioDataAttachments {
     public static final Supplier<AttachmentType<Map<String, Map<String, Set<Long>>>>> OWNED_CHUNK_INDEX = ATTACHMENT_TYPES.register(
             "owned_chunk_index", () -> AttachmentType.<Map<String, Map<String, Set<Long>>>>builder((holder) -> new HashMap<>())
                     .serialize(OWNED_CHUNK_INDEX_CODEC)
+                    .build());
+
+    public static final Supplier<AttachmentType<Map<String, Map<String, Set<Long>>>>> REVOKED_CLAIMS = ATTACHMENT_TYPES.register(
+            "revoked_claims", () -> AttachmentType.<Map<String, Map<String, Set<Long>>>>builder((holder) -> new HashMap<>())
+                    .serialize(OWNED_CHUNK_INDEX_CODEC)
+                    .build());
+
+    public static final Supplier<AttachmentType<Map<String, GlobalPos>>> SPAWN_ORIGIN_INDEX = ATTACHMENT_TYPES.register(
+            "spawn_origin_index", () -> AttachmentType.<Map<String, GlobalPos>>builder((holder) -> new HashMap<>())
+                    .serialize(Codec.unboundedMap(Codec.STRING, GlobalPos.CODEC))
+                    .build());
+
+    public static final Supplier<AttachmentType<Map<String, List<ChunkRect>>>> BORDER_AREA_INDEX = ATTACHMENT_TYPES.register(
+            "border_area_index", () -> AttachmentType.<Map<String, List<ChunkRect>>>builder((holder) -> new HashMap<>())
+                    .serialize(Codec.unboundedMap(Codec.STRING, ChunkRect.CODEC.listOf()))
                     .build());
 
     public static final Supplier<AttachmentType<List<WipeLogEntry>>> SACRIFICE_WIPE_LOG = ATTACHMENT_TYPES.register(

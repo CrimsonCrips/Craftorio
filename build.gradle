@@ -196,3 +196,12 @@ idea {
         downloadJavadoc = true
     }
 }
+
+tasks.named('runServer').configure {
+    ['deleteWorld', 'universal', 'chunkBased', 'noBorders'].each { option ->
+        def value = project.findProperty(option)
+        if (value != null) {
+            systemProperty "craftorio.dev.${option}", value.toString()
+        }
+    }
+}

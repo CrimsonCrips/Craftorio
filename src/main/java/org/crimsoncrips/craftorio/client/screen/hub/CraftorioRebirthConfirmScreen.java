@@ -12,6 +12,9 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
+import org.crimsoncrips.craftorio.client.screen.consent.ClientConsentState;
+import org.crimsoncrips.craftorio.client.screen.consent.CraftorioConsentWaitScreen;
+import org.crimsoncrips.craftorio.networking.consent.ConsentKind;
 import org.crimsoncrips.craftorio.networking.skill_tree.RequestRebirthPacket;
 import org.crimsoncrips.craftorio.networking.skill_tree.SetAutoConsentPacket;
 import org.crimsoncrips.craftorio.server.data.CraftorioDataAttachments;
@@ -80,7 +83,7 @@ public class CraftorioRebirthConfirmScreen extends Screen implements ScrollableS
 
         this.confirmButton = Button.builder(Component.translatable("misc.craftorio.rebirth_confirm_button"), b -> {
             PacketDistributor.sendToServer(new RequestRebirthPacket(skipCount()));
-            this.minecraft.setScreen(null);
+            this.minecraft.setScreen(universal && ClientConsentState.othersOnline() ? new CraftorioConsentWaitScreen(ConsentKind.REBIRTH, true) : null);
         }).bounds(centerX - 90, y, 180, 20).build();
         this.addRenderableWidget(this.confirmButton);
 

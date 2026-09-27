@@ -40,7 +40,7 @@ public final class CreateSchematicCompat {
         if (data == null || data.converted() || !table.inventory.getStackInSlot(1).isEmpty()) return;
 
         MinecraftServer server = level.getServer();
-        if (server == null) return;
+        if (server == null || !CraftorioSchematics.isLinked(server, data)) return;
         Optional<CompoundTag> structure = CraftorioSchematics.tag(server, data.structure());
         if (structure.isEmpty()) return;
 

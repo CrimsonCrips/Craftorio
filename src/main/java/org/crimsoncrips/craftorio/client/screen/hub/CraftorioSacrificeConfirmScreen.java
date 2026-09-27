@@ -13,6 +13,9 @@ import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
+import org.crimsoncrips.craftorio.client.screen.consent.ClientConsentState;
+import org.crimsoncrips.craftorio.client.screen.consent.CraftorioConsentWaitScreen;
+import org.crimsoncrips.craftorio.networking.consent.ConsentKind;
 import org.crimsoncrips.craftorio.networking.sacrifice.SacrificeAnswerPacket;
 import org.crimsoncrips.craftorio.server.sacrifice.CraftorioSacrifice;
 
@@ -83,7 +86,11 @@ public class CraftorioSacrificeConfirmScreen extends Screen implements Scrollabl
 
     private void answer(boolean accept) {
         PacketDistributor.sendToServer(new SacrificeAnswerPacket(accept, this.universal ? this.seedText : "", this.difficulty));
-        this.onClose();
+        if (accept && this.universal && ClientConsentState.othersOnline()) {
+            this.minecraft.setScreen(new CraftorioConsentWaitScreen(ConsentKind.SACRIFICE, true));
+        } else {
+            this.onClose();
+        }
     }
 
     @Override

@@ -12,6 +12,9 @@ import net.neoforged.api.distmarker.OnlyIn;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
+import net.neoforged.neoforge.network.PacketDistributor;
+import org.crimsoncrips.craftorio.networking.schematic.RequestSchematicCopyPacket;
+import org.crimsoncrips.craftorio.registries.contract.ContractType;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContractItem;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContractItemReward;
@@ -22,7 +25,7 @@ import java.util.List;
 @OnlyIn(Dist.CLIENT)
 public class ContractDetailsScreen extends Screen implements ScrollableScreen {
 
-    private static final int TOP_MARGIN = 70;
+    private static final int TOP_MARGIN = 84;
     private static final int BOTTOM_MARGIN = 40;
     private static final int ROW_HEIGHT = 20;
     private static final int ROW_ICON_SIZE = 16;
@@ -53,8 +56,23 @@ public class ContractDetailsScreen extends Screen implements ScrollableScreen {
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.back"), b -> this.onClose())
                 .bounds(this.width / 2 - 50, this.height - 30, 100, 20).build());
 
-        this.remainingToggleButton = this.addRenderableWidget(Button.builder(remainingToggleLabel(), b -> toggleRemainingOnly())
-                .bounds(leftColX() - 65, 30, 130, 16).build());
+        if (showsBounty()) {
+            this.remainingToggleButton = this.addRenderableWidget(Button.builder(remainingToggleLabel(), b -> toggleRemainingOnly())
+                    .bounds(leftColX() - 65, 52, 130, 16).build());
+        } else if (this.parent instanceof OwnedContractsScreen && !this.contract.getProgress().submitted()) {
+            this.contract.getProgress().instance().ifPresent(instance ->
+                    this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.contract_schematic_copy_button"),
+                                    b -> PacketDistributor.sendToServer(new RequestSchematicCopyPacket(instance)))
+                            .bounds(this.width / 2 - 75, 50, 150, 16).build()));
+        }
+    }
+
+    public Screen parent() {
+        return this.parent;
+    }
+
+    private boolean showsBounty() {
+        return this.contract.getType() != ContractType.BUILDING;
     }
 
     private void toggleRemainingOnly() {
@@ -70,6 +88,7 @@ public class ContractDetailsScreen extends Screen implements ScrollableScreen {
     }
 
     private List<CraftorioContractItem> bountyRows() {
+        if (!showsBounty()) return List.of();
         List<CraftorioContractItem> bounty = this.contract.getItemBounty();
         if (!this.showRemainingOnly) return bounty;
         return bounty.stream().filter(item -> !item.isComplete()).toList();
@@ -88,18 +107,21 @@ public class ContractDetailsScreen extends Screen implements ScrollableScreen {
         super.render(graphics, mouseX, mouseY, partialTick);
 
         graphics.drawCenteredString(this.font, this.contract.getActualName(), this.width / 2, 16, 0xFFFFFF);
-        ContractGoalText.line(this.contract).ifPresent(line -> graphics.drawCenteredString(this.font, line, this.width / 2, 27, 0xFFD966));
+        graphics.drawCenteredString(this.font, ContractGoalText.typeLine(this.contract), this.width / 2, 27, ContractGoalText.TYPE_COLOR);
+        ContractGoalText.line(this.contract).ifPresent(line -> graphics.drawCenteredString(this.font, line, this.width / 2, 38, 0xFFD966));
 
         int leftColX = this.width / 4;
-        int rightColX = this.width * 3 / 4;
+        int rightColX = rightColX();
         int columnWidth = this.width / 2 - 20;
 
-        graphics.drawCenteredString(this.font, ContractGoalText.bountyHeader(this.contract), leftColX, TOP_MARGIN - 14, 0xFFFFFF);
+        if (showsBounty()) {
+            graphics.drawCenteredString(this.font, ContractGoalText.bountyHeader(this.contract), leftColX, TOP_MARGIN - 14, 0xFFFFFF);
+        }
         graphics.drawCenteredString(this.font, Component.translatable("misc.craftorio.contract_item_rewards"), rightColX, TOP_MARGIN - 14, 0xFFFFFF);
 
         int availableHeight = this.height - TOP_MARGIN - BOTTOM_MARGIN;
 
-        ItemStack hovered = renderBountyColumn(graphics, leftColX, columnWidth, availableHeight, mouseX, mouseY);
+        ItemStack hovered = showsBounty() ? renderBountyColumn(graphics, leftColX, columnWidth, availableHeight, mouseX, mouseY) : null;
         if (hovered == null) {
             hovered = renderRewardColumn(graphics, rightColX, columnWidth, availableHeight, mouseX, mouseY);
         }
@@ -114,7 +136,7 @@ public class ContractDetailsScreen extends Screen implements ScrollableScreen {
         if (super.mouseScrolled(mouseX, mouseY, scrollX, scrollY)) return true;
 
         int availableHeight = this.height - TOP_MARGIN - BOTTOM_MARGIN;
-        boolean leftSide = mouseX < this.width / 2.0;
+        boolean leftSide = showsBounty() && mouseX < this.width / 2.0;
 
         if (leftSide) {
             int maxScroll = maxScroll(bountyRows().size(), availableHeight);
@@ -132,7 +154,7 @@ public class ContractDetailsScreen extends Screen implements ScrollableScreen {
 
     private int leftColX() { return this.width / 4; }
 
-    private int rightColX() { return this.width * 3 / 4; }
+    private int rightColX() { return showsBounty() ? this.width * 3 / 4 : this.width / 2; }
 
     private int columnWidth() { return this.width / 2 - 20; }
 
@@ -278,6 +300,12 @@ public class ContractDetailsScreen extends Screen implements ScrollableScreen {
 
         ItemStack hovered = null;
         int y = top - this.rewardScroll;
+        boolean pointsFirst = !showsBounty();
+        if (pointsFirst) {
+            drawPointRewardRow(graphics, iconX, y, top, bottom);
+            y += ROW_HEIGHT;
+        }
+
         for (CraftorioContractItemReward reward : rewards) {
             if (y + ROW_HEIGHT >= top && y <= bottom) {
                 ItemStack stack = reward.getRewardingStack();
@@ -294,8 +322,8 @@ public class ContractDetailsScreen extends Screen implements ScrollableScreen {
             y += ROW_HEIGHT;
         }
 
-        if (y + ROW_HEIGHT >= top && y <= bottom) {
-            graphics.drawString(this.font, pointRewardLine(), iconX, y + (ROW_ICON_SIZE - this.font.lineHeight) / 2, 0xFFAA00, false);
+        if (!pointsFirst) {
+            drawPointRewardRow(graphics, iconX, y, top, bottom);
         }
 
         graphics.disableScissor();
@@ -310,6 +338,12 @@ public class ContractDetailsScreen extends Screen implements ScrollableScreen {
 
         graphics.fill(x, top, x + SCROLLBAR_WIDTH, bottom, 0x40FFFFFF);
         graphics.fill(x, thumb[0], x + SCROLLBAR_WIDTH, thumb[0] + thumb[1], 0xFFAAAAAA);
+    }
+
+    private void drawPointRewardRow(GuiGraphics graphics, int x, int y, int top, int bottom) {
+        if (y + ROW_HEIGHT >= top && y <= bottom) {
+            graphics.drawString(this.font, pointRewardLine(), x, y + (ROW_ICON_SIZE - this.font.lineHeight) / 2, 0xFFAA00, false);
+        }
     }
 
     private String pointRewardLine() {

@@ -117,6 +117,46 @@ public final class CraftorioSchematics {
         }
     }
 
+    public static void giveSchematicCopy(ServerPlayer player, UUID instance) {
+        Optional<CraftorioContract> found = findContract(player, instance);
+        if (found.isEmpty()) return;
+
+        CraftorioContract contract = found.get();
+        Optional<ResourceLocation> structureId = contract.getGoal().structure();
+        if (contract.getType() != ContractType.BUILDING || structureId.isEmpty() || contract.getProgress().submitted()) return;
+
+        if (hasSchematicFor(player, instance)) {
+            player.displayClientMessage(Component.translatable("misc.craftorio.schematic_copy_already_have").withStyle(ChatFormatting.YELLOW), true);
+            return;
+        }
+
+        ResourceLocation contractId = player.registryAccess().registryOrThrow(CraftorioContract.REGISTRY_KEY).entrySet().stream()
+                .filter(entry -> entry.getValue().getName().equals(contract.getName())
+                        && entry.getValue().getGoal().structure().equals(structureId))
+                .map(entry -> entry.getKey().location())
+                .findFirst()
+                .orElse(structureId.get());
+
+        ItemStack stack = new ItemStack(CraftorioItems.SCHEMATIC.get());
+        String owner = CraftorioMisc.universalBased(player.level()) ? "" : player.getGameProfile().getName();
+        stack.set(CraftorioDataComponents.SCHEMATIC.get(), new SchematicData(instance, contractId, structureId.get(),
+                owner, Rotation.NONE, Optional.empty(), false));
+        if (!player.getInventory().add(stack)) {
+            player.drop(stack, false);
+        }
+        player.displayClientMessage(Component.translatable("misc.craftorio.schematic_copy_given").withStyle(ChatFormatting.AQUA), true);
+    }
+
+    private static boolean hasSchematicFor(ServerPlayer player, UUID instance) {
+        for (ItemStack stack : player.getInventory().items) {
+            if (isSchematicFor(stack, instance)) return true;
+        }
+        for (ItemStack stack : player.getInventory().offhand) {
+            if (isSchematicFor(stack, instance)) return true;
+        }
+        return isSchematicFor(player.containerMenu.getCarried(), instance);
+    }
+
     public static Optional<CraftorioContract> findContract(Player player, UUID instance) {
         for (CraftorioContract contract : CraftorioMisc.getCraftorioContracts(player)) {
             if (contract.getProgress().instance().filter(instance::equals).isPresent()) {
@@ -124,6 +164,17 @@ public final class CraftorioSchematics {
             }
         }
         return Optional.empty();
+    }
+
+    public static boolean isLinked(Player player, SchematicData data) {
+        return findContract(player, data.instance()).isPresent();
+    }
+
+    public static boolean isLinked(MinecraftServer server, SchematicData data) {
+        for (ServerPlayer online : server.getPlayerList().getPlayers()) {
+            if (isLinked(online, data)) return true;
+        }
+        return false;
     }
 
     public static void place(ServerPlayer player, ItemStack stack, SchematicData data, Optional<GlobalPos> origin, Rotation rotation) {

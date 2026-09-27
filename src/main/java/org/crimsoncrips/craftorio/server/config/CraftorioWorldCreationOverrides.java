@@ -4,6 +4,8 @@ public class CraftorioWorldCreationOverrides {
 
     public record Pending(boolean universalProgression, boolean chunkBasedExpansion, boolean noBorders) {}
 
+    public static final Pending DEFAULTS = new Pending(true, false, false);
+
     private static Pending pending;
 
     private CraftorioWorldCreationOverrides() {}

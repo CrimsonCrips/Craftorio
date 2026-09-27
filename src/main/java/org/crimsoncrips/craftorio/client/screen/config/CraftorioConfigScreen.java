@@ -51,7 +51,20 @@ public class CraftorioConfigScreen extends Screen implements ScrollableScreen {
     private static final int CONTROL_HEIGHT = 18;
 
     private final Screen parent;
-    private final CraftorioServerDefaultsFile serverDefaults = new CraftorioServerDefaultsFile();
+    private enum ServerMode {
+        FILE("misc.craftorio.config_server_note_file"),
+        READ_ONLY("misc.craftorio.config_server_note_remote");
+
+        private final String noteKey;
+
+        ServerMode(String noteKey) {
+            this.noteKey = noteKey;
+        }
+    }
+
+    private final CraftorioServerConfigFile serverFile = new CraftorioServerConfigFile();
+    private final ServerMode serverMode;
+    private boolean serverChanged = false;
     private boolean editingServer;
     private Tab tab = Tab.CLIENT;
     private ConfigList list;
@@ -59,6 +72,9 @@ public class CraftorioConfigScreen extends Screen implements ScrollableScreen {
     public CraftorioConfigScreen(Screen parent) {
         super(Component.translatable("misc.craftorio.config_title"));
         this.parent = parent;
+        Minecraft minecraft = Minecraft.getInstance();
+        boolean remote = minecraft.getConnection() != null && !minecraft.hasSingleplayerServer();
+        this.serverMode = remote ? ServerMode.READ_ONLY : ServerMode.FILE;
     }
 
     @Override
@@ -103,17 +119,14 @@ public class CraftorioConfigScreen extends Screen implements ScrollableScreen {
     }
 
     private void populateServer(CraftorioServerConfig config) {
-        this.list.addHeader("misc.craftorio.config_server_defaults_note");
+        this.list.addHeader(this.serverMode.noteKey);
         this.list.addHeader("misc.craftorio.config_group_general");
-        addServerRow("UNIVERSAL_PROGRESSION", booleanButton(config.UNIVERSAL_PROGRESSION));
         addServerRow("STARTING_POINTS", stringBox("STARTING_POINTS", config.STARTING_POINTS));
-        addServerRow("INSTANT_DEATH_OUTSIDE_CLAIM", booleanButton(config.INSTANT_DEATH_OUTSIDE_CLAIM));
         addServerRow("MIN_SPAWN_DISTANCE", doubleBox("MIN_SPAWN_DISTANCE", config.MIN_SPAWN_DISTANCE));
         addServerRow("MAX_SPAWN_DISTANCE", doubleBox("MAX_SPAWN_DISTANCE", config.MAX_SPAWN_DISTANCE));
         addServerRow("MULT_PER_CONTRACT_DONE", doubleBox("MULT_PER_CONTRACT_DONE", config.MULT_PER_CONTRACT_DONE));
 
         this.list.addHeader("misc.craftorio.config_group_expansion");
-        addServerRow("CHUNK_BASED_EXPANSION", booleanButton(config.CHUNK_BASED_EXPANSION));
         addServerRow("STARTING_LAND_SIZE", intBox("STARTING_LAND_SIZE", config.STARTING_LAND_SIZE));
         addServerRow("COST_MULTIPLIER", doubleBox("COST_MULTIPLIER", config.COST_MULTIPLIER));
         addServerRow("BASE_COST", intBox("BASE_COST", config.BASE_COST));
@@ -122,7 +135,6 @@ public class CraftorioConfigScreen extends Screen implements ScrollableScreen {
         addServerRow("EXPANSION_AMOUNT", intBox("EXPANSION_AMOUNT", config.EXPANSION_AMOUNT));
 
         this.list.addHeader("misc.craftorio.config_group_chunk_based");
-        addServerRow("NO_BORDERS", booleanButton(config.NO_BORDERS));
         addServerRow("CHUNK_OUT_OF_BOUNDS_DAMAGE", doubleBox("CHUNK_OUT_OF_BOUNDS_DAMAGE", config.CHUNK_OUT_OF_BOUNDS_DAMAGE));
 
         this.list.addHeader("misc.craftorio.config_group_random_effects");
@@ -137,6 +149,7 @@ public class CraftorioConfigScreen extends Screen implements ScrollableScreen {
         addServerRow("MAX_OFFERED_CONTRACTS", intBox("MAX_OFFERED_CONTRACTS", config.MAX_OFFERED_CONTRACTS));
         addServerRow("CONTRACT_REFRESH_SECONDS", intBox("CONTRACT_REFRESH_SECONDS", config.CONTRACT_REFRESH_SECONDS));
         addServerRow("CONTRACT_REFRESH_COST_PERCENT", doubleBox("CONTRACT_REFRESH_COST_PERCENT", config.CONTRACT_REFRESH_COST_PERCENT));
+        addServerRow("CONTRACT_REFRESH_MIN_COST", stringBox("CONTRACT_REFRESH_MIN_COST", config.CONTRACT_REFRESH_MIN_COST));
 
         this.list.addHeader("misc.craftorio.config_group_sink_value");
         addServerRow("SINK_VALUE_BONUS_AMOUNT", intBox("SINK_VALUE_BONUS_AMOUNT", config.SINK_VALUE_BONUS_AMOUNT));
@@ -166,19 +179,27 @@ public class CraftorioConfigScreen extends Screen implements ScrollableScreen {
     }
 
     private void addServerRow(String name, AbstractWidget control) {
+        if (this.serverMode == ServerMode.READ_ONLY) {
+            control.active = false;
+            if (control instanceof EditBox box) {
+                box.setEditable(false);
+            }
+        }
         this.list.addRow(Component.literal(name), control);
     }
 
     private <T> T read(ModConfigSpec.ConfigValue<T> value, boolean server) {
-        return server ? this.serverDefaults.get(value) : value.get();
+        return server && this.serverMode == ServerMode.FILE ? this.serverFile.get(value) : value.get();
     }
 
     private <T> void write(ModConfigSpec.ConfigValue<T> value, T newValue, boolean server) {
-        if (server) {
-            this.serverDefaults.set(value, newValue);
-        } else {
+        if (!server) {
             value.set(newValue);
+            return;
         }
+        if (this.serverMode == ServerMode.READ_ONLY) return;
+        this.serverFile.set(value, newValue);
+        this.serverChanged = true;
     }
 
     private Button booleanButton(ModConfigSpec.BooleanValue value) {
@@ -260,7 +281,9 @@ public class CraftorioConfigScreen extends Screen implements ScrollableScreen {
     @Override
     public void onClose() {
         Craftorio.CLIENT_CONFIG_SPEC.save();
-        this.serverDefaults.save();
+        if (this.serverChanged) {
+            this.serverFile.save();
+        }
         this.minecraft.setScreen(this.parent);
     }
 

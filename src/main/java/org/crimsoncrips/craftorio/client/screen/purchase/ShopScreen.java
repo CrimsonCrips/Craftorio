@@ -1,5 +1,6 @@
 package org.crimsoncrips.craftorio.client.screen.purchase;
 
+import org.crimsoncrips.craftorio.server.shop.ShopTooltipOverride;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.AbstractWidget;
@@ -36,8 +37,8 @@ public class ShopScreen extends CatalogScreen<CatalogEntry> {
 
     private static final ResourceLocation LOCKED_TEXTURE = Craftorio.getGuiTexture("locked.png");
 
-    private static List<CatalogEntry> catalog;
     private static boolean unlockedOnly;
+    private List<CatalogEntry> catalog;
 
     private final boolean allUnlocked;
     private final Set<ResourceLocation> unlockedItems;
@@ -59,14 +60,14 @@ public class ShopScreen extends CatalogScreen<CatalogEntry> {
 
     @Override
     protected List<CatalogEntry> buildCatalog() {
-        if (catalog == null) {
+        if (this.catalog == null) {
             Player player = this.minecraft.player;
             List<CatalogEntry> entries = new ArrayList<>(CraftorioShopCatalog.buildFullCatalog(player.registryAccess()));
             entries.removeIf(entry -> CraftorioShop.getUnitPrice(player, entry.stack(), true).signum() <= 0);
             entries.sort(Comparator.comparing(entry -> entry.key().toString()));
-            catalog = entries;
+            this.catalog = entries;
         }
-        return catalog;
+        return this.catalog;
     }
 
     @Override
@@ -127,6 +128,7 @@ public class ShopScreen extends CatalogScreen<CatalogEntry> {
         private final BigInteger unmodifiedPrice;
         private final double shopMultiplier;
         private final boolean needsLiveTooltip;
+        private static final int COST_COLOR = 16759552;
 
         ShopItemButton(int x, int y, CatalogEntry entry) {
             super(x, y, SLOT_SIZE, SLOT_SIZE, CommonComponents.EMPTY);
@@ -150,16 +152,25 @@ public class ShopScreen extends CatalogScreen<CatalogEntry> {
         }
 
         private MutableComponent buildTooltipComponent() {
-            MutableComponent tooltipComponent = Component.empty();
-            for (Component line : Screen.getTooltipFromItem(ShopScreen.this.minecraft, this.entry.stack())) {
-                tooltipComponent.append(line).append("\n");
+            MutableComponent costLine = Component.translatable("misc.craftorio.shop_cost_label").withColor(COST_COLOR)
+                    .append(CraftorioMisc.CraftorioTextEffects.capAwareLine(
+                            this.price, " (", this.unmodifiedPrice, " * " + this.shopMultiplier + "x)").withColor(COST_COLOR));
+            if (this.locked) {
+                costLine.append(Component.translatable("misc.craftorio.locked_suffix"));
             }
 
-            tooltipComponent.append(CraftorioMisc.CraftorioTextEffects.capAwareLine(
-                    "", this.price, " (", this.unmodifiedPrice, " * " + this.shopMultiplier + ")"
-            ));
-            if (this.locked) {
-                tooltipComponent.append(Component.translatable("misc.craftorio.locked_suffix"));
+            List<Component> lines;
+            ShopTooltipOverride.set(costLine);
+            try {
+                lines = Screen.getTooltipFromItem(ShopScreen.this.minecraft, this.entry.stack());
+            } finally {
+                ShopTooltipOverride.clear();
+            }
+
+            MutableComponent tooltipComponent = Component.empty();
+            for (int i = 0; i < lines.size(); i++) {
+                if (i > 0) tooltipComponent.append("\n");
+                tooltipComponent.append(lines.get(i));
             }
             return tooltipComponent;
         }

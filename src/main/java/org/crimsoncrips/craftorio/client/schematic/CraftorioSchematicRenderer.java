@@ -1,5 +1,6 @@
 package org.crimsoncrips.craftorio.client.schematic;
 
+import org.crimsoncrips.craftorio.server.schematic.CraftorioSchematics;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.ByteBufferBuilder;
@@ -9,9 +10,7 @@ import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexBuffer;
 import com.mojang.blaze3d.vertex.VertexConsumer;
 import com.mojang.blaze3d.vertex.VertexFormat;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.LevelRenderer;
@@ -22,10 +21,8 @@ import net.minecraft.client.renderer.block.BlockRenderDispatcher;
 import net.minecraft.client.renderer.debug.DebugRenderer;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.Rotation;
 import net.minecraft.world.level.block.state.BlockState;
@@ -35,11 +32,8 @@ import net.minecraft.world.phys.HitResult;
 import net.minecraft.world.phys.Vec3;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.client.event.RegisterGuiLayersEvent;
 import net.neoforged.neoforge.client.event.RenderLevelStageEvent;
-import net.neoforged.neoforge.client.gui.VanillaGuiLayers;
 import net.neoforged.neoforge.client.model.data.ModelData;
-import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.item.schematic.SchematicData;
 import org.crimsoncrips.craftorio.registries.CraftorioDataComponents;
 import org.crimsoncrips.craftorio.server.schematic.SchematicStructure;
@@ -145,7 +139,7 @@ public final class CraftorioSchematicRenderer {
     private static SchematicData heldData(LocalPlayer player) {
         for (InteractionHand hand : InteractionHand.values()) {
             SchematicData data = player.getItemInHand(hand).get(CraftorioDataComponents.SCHEMATIC.get());
-            if (data != null) return data;
+            if (data != null && CraftorioSchematics.isLinked(player, data)) return data;
         }
         return null;
     }
@@ -182,6 +176,7 @@ public final class CraftorioSchematicRenderer {
         for (InteractionHand hand : InteractionHand.values()) {
             SchematicData data = player.getItemInHand(hand).get(CraftorioDataComponents.SCHEMATIC.get());
             if (data == null || data.origin().isEmpty() || !data.origin().get().dimension().equals(level.dimension())) continue;
+            if (!CraftorioSchematics.isLinked(player, data)) continue;
             keys.add(new Key(data.structure(), data.origin().get().pos(), data.rotation()));
         }
         return new ArrayList<>(keys);
@@ -358,45 +353,5 @@ public final class CraftorioSchematicRenderer {
         bufferSource.endBatch(RenderType.lines());
 
         poseStack.popPose();
-    }
-
-    public static void registerLayer(RegisterGuiLayersEvent event) {
-        event.registerAbove(VanillaGuiLayers.HOTBAR, Craftorio.prefix("schematic_progress"), (graphics, deltaTracker) -> renderHud(graphics));
-    }
-
-    private static void renderHud(GuiGraphics graphics) {
-        Minecraft minecraft = Minecraft.getInstance();
-        LocalPlayer player = minecraft.player;
-        if (player == null || minecraft.options.hideGui) return;
-
-        SchematicData data = null;
-        for (InteractionHand hand : InteractionHand.values()) {
-            ItemStack stack = player.getItemInHand(hand);
-            data = stack.get(CraftorioDataComponents.SCHEMATIC.get());
-            if (data != null) break;
-        }
-        if (data == null) return;
-
-        Component line;
-        if (data.origin().isEmpty()) {
-            line = Component.translatable("misc.craftorio.schematic_help_place").withStyle(ChatFormatting.YELLOW);
-        } else {
-            Ghost ghost = GHOSTS.get(new Key(data.structure(), data.origin().get().pos(), data.rotation()));
-            if (ghost == null) {
-                line = Component.translatable("misc.craftorio.schematic_loading").withStyle(ChatFormatting.GRAY);
-            } else {
-                line = Component.translatable("misc.craftorio.schematic_progress", ghost.placed, ghost.total)
-                        .withStyle(ghost.placed >= ghost.total ? ChatFormatting.GREEN : ChatFormatting.GOLD);
-                if (!ghost.wrong.isEmpty()) {
-                    line = line.copy().append(Component.translatable("misc.craftorio.schematic_wrong", ghost.wrong.size()).withStyle(ChatFormatting.RED));
-                }
-                if (ghost.total > 0 && ghost.placed >= ghost.total) {
-                    line = line.copy().append(Component.translatable("misc.craftorio.schematic_ready", Component.keybind("key.craftorio.print_scan")).withStyle(ChatFormatting.GREEN));
-                }
-            }
-        }
-
-        int y = graphics.guiHeight() - 72;
-        graphics.drawCenteredString(minecraft.font, line, graphics.guiWidth() / 2, y, 0xFFFFFF);
     }
 }

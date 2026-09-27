@@ -7,6 +7,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.BufferBuilder;
 import com.mojang.blaze3d.vertex.BufferUploader;
 import com.mojang.blaze3d.vertex.DefaultVertexFormat;
+import com.mojang.blaze3d.vertex.MeshData;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.Tesselator;
 import com.mojang.blaze3d.vertex.VertexFormat;
@@ -33,13 +34,14 @@ public class AssemblingButton extends Button {
     private static final float MIN_TRANSITION_FRACTION = 0.25f;
     private static final long SHAKE_DURATION_MS = 900L;
     private static final float SHAKE_AMPLITUDE = 4f;
-    private static final float CELL_SIZE = 16f / (float) Math.sqrt(0.4);
+    private static final float CELL_SIZE = 16f / (float) Math.sqrt(0.4) * 2.5f;
     private static final float ORBIT_MIN = 0.35f * 1.4f;
     private static final float ORBIT_MAX = 1.1f * 1.4f;
     private static final float ORBIT_SPEED_MIN = 0.0006f;
     private static final float ORBIT_SPEED_MAX = 0.0012f;
     private static final float SPIN_SPEED_RANGE = 0.003f;
     private static final double TWO_PI = Math.PI * 2.0;
+    private static final float APPEAR_STAGGER = 0.6f;
 
     private static final float MOTION_SPEED = 0.3f;
     private static final float SWING_DEGREES = 12f;
@@ -89,9 +91,12 @@ public class AssemblingButton extends Button {
     private TextureTarget textCapture;
     private double captureGuiScale;
     private float orbitCenterX;
+    private float captureOriginX;
+    private float captureOriginY;
     private float orbitCenterY;
     private Shard[] shards = new Shard[0];
     private float revealFraction = 1f;
+    private float appearProgress = 1f;
 
     public AssemblingButton(Button.Builder builder, float textScale) {
         super(builder);
@@ -179,6 +184,18 @@ public class AssemblingButton extends Button {
     public void setRevealFraction(float fraction) {
         this.revealFraction = Mth.clamp(fraction, 0f, 1f);
         this.active = isFullyRevealed();
+    }
+
+    public void setAppearProgress(float progress) {
+        this.appearProgress = Mth.clamp(progress, 0f, 1f);
+    }
+
+    private float shardAppearScale(Shard shard) {
+        if (this.appearProgress >= 1f) return 1f;
+
+        float order = this.revealFraction > 0f ? shard.revealOrder() / this.revealFraction : 0f;
+        float local = Mth.clamp((this.appearProgress - order * APPEAR_STAGGER) / (1f - APPEAR_STAGGER), 0f, 1f);
+        return local <= 0f ? 0f : easeOutBack(local);
     }
 
     public boolean isFullyRevealed() {
@@ -295,6 +312,12 @@ public class AssemblingButton extends Button {
         this.captureGuiScale = minecraft.getWindow().getGuiScale();
 
         guiGraphics.flush();
+        PoseStack pose = guiGraphics.pose();
+        pose.pushPose();
+        pose.setIdentity();
+        this.captureOriginX = (float) Math.floor(Math.min(getX(), getX() + getWidth() / 2f - textHalfWidth()) - 2f);
+        this.captureOriginY = (float) Math.floor(Math.min(getY(), getY() + getHeight() / 2f - textHalfHeight()) - 2f);
+        pose.translate(-this.captureOriginX, -this.captureOriginY, 0f);
 
         this.buttonCapture = createCaptureTarget(main);
         this.buttonCapture.bindWrite(true);
@@ -309,6 +332,7 @@ public class AssemblingButton extends Button {
         drawText(guiGraphics);
         guiGraphics.flush();
 
+        pose.popPose();
         main.bindWrite(true);
     }
 
@@ -452,6 +476,8 @@ public class AssemblingButton extends Button {
         BufferBuilder builder = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION_TEX);
         for (Shard shard : this.shards) {
             if (shard.revealOrder() >= this.revealFraction) continue;
+            float appearScale = shardAppearScale(shard);
+            if (appearScale <= 0f) continue;
 
             double orbitAngle = shard.orbitPhase() + elapsed * (double) shard.orbitSpeed();
             float orbitX = this.orbitCenterX + (float) Math.cos(orbitAngle) * shard.orbitRadiusX();
@@ -464,14 +490,17 @@ public class AssemblingButton extends Button {
             float sin = (float) Math.sin(rotation);
 
             for (int k = 0; k < 3; k++) {
-                float relX = shard.xs()[k] - shard.centerX();
-                float relY = shard.ys()[k] - shard.centerY();
+                float relX = (shard.xs()[k] - shard.centerX()) * appearScale;
+                float relY = (shard.ys()[k] - shard.centerY()) * appearScale;
                 float x = positionX + relX * cos - relY * sin;
                 float y = positionY + relX * sin + relY * cos;
                 builder.addVertex(matrix, x, y, 0f)
-                        .setUv(shard.xs()[k] * scale / textureWidth, 1f - shard.ys()[k] * scale / textureHeight);
+                        .setUv((shard.xs()[k] - this.captureOriginX) * scale / textureWidth, 1f - (shard.ys()[k] - this.captureOriginY) * scale / textureHeight);
             }
         }
+
+        MeshData mesh = builder.build();
+        if (mesh == null) return;
 
         RenderSystem.disableCull();
         RenderSystem.disableDepthTest();
@@ -479,7 +508,7 @@ public class AssemblingButton extends Button {
         RenderSystem.defaultBlendFunc();
         RenderSystem.setShader(GameRenderer::getPositionTexShader);
         RenderSystem.setShaderTexture(0, texture.getColorTextureId());
-        BufferUploader.drawWithShader(builder.buildOrThrow());
+        BufferUploader.drawWithShader(mesh);
         RenderSystem.disableBlend();
         RenderSystem.enableDepthTest();
         RenderSystem.enableCull();

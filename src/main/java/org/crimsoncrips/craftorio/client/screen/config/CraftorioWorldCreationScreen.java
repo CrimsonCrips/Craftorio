@@ -54,6 +54,7 @@ public class CraftorioWorldCreationScreen extends Screen implements ScrollableSc
         this.universalButton = Button.builder(universalProgressionLabel(), b -> {
             universalProgression = !universalProgression;
             b.setMessage(universalProgressionLabel());
+            refreshNoBorders();
         }).bounds(x, y, width, 16).build();
         this.addRenderableWidget(this.universalButton);
         y += rowHeight;
@@ -61,6 +62,7 @@ public class CraftorioWorldCreationScreen extends Screen implements ScrollableSc
         this.chunkBasedButton = Button.builder(chunkBasedLabel(), b -> {
             chunkBasedExpansion = !chunkBasedExpansion;
             b.setMessage(chunkBasedLabel());
+            refreshNoBorders();
         }).bounds(x, y, width, 16).build();
         this.addRenderableWidget(this.chunkBasedButton);
         y += rowHeight;
@@ -70,10 +72,11 @@ public class CraftorioWorldCreationScreen extends Screen implements ScrollableSc
             b.setMessage(noBordersLabel());
         }).bounds(x, y, width, 16).build();
         this.addRenderableWidget(this.noBordersButton);
+        refreshNoBorders();
         y += rowHeight + 8;
 
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.done"), b -> {
-            CraftorioWorldCreationOverrides.set(universalProgression, chunkBasedExpansion, noBorders);
+            CraftorioWorldCreationOverrides.set(universalProgression, chunkBasedExpansion, effectiveNoBorders());
             this.minecraft.setScreen(this.parent);
         }).bounds(x, y, width + 30, 20).build());
     }
@@ -87,7 +90,20 @@ public class CraftorioWorldCreationScreen extends Screen implements ScrollableSc
     }
 
     private Component noBordersLabel() {
-        return Component.translatable("misc.craftorio.world_creation_no_borders", noBorders);
+        return Component.translatable("misc.craftorio.world_creation_no_borders", effectiveNoBorders());
+    }
+
+    private boolean noBordersForced() {
+        return universalProgression || !chunkBasedExpansion;
+    }
+
+    private boolean effectiveNoBorders() {
+        return noBordersForced() || noBorders;
+    }
+
+    private void refreshNoBorders() {
+        this.noBordersButton.active = !noBordersForced();
+        this.noBordersButton.setMessage(noBordersLabel());
     }
 
     @Override
@@ -100,7 +116,7 @@ public class CraftorioWorldCreationScreen extends Screen implements ScrollableSc
 
         drawIcon(guiGraphics, this.universalButton, ClientEvents.UNIVERSAL_BASED_ROW, universalProgression);
         drawIcon(guiGraphics, this.chunkBasedButton, ClientEvents.CHUNK_BASED_ROW, chunkBasedExpansion);
-        drawIcon(guiGraphics, this.noBordersButton, ClientEvents.NO_BORDERS_ROW, noBorders);
+        drawIcon(guiGraphics, this.noBordersButton, ClientEvents.NO_BORDERS_ROW, effectiveNoBorders());
     }
 
     private void drawIcon(GuiGraphics guiGraphics, Button button, int row, boolean value) {

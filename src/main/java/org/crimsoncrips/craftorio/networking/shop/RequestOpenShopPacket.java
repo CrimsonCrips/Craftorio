@@ -28,9 +28,7 @@ public record RequestOpenShopPacket() implements CustomPacketPayload {
         ctx.enqueueWork(() -> {
             if (!(ctx.player() instanceof ServerPlayer serverPlayer)) return;
 
-            boolean shopEnabled = CraftorioShop.isEnabled();
-            PacketDistributor.sendToPlayer(serverPlayer, new ShopStatusPacket(shopEnabled));
-            if (!shopEnabled) return;
+            if (!CraftorioShop.isEnabled()) return;
 
             boolean allUnlocked = Craftorio.SERVER_CONFIG.SHOP_MODE.get() == CraftorioShopMode.OPEN;
             List<ResourceLocation> unlocked = allUnlocked ? List.of() : new ArrayList<>(Craftorio.UNLOCKED_ITEMS.getUnlocked(serverPlayer));

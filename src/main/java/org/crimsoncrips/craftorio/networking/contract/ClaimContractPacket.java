@@ -41,11 +41,11 @@ public record ClaimContractPacket(ResourceLocation contractId) implements Custom
             serverPlayer.playNotifySound(SoundEvents.VILLAGER_WORK_CARTOGRAPHER, SoundSource.PLAYERS, 1.0F, 1.0F);
 
             if (CraftorioMisc.universalBased(serverPlayer.level())) {
-                for (ServerPlayer other : serverPlayer.serverLevel().players()) {
-                    PacketDistributor.sendToPlayer(other, new ContractOfferStatusPacket(false));
+                for (ServerPlayer other : serverPlayer.getServer().getPlayerList().getPlayers()) {
+                    PacketDistributor.sendToPlayer(other, new ContractOfferStatusPacket(false, other != serverPlayer));
                 }
             } else {
-                PacketDistributor.sendToPlayer(serverPlayer, new ContractOfferStatusPacket(false));
+                PacketDistributor.sendToPlayer(serverPlayer, new ContractOfferStatusPacket(false, false));
             }
         });
     }

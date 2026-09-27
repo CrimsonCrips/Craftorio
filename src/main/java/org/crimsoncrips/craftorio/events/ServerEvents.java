@@ -2,6 +2,8 @@ package org.crimsoncrips.craftorio.events;
 
 import com.google.common.collect.ImmutableList;
 import net.minecraft.advancements.AdvancementHolder;
+import net.minecraft.world.level.GameRules;
+import net.minecraft.advancements.Advancement;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Registry;
 import net.minecraft.core.GlobalPos;
@@ -44,7 +46,6 @@ import org.crimsoncrips.craftorio.block.CraftorioBlocks;
 import org.crimsoncrips.craftorio.networking.contract.ContractOfferStatusPacket;
 import org.crimsoncrips.craftorio.networking.contract.OpenContractOfferScreenPacket;
 import org.crimsoncrips.craftorio.networking.effect.EffectTimerPacket;
-import org.crimsoncrips.craftorio.networking.shop.ShopStatusPacket;
 import org.crimsoncrips.craftorio.networking.loan.LoanStateSyncPacket;
 import org.crimsoncrips.craftorio.networking.sync.UniversalStateSyncPacket;
 import org.crimsoncrips.craftorio.networking.sync.WelcomeToastPacket;
@@ -57,6 +58,8 @@ import org.crimsoncrips.craftorio.server.advancement.CraftorioPointsAdvancements
 import org.crimsoncrips.craftorio.server.schematic.CraftorioSchematics;
 import org.crimsoncrips.craftorio.server.border.ChunkCollisionHooks;
 import org.crimsoncrips.craftorio.server.border.CraftorioBorder;
+import org.crimsoncrips.craftorio.server.config.CraftorioDevServerOptions;
+import org.crimsoncrips.craftorio.server.shop.ShopTooltipOverride;
 import org.crimsoncrips.craftorio.server.config.CraftorioWorldCreationOverrides;
 import org.crimsoncrips.craftorio.server.data.CraftorioDataAttachments;
 import org.crimsoncrips.craftorio.server.devtools.CraftorioContractDraftStore;
@@ -65,7 +68,6 @@ import org.crimsoncrips.craftorio.server.rebirth.CraftorioRebirthConsent;
 import org.crimsoncrips.craftorio.server.sacrifice.CraftorioSacrifice;
 import org.crimsoncrips.craftorio.server.sacrifice.CraftorioWipeAreas;
 import org.crimsoncrips.craftorio.server.sacrifice.CraftorioWorldWipe;
-import org.crimsoncrips.craftorio.server.shop.CraftorioShop;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.target.ModifierTarget;
 import org.crimsoncrips.craftorio.skill_tree.target.PlayerActionTarget;
@@ -92,18 +94,21 @@ public class ServerEvents {
     public void serverStarted(ServerStartedEvent event) {
         CraftorioWorldWipe.onServerStarted(event.getServer());
         CraftorioWorldCreationOverrides.Pending overrides = CraftorioWorldCreationOverrides.consume();
+        if (overrides == null && event.getServer().isDedicatedServer()) {
+            overrides = CraftorioDevServerOptions.worldOverrides();
+        }
 
         for (ServerLevel level : event.getServer().getAllLevels()) {
             if (!level.getData(FINALIZED)){
-                boolean chunkBasedExpansion = overrides != null ? overrides.chunkBasedExpansion() : Craftorio.SERVER_CONFIG.CHUNK_BASED_EXPANSION.getAsBoolean();
-                boolean universalProgression = overrides != null ? overrides.universalProgression() : Craftorio.SERVER_CONFIG.UNIVERSAL_PROGRESSION.getAsBoolean();
+                CraftorioWorldCreationOverrides.Pending settings = overrides != null ? overrides : CraftorioWorldCreationOverrides.DEFAULTS;
+                boolean chunkBasedExpansion = settings.chunkBasedExpansion();
+                boolean universalProgression = settings.universalProgression();
                 level.setData(CHUNK_BASED,chunkBasedExpansion);
                 level.setData(UNIVERSAL_BASED,universalProgression);
                 if (CraftorioMisc.universalBased(level) || !CraftorioMisc.chunkBased(level)){
                     level.setData(NO_BORDERS,true);
                 } else {
-                    boolean noBorders = overrides != null ? overrides.noBorders() : Craftorio.SERVER_CONFIG.NO_BORDERS.getAsBoolean();
-                    level.setData(NO_BORDERS,noBorders);
+                    level.setData(NO_BORDERS,settings.noBorders());
                 }
 
                 CraftorioMisc.setContractRefreshTime(level, Craftorio.SERVER_CONFIG.CONTRACT_REFRESH_SECONDS.get() * CraftorioMisc.SECONDS_TO_TICKS);
@@ -157,11 +162,13 @@ public class ServerEvents {
     @SubscribeEvent
     public void sacrificeTick(ServerTickEvent.Post event) {
         CraftorioSacrifice.tick(event.getServer());
+        CraftorioRebirthConsent.tick(event.getServer());
     }
 
     @SubscribeEvent
     public void serverStopping(ServerStoppingEvent event) {
         CraftorioSacrifice.onServerStopping(event.getServer());
+        CraftorioHavenDimension.clearPendingTransitions();
         CraftorioContractDraftStore.clearAll();
     }
 
@@ -204,6 +211,7 @@ public class ServerEvents {
 
     @SubscribeEvent
     public void havenFallOffTick(ServerTickEvent.Post event) {
+        CraftorioHavenDimension.tickPendingTransitions(event.getServer());
         ServerLevel havenLevel = event.getServer().getLevel(CraftorioDimensions.HAVEN_LEVEL_KEY);
         if (havenLevel == null) return;
 
@@ -219,6 +227,12 @@ public class ServerEvents {
     public void itemTooltip(ItemTooltipEvent itemTooltipEvent){
         if (itemTooltipEvent.getEntity() == null)
             return;
+
+        Component shopOverride = ShopTooltipOverride.get();
+        if (shopOverride != null) {
+            itemTooltipEvent.getToolTip().add(1, shopOverride);
+            return;
+        }
 
         String pointValue = CraftorioMisc.bigIntFormat(CraftorioMisc.checkValue(itemTooltipEvent.getItemStack(), itemTooltipEvent.getEntity(),true));
         BigInteger unmultipliedBigInt = CraftorioMisc.checkValue(itemTooltipEvent.getItemStack(), itemTooltipEvent.getEntity(),false);
@@ -318,9 +332,10 @@ public class ServerEvents {
 
         if (player instanceof ServerPlayer serverPlayer) {
             ServerLevel serverLevel = CraftorioMisc.isInHavenDimension(serverPlayer.level()) ? serverPlayer.server.overworld() : (ServerLevel) serverPlayer.level();
-            BlockPos spawnPos = CraftorioMisc.findDispersedSpawnPos(serverLevel,
+            BlockPos spawnPos = CraftorioMisc.universalBased(level) ? null : CraftorioMisc.findDispersedSpawnPos(serverLevel,
                     Craftorio.SERVER_CONFIG.MIN_SPAWN_DISTANCE.get(),
-                    Craftorio.SERVER_CONFIG.MAX_SPAWN_DISTANCE.get()
+                    Craftorio.SERVER_CONFIG.MAX_SPAWN_DISTANCE.get(),
+                    player
             );
 
             if (CraftorioMisc.universalBased(level)){
@@ -339,6 +354,9 @@ public class ServerEvents {
 
             GlobalPos origin = GlobalPos.of(serverLevel.dimension(), spawnPos);
             serverPlayer.setData(CraftorioDataAttachments.SPAWN_ORIGIN.get(), origin);
+            if (!CraftorioMisc.universalBased(level)) {
+                CraftorioMisc.recordSpawnOrigin(serverPlayer.getServer(), serverPlayer.getStringUUID(), origin);
+            }
 
             serverPlayer.teleportTo(serverLevel, spawnPos.getX() + 0.5, spawnPos.getY(), spawnPos.getZ() + 0.5, serverPlayer.getYRot(), serverPlayer.getXRot());
             serverPlayer.setRespawnPosition(serverLevel.dimension(), spawnPos, 0F, true, false);
@@ -353,7 +371,6 @@ public class ServerEvents {
 
         if (player instanceof ServerPlayer serverPlayer) {
             PacketDistributor.sendToPlayer(serverPlayer, new WelcomeToastPacket());
-            PacketDistributor.sendToPlayer(serverPlayer, new ShopStatusPacket(CraftorioShop.isEnabled()));
             CraftorioPointsAdvancements.checkAndGrant(serverPlayer, CraftorioMisc.getPoints(player));
         }
 
@@ -364,12 +381,18 @@ public class ServerEvents {
     public void playerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer loggingIn) {
             CraftorioSacrifice.onLogin(loggingIn);
+            if (!CraftorioMisc.universalBased(loggingIn.level())) {
+                CraftorioMisc.recordSpawnOrigin(loggingIn.getServer(), loggingIn.getStringUUID(), loggingIn.getData(SPAWN_ORIGIN.get()));
+                if (!CraftorioMisc.chunkBased(loggingIn.level())) {
+                    CraftorioWipeAreas.recordBorders(loggingIn.getServer(), loggingIn.getStringUUID(), loggingIn.getData(PLAYER_BORDERS));
+                }
+            }
         }
 
         Player player = event.getEntity();
         Level level = player.level();
 
-        if (!player.getData(GIVEN) && !CraftorioSacrifice.isRunning()) {
+        if (!player.getData(GIVEN) && !CraftorioSacrifice.isPurging()) {
             giveFreshStart(player);
         }
 
@@ -470,14 +493,12 @@ public class ServerEvents {
 
     @SubscribeEvent
     public void universalProgressTick(ServerTickEvent.Post event) {
-        for (ServerLevel level : event.getServer().getAllLevels()) {
-            if (!CraftorioMisc.universalBased(level)) continue;
+        if (!CraftorioMisc.universalBased(event.getServer().overworld())) return;
 
-            List<ServerPlayer> players = level.players();
-            if (players.isEmpty()) continue;
+        List<ServerPlayer> players = event.getServer().getPlayerList().getPlayers();
+        if (players.isEmpty()) return;
 
-            tickEffectsAndContracts(players.get(0));
-        }
+        tickEffectsAndContracts(players.get(0));
     }
 
     private void tickEffectsAndContracts(Player player) {
@@ -507,12 +528,24 @@ public class ServerEvents {
         event.setAmount((int) Math.max(0, Math.round(result)));
     }
 
+    private static boolean sharingAdvancement = false;
+
     @SubscribeEvent
     public void advancementObtained(AdvancementEvent.AdvancementEarnEvent advancementEvent){
+        if (sharingAdvancement) return;
+
         Player player = advancementEvent.getEntity();
         AdvancementHolder advancement = advancementEvent.getAdvancement();
+        boolean universal = CraftorioMisc.universalBased(player.level()) && player instanceof ServerPlayer;
 
         ResourceLocation id = advancement.id();
+        if (universal) {
+            Level universalLevel = CraftorioMisc.universalLevel(player);
+            Set<String> rewarded = new HashSet<>(universalLevel.getData(REWARDED_ADVANCEMENTS));
+            if (!rewarded.add(id.toString())) return;
+            universalLevel.setData(REWARDED_ADVANCEMENTS, rewarded);
+        }
+
         BigInteger value = CraftorioAdvancementPoints.getPoints(id.toString());
 
         if (value.signum() != 0) {
@@ -525,19 +558,37 @@ public class ServerEvents {
             CraftorioMisc.addAdvancementMultiplierBonus(player, multiplierBonus);
         }
 
-        String string = Component.translatable("misc.craftorio.advancement_value").getString();
-
-        if (value.compareTo(BigInteger.ZERO) > 0) {
-            player.sendSystemMessage(Component.literal(string + value));
+        if (!universal) {
+            if (value.compareTo(BigInteger.ZERO) > 0) {
+                player.sendSystemMessage(Component.literal(Component.translatable("misc.craftorio.advancement_value").getString() + value));
+            }
+            return;
         }
 
-        if (CraftorioMisc.universalBased(player.level()) && player instanceof ServerPlayer earner) {
-            for (ServerPlayer other : earner.getServer().getPlayerList().getPlayers()) {
+        ServerPlayer earner = (ServerPlayer) player;
+        MinecraftServer server = earner.getServer();
+        if (server == null) return;
+
+        advancement.value().display().ifPresent(display -> {
+            if (display.shouldAnnounceChat() && earner.level().getGameRules().getBoolean(GameRules.RULE_ANNOUNCE_ADVANCEMENTS)) {
+                server.getPlayerList().broadcastSystemMessage(Component.translatable("misc.craftorio.universal_advancement_" + display.getType().getSerializedName(),
+                        Advancement.name(advancement)), false);
+            }
+        });
+        if (value.compareTo(BigInteger.ZERO) > 0) {
+            server.getPlayerList().broadcastSystemMessage(Component.literal(Component.translatable("misc.craftorio.advancement_value").getString() + value), false);
+        }
+
+        sharingAdvancement = true;
+        try {
+            for (ServerPlayer other : server.getPlayerList().getPlayers()) {
                 if (other == earner) continue;
                 for (String criterion : advancement.value().criteria().keySet()) {
                     other.getAdvancements().award(advancement, criterion);
                 }
             }
+        } finally {
+            sharingAdvancement = false;
         }
     }
 
@@ -611,12 +662,8 @@ public class ServerEvents {
                     double distanceOutside = -border.getDistanceToBorder(x, z);
 
                     if (distanceOutside > border.getDamageSafeZone() && player.tickCount % 20 == 0) {
-                        if (Craftorio.SERVER_CONFIG.INSTANT_DEATH_OUTSIDE_CLAIM.getAsBoolean()) {
-                            killOutsideClaim(player);
-                        } else {
-                            int damageMultiplier = (int) Math.max(1, distanceOutside - border.getDamageSafeZone());
-                            player.hurt(player.damageSources().outOfBorder(), (float) (damageMultiplier * border.getDamagePerBlock()));
-                        }
+                        int damageMultiplier = (int) Math.max(1, distanceOutside - border.getDamageSafeZone());
+                        player.hurt(player.damageSources().outOfBorder(), (float) (damageMultiplier * border.getDamagePerBlock()));
                     }
                 }
             }
@@ -624,18 +671,9 @@ public class ServerEvents {
             Level level = player.level();
             if (CraftorioMisc.chunkBased(level) && player.tickCount % 20 == 0
                     && !ChunkCollisionHooks.isWithinClaimedChunk(player, player.blockPosition())) {
-                if (Craftorio.SERVER_CONFIG.INSTANT_DEATH_OUTSIDE_CLAIM.getAsBoolean()) {
-                    killOutsideClaim(player);
-                } else {
-                    player.hurt(player.damageSources().outOfBorder(), (float) Craftorio.SERVER_CONFIG.CHUNK_OUT_OF_BOUNDS_DAMAGE.getAsDouble());
-                }
+                player.hurt(player.damageSources().outOfBorder(), (float) Craftorio.SERVER_CONFIG.CHUNK_OUT_OF_BOUNDS_DAMAGE.getAsDouble());
             }
         }
-    }
-
-    private void killOutsideClaim(ServerPlayer player) {
-        player.serverLevel().explode(player, player.getX(), player.getY(), player.getZ(), 3.0F, Level.ExplosionInteraction.NONE);
-        player.hurt(player.damageSources().outOfBorder(), Float.MAX_VALUE);
     }
 
     private static final Map<UUID, ResourceKey<Level>> pendingDimensionAreaSetup = new HashMap<>();

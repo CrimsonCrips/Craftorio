@@ -40,7 +40,7 @@ public record SchematicActionPacket(InteractionHand hand, int action) implements
 
             ItemStack stack = player.getItemInHand(message.hand());
             SchematicData data = stack.get(CraftorioDataComponents.SCHEMATIC.get());
-            if (!(stack.getItem() instanceof ContractSchematicItem) || data == null) return;
+            if (!(stack.getItem() instanceof ContractSchematicItem) || data == null || !CraftorioSchematics.isLinked(player, data)) return;
 
             switch (message.action()) {
                 case ROTATE -> CraftorioSchematics.place(player, stack, data, data.origin(), data.rotation().getRotated(Rotation.CLOCKWISE_90));

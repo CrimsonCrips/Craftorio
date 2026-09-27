@@ -9,6 +9,7 @@
     "CraftorioEntityMixin",
     "CraftorioGamePacketListenerMixin",
     "CraftorioGuiMapMixin",
+    "CraftorioPlayerAdvancementsMixin",
     "CraftorioRaidMixin",
     "CraftorioRegionFileMixin",
     "CraftorioServerLevelMixin"
@@ -19,6 +20,7 @@
     "CraftorioGuiGraphicsMixin",
     "CraftorioMouseHandlerMixin",
     "CraftorioMultiPlayerGameModeMixin",
+    "CraftorioOverlayTextureMixin",
     "CraftorioJadeOverlayMixin",
     "CraftorioScreenMixin",
     "CraftorioTitleScreenAccessor"

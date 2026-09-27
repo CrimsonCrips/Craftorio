@@ -327,6 +327,10 @@ public class ContractRevealScreen extends Screen implements ScrollableScreen {
                 y += this.font.lineHeight + 6;
             }
 
+            Component typeLine = ContractGoalText.typeLine(card.contract);
+            graphics.drawString(this.font, typeLine, -this.font.width(typeLine) / 2, (int) y - 4, ContractGoalText.TYPE_COLOR, true);
+            y += this.font.lineHeight + 4;
+
             String timeLine = Component.translatable("misc.craftorio.contract_time_remaining", CraftorioMisc.ticksToTimeString(card.contract.getTime())).getString();
             graphics.drawString(this.font, timeLine, -this.font.width(timeLine) / 2, (int) y, timeColor, true);
             y += this.font.lineHeight + 20;

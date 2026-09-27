@@ -66,10 +66,7 @@ public class ActiveEffectsScreen extends Screen implements ScrollableScreen {
         this.viewportTop = TOP_MARGIN;
         this.viewportBottom = this.height - BOTTOM_MARGIN;
 
-        int viewportHeight = Math.max(0, this.viewportBottom - this.viewportTop);
-        int contentHeight = this.effects.isEmpty() ? 0 : this.effects.size() * (ROW_HEIGHT + ROW_GAP) - ROW_GAP;
-        this.maxScroll = Math.max(0, contentHeight - viewportHeight);
-        this.scrollY = Mth.clamp(this.scrollY, 0, this.maxScroll);
+        updateMaxScroll();
 
         int centerX = this.width / 2;
         int buttonY = this.height - 26;
@@ -193,6 +190,23 @@ public class ActiveEffectsScreen extends Screen implements ScrollableScreen {
         }
 
         return false;
+    }
+
+    private void updateMaxScroll() {
+        int viewportHeight = Math.max(0, this.viewportBottom - this.viewportTop);
+        int contentHeight = this.effects.isEmpty() ? 0 : this.effects.size() * (ROW_HEIGHT + ROW_GAP) - ROW_GAP;
+        this.maxScroll = Math.max(0, contentHeight - viewportHeight);
+        this.scrollY = Mth.clamp(this.scrollY, 0, this.maxScroll);
+    }
+
+    @Override
+    public void tick() {
+        Player player = this.minecraft.player;
+        if (player == null) return;
+
+        this.effects.clear();
+        this.effects.addAll(CraftorioMisc.getCraftorioEffects(player));
+        updateMaxScroll();
     }
 
     @Override

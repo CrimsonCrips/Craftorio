@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Launch (Keep World)" type="CompoundRunConfigurationType">
+    <toRun name="Launch Part: Server" type="GradleRunConfiguration" />
+    <toRun name="Launch Part: Client" type="GradleRunConfiguration" />
+    <toRun name="Launch Part: Client 2" type="GradleRunConfiguration" />
+    <method v="2" />
+  </configuration>
+</component>

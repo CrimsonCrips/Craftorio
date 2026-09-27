@@ -3,7 +3,6 @@ package org.crimsoncrips.craftorio.client.screen.config;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.fml.loading.FMLConfig;
 import net.neoforged.fml.loading.FMLPaths;
 import net.neoforged.neoforge.common.ModConfigSpec;
 import org.crimsoncrips.craftorio.Craftorio;
@@ -13,15 +12,13 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 @OnlyIn(Dist.CLIENT)
-public final class CraftorioServerDefaultsFile {
+public final class CraftorioServerConfigFile {
 
     private final Path path;
     private final CommentedFileConfig config;
 
-    public CraftorioServerDefaultsFile() {
-        this.path = FMLPaths.GAMEDIR.get()
-                .resolve(FMLConfig.getConfigValue(FMLConfig.ConfigValue.DEFAULT_CONFIG_PATH))
-                .resolve(Craftorio.SERVER_CONFIG_FILE);
+    public CraftorioServerConfigFile() {
+        this.path = FMLPaths.CONFIGDIR.get().resolve(Craftorio.SERVER_CONFIG_FILE);
         this.config = CommentedFileConfig.builder(this.path).preserveInsertionOrder().build();
         if (Files.exists(this.path)) {
             try {

@@ -1,5 +1,10 @@
 package org.crimsoncrips.craftorio.server.sacrifice;
 
+import net.minecraft.server.level.ServerLevel;
+import net.minecraft.world.level.timers.TimerQueue;
+import net.minecraft.world.level.border.WorldBorder;
+import net.minecraft.server.bossevents.CustomBossEvents;
+import net.minecraft.server.bossevents.CustomBossEvent;
 import net.minecraft.Util;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
@@ -346,6 +351,32 @@ public final class CraftorioWorldWipe {
             Craftorio.LOGGER.error("Failed to clear reset chunks from {}", file, e);
         }
         return cleared;
+    }
+
+    public static void resetWorldStateLive(MinecraftServer server) {
+        ServerLevel overworld = server.overworld();
+        for (ServerLevel level : server.getAllLevels()) {
+            if (level.getDragonFight() != null) {
+                level.setDragonFight(new EndDragonFight(level, level.getSeed(), EndDragonFight.Data.DEFAULT));
+            }
+        }
+
+        overworld.setDayTime(0L);
+        overworld.setWeatherParameters(0, 0, false, false);
+        overworld.getWorldBorder().applySettings(WorldBorder.DEFAULT_SETTINGS);
+
+        CustomBossEvents bossEvents = server.getCustomBossEvents();
+        for (CustomBossEvent bossEvent : new ArrayList<>(bossEvents.getEvents())) {
+            bossEvent.removeAllPlayers();
+            bossEvents.remove(bossEvent);
+        }
+
+        TimerQueue<MinecraftServer> scheduled = server.getWorldData().overworldData().getScheduledEvents();
+        for (String id : new ArrayList<>(scheduled.getEventsIds())) {
+            scheduled.remove(id);
+        }
+        server.getWorldData().overworldData().setWanderingTraderSpawnDelay(24000);
+        server.getWorldData().overworldData().setWanderingTraderSpawnChance(25);
     }
 
     public static void writeFinalizeMarker(MinecraftServer server, Long seed) {

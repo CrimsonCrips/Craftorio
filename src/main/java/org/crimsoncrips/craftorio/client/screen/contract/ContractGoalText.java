@@ -5,6 +5,7 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.crimsoncrips.craftorio.registries.contract.ContractGoal;
 import org.crimsoncrips.craftorio.registries.contract.ContractProgress;
+import org.crimsoncrips.craftorio.registries.contract.ContractType;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 
 import java.util.Optional;
@@ -24,6 +25,14 @@ public final class ContractGoalText {
                     : Optional.of(Component.translatable("misc.craftorio.contract_goal_building_unplaced",
                             goal.structure().map(Object::toString).orElse("?")));
         };
+    }
+
+    public static final int TYPE_COLOR = 0x9A9A9A;
+
+    public static Component typeLine(CraftorioContract contract) {
+        return Component.translatable(contract.getType() == ContractType.BUILDING
+                ? "misc.craftorio.contract_type_build"
+                : "misc.craftorio.contract_type_item");
     }
 
     public static Component bountyHeader(CraftorioContract contract) {

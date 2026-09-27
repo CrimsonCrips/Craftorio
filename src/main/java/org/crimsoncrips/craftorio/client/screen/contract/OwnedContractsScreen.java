@@ -213,6 +213,10 @@ public class OwnedContractsScreen extends Screen implements ScrollableScreen {
             y += this.font.lineHeight;
         }
 
+        Component typeLine = ContractGoalText.typeLine(contract);
+        graphics.drawString(this.font, typeLine, -this.font.width(typeLine) / 2, (int) y, ContractGoalText.TYPE_COLOR, true);
+        y += this.font.lineHeight;
+
         if (contract.isAbandoned()) {
             Component abandonedLine = Component.translatable("misc.craftorio.contract_abandoned")
                     .withStyle(style -> style.withColor(ChatFormatting.RED).withBold(true).withItalic(true));

@@ -1,5 +1,7 @@
 package org.crimsoncrips.craftorio.client.input;
 
+import org.crimsoncrips.craftorio.item.schematic.SchematicData;
+import org.crimsoncrips.craftorio.server.schematic.CraftorioSchematics;
 import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.ChatFormatting;
 import net.minecraft.client.KeyMapping;
@@ -21,6 +23,9 @@ import org.crimsoncrips.craftorio.item.structure.StructureWandItem;
 import org.crimsoncrips.craftorio.item.structure.StructureWandSettings;
 import org.crimsoncrips.craftorio.networking.devtools.PrintScanPacket;
 import org.crimsoncrips.craftorio.registries.CraftorioDataComponents;
+import org.crimsoncrips.craftorio.client.screen.consent.ClientConsentState;
+import org.crimsoncrips.craftorio.client.screen.consent.CraftorioConsentWaitScreen;
+import org.crimsoncrips.craftorio.networking.consent.ConsentKind;
 import org.crimsoncrips.craftorio.server.data.CraftorioDataAttachments;
 
 public class CraftorioKeyMappings {
@@ -37,7 +42,7 @@ public class CraftorioKeyMappings {
             "key.craftorio.print_scan",
             KeyConflictContext.IN_GAME,
             InputConstants.Type.KEYSYM,
-            InputConstants.KEY_P,
+            InputConstants.KEY_B,
             "key.categories.craftorio"
     );
 
@@ -52,6 +57,8 @@ public class CraftorioKeyMappings {
         for (InteractionHand hand : InteractionHand.values()) {
             ItemStack stack = minecraft.player.getItemInHand(hand);
             if (stack.getItem() instanceof ContractSchematicItem) {
+                SchematicData data = stack.get(CraftorioDataComponents.SCHEMATIC.get());
+                if (data == null || !CraftorioSchematics.isLinked(minecraft.player, data)) continue;
                 minecraft.setScreen(new SchematicScreen(hand));
                 return true;
             }
@@ -81,12 +88,16 @@ public class CraftorioKeyMappings {
             if (inHaven) {
                 if (minecraft.player != null && minecraft.screen == null) {
                     if (minecraft.player.getData(CraftorioDataAttachments.SACRIFICE_PENDING) && !minecraft.player.getData(CraftorioDataAttachments.SACRIFICE_WAITING)) {
-                        minecraft.setScreen(new CraftorioSacrificeConfirmScreen());
+                        minecraft.setScreen(ClientConsentState.status(ConsentKind.SACRIFICE) != null
+                                ? new CraftorioConsentWaitScreen(ConsentKind.SACRIFICE, false)
+                                : new CraftorioSacrificeConfirmScreen());
                     }
                 }
                 continue;
             }
-            minecraft.setScreen(new CraftorioHubScreen());
+            minecraft.setScreen(ClientConsentState.status(ConsentKind.REBIRTH) != null
+                    ? new CraftorioConsentWaitScreen(ConsentKind.REBIRTH, false)
+                    : new CraftorioHubScreen());
         }
     }
 }

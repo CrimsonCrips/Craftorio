@@ -17,7 +17,6 @@ import net.minecraft.world.level.block.Rotation;
 import net.neoforged.fml.loading.FMLEnvironment;
 import org.crimsoncrips.craftorio.client.schematic.ClientPlayerAccess;
 import org.crimsoncrips.craftorio.registries.CraftorioDataComponents;
-import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 import org.crimsoncrips.craftorio.server.schematic.CraftorioSchematics;
 
 import java.util.List;
@@ -34,7 +33,7 @@ public class ContractSchematicItem extends Item {
         Player player = context.getPlayer();
         ItemStack stack = context.getItemInHand();
         SchematicData data = stack.get(CraftorioDataComponents.SCHEMATIC.get());
-        if (player == null || data == null) return InteractionResult.PASS;
+        if (player == null || data == null || !CraftorioSchematics.isLinked(player, data)) return InteractionResult.PASS;
         if (context.getLevel().isClientSide()) return InteractionResult.SUCCESS;
 
         ServerPlayer serverPlayer = (ServerPlayer) player;
@@ -54,7 +53,7 @@ public class ContractSchematicItem extends Item {
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
         SchematicData data = stack.get(CraftorioDataComponents.SCHEMATIC.get());
-        if (data == null || !player.isShiftKeyDown()) return InteractionResultHolder.pass(stack);
+        if (data == null || !player.isShiftKeyDown() || !CraftorioSchematics.isLinked(player, data)) return InteractionResultHolder.pass(stack);
         if (!level.isClientSide()) {
             rotate((ServerPlayer) player, stack, data);
         }
@@ -72,6 +71,12 @@ public class ContractSchematicItem extends Item {
         SchematicData data = stack.get(CraftorioDataComponents.SCHEMATIC.get());
         if (data == null) return;
 
+        Player player = FMLEnvironment.dist.isClient() ? ClientPlayerAccess.player() : null;
+        if (player != null && !CraftorioSchematics.isLinked(player, data)) {
+            tooltip.add(Component.translatable("misc.craftorio.schematic_inactive").withStyle(ChatFormatting.RED));
+            return;
+        }
+
         tooltip.add(Component.translatable("misc.craftorio.schematic_owner", data.owner().isEmpty() ? Component.translatable("misc.craftorio.schematic_owner_any") : Component.literal(data.owner())).withStyle(ChatFormatting.AQUA));
         tooltip.add(Component.translatable("misc.craftorio.schematic_structure", data.structure().toString()).withStyle(ChatFormatting.GRAY));
         tooltip.add(Component.translatable("misc.craftorio.schematic_rotation", data.rotation().ordinal() * 90).withStyle(ChatFormatting.GRAY));
@@ -79,18 +84,14 @@ public class ContractSchematicItem extends Item {
                 origin -> tooltip.add(Component.translatable("misc.craftorio.schematic_origin", origin.pos().toShortString(), origin.dimension().location().toString()).withStyle(ChatFormatting.GRAY)),
                 () -> tooltip.add(Component.translatable("misc.craftorio.schematic_not_placed").withStyle(ChatFormatting.YELLOW)));
 
-        Player player = FMLEnvironment.dist.isClient() ? ClientPlayerAccess.player() : null;
         if (player != null) {
-            Optional<CraftorioContract> contract = CraftorioSchematics.findContract(player, data.instance());
-            contract.ifPresentOrElse(
-                    active -> {
-                        if (active.getProgress().submitted()) {
-                            tooltip.add(Component.translatable("misc.craftorio.schematic_settled").withStyle(ChatFormatting.GREEN));
-                        } else {
-                            tooltip.add(Component.translatable("misc.craftorio.schematic_progress", active.getProgress().blocksPlaced(), active.getProgress().blocksTotal()).withStyle(ChatFormatting.GOLD));
-                        }
-                    },
-                    () -> tooltip.add(Component.translatable("misc.craftorio.schematic_inactive").withStyle(ChatFormatting.RED)));
+            CraftorioSchematics.findContract(player, data.instance()).ifPresent(active -> {
+                if (active.getProgress().submitted()) {
+                    tooltip.add(Component.translatable("misc.craftorio.schematic_settled").withStyle(ChatFormatting.GREEN));
+                } else {
+                    tooltip.add(Component.translatable("misc.craftorio.schematic_progress", active.getProgress().blocksPlaced(), active.getProgress().blocksTotal()).withStyle(ChatFormatting.GOLD));
+                }
+            });
         }
         if (data.converted()) {
             tooltip.add(Component.translatable("misc.craftorio.schematic_converted").withStyle(ChatFormatting.DARK_AQUA));

@@ -1,10 +1,13 @@
 package org.crimsoncrips.craftorio.client.screen.hub;
 
+import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.Tooltip;
+import net.minecraft.client.gui.components.events.GuiEventListener;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.util.Mth;
@@ -23,18 +26,23 @@ import org.crimsoncrips.craftorio.client.screen.purchase.ClaimItemPurchaseScreen
 import org.crimsoncrips.craftorio.client.screen.purchase.EffectRuneShopScreen;
 import org.crimsoncrips.craftorio.client.screen.skill_tree.CraftorioBasicSkillTreeScreen;
 import org.crimsoncrips.craftorio.client.screen.skill_tree.CraftorioRebirthSkillTreeScreen;
+import org.crimsoncrips.craftorio.client.screen.consent.ClientConsentState;
+import org.crimsoncrips.craftorio.client.screen.consent.CraftorioConsentWaitScreen;
 import org.crimsoncrips.craftorio.client.screen.skill_tree.CraftorioSacrificeSkillTreeScreen;
+import org.crimsoncrips.craftorio.networking.consent.ConsentKind;
 import org.crimsoncrips.craftorio.client.screen.widget.LoanSharkButton;
 import org.crimsoncrips.craftorio.client.screen.widget.AssemblingButton;
 import org.crimsoncrips.craftorio.client.screen.widget.SheetIconButton;
 import org.crimsoncrips.craftorio.client.state.ClientContractOfferState;
-import org.crimsoncrips.craftorio.client.state.ClientShopState;
 import org.crimsoncrips.craftorio.events.ClientEvents;
 import org.crimsoncrips.craftorio.networking.contract.RequestContractOfferPacket;
 import org.crimsoncrips.craftorio.networking.sacrifice.RequestSacrificePacket;
+import org.crimsoncrips.craftorio.networking.sacrifice.SacrificeIntroStartedPacket;
 import org.crimsoncrips.craftorio.networking.shop.RequestOpenShopPacket;
 import org.crimsoncrips.craftorio.networking.shop.RequestOpenValueBrowserPacket;
+import org.crimsoncrips.craftorio.server.data.CraftorioDataAttachments;
 import org.crimsoncrips.craftorio.server.shop.CraftorioEffectRuneShop;
+import org.crimsoncrips.craftorio.server.shop.CraftorioShopMode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,6 +59,19 @@ public class CraftorioHubScreen extends Screen implements ScrollableScreen {
     private static final int LIFT_OFFSET = 20;
 
     private static final int SACRIFICE_REVEAL_STEPS = 10;
+    private static final float SACRIFICE_SIZE_SCALE = 1.7f;
+    private static final int SACRIFICE_WIDTH = Math.round(BUTTON_WIDTH * SACRIFICE_SIZE_SCALE);
+    private static final int SACRIFICE_HEIGHT = Math.round(BUTTON_HEIGHT * SACRIFICE_SIZE_SCALE);
+    private static final int SACRIFICE_SCREEN_MARGIN = 8;
+    private static final int SACRIFICE_SLOT_SHIFT = SACRIFICE_HEIGHT + (BUTTON_STRIDE - BUTTON_HEIGHT) + DONE_EXTRA_GAP;
+    private static final long INTRO_ZOOM_IN_MS = 900L;
+    private static final long INTRO_SHIFT_MS = 1400L;
+    private static final long INTRO_SHARDS_MS = 1800L;
+    private static final long INTRO_HOLD_MS = 500L;
+    private static final long INTRO_ZOOM_OUT_MS = 900L;
+    private static final long INTRO_ZOOM_OUT_START_MS = INTRO_ZOOM_IN_MS + INTRO_SHIFT_MS + INTRO_SHARDS_MS + INTRO_HOLD_MS;
+    private static final long INTRO_TOTAL_MS = INTRO_ZOOM_OUT_START_MS + INTRO_ZOOM_OUT_MS;
+    private static final float INTRO_ZOOM = 1.6f;
     private static final long SKILL_TREE_PANEL_ANIM_MS = 250L;
     private static final int SKILL_TREE_PANEL_WIDTH = 150;
     private static final int SKILL_TREE_PANEL_PADDING = 6;
@@ -64,8 +85,14 @@ public class CraftorioHubScreen extends Screen implements ScrollableScreen {
     private int skillTreePanelTop;
     private int skillTreePanelHeight;
 
+    private final List<AbstractWidget> columnWidgets = new ArrayList<>();
+    private final List<Integer> columnBaseY = new ArrayList<>();
+    private boolean introPlaying;
+    private boolean introStarted;
+    private long introStartMillis;
+
     private Button loanSharkButton;
-    private Button effectRuneShopButton;
+    private boolean effectRuneShopShown;
     private AssemblingButton sacrificeButton;
 
     public CraftorioHubScreen() {
@@ -80,7 +107,10 @@ public class CraftorioHubScreen extends Screen implements ScrollableScreen {
         }
 
         int centerX = this.width / 2;
-        int blockHeight = (REGULAR_BUTTON_COUNT - 1) * BUTTON_STRIDE + BUTTON_HEIGHT + DONE_EXTRA_GAP + BUTTON_STRIDE;
+        this.effectRuneShopShown = effectRuneShopUnlocked();
+        boolean shopShown = Craftorio.SERVER_CONFIG.SHOP_MODE.get() != CraftorioShopMode.DISABLED;
+        int regularButtonCount = REGULAR_BUTTON_COUNT - (this.effectRuneShopShown ? 0 : 1) - (shopShown ? 0 : 1);
+        int blockHeight = (regularButtonCount - 1) * BUTTON_STRIDE + BUTTON_HEIGHT + DONE_EXTRA_GAP + SACRIFICE_SLOT_SHIFT;
         int y = (this.height - blockHeight) / 2 - LIFT_OFFSET;
 
         boolean chunkBased = this.minecraft.level != null && CraftorioMisc.chunkBased(this.minecraft.level);
@@ -89,25 +119,22 @@ public class CraftorioHubScreen extends Screen implements ScrollableScreen {
             this.sacrificeButton.release();
         }
 
+        int sacrificeWidth = Math.min(SACRIFICE_WIDTH, this.width - SACRIFICE_SCREEN_MARGIN * 2);
         this.sacrificeButton = (AssemblingButton) Button.builder(Component.literal("Sacrifice"), b -> {
                     PacketDistributor.sendToServer(new RequestSacrificePacket());
                     this.onClose();
                 })
-                .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build(builder -> new AssemblingButton(builder, 1.6f));
+                .bounds(centerX - sacrificeWidth / 2, y, sacrificeWidth, SACRIFICE_HEIGHT).build(builder -> new AssemblingButton(builder, 1.6f * SACRIFICE_SIZE_SCALE));
         this.addRenderableWidget(this.sacrificeButton);
         updateSacrificeButton();
-        y += BUTTON_STRIDE + DONE_EXTRA_GAP;
+        y += SACRIFICE_SLOT_SHIFT;
 
 
-
-        Component shopLabel = Component.translatable("misc.craftorio.hub_shop");
-        if (!ClientShopState.isEnabled()) {
-            shopLabel = shopLabel.copy().append(Component.translatable("misc.craftorio.shop_disabled_suffix").withStyle(ChatFormatting.RED));
+        if (shopShown) {
+            this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.hub_shop"), b -> PacketDistributor.sendToServer(new RequestOpenShopPacket()))
+                    .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
+            y += BUTTON_STRIDE;
         }
-        this.addRenderableWidget(Button.builder(shopLabel, b -> PacketDistributor.sendToServer(new RequestOpenShopPacket()))
-                .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
-        y += BUTTON_STRIDE;
-
         if (chunkBased) {
             this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.claim_shop_title"), b -> this.minecraft.setScreen(new ClaimItemPurchaseScreen()))
                     .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
@@ -133,11 +160,13 @@ public class CraftorioHubScreen extends Screen implements ScrollableScreen {
                 .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
         y += BUTTON_STRIDE;
 
-        this.effectRuneShopButton = this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.effect_rune_shop_button"), b -> this.minecraft.setScreen(new EffectRuneShopScreen()))
-                .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
-        y += BUTTON_STRIDE;
+        if (this.effectRuneShopShown) {
+            this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.effect_rune_shop_button"), b -> this.minecraft.setScreen(new EffectRuneShopScreen()))
+                    .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
+            y += BUTTON_STRIDE;
+        }
 
-        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.rebirth_button"), b -> this.minecraft.setScreen(new CraftorioRebirthConfirmScreen(this)))
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.rebirth_button"), b -> this.minecraft.setScreen(ClientConsentState.status(ConsentKind.REBIRTH) != null ? new CraftorioConsentWaitScreen(ConsentKind.REBIRTH, false) : new CraftorioRebirthConfirmScreen(this)))
                 .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
         y += BUTTON_STRIDE;
 
@@ -150,7 +179,6 @@ public class CraftorioHubScreen extends Screen implements ScrollableScreen {
                 .build(LoanSharkButton::new);
         this.addRenderableWidget(this.loanSharkButton);
         updateLoanSharkButton();
-        updateEffectRuneShopButton();
 
         int statsSize = 20;
         int statsX = 8;
@@ -189,6 +217,104 @@ public class CraftorioHubScreen extends Screen implements ScrollableScreen {
             this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_title"), b -> this.minecraft.setScreen(new DevToolsScreen(this)))
                     .bounds(this.width - devToolsWidth - 8, devToolsY, devToolsWidth, BUTTON_HEIGHT).build());
         }
+
+        this.columnWidgets.clear();
+        this.columnBaseY.clear();
+        int columnX = centerX - BUTTON_WIDTH / 2;
+        for (GuiEventListener child : this.children()) {
+            if (child instanceof AbstractWidget widget && widget != this.sacrificeButton
+                    && widget.getX() == columnX && widget.getWidth() == BUTTON_WIDTH) {
+                this.columnWidgets.add(widget);
+                this.columnBaseY.add(widget.getY());
+            }
+        }
+
+        maybeStartIntro();
+        layoutSacrificeSlot();
+    }
+
+    private void maybeStartIntro() {
+        Player player = this.minecraft.player;
+        if (this.introPlaying || this.introStarted || this.sacrificeButton == null || !this.sacrificeButton.visible
+                || player == null || player.getData(CraftorioDataAttachments.SACRIFICE_INTRO_SEEN)) return;
+
+        this.introPlaying = true;
+        this.introStarted = true;
+        this.introStartMillis = Util.getMillis();
+        PacketDistributor.sendToServer(new SacrificeIntroStartedPacket());
+    }
+
+    private static float easeInOutCubic(float t) {
+        return t < 0.5f ? 4f * t * t * t : 1f - (float) Math.pow(-2f * t + 2f, 3) / 2f;
+    }
+
+    private long introElapsed() {
+        return Util.getMillis() - this.introStartMillis;
+    }
+
+    private float introPhase(long startMs, long durationMs) {
+        return Mth.clamp((introElapsed() - startMs) / (float) durationMs, 0f, 1f);
+    }
+
+    private void layoutSacrificeSlot() {
+        if (this.sacrificeButton == null) return;
+
+        float shift;
+        float appear;
+        if (this.introPlaying) {
+            shift = easeInOutCubic(introPhase(INTRO_ZOOM_IN_MS, INTRO_SHIFT_MS));
+            appear = introPhase(INTRO_ZOOM_IN_MS + INTRO_SHIFT_MS, INTRO_SHARDS_MS);
+        } else {
+            shift = this.sacrificeButton.visible ? 1f : 0f;
+            appear = 1f;
+        }
+
+        int offset = Math.round(-SACRIFICE_SLOT_SHIFT * (1f - shift));
+        for (int i = 0; i < this.columnWidgets.size(); i++) {
+            this.columnWidgets.get(i).setY(this.columnBaseY.get(i) + offset);
+        }
+        this.sacrificeButton.setAppearProgress(appear);
+    }
+
+    private float introZoom() {
+        float zoomIn = easeInOutCubic(introPhase(0L, INTRO_ZOOM_IN_MS));
+        float zoomOut = easeInOutCubic(introPhase(INTRO_ZOOM_OUT_START_MS, INTRO_ZOOM_OUT_MS));
+        return 1f + (INTRO_ZOOM - 1f) * zoomIn * (1f - zoomOut);
+    }
+
+    @Override
+    public boolean shouldCloseOnEsc() {
+        return !this.introPlaying;
+    }
+
+    @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        return this.introPlaying || super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    @Override
+    public boolean charTyped(char codePoint, int modifiers) {
+        return this.introPlaying || super.charTyped(codePoint, modifiers);
+    }
+
+    @Override
+    public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        return this.introPlaying || super.mouseClicked(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseReleased(double mouseX, double mouseY, int button) {
+        return this.introPlaying || super.mouseReleased(mouseX, mouseY, button);
+    }
+
+    @Override
+    public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
+        return this.introPlaying || super.mouseDragged(mouseX, mouseY, button, dragX, dragY);
+    }
+
+    @Override
+    public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        return this.introPlaying || super.mouseScrolled(mouseX, mouseY, scrollX, scrollY);
     }
 
     @Override
@@ -200,6 +326,7 @@ public class CraftorioHubScreen extends Screen implements ScrollableScreen {
     }
 
     private void updateSacrificeButton() {
+        if (this.sacrificeButton == null) return;
         Player player = this.minecraft.player;
         int required = Craftorio.SERVER_CONFIG.SACRIFICE_REQUIRED_LIFE.getAsInt();
         float progress = player == null ? 0f : Math.min(1f, CraftorioMisc.getLife(player) / (float) required);
@@ -216,18 +343,19 @@ public class CraftorioHubScreen extends Screen implements ScrollableScreen {
         this.loanSharkButton.active = show;
     }
 
-    private void updateEffectRuneShopButton() {
+    private boolean effectRuneShopUnlocked() {
         Player player = this.minecraft.player;
-        boolean unlocked = player != null && CraftorioEffectRuneShop.isUnlocked(player);
-        this.effectRuneShopButton.visible = unlocked;
-        this.effectRuneShopButton.active = unlocked;
+        return player != null && CraftorioEffectRuneShop.isUnlocked(player);
     }
 
     @Override
     public void tick() {
         updateSacrificeButton();
+        maybeStartIntro();
         updateLoanSharkButton();
-        updateEffectRuneShopButton();
+        if (!this.introPlaying && effectRuneShopUnlocked() != this.effectRuneShopShown) {
+            this.rebuildWidgets();
+        }
     }
 
     private void toggleSkillTreePanel() {
@@ -277,11 +405,30 @@ public class CraftorioHubScreen extends Screen implements ScrollableScreen {
 
     @Override
     public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
+        if (this.introPlaying && introElapsed() >= INTRO_TOTAL_MS) {
+            this.introPlaying = false;
+        }
         layoutSkillTreePanel();
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
+        layoutSacrificeSlot();
+
+        float zoom = this.introPlaying ? introZoom() : 1f;
+        int contentMouseX = this.introPlaying ? -1000 : mouseX;
+        int contentMouseY = this.introPlaying ? -1000 : mouseY;
+        PoseStack pose = guiGraphics.pose();
+        pose.pushPose();
+        if (zoom != 1f && this.sacrificeButton != null) {
+            float focusX = this.sacrificeButton.getX() + this.sacrificeButton.getWidth() / 2f;
+            float focusY = this.sacrificeButton.getY() + this.sacrificeButton.getHeight() / 2f;
+            pose.translate(focusX, focusY, 0f);
+            pose.scale(zoom, zoom, 1f);
+            pose.translate(-focusX, -focusY, 0f);
+        }
+        super.render(guiGraphics, contentMouseX, contentMouseY, partialTick);
         if (this.sacrificeButton != null && this.sacrificeButton.visible) {
             this.sacrificeButton.renderAura(guiGraphics);
         }
+        guiGraphics.flush();
+        pose.popPose();
 
         Player player = this.minecraft.player;
         if (player == null || this.minecraft.level == null) return;

@@ -1,5 +1,10 @@
 package org.crimsoncrips.craftorio;
 
+import java.util.Map;
+import java.util.HashMap;
+import java.util.Set;
+import org.crimsoncrips.craftorio.server.sacrifice.ChunkRect;
+import net.minecraft.world.level.levelgen.Heightmap;
 import com.mojang.serialization.Codec;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.minecraft.ChatFormatting;
@@ -902,6 +907,8 @@ public class CraftorioMisc {
         return capped;
     }
 
+    private static final int SPAWN_ATTEMPTS_PER_RING = 120;
+
     public static BigInteger pointThreshold(){
         return new BigDecimal("1e309").toBigInteger();
     }
@@ -1026,11 +1033,19 @@ public class CraftorioMisc {
         return owners != null ? owners : List.of();
     }
 
+    public static final String UNIVERSAL_CHUNK_OWNER = "universal";
+
+    private static boolean sharesClaims(Player player){
+        return universalBased(player.level());
+    }
+
     public static boolean isOwnedBy(ChunkAccess chunkAccess,Player player){
-        return ownersOf(chunkAccess).contains(player.getStringUUID());
+        List<String> ownedBy = ownersOf(chunkAccess);
+        return sharesClaims(player) ? !ownedBy.isEmpty() : ownedBy.contains(player.getStringUUID());
     }
 
     public static boolean isOwnedByAnother(ChunkAccess chunkAccess,Player player){
+        if (sharesClaims(player)) return false;
         List<String> ownedBy = ownersOf(chunkAccess);
         return !ownedBy.isEmpty() && !ownedBy.contains(player.getStringUUID());
     }
@@ -1040,6 +1055,19 @@ public class CraftorioMisc {
     }
 
     public static void setOwnedBy(ChunkAccess chunkAccess,Player player,boolean own){
+        if (sharesClaims(player)) {
+            if (own && !isClaimed(chunkAccess)) {
+                chunkAccess.setData(OWNED_BY, new ArrayList<>(List.of(UNIVERSAL_CHUNK_OWNER)));
+                indexOwnership(chunkAccess, player, UNIVERSAL_CHUNK_OWNER, true);
+            } else if (!own && isClaimed(chunkAccess)) {
+                for (String owner : ownersOf(chunkAccess)) {
+                    indexOwnership(chunkAccess, player, owner, false);
+                }
+                chunkAccess.setData(OWNED_BY, new ArrayList<>());
+            }
+            return;
+        }
+
         String uuid = player.getStringUUID();
 
         if (own){
@@ -1583,7 +1611,11 @@ public class CraftorioMisc {
 
             if (player instanceof ServerPlayer serverPlayer) {
                 Component message = Component.translatable("misc.craftorio.contract_punishment_received", contract.getActualName(), granted.getActualName());
-                PacketDistributor.sendToPlayer(serverPlayer, new PunishmentToastPacket(message));
+                if (universalBased(player.level())) {
+                    PacketDistributor.sendToAllPlayers(new PunishmentToastPacket(message));
+                } else {
+                    PacketDistributor.sendToPlayer(serverPlayer, new PunishmentToastPacket(message));
+                }
             }
         });
     }
@@ -1603,58 +1635,95 @@ public class CraftorioMisc {
                 : String.format("%02d:%02d", minutes, seconds);
     }
 
-    public static BlockPos findDispersedSpawnPos(ServerLevel level, double minDistance, double maxDistance) {
-        List<Vec3> otherPositions = new ArrayList<>();
+    public static void recordSpawnOrigin(MinecraftServer server, String uuid, GlobalPos origin) {
+        if (server == null) return;
 
-        for (ServerPlayer other : level.getServer().getPlayerList().getPlayers()) {
+        ServerLevel overworld = server.overworld();
+        Map<String, GlobalPos> copy = new HashMap<>(overworld.getData(SPAWN_ORIGIN_INDEX));
+        if (origin == null || origin.pos().equals(BlockPos.ZERO)) {
+            if (copy.remove(uuid) == null) return;
+        } else {
+            if (origin.equals(copy.get(uuid))) return;
+            copy.put(uuid, origin);
+        }
+        overworld.setData(SPAWN_ORIGIN_INDEX, copy);
+    }
+
+    public static BlockPos findDispersedSpawnPos(ServerLevel level, double minDistance, double maxDistance, Player spawning) {
+        MinecraftServer server = level.getServer();
+        ServerLevel overworld = server.overworld();
+        String dimension = level.dimension().location().toString();
+        String self = spawning == null ? "" : spawning.getStringUUID();
+
+        List<Vec3> otherPositions = new ArrayList<>();
+        for (ServerPlayer other : server.getPlayerList().getPlayers()) {
+            if (other == spawning || other.level() != level) continue;
             otherPositions.add(other.position());
         }
+        for (Map.Entry<String, GlobalPos> origin : overworld.getData(SPAWN_ORIGIN_INDEX).entrySet()) {
+            if (origin.getKey().equals(self) || !origin.getValue().dimension().equals(level.dimension())) continue;
+            otherPositions.add(new Vec3(origin.getValue().pos().getX(), 0, origin.getValue().pos().getZ()));
+        }
 
-        for (ServerPlayer known : level.getServer().getPlayerList().getPlayers()) {
-            GlobalPos origin = known.getData(CraftorioDataAttachments.SPAWN_ORIGIN.get());
-            otherPositions.add(new Vec3(origin.pos().getX(), 0, origin.pos().getZ()));
+        List<double[]> claimedAreas = new ArrayList<>();
+        for (Map.Entry<String, Map<String, Set<Long>>> owner : overworld.getData(OWNED_CHUNK_INDEX).entrySet()) {
+            if (owner.getKey().equals(self)) continue;
+            for (long packed : owner.getValue().getOrDefault(dimension, Set.of())) {
+                int chunkX = ChunkPos.getX(packed);
+                int chunkZ = ChunkPos.getZ(packed);
+                claimedAreas.add(new double[]{chunkX * 16, chunkZ * 16, chunkX * 16 + 16, chunkZ * 16 + 16});
+            }
+        }
+        for (Map.Entry<String, List<ChunkRect>> owner : overworld.getData(BORDER_AREA_INDEX).entrySet()) {
+            if (owner.getKey().equals(self)) continue;
+            for (ChunkRect rect : owner.getValue()) {
+                if (!rect.dimension().equals(dimension)) continue;
+                claimedAreas.add(new double[]{rect.minX() * 16, rect.minZ() * 16, rect.maxX() * 16 + 16, rect.maxZ() * 16 + 16});
+            }
         }
 
         Random random = new Random();
-        int maxAttempts = 200;
+        double[][] rings = {{minDistance, maxDistance}, {maxDistance, maxDistance * 2}, {maxDistance * 2, maxDistance * 4}};
+        BlockPos farFallback = null;
+        for (double[] ring : rings) {
+            for (int attempt = 0; attempt < SPAWN_ATTEMPTS_PER_RING; attempt++) {
+                double angle = random.nextDouble() * Math.PI * 2;
+                double radius = ring[0] + random.nextDouble() * (ring[1] - ring[0]);
+                int x = (int) Math.round(Math.cos(angle) * radius);
+                int z = (int) Math.round(Math.sin(angle) * radius);
 
-        for (int attempt = 0; attempt < maxAttempts; attempt++) {
-            double angle = random.nextDouble() * Math.PI * 2;
-            double radius = minDistance + random.nextDouble() * (maxDistance - minDistance);
+                if (!isFarFromOthers(x, z, minDistance, otherPositions, claimedAreas)) continue;
 
-            int x = (int) Math.round(Math.cos(angle) * radius);
-            int z = (int) Math.round(Math.sin(angle) * radius);
-
-            boolean farEnough = true;
-            for (Vec3 otherPos : otherPositions) {
-                double dx = x - otherPos.x;
-                double dz = z - otherPos.z;
-                double distSq = dx * dx + dz * dz;
-                if (distSq < minDistance * minDistance) {
-                    farEnough = false;
-                    break;
+                ChunkPos chunkPos = new ChunkPos(new BlockPos(x, 0, z));
+                BlockPos candidate = PlayerRespawnLogic.getSpawnPosInChunk(level, chunkPos);
+                if (candidate != null) {
+                    return candidate;
+                }
+                if (farFallback == null) {
+                    farFallback = level.getHeightmapPos(Heightmap.Types.MOTION_BLOCKING_NO_LEAVES, new BlockPos(x, 0, z));
                 }
             }
-
-            if (!farEnough) continue;
-
-            ChunkPos chunkPos = new ChunkPos(new BlockPos(x, 0, z));
-            BlockPos candidate = PlayerRespawnLogic.getSpawnPosInChunk(level, chunkPos);
-            if (candidate != null) {
-                return candidate;
-            }
         }
 
-        double fallbackAngle = random.nextDouble() * Math.PI * 2;
-        int fallbackX = (int) Math.round(Math.cos(fallbackAngle) * maxDistance);
-        int fallbackZ = (int) Math.round(Math.sin(fallbackAngle) * maxDistance);
-
-        BlockPos fallback = PlayerRespawnLogic.getSpawnPosInChunk(level, new ChunkPos(new BlockPos(fallbackX, 0, fallbackZ)));
-        if (fallback != null) {
-            return fallback;
+        if (farFallback != null) {
+            return farFallback;
         }
-
         return level.getSharedSpawnPos();
+    }
+
+    private static boolean isFarFromOthers(int x, int z, double minDistance, List<Vec3> points, List<double[]> areas) {
+        double minDistanceSq = minDistance * minDistance;
+        for (Vec3 point : points) {
+            double dx = x - point.x;
+            double dz = z - point.z;
+            if (dx * dx + dz * dz < minDistanceSq) return false;
+        }
+        for (double[] area : areas) {
+            double dx = Math.max(Math.max(area[0] - x, 0), x - area[2]);
+            double dz = Math.max(Math.max(area[1] - z, 0), z - area[3]);
+            if (dx * dx + dz * dz < minDistanceSq) return false;
+        }
+        return true;
     }
 
     public static BlockPos getPlayerOrigin(Player player){
@@ -1721,6 +1790,9 @@ public class CraftorioMisc {
             level.setData(PLAYER_BORDERS, borders);
         } else {
             player.setData(PLAYER_BORDERS, borders);
+            if (player instanceof ServerPlayer serverPlayer) {
+                CraftorioWipeAreas.recordBorders(serverPlayer.getServer(), serverPlayer.getStringUUID(), borders);
+            }
         }
     }
 
@@ -1980,8 +2052,16 @@ public class CraftorioMisc {
 
     public static BigInteger contractRefreshCost(Player player){
         BigDecimal percent = BigDecimal.valueOf(Craftorio.SERVER_CONFIG.CONTRACT_REFRESH_COST_PERCENT.get());
-        BigDecimal cost = new BigDecimal(CraftorioMisc.getPoints(player)).multiply(percent).divide(BigDecimal.valueOf(100));
-        return applyUpgradeModifier(player, ModifierTarget.CONTRACT_REFRESH_COST, cost).max(BigInteger.ZERO);
+        BigDecimal cost = new BigDecimal(getHighestPoints(player)).multiply(percent).divide(BigDecimal.valueOf(100));
+        return applyUpgradeModifier(player, ModifierTarget.CONTRACT_REFRESH_COST, cost).max(contractRefreshMinCost());
+    }
+
+    public static BigInteger contractRefreshMinCost(){
+        try {
+            return new BigDecimal(Craftorio.SERVER_CONFIG.CONTRACT_REFRESH_MIN_COST.get().trim()).toBigInteger().max(BigInteger.ZERO);
+        } catch (NumberFormatException e) {
+            return new BigDecimal(Craftorio.SERVER_CONFIG.CONTRACT_REFRESH_MIN_COST.getDefault()).toBigInteger();
+        }
     }
 
 

@@ -5,9 +5,6 @@ import org.crimsoncrips.craftorio.server.shop.CraftorioShopMode;
 
 public class CraftorioServerConfig {
 
-    public final ModConfigSpec.BooleanValue CHUNK_BASED_EXPANSION;
-    public final ModConfigSpec.BooleanValue UNIVERSAL_PROGRESSION;
-    public final ModConfigSpec.BooleanValue NO_BORDERS;
     public final ModConfigSpec.IntValue STARTING_LAND_SIZE;
     public final ModConfigSpec.DoubleValue COST_MULTIPLIER;
     public final ModConfigSpec.IntValue SHOP_COST_MULTIPLIER;
@@ -27,13 +24,12 @@ public class CraftorioServerConfig {
     public final ModConfigSpec.IntValue MAX_OFFERED_CONTRACTS;
     public final ModConfigSpec.IntValue CONTRACT_REFRESH_SECONDS;
     public final ModConfigSpec.DoubleValue CONTRACT_REFRESH_COST_PERCENT;
+    public final ModConfigSpec.ConfigValue<String> CONTRACT_REFRESH_MIN_COST;
 
     public final ModConfigSpec.IntValue SINK_VALUE_BONUS_AMOUNT;
     public final ModConfigSpec.IntValue SINK_VALUE_BONUS_THRESHOLD;
 
     public final ModConfigSpec.DoubleValue MULT_PER_CONTRACT_DONE;
-
-    public final ModConfigSpec.BooleanValue INSTANT_DEATH_OUTSIDE_CLAIM;
 
     public final ModConfigSpec.ConfigValue<String> VALUE_CONDENSER_CAP;
     public final ModConfigSpec.DoubleValue LOAN_INTEREST_PERCENT;
@@ -53,20 +49,22 @@ public class CraftorioServerConfig {
     public CraftorioServerConfig(final ModConfigSpec.Builder builder) {
 
         builder.push("General");
-        this.UNIVERSAL_PROGRESSION = buildBoolean(builder, "UNIVERSAL_PROGRESSION", true, "Whether progress is universal or solo");
         this.STARTING_POINTS = buildString(builder, "STARTING_POINTS",  "100", "Starting points (exponents work like 1e2)");
-        this.INSTANT_DEATH_OUTSIDE_CLAIM = buildBoolean(builder, "INSTANT_DEATH_OUTSIDE_CLAIM", false, "If true, being outside your claimed area instantly blows you up");
-
-        MIN_SPAWN_DISTANCE = builder.defineInRange("min_spawn_distance", 500.0, 0.0, 100000.0);
-        MAX_SPAWN_DISTANCE = builder.defineInRange("max_spawn_distance", 2000.0, 0.0, 1000000.0);
-        this.MULT_PER_CONTRACT_DONE = buildDouble(builder, "MULT_PER_CONTRACT_DONE", 0.01, 0, Double.MAX_VALUE, "Multiplier bonus granted per contract completed (requires the matching skill tree upgrade). Ex. 0.01 = +0.01x mult per contract completed");
+        this.MIN_SPAWN_DISTANCE = builder.defineInRange("MIN_SPAWN_DISTANCE", 500.0, 0.0, 100000.0);
+        this.MAX_SPAWN_DISTANCE = builder.defineInRange("MAX_SPAWN_DISTANCE", 2000.0, 0.0, 1000000.0);
 
         builder.push("Expansion");
-        this.CHUNK_BASED_EXPANSION = buildBoolean(builder, "CHUNK_BASED_EXPANSION", false, "Mode of expansion is through chunks");
-
         this.STARTING_LAND_SIZE = buildInt(builder, "STARTING_LAND_SIZE", 1,1,Integer.MAX_VALUE, "Starting size for claimed land");
         this.COST_MULTIPLIER = buildDouble(builder, "COST_MULTIPLIER", 0.05F,0,Double.MAX_VALUE, "Cost Multiplier to claim land (ex. 0.05F = 5%)");
         this.BASE_COST = buildInt(builder, "BASE_COST", 10,1,Integer.MAX_VALUE, "Base Cost of Land");
+
+        builder.push("Border Based");
+        this.EXPANSION_AMOUNT = buildInt(builder, "EXPANSION_AMOUNT", 1,1,Integer.MAX_VALUE, "Amount of expansion per purchase");
+        builder.pop();
+
+        builder.push("Chunk Based");
+        this.CHUNK_OUT_OF_BOUNDS_DAMAGE = buildDouble(builder, "CHUNK_OUT_OF_BOUNDS_DAMAGE", 2.0, 0, Double.MAX_VALUE, "Flat damage dealt per second while standing outside a chunk you own");
+        builder.pop();
         builder.pop();
 
         builder.push("Random Effects");
@@ -75,7 +73,7 @@ public class CraftorioServerConfig {
         builder.pop();
 
         builder.push("Shop");
-        this.SHOP_MODE = builder.comment("Shop screen access: DISABLED (cant be opened), UNLOCKED (only items the player has picked up at least once can be bought), OPEN (every priced item is buyable immediately)").translation("SHOP_MODE").defineEnum("SHOP_MODE", CraftorioShopMode.UNLOCKED);
+        this.SHOP_MODE = builder.comment("Shop screen access: DISABLED (cant be opened), LOCKED (only items the player has picked up at least once can be bought), OPEN (every priced item is buyable immediately)").translation("SHOP_MODE").defineEnum("SHOP_MODE", CraftorioShopMode.LOCKED);
         this.SHOP_COST_MULTIPLIER = buildInt(builder, "SHOP_COST_MULTIPLIER", 10,1,Integer.MAX_VALUE, "Multiplier cost of buying items from shop");
         builder.pop();
 
@@ -83,6 +81,8 @@ public class CraftorioServerConfig {
         this.MAX_OFFERED_CONTRACTS = buildInt(builder, "MAX_OFFERED_CONTRACTS", 3,1,5, "Maximum number of contracts offered at once on the contract offer screen");
         this.CONTRACT_REFRESH_SECONDS = buildInt(builder, "CONTRACT_REFRESH_SECONDS", 1200, 1, Integer.MAX_VALUE, "Exact number of seconds between contract offer refreshes");
         this.CONTRACT_REFRESH_COST_PERCENT = buildDouble(builder, "CONTRACT_REFRESH_COST_PERCENT", 5.0, 0, 100, "Percent of a player's highest points charged to manually refresh the contract offer early");
+        this.CONTRACT_REFRESH_MIN_COST = buildString(builder, "CONTRACT_REFRESH_MIN_COST", "100", "Lowest possible price for manually refreshing the contract offer early (exponents work like 1e2)");
+        this.MULT_PER_CONTRACT_DONE = buildDouble(builder, "MULT_PER_CONTRACT_DONE", 0.01, 0, Double.MAX_VALUE, "Multiplier bonus granted per contract completed (requires the matching skill tree upgrade). Ex. 0.01 = +0.01x mult per contract completed");
         builder.pop();
 
         builder.push("Sink Value");
@@ -90,16 +90,6 @@ public class CraftorioServerConfig {
         this.SINK_VALUE_BONUS_THRESHOLD = buildInt(builder, "SINK_VALUE_BONUS_THRESHOLD", 10000, 1, Integer.MAX_VALUE, "Number of times an item must be sinked to grant one SINK_VALUE_BONUS_AMOUNT (requires the matching skill tree upgrade)");
         builder.pop();
 
-
-        builder.push("Border Based");
-        this.EXPANSION_AMOUNT = buildInt(builder, "EXPANSION_AMOUNT", 1,1,Integer.MAX_VALUE, "Amount of expansion per purchase");
-        builder.pop();
-
-        builder.push("Chunk Based");
-        this.NO_BORDERS = buildBoolean(builder, "NO_BORDERS", false, "Whether another player can lay claim to a already claimed chunk to be able to access as well");
-        this.CHUNK_OUT_OF_BOUNDS_DAMAGE = buildDouble(builder, "CHUNK_OUT_OF_BOUNDS_DAMAGE", 2.0, 0, Double.MAX_VALUE, "Flat damage dealt per second while standing outside a chunk you own");
-
-        builder.pop();
 
         builder.push("Value Condenser");
         this.VALUE_CONDENSER_CAP = buildString(builder, "VALUE_CONDENSER_CAP", "1e12", "Maximum total value a condensed item (the carrier) can hold, accepts whole numbers and exponents (ex. 1e12 = one trillion), raised or lowered by upgrades");
