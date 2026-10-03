@@ -1,0 +1,24 @@
+{
+  "basePointValue": "100000",
+  "description": "registry.mumbo_10_door.description",
+  "goal": {
+    "type": "building",
+    "structure": "craftorio:contracts/mumbo_door"
+  },
+  "itemBounty": [],
+  "itemRewards": [
+    {
+      "amountGiving": 64,
+      "rewardingItem": {
+        "count": 1,
+        "id": "minecraft:redstone_block"
+      }
+    }
+  ],
+  "max_point_threshold": "10000000000",
+  "min_point_threshold": "200000",
+  "name": "registry.mumbo_10_door.title",
+  "point_threshold": "500000",
+  "seconds": 7800,
+  "weight": 11
+}

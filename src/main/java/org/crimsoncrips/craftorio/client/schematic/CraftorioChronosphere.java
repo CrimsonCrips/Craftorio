@@ -10,7 +10,6 @@ import com.mojang.blaze3d.vertex.VertexFormat;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.renderer.ShaderInstance;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.Level;
@@ -32,19 +31,27 @@ public final class CraftorioChronosphere {
     private static final int LATITUDES = 90;
     private static final int LONGITUDES = 180;
     private static final int REMOVAL_TICK = ChronospherePacket.APPEAR_TICKS + ChronospherePacket.HOLD_TICKS;
-    private static final int TOTAL_TICKS = REMOVAL_TICK + ChronospherePacket.DISSIPATE_TICKS;
 
-    private record Chronosphere(ResourceKey<Level> dimension, Vec3 center, float radius, long start) {}
+    private record Chronosphere(ResourceKey<Level> dimension, Vec3 center, float radius, long start, int removalTicks) {
+
+        int dissipateTick() {
+            return REMOVAL_TICK + this.removalTicks;
+        }
+
+        int totalTicks() {
+            return dissipateTick() + ChronospherePacket.DISSIPATE_TICKS;
+        }
+    }
 
     private static final List<Chronosphere> CHRONOSPHERES = new ArrayList<>();
     private static VertexBuffer sphere;
 
     private CraftorioChronosphere() {}
 
-    public static void add(double x, double y, double z, float radius) {
+    public static void add(double x, double y, double z, float radius, int removalTicks) {
         ClientLevel level = Minecraft.getInstance().level;
         if (level == null) return;
-        CHRONOSPHERES.add(new Chronosphere(level.dimension(), new Vec3(x, y, z), radius, level.getGameTime()));
+        CHRONOSPHERES.add(new Chronosphere(level.dimension(), new Vec3(x, y, z), radius, level.getGameTime(), removalTicks));
     }
 
     public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
@@ -93,7 +100,7 @@ public final class CraftorioChronosphere {
         if (level == null || shader == null) return;
 
         float now = level.getGameTime() + event.getPartialTick().getGameTimeDeltaPartialTick(false);
-        CHRONOSPHERES.removeIf(chronosphere -> now - chronosphere.start() >= TOTAL_TICKS);
+        CHRONOSPHERES.removeIf(chronosphere -> now - chronosphere.start() >= chronosphere.totalTicks());
         ensureSphere();
         if (sphere == null) return;
 
@@ -111,7 +118,7 @@ public final class CraftorioChronosphere {
             float elapsed = now - chronosphere.start();
             float appear = Mth.clamp(elapsed / ChronospherePacket.APPEAR_TICKS, 0f, 1f);
             appear = 1f - (1f - appear) * (1f - appear);
-            float dissipate = Mth.clamp((elapsed - REMOVAL_TICK) / ChronospherePacket.DISSIPATE_TICKS, 0f, 1f);
+            float dissipate = Mth.clamp((elapsed - chronosphere.dissipateTick()) / ChronospherePacket.DISSIPATE_TICKS, 0f, 1f);
 
             Matrix4f modelView = new Matrix4f(event.getModelViewMatrix())
                     .translate((float) (chronosphere.center().x - camera.x), (float) (chronosphere.center().y - camera.y), (float) (chronosphere.center().z - camera.z))

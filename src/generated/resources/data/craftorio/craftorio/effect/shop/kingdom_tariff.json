@@ -1,8 +1,9 @@
 {
   "type": "craftorio:shop_multiplier",
   "icon": "craftorio:textures/gui/default_icon.png",
-  "multiplier": -10.25,
+  "multiplier": 10.25,
   "name": "registry.kingdom_tariff",
+  "operation": "subtract",
   "seconds": 1900,
   "unobtainable": true,
   "weight": 10

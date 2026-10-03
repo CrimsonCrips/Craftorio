@@ -17,7 +17,7 @@ public class BorderCollisionHooks {
 
 
     public static boolean isWithinCraftorioBorders(Player player, BlockPos pos) {
-        return isWithinCraftorioBorders(player, pos.getX(), pos.getZ());
+        return isWithinCraftorioBorders(player, pos.getX() + 0.5, pos.getZ() + 0.5);
     }
 
     public static boolean isWithinCraftorioBorders(Player player, double x, double z) {

@@ -1,5 +1,7 @@
 package org.crimsoncrips.craftorio.client.screen.effect;
 
+import org.crimsoncrips.craftorio.networking.devtools.DevClaimEntryPacket;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -17,7 +19,6 @@ import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 import org.crimsoncrips.craftorio.events.ClientEvents;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
-import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.effect.ShopMultiplierEffect;
 import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
 
@@ -37,12 +38,18 @@ public class EffectDetailsScreen extends Screen implements ScrollableScreen {
 
     private final Screen parent;
     private final CraftorioEffects effect;
+    private final ResourceLocation claimId;
     private final List<ItemStack> tagItemStacks = new ArrayList<>();
 
     public EffectDetailsScreen(Screen parent, CraftorioEffects effect) {
+        this(parent, effect, null);
+    }
+
+    public EffectDetailsScreen(Screen parent, CraftorioEffects effect, ResourceLocation claimId) {
         super(Component.literal(effect.getActualName()));
         this.parent = parent;
         this.effect = effect;
+        this.claimId = claimId;
 
         if (effect instanceof TagMultiplierEffect tagEffect) {
             for (Holder<Item> holder : BuiltInRegistries.ITEM.getTagOrEmpty(tagEffect.getItemTag())) {
@@ -54,8 +61,15 @@ public class EffectDetailsScreen extends Screen implements ScrollableScreen {
 
     @Override
     protected void init() {
-        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.back"), b -> this.onClose())
-                .bounds(this.width / 2 - 50, this.height - 30, 100, 20).build());
+        if (this.claimId != null) {
+            this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.back"), b -> this.onClose())
+                    .bounds(this.width / 2 - 105, this.height - 30, 100, 20).build());
+            this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_claim_button"), b -> PacketDistributor.sendToServer(new DevClaimEntryPacket(true, this.claimId)))
+                    .bounds(this.width / 2 + 5, this.height - 30, 100, 20).build());
+        } else {
+            this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.back"), b -> this.onClose())
+                    .bounds(this.width / 2 - 50, this.height - 30, 100, 20).build());
+        }
     }
 
     @Override
@@ -105,12 +119,7 @@ public class EffectDetailsScreen extends Screen implements ScrollableScreen {
     }
 
     private String effectMultiplierLine() {
-        float multiplier = 0f;
-        if (this.effect instanceof GeneralMultiplierEffect general) multiplier = general.getMultiplier();
-        else if (this.effect instanceof TagMultiplierEffect tag) multiplier = tag.getMultiplier();
-        else if (this.effect instanceof ShopMultiplierEffect shop) multiplier = shop.getMultiplier();
-
-        return Component.translatable("misc.craftorio.effect_multiplier_label", String.format("%+.0f%%", multiplier * 100)).getString();
+        return Component.translatable("misc.craftorio.effect_multiplier_label", CraftorioMisc.effectValueString(this.effect)).getString();
     }
 
     private int drawLine(GuiGraphics graphics, int x, int y, String text, int color) {

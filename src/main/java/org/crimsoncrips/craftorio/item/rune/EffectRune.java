@@ -19,13 +19,13 @@ import java.util.List;
 public class EffectRune extends Item {
 
     public EffectRune(Properties properties) {
-        super(properties.stacksTo(1));
+        super(properties.stacksTo(64));
     }
 
     @Override
     public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand usedHand) {
         ItemStack itemstack = player.getItemInHand(usedHand);
-        if (getContainedEffects(itemstack) != null) {
+        if (!level.isClientSide() && getContainedEffects(itemstack) != null) {
             for (CraftorioEffects chosenEffect : getContainedEffects(itemstack)) {
                 CraftorioMisc.grantEffect(player, chosenEffect.copy());
             }
@@ -43,9 +43,7 @@ public class EffectRune extends Item {
             return;
         for (CraftorioEffects chosenEffect : getContainedEffects(stack)) {
             ChatFormatting color = ChatFormatting.BLUE;
-            if ((chosenEffect instanceof TagMultiplierEffect tagEffect && tagEffect.getMultiplier() < 0)
-                    || (chosenEffect instanceof GeneralMultiplierEffect generalEffect && generalEffect.getMultiplier() < 0)
-                    || (chosenEffect instanceof ShopMultiplierEffect shopEffect && shopEffect.getMultiplier() < 0)) {
+            if (chosenEffect.isNegativeEffect()) {
                 color = ChatFormatting.RED;
             }
 
@@ -57,10 +55,11 @@ public class EffectRune extends Item {
     }
 
     public List<CraftorioEffects> getContainedEffects(ItemStack itemStack) {
-        return itemStack.get(CraftorioDataComponents.EFFECTS_STORED);
+        StoredEffects stored = itemStack.get(CraftorioDataComponents.EFFECTS_STORED);
+        return stored == null ? null : stored.effects();
     }
 
     public void setContainedEffects(ItemStack itemStack,List<CraftorioEffects> containedEffects) {
-        itemStack.set(CraftorioDataComponents.EFFECTS_STORED,containedEffects);
+        itemStack.set(CraftorioDataComponents.EFFECTS_STORED, new StoredEffects(containedEffects));
     }
 }

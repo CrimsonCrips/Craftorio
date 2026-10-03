@@ -33,7 +33,7 @@ public class BorderExpandScreen extends Screen implements ScrollableScreen {
 	private static final int EXPAND_BUTTON_HEIGHT = 20;
 	private static final int AMOUNT_BUTTON_SIZE = 22;
 	private static final int AMOUNT_BUTTON_GAP = 4;
-	private static final int AMOUNT_EDIT_BOX_WIDTH = 80;
+	private static final int AMOUNT_EDIT_BOX_WIDTH = 60;
 	private static final int CANCEL_BUTTON_WIDTH = 100;
 	private static final int CANCEL_BUTTON_HEIGHT = 20;
 	private static final int GAP_AFTER_EXPAND = 14;
@@ -91,8 +91,8 @@ public class BorderExpandScreen extends Screen implements ScrollableScreen {
 		guiGraphics.drawCenteredString(this.font, Component.translatable("misc.craftorio.points_required"), centerX, this.pointsLabelY, 4210752);
 
 		long landAmount = CraftorioMisc.getLandAmount(player);
-		BigInteger rawCost = CraftorioMisc.pointsToExpand(amountClaiming, landAmount);
-		BigInteger pointsToExpand = CraftorioMisc.applyUpgradeModifier(player, ModifierTarget.EXPANSION_COST, rawCost).max(BigInteger.ZERO);
+		BigInteger pointsToExpand = player.isCreative() ? BigInteger.ZERO
+				: CraftorioMisc.applyUpgradeModifier(player, ModifierTarget.EXPANSION_COST, CraftorioMisc.pointsToExpand(amountClaiming, landAmount)).max(BigInteger.ZERO);
 		CraftorioMisc.CraftorioTextEffects.drawCenteredLineFit(guiGraphics, this.font, centerX, this.pointsValueY, true, 16759552, Integer.MAX_VALUE, pointsToExpand);
 	}
 
@@ -111,10 +111,14 @@ public class BorderExpandScreen extends Screen implements ScrollableScreen {
 		int centerX = this.width / 2;
 
 		int editBoxX = centerX - AMOUNT_EDIT_BOX_WIDTH / 2;
-		int maxMinusX = editBoxX - AMOUNT_BUTTON_GAP - AMOUNT_BUTTON_SIZE;
-		int maxPlusX = editBoxX + AMOUNT_EDIT_BOX_WIDTH + AMOUNT_BUTTON_GAP;
+		int minusOneX = editBoxX - AMOUNT_BUTTON_GAP - AMOUNT_BUTTON_SIZE;
+		int maxMinusX = minusOneX - AMOUNT_BUTTON_GAP - AMOUNT_BUTTON_SIZE;
+		int plusOneX = editBoxX + AMOUNT_EDIT_BOX_WIDTH + AMOUNT_BUTTON_GAP;
+		int maxPlusX = plusOneX + AMOUNT_BUTTON_SIZE + AMOUNT_BUTTON_GAP;
 
 		this.addButton(new BorderExpandAmount(maxMinusX, this.amountRowY, AMOUNT_BUTTON_SIZE, AMOUNT_BUTTON_SIZE, false));
+		this.addButton(new BorderExpandStep(minusOneX, this.amountRowY, AMOUNT_BUTTON_SIZE, AMOUNT_BUTTON_SIZE, -1));
+		this.addButton(new BorderExpandStep(plusOneX, this.amountRowY, AMOUNT_BUTTON_SIZE, AMOUNT_BUTTON_SIZE, 1));
 		this.addButton(new BorderExpandAmount(maxPlusX, this.amountRowY, AMOUNT_BUTTON_SIZE, AMOUNT_BUTTON_SIZE, true));
 
 		this.amountBox = new EditBox(this.font, editBoxX, this.amountRowY, AMOUNT_EDIT_BOX_WIDTH, AMOUNT_BUTTON_SIZE, Component.translatable("misc.craftorio.expand_border_amount"));
@@ -180,10 +184,7 @@ public class BorderExpandScreen extends Screen implements ScrollableScreen {
 			parsed = amountClaiming;
 		}
 
-		BigInteger points = CraftorioMisc.getPoints(getMinecraft().player);
-		long land = CraftorioMisc.getLandAmount(getMinecraft().player);
-		long cap = CraftorioMisc.expandCapabilityWithPoints(points, land);
-		long clamped = Math.max(0, Math.min(parsed, cap));
+		long clamped = Math.max(0, Math.min(parsed, expandCap()));
 
 		amountClaiming = clamped;
 		if (clamped != parsed && this.amountBox != null) {
@@ -213,11 +214,7 @@ public class BorderExpandScreen extends Screen implements ScrollableScreen {
 				return;
 
 
-			BigInteger points = CraftorioMisc.getPoints(getMinecraft().player);
-			long land = CraftorioMisc.getLandAmount(getMinecraft().player);
-			long cap = CraftorioMisc.expandCapabilityWithPoints(points,land);
-
-			amountClaiming = positive ? cap : 0;
+			amountClaiming = positive ? expandCap() : 0;
 			if (amountBox != null) {
 				amountBox.setValue(String.valueOf(amountClaiming));
 			}
@@ -225,6 +222,33 @@ public class BorderExpandScreen extends Screen implements ScrollableScreen {
 	}
 
 
+
+	private long expandCap() {
+		Player player = getMinecraft().player;
+		if (player == null) return 0;
+		if (player.isCreative()) return CraftorioMisc.CREATIVE_EXPAND_CAP;
+		return CraftorioMisc.expandCapabilityWithPoints(CraftorioMisc.getPoints(player), CraftorioMisc.getLandAmount(player));
+	}
+
+	class BorderExpandStep extends ExpansionButtons {
+		private final int step;
+
+		public BorderExpandStep(int x, int y, int width, int height, int step) {
+			super(x, y, width, height, Component.literal(step > 0 ? "+" + step : String.valueOf(step)));
+			this.step = step;
+			this.setTooltip(Tooltip.create(this.getMessage()));
+		}
+
+		@Override
+		public void onPress() {
+			if (getMinecraft().player == null) return;
+
+			amountClaiming = Math.max(0, Math.min(amountClaiming + this.step, expandCap()));
+			if (amountBox != null) {
+				amountBox.setValue(String.valueOf(amountClaiming));
+			}
+		}
+	}
 
 	private void addButton(ExpansionButtons beaconButton) {
 		this.addRenderableWidget(beaconButton);

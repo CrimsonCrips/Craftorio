@@ -21,7 +21,7 @@ public class DevToolsScreen extends Screen implements ScrollableScreen {
     private static final int BUTTON_WIDTH = 220;
     private static final int BUTTON_HEIGHT = 20;
     private static final int BUTTON_STRIDE = 24;
-    private static final int BUTTON_COUNT = 6;
+    private static final int BUTTON_COUNT = 8;
     private static final int DONE_EXTRA_GAP = 16;
 
     private final Screen parent;
@@ -50,6 +50,10 @@ public class DevToolsScreen extends Screen implements ScrollableScreen {
         y += BUTTON_STRIDE;
 
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_create_skill_tree"), b -> this.minecraft.setScreen(new SkillTreeCreatorScreen(this)))
+                .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
+        y += BUTTON_STRIDE;
+
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_points_determiner"), b -> this.minecraft.setScreen(new PointsDeterminerScreen(this)))
                 .bounds(centerX - BUTTON_WIDTH / 2, y, BUTTON_WIDTH, BUTTON_HEIGHT).build());
         y += BUTTON_STRIDE;
 

@@ -19,7 +19,6 @@ import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
-import org.crimsoncrips.craftorio.registries.effect.ShopMultiplierEffect;
 import org.crimsoncrips.craftorio.server.shop.CraftorioShop;
 import org.crimsoncrips.craftorio.server.shop.CraftorioShopCatalog.CatalogEntry;
 import org.crimsoncrips.craftorio.server.shop.CraftorioShopCatalog;
@@ -138,11 +137,7 @@ public class ShopScreen extends CatalogScreen<CatalogEntry> {
 
             this.unmodifiedPrice = CraftorioShop.getUnitPrice(player, entry.stack(), false);
             this.price = CraftorioShop.getUnitPrice(player, entry.stack(), true);
-            double multiplier = Craftorio.SERVER_CONFIG.SHOP_COST_MULTIPLIER.getAsInt();
-            for (ShopMultiplierEffect shopEffect : CraftorioMisc.getShopEffects(player)) {
-                multiplier += shopEffect.getMultiplier();
-            }
-            this.shopMultiplier = multiplier;
+            this.shopMultiplier = CraftorioShop.shopCostMultiplier(player);
 
             BigInteger cap = CraftorioMisc.pointThreshold();
             this.needsLiveTooltip = this.price.equals(cap) || this.price.equals(cap.negate())

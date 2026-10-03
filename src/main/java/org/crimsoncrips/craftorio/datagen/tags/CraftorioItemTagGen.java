@@ -40,6 +40,8 @@ public class CraftorioItemTagGen extends ItemTagsProvider {
 	public static final TagKey<Item> ARCHERY_SEASON = create("archery_season");
 	public static final TagKey<Item> VALUABLES = create("valuables");
 
+	public static final TagKey<Item> POTIONS = create("potions");
+
 	public CraftorioItemTagGen(PackOutput output, CompletableFuture<HolderLookup.Provider> future, CompletableFuture<TagLookup<Block>> provider, ExistingFileHelper helper) {
         super(output, future, provider, Craftorio.MODID, helper);
 
@@ -48,6 +50,12 @@ public class CraftorioItemTagGen extends ItemTagsProvider {
 	@SuppressWarnings("unchecked")
     @Override
 	protected void addTags(HolderLookup.Provider provider) {
+
+		tag(POTIONS).add(
+				Items.POTION,
+				Items.LINGERING_POTION,
+				Items.SPLASH_POTION
+		);
 
 		tag(ARCHERY_SEASON).add(
 				Items.BOW,

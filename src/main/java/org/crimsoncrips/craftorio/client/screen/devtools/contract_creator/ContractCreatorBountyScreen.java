@@ -39,6 +39,10 @@ public class ContractCreatorBountyScreen extends AbstractContainerScreen<Contrac
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.back"), b -> this.minecraft.setScreen(this.returnTo))
                 .bounds(panelLeft + 8, panelTop + 6, 52, 14).build());
 
+        Component tagsLabel = Component.translatable("misc.craftorio.dev_tools_contract_tags_button", ContractCreatorDraft.tagEntries().size());
+        this.addRenderableWidget(Button.builder(tagsLabel, b -> this.minecraft.setScreen(new ContractCreatorTagScreen(this)))
+                .bounds(panelLeft + this.imageWidth - 8 - 70, panelTop + 6, 70, 14).build());
+
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_tools_copy_from_inventory"), b -> PacketDistributor.sendToServer(new CopyInventoryToContractCreatorPacket()))
                 .bounds(panelLeft + 8, panelTop + 26, 130, 16).build());
 

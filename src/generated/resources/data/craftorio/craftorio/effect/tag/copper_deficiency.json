@@ -2,8 +2,9 @@
   "type": "craftorio:tag_multiplier",
   "icon": "craftorio:textures/gui/default_icon.png",
   "item_tag": "#craftorio:copper",
-  "multiplier": -80.0,
+  "multiplier": 80.0,
   "name": "registry.copper_deficiency",
+  "operation": "subtract",
   "seconds": 5400,
   "unobtainable": true,
   "weight": 10

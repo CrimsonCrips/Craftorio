@@ -1,6 +1,6 @@
 {
   "basePointValue": "1000000000000000000",
-  "card_texture": "craftorio:trazyn",
+  "card_texture": "craftorio:textures/gui/contract_textures/custom/trazyn.png",
   "description": "registry.multiversal_collection.description",
   "itemBounty": [
     {
@@ -4945,5 +4945,8 @@
   "point_threshold": "1000000000",
   "punishment": "craftorio:general/trazyns_curse",
   "seconds": 36000,
+  "text_colors": {
+    "title": "#00AA00"
+  },
   "weight": 10
 }

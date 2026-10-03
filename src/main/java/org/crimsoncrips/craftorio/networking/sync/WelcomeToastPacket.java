@@ -27,6 +27,10 @@ public record WelcomeToastPacket() implements CustomPacketPayload {
             if (seconds >= 1) {
                 CraftorioToastManager.addToast(message1, seconds * 1000L);
             }
+
+            if (Craftorio.CLIENT_CONFIG.WARNING_ENABLED.get() && !Craftorio.CLIENT_CONFIG.PHOTOSENSITIVE_MODE.get()) {
+                CraftorioToastManager.addToast(Component.translatable("misc.craftorio.warning_message"), 5 * 1000L);
+            }
         });
     }
 }

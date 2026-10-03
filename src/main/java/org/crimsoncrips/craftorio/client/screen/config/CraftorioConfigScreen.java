@@ -114,8 +114,12 @@ public class CraftorioConfigScreen extends Screen implements ScrollableScreen {
         this.list.addRow(Component.translatable("misc.craftorio.gold_rain_intensity_label"), intBox("gold_rain", config.GOLD_RAIN_INTENSITY));
         this.list.addRow(Component.translatable("misc.craftorio.config_skill_tree_effects"), booleanButton(config.SKILL_TREE_EFFECTS));
 
+        this.list.addHeader("misc.craftorio.config_group_dev_tools");
+        this.list.addRow(Component.translatable("misc.craftorio.config_dev_tools_mod_id"), stringBox("DEV_TOOLS_MOD_ID", config.DEV_TOOLS_MOD_ID));
+
         this.list.addHeader("misc.craftorio.config_group_accessibility");
         this.list.addRow(Component.translatable("misc.craftorio.config_photosensitive_mode"), booleanButton(config.PHOTOSENSITIVE_MODE));
+        this.list.addRow(Component.translatable("misc.craftorio.config_warning_enabled"), booleanButton(config.WARNING_ENABLED));
     }
 
     private void populateServer(CraftorioServerConfig config) {
@@ -166,6 +170,10 @@ public class CraftorioConfigScreen extends Screen implements ScrollableScreen {
         addServerRow("SACRIFICE_TIME_LIMIT_MINUTES", intBox("SACRIFICE_TIME_LIMIT_MINUTES", config.SACRIFICE_TIME_LIMIT_MINUTES));
         addServerRow("SACRIFICE_COOLDOWN_MINUTES", intBox("SACRIFICE_COOLDOWN_MINUTES", config.SACRIFICE_COOLDOWN_MINUTES));
 
+        this.list.addHeader("misc.craftorio.config_group_build_blitz");
+        addServerRow("BUILD_BLITZ_PERCENT", doubleBox("BUILD_BLITZ_PERCENT", config.BUILD_BLITZ_PERCENT));
+        addServerRow("BUILD_BLITZ_COOLDOWN_MINUTES", intBox("BUILD_BLITZ_COOLDOWN_MINUTES", config.BUILD_BLITZ_COOLDOWN_MINUTES));
+
         this.list.addHeader("misc.craftorio.config_group_rebirth");
         addServerRow("REBIRTH_BASE_COST", stringBox("REBIRTH_BASE_COST", config.REBIRTH_BASE_COST));
         addServerRow("REBIRTH_BASE_LIFE_POINTS", intBox("REBIRTH_BASE_LIFE_POINTS", config.REBIRTH_BASE_LIFE_POINTS));
@@ -176,6 +184,9 @@ public class CraftorioConfigScreen extends Screen implements ScrollableScreen {
         addServerRow("EFFECT_RUNE_BASE_PRICE", stringBox("EFFECT_RUNE_BASE_PRICE", config.EFFECT_RUNE_BASE_PRICE));
         addServerRow("EFFECT_RUNE_PRICE_MULTIPLIER", intBox("EFFECT_RUNE_PRICE_MULTIPLIER", config.EFFECT_RUNE_PRICE_MULTIPLIER));
         addServerRow("EFFECT_RUNE_MAX_EFFECTS", intBox("EFFECT_RUNE_MAX_EFFECTS", config.EFFECT_RUNE_MAX_EFFECTS));
+
+        this.list.addHeader("misc.craftorio.config_group_dev_tools");
+        addServerRow("SELECTION_MAX_VOLUME", intBox("SELECTION_MAX_VOLUME", config.SELECTION_MAX_VOLUME));
     }
 
     private void addServerRow(String name, AbstractWidget control) {

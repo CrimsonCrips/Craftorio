@@ -7,13 +7,10 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
-import net.minecraft.world.level.Level;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.registries.CraftorioRegistries;
 
-import java.util.ArrayList;
-import java.util.List;
 
 public abstract class CraftorioEffects {
 
@@ -23,6 +20,7 @@ public abstract class CraftorioEffects {
     private int weight;
     private boolean unobtainable;
     private boolean loanMarked;
+    private EffectOperation operation = EffectOperation.ADD;
 
     public static final ResourceKey<Registry<MapCodec<? extends CraftorioEffects>>> TYPE_REGISTRY_KEY =
             ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "craftorio_effect_type"));
@@ -43,6 +41,33 @@ public abstract class CraftorioEffects {
     public abstract MapCodec<? extends CraftorioEffects> codec();
 
     public abstract CraftorioEffects copy();
+
+    public abstract float getMultiplier();
+
+    public EffectOperation getOperation() {
+        return operation;
+    }
+
+    public void setOperation(EffectOperation operation) {
+        this.operation = operation == null ? EffectOperation.ADD : operation;
+    }
+
+    public CraftorioEffects withOperation(EffectOperation operation) {
+        setOperation(operation);
+        return this;
+    }
+
+    public double additiveContribution() {
+        return operation.additive(getMultiplier());
+    }
+
+    public double factorContribution() {
+        return operation.factor(getMultiplier());
+    }
+
+    public boolean isNegativeEffect() {
+        return operation.isNegative(getMultiplier());
+    }
 
     public CraftorioEffects(String name, int time, ResourceLocation icon, int weight, boolean unobtainable){
         this.name = name;
@@ -109,22 +134,7 @@ public abstract class CraftorioEffects {
         setTime(time - 1);
 
         if (shouldEnd()) {
-            Level level = player.level();
-            if (this instanceof TagMultiplierEffect) {
-                List<TagMultiplierEffect> effects = new ArrayList<>(CraftorioMisc.getTagEffects(player));
-                effects.remove(this);
-                CraftorioMisc.setTagEffects(player,effects);
-            }
-            if (this instanceof GeneralMultiplierEffect) {
-                List<GeneralMultiplierEffect> effects = new ArrayList<>(CraftorioMisc.getGeneralEffects(player));
-                effects.remove(this);
-                CraftorioMisc.setGeneralEffects(player,effects);
-            }
-            if (this instanceof ShopMultiplierEffect) {
-                List<ShopMultiplierEffect> effects = new ArrayList<>(CraftorioMisc.getShopEffects(player));
-                effects.remove(this);
-                CraftorioMisc.setShopEffects(player,effects);
-            }
+            CraftorioMisc.removeEffectsIf(player, effect -> effect == this);
         }
     }
 

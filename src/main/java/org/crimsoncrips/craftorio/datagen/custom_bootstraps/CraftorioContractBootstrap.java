@@ -9,11 +9,7 @@ import net.minecraft.world.item.Items;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.datagen.tags.CraftorioItemTagGen;
 import org.crimsoncrips.craftorio.item.CraftorioItems;
-import org.crimsoncrips.craftorio.registries.contract.ContractGoal;
-import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
-import org.crimsoncrips.craftorio.registries.contract.CraftorioContractItem;
-import org.crimsoncrips.craftorio.registries.contract.CraftorioContractItemReward;
-import org.crimsoncrips.craftorio.registries.contract.CraftorioContractTexture;
+import org.crimsoncrips.craftorio.registries.contract.*;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -27,7 +23,11 @@ import static org.crimsoncrips.craftorio.CraftorioMisc.toItem;
 public class CraftorioContractBootstrap {
 
     public static void bootstrap(BootstrapContext<CraftorioContract> context) {
+        addItemContracts(context);
+        addBuildContracts(context);
+    }
 
+    private static void addItemContracts(BootstrapContext<CraftorioContract> context) {
         context.register(
                 key("cake_delivery"), new CraftorioContract(
                         List.of(
@@ -104,22 +104,22 @@ public class CraftorioContractBootstrap {
                 )
         );
 
-
         context.register(
-                key("gold_throne_construction"), new CraftorioContract(
+                ResourceKey.create(CraftorioContract.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath("craftorio", "gold_throne_construction")),
+                new CraftorioContract(
                         List.of(
-                                newContractItem(28, Items.GOLD_BLOCK),
-                                newContractItem(10, Items.CANDLE),
-                                newContractItem(1, Items.RED_CARPET)
-                        ),"gold_throne_construction", 3600, BigInteger.valueOf(12000),
-                        List.of(
-                                newContractReward(1, Items.DIAMOND_BLOCK)
+                                new CraftorioContractItem(28, toItem("minecraft:gold_block")),
+                                new CraftorioContractItem(10, toItem("minecraft:candle")),
+                                new CraftorioContractItem(1, toItem("minecraft:red_carpet"))
                         ),
-                        Optional.of(Craftorio.prefix("shop/kingdom_tariff")),
+                        "gold_throne_construction", 3600, scientificToInt("12000"),
+                        List.of(
+                                new CraftorioContractItemReward(1, toItem("minecraft:diamond_block"))
+                        ),
+                        Optional.of(ResourceLocation.parse("craftorio:shop/kingdom_tariff")),
                         10,
-                        scientificToInt("5e3"),
-                        BigInteger.valueOf(13000),
-                        scientificToInt("5e6"),
+                        scientificToInt("13000"), scientificToInt("5000"), scientificToInt("5000000"),
+                        Optional.empty(),
                         Optional.empty()
                 )
         );
@@ -214,23 +214,6 @@ public class CraftorioContractBootstrap {
         );
 
         context.register(
-                key("chicken_coop"), new CraftorioContract(
-                        List.of(
-                                newContractItem(16, Items.EGG),
-                                newContractItem(32, Items.OAK_LOG),
-                                newContractItem(64, Items.WHEAT_SEEDS)
-                        ),"chicken_coop", 900, BigInteger.valueOf(384),
-                        List.of(),
-                        Optional.empty(),
-                        10,
-                        scientificToInt("5e3"),
-                        scientificToInt("1e3"),
-                        scientificToInt("4e5"),
-                        Optional.empty()
-                )
-        );
-
-        context.register(
                 key("inquisitors_burning"), new CraftorioContract(
                         List.of(
                                 newContractItem(64, Items.PAPER),
@@ -302,154 +285,11 @@ public class CraftorioContractBootstrap {
                         scientificToInt("5e7"),
                         scientificToInt("1e309"),
                         Optional.empty(),
-                        Optional.of(CraftorioContractTexture.TRAZYN)
+                        Optional.of(ResourceLocation.parse("craftorio:textures/gui/contract_textures/custom/trazyn.png")),
+                        new ContractTextColors(Optional.of(0x00AA00), Optional.empty(), Optional.empty(), Optional.empty())
                 )
         );
 
-        context.register(
-                key("hephaestus_vault"), new CraftorioContract(
-                        List.of(
-                                newContractItem(211179, Items.ANDESITE),
-                                newContractItem(87, Items.ANVIL),
-                                newContractItem(49, Items.BARREL),
-                                newContractItem(4123, Items.BEACON),
-                                newContractItem(40, Items.BIRCH_SIGN),
-                                newContractItem(6, Items.BLACK_BED),
-                                newContractItem(626, Items.BLACK_STAINED_GLASS),
-                                newContractItem(238178, Items.BLACKSTONE),
-                                newContractItem(31, Items.BLACKSTONE_WALL),
-                                newContractItem(235, Items.CHAIN),
-                                newContractItem(139, Items.CHEST),
-                                newContractItem(116, Items.CHISELED_POLISHED_BLACKSTONE),
-                                newContractItem(2110, Items.CLAY),
-                                newContractItem(81563, Items.COAL_BLOCK),
-                                newContractItem(865, Items.COARSE_DIRT),
-                                newContractItem(162993, Items.COBBLESTONE),
-                                newContractItem(80, Items.COBBLESTONE_STAIRS),
-                                newContractItem(208, Items.COMPARATOR),
-                                newContractItem(9, Items.COMPOSTER),
-                                newContractItem(2277382, Items.CRYING_OBSIDIAN),
-                                newContractItem(9, Items.CUT_SANDSTONE),
-                                newContractItem(262777, Items.CYAN_TERRACOTTA),
-                                newContractItem(16, Items.DARK_OAK_FENCE),
-                                newContractItem(40, Items.DARK_OAK_LOG),
-                                newContractItem(15, Items.DARK_OAK_PLANKS),
-                                newContractItem(60, Items.DARK_OAK_SLAB),
-                                newContractItem(40, Items.DARK_OAK_STAIRS),
-                                newContractItem(7, Items.DARK_OAK_TRAPDOOR),
-                                newContractItem(30800, Items.DARK_PRISMARINE),
-                                newContractItem(800, Items.DARK_PRISMARINE_STAIRS),
-                                newContractItem(44, Items.DAYLIGHT_DETECTOR),
-                                newContractItem(16, Items.DEAD_FIRE_CORAL_BLOCK),
-                                newContractItem(29, Items.DEAD_TUBE_CORAL_BLOCK),
-                                newContractItem(1, Items.DIAMOND_BLOCK),
-                                newContractItem(50420, Items.DIRT),
-                                newContractItem(47, Items.DISPENSER),
-                                newContractItem(169, Items.DROPPER),
-                                newContractItem(2664, Items.EMERALD_BLOCK),
-                                newContractItem(31, Items.ENCHANTING_TABLE),
-                                newContractItem(1, Items.END_STONE_BRICK_SLAB),
-                                newContractItem(4, Items.END_STONE_BRICK_STAIRS),
-                                newContractItem(167, Items.ENDER_CHEST),
-                                newContractItem(44, Items.GLASS),
-                                newContractItem(11, Items.GLOWSTONE),
-                                newContractItem(2, Items.GOLD_BLOCK),
-                                newContractItem(2642, Items.GRASS_BLOCK),
-                                newContractItem(24857, Items.GRAVEL),
-                                newContractItem(2056, Items.GREEN_STAINED_GLASS),
-                                newContractItem(2, Items.HAY_BLOCK),
-                                newContractItem(1, Items.HEAVY_WEIGHTED_PRESSURE_PLATE),
-                                newContractItem(6, Items.HONEY_BLOCK),
-                                newContractItem(294, Items.HOPPER),
-                                newContractItem(186, Items.IRON_BARS),
-                                newContractItem(78, Items.IRON_BLOCK),
-                                newContractItem(4463, Items.IRON_TRAPDOOR),
-                                newContractItem(37, Items.JUNGLE_SIGN),
-                                newContractItem(34, Items.LADDER),
-                                newContractItem(1, Items.LAPIS_BLOCK),
-                                newContractItem(94353, Items.LAVA_BUCKET),
-                                newContractItem(1, Items.LECTERN),
-                                newContractItem(50, Items.LEVER),
-                                newContractItem(20, Items.LIGHT_GRAY_SHULKER_BOX),
-                                newContractItem(2, Items.LIGHT_WEIGHTED_PRESSURE_PLATE),
-                                newContractItem(123, Items.LIME_CARPET),
-                                newContractItem(2919, Items.LIME_CONCRETE),
-                                newContractItem(82379, Items.LIME_STAINED_GLASS),
-                                newContractItem(1897, Items.MAGMA_BLOCK),
-                                newContractItem(1506, Items.NETHERITE_BLOCK),
-                                newContractItem(15783, Items.NOTE_BLOCK),
-                                newContractItem(1, Items.OAK_BUTTON),
-                                newContractItem(8, Items.OAK_FENCE),
-                                newContractItem(1, Items.OAK_LEAVES),
-                                newContractItem(15, Items.OAK_LOG),
-                                newContractItem(1, Items.OAK_PRESSURE_PLATE),
-                                newContractItem(16, Items.OAK_SIGN),
-                                newContractItem(3, Items.OAK_SLAB),
-                                newContractItem(433, Items.OAK_SIGN),
-                                newContractItem(112855, Items.OBSERVER),
-                                newContractItem(386693, Items.OBSIDIAN),
-                                newContractItem(9, Items.PINK_CONCRETE),
-                                newContractItem(184, Items.PISTON),
-                                newContractItem(2183, Items.PODZOL),
-                                newContractItem(282, Items.POLISHED_BLACKSTONE),
-                                newContractItem(222, Items.POLISHED_BLACKSTONE_BRICK_SLAB),
-                                newContractItem(2198, Items.POLISHED_BLACKSTONE_BRICK_STAIRS),
-                                newContractItem(312, Items.POLISHED_BLACKSTONE_BRICK_WALL),
-                                newContractItem(2337, Items.POLISHED_BLACKSTONE_BRICKS),
-                                newContractItem(685, Items.POLISHED_BLACKSTONE_WALL),
-                                newContractItem(3, Items.RAIL),
-                                newContractItem(14, Items.RED_CONCRETE),
-                                newContractItem(144, Items.REDSTONE_BLOCK),
-                                newContractItem(120, Items.REDSTONE_LAMP),
-                                newContractItem(307, Items.REDSTONE_TORCH),
-                                newContractItem(164, Items.REDSTONE_TORCH),
-                                newContractItem(23661, Items.REDSTONE),
-                                newContractItem(1197, Items.REPEATER),
-                                newContractItem(13937, Items.SAND),
-                                newContractItem(6051, Items.SEA_LANTERN),
-                                newContractItem(10, Items.SEA_PICKLE),
-                                newContractItem(141, Items.SHORT_GRASS),
-                                newContractItem(2179, Items.SHROOMLIGHT),
-                                newContractItem(3473, Items.SLIME_BLOCK),
-                                newContractItem(18, Items.SMOOTH_STONE_SLAB),
-                                newContractItem(29, Items.SOUL_LANTERN),
-                                newContractItem(1201, Items.SOUL_SAND),
-                                newContractItem(553, Items.SOUL_SOIL),
-                                newContractItem(10, Items.SPRUCE_SLAB),
-                                newContractItem(25, Items.SPRUCE_TRAPDOOR),
-                                newContractItem(430, Items.STICKY_PISTON),
-                                newContractItem(87055, Items.STONE),
-                                newContractItem(42, Items.STONE_BRICK_SLAB),
-                                newContractItem(195, Items.STONE_BRICK_WALL),
-                                newContractItem(23, Items.STONE_BRICKS),
-                                newContractItem(70, Items.STONE_BUTTON),
-                                newContractItem(7, Items.STONE_PRESSURE_PLATE),
-                                newContractItem(8, Items.STONE_SLAB),
-                                newContractItem(2, Items.TALL_GRASS),
-                                newContractItem(406, Items.TARGET),
-                                newContractItem(7853, Items.STRING),
-                                newContractItem(4, Items.TRIPWIRE_HOOK),
-                                newContractItem(350, Items.VINE),
-                                newContractItem(1, Items.TORCH),
-                                newContractItem(298, Items.WARPED_SIGN),
-                                newContractItem(1111, Items.WATER_BUCKET),
-                                newContractItem(14, Items.WHITE_BED),
-                                newContractItem(60, Items.WHITE_CARPET),
-                                newContractItem(1, Items.YELLOW_CARPET),
-                                newContractItem(3, Items.YELLOW_CONCRETE)
-                        ),"hephaestus_vault", 43200, BigInteger.valueOf(500_000_000L),
-                        List.of(
-                                newContractReward(5, CraftorioItems.EFFECT_RUNE.get(), 2),
-                                newContractReward(3, CraftorioItems.MYSTERY_EFFECT_RUNE.get(), 2)
-                        ),
-                        Optional.of(Craftorio.prefix("general/commeupance_of_the_gods")),
-                        10,
-                        scientificToInt("1e10"),
-                        scientificToInt("1e7"),
-                        scientificToInt("1e309"),
-                        Optional.empty()
-                )
-        );
 
         context.register(
                 ResourceKey.create(CraftorioContract.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "monster_annihilator")),
@@ -510,32 +350,224 @@ public class CraftorioContractBootstrap {
                 )
         );
 
+
         context.register(
-                ResourceKey.create(CraftorioContract.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "villager_house")),
+                ResourceKey.create(CraftorioContract.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath("craftorio", "wasted_reimains")),
                 new CraftorioContract(
-                        List.of(),
-                        "villager_house", 3000, scientificToInt("6000"),
-                        List.of(),
+                        List.of(
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe")),
+                                new CraftorioContractItem(1, toItem("minecraft:netherite_hoe"))
+                        ),
+                        "wasted_reimains", 36000, scientificToInt("800000"),
+                        List.of(
+                                // no reward items were placed in the creator's slots
+                        ),
+                        Optional.of(ResourceLocation.parse("craftorio:reiminder")),
+                        7,
+                        scientificToInt("2700000"), scientificToInt("100000"), scientificToInt("1000000000"),
+                        Optional.empty(),
+                        Optional.of(ResourceLocation.parse("craftorio:textures/gui/contract_textures/custom/reim.png")),
+                        new ContractTextColors(Optional.of(0x55FFFF), Optional.empty(), Optional.empty(), Optional.empty())
+                )
+        );
+    }
+
+    private static void addBuildContracts(BootstrapContext<CraftorioContract> context) {
+        context.register(
+                ResourceKey.create(CraftorioContract.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath("craftorio", "chicken_coop")),
+                new CraftorioContract(
+                        List.of(
+                                // no bounty items were placed in the creator's slots
+                        ),
+                        "chicken_coop", 900, scientificToInt("384"),
+                        List.of(
+                                new CraftorioContractItemReward(8, toItem("minecraft:egg")),
+                                new CraftorioContractItemReward(32, toItem("minecraft:wheat_seeds"))
+                        ),
                         Optional.empty(),
                         10,
-                        scientificToInt("0"), scientificToInt("0"), scientificToInt("1e8"),
+                        scientificToInt("5000"), scientificToInt("1000"), scientificToInt("400000"),
+                        Optional.empty(),
+                        Optional.empty()
+                ).withGoal(ContractGoal.building(ResourceLocation.parse("craftorio:contracts/chicken_coop")))
+        );
+
+        context.register(
+                ResourceKey.create(CraftorioContract.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath("craftorio", "matterial_calculation")),
+                new CraftorioContract(
+                        List.of(
+                                // no bounty items were placed in the creator's slots
+                        ),
+                        "matterial_calculation", 43800, scientificToInt("7e21"),
+                        List.of(
+                                new CraftorioContractItemReward(5, BuiltInRegistries.ITEM.get(ResourceLocation.parse("craftorio:effect_rune")), 2),
+                                new CraftorioContractItemReward(6, BuiltInRegistries.ITEM.get(ResourceLocation.parse("craftorio:effect_rune")), 2),
+                                new CraftorioContractItemReward(3, BuiltInRegistries.ITEM.get(ResourceLocation.parse("craftorio:mystery_effect_rune")), 2),
+                                new CraftorioContractItemReward(4, BuiltInRegistries.ITEM.get(ResourceLocation.parse("craftorio:mystery_effect_rune")), 2)
+
+                        ),
+                        Optional.empty(),
+                        3,
+                        scientificToInt("5000000000"), scientificToInt("1000000000"), scientificToInt("1e309"),
+                        Optional.empty(),
+                        Optional.empty()
+                ).withGoal(ContractGoal.building(ResourceLocation.parse("craftorio:contracts/matt_calculator")))
+        );
+
+        context.register(
+                ResourceKey.create(CraftorioContract.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath("craftorio", "mumbo_10_door")),
+                new CraftorioContract(
+                        List.of(
+                                // no bounty items were placed in the creator's slots
+                        ),
+                        "mumbo_10_door", 7800, scientificToInt("100000"),
+                        List.of(
+                                new CraftorioContractItemReward(64, toItem("minecraft:redstone_block"))
+                        ),
+                        Optional.empty(),
+                        11,
+                        scientificToInt("500000"), scientificToInt("200000"), scientificToInt("1e10"),
+                        Optional.empty(),
+                        Optional.empty()
+                ).withGoal(ContractGoal.building(ResourceLocation.parse("craftorio:contracts/mumbo_door")))
+        );
+
+        context.register(
+                ResourceKey.create(CraftorioContract.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath("craftorio", "create_steam_engine")),
+                new CraftorioContract(
+                        List.of(
+                                // no bounty items were placed in the creator's slots
+                        ),
+                        "create_steam_engine", 1800, scientificToInt("76000"),
+                        List.of(
+                                new CraftorioContractItemReward(4, toItem("create:blaze_cake")),
+                                new CraftorioContractItemReward(16, toItem("create:brass_ingot")),
+                                new CraftorioContractItemReward(4, toItem("create:andesite_alloy_block"))
+                        ),
+                        Optional.empty(),
+                        7,
+                        scientificToInt("120000"), scientificToInt("40000"), scientificToInt("1000000000000"),
+                        Optional.of("create"),
+                        Optional.empty()
+                ).withGoal(ContractGoal.building(ResourceLocation.parse("craftorio:contracts/simple_steam_engine")))
+        );
+
+
+        context.register(
+                ResourceKey.create(CraftorioContract.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath("craftorio", "witchy_business")),
+                new CraftorioContract(
+                        List.of(
+                                // no bounty items were placed in the creator's slots
+                        ),
+                        "witchy_business", 600, scientificToInt("4500"),
+                        List.of(
+                                // no reward items were placed in the creator's slots
+                        ),
+                        Optional.of(ResourceLocation.parse("craftorio:witch_curse")),
+                        9,
+                        scientificToInt("4500"), scientificToInt("1000"), scientificToInt("20000"),
+                        Optional.empty(),
+                        Optional.empty()
+                ).withGoal(ContractGoal.building(ResourceLocation.parse("craftorio:contracts/witch_hut")))
+        );
+
+        context.register(
+                ResourceKey.create(CraftorioContract.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath("craftorio", "villager_house")),
+                new CraftorioContract(
+                        List.of(
+                                // no bounty items were placed in the creator's slots
+                        ),
+                        "villager_house", 1260, scientificToInt("6000"),
+                        List.of(
+                                // no reward items were placed in the creator's slots
+                        ),
+                        Optional.empty(),
+                        10,
+                        scientificToInt("500"), scientificToInt("0"), scientificToInt("100000"),
+                        Optional.empty(),
                         Optional.empty()
                 ).withGoal(ContractGoal.building(ResourceLocation.parse("minecraft:village/plains/houses/plains_small_house_1")))
         );
 
         context.register(
-                ResourceKey.create(CraftorioContract.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "end_ship")),
+                ResourceKey.create(CraftorioContract.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath("craftorio", "end_ship")),
                 new CraftorioContract(
-                        List.of(),
+                        List.of(
+                                // no bounty items were placed in the creator's slots
+                        ),
                         "end_ship", 10800, scientificToInt("250000"),
-                        List.of(),
+                        List.of(
+                                // no reward items were placed in the creator's slots
+                        ),
                         Optional.empty(),
-                        5,
-                        scientificToInt("1e6"), scientificToInt("1e5"), scientificToInt("1e10"),
+                        7,
+                        scientificToInt("100000"), scientificToInt("10000"), scientificToInt("100000000"),
+                        Optional.empty(),
                         Optional.empty()
                 ).withGoal(ContractGoal.building(ResourceLocation.parse("minecraft:end_city/ship")))
         );
 
+        context.register(
+                ResourceKey.create(CraftorioContract.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath("craftorio", "nether_beacon")),
+                new CraftorioContract(
+                        List.of(
+                                // no bounty items were placed in the creator's slots
+                        ),
+                        "nether_beacon", 360000, scientificToInt("7e80"),
+                        List.of(
+                                new CraftorioContractItemReward(9, BuiltInRegistries.ITEM.get(ResourceLocation.parse("craftorio:effect_rune")), 6),
+                                new CraftorioContractItemReward(5, BuiltInRegistries.ITEM.get(ResourceLocation.parse("craftorio:effect_rune")), 6),
+                                new CraftorioContractItemReward(4, toItem("minecraft:bedrock")),
+                                new CraftorioContractItemReward(9, BuiltInRegistries.ITEM.get(ResourceLocation.parse("craftorio:mystery_effect_rune")), 6),
+                                new CraftorioContractItemReward(6, BuiltInRegistries.ITEM.get(ResourceLocation.parse("craftorio:mystery_effect_rune")), 6)
+                        ),
+                        Optional.empty(),
+                        1,
+                        scientificToInt("27e60"), scientificToInt("1e50"), scientificToInt("1e309"),
+                        Optional.empty(),
+                        Optional.empty(),
+                        new ContractTextColors(Optional.of(0xFFFF55), Optional.empty(), Optional.empty(), Optional.empty())
+                ).withGoal(ContractGoal.building(ResourceLocation.parse("craftorio:contracts/netherite_beacon")))
+        );
     }
 
     private static final Set<Item> UNOBTAINABLE_VANILLA_ITEMS = Set.of(

@@ -12,6 +12,7 @@ import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.networking.schematic.RequestSchematicStructurePacket;
+import org.crimsoncrips.craftorio.networking.schematic.SchematicTransfer;
 import org.crimsoncrips.craftorio.server.schematic.SchematicStructure;
 
 import java.io.IOException;
@@ -65,6 +66,7 @@ public final class ClientSchematics {
     public static void onLoggingOut(ClientPlayerNetworkEvent.LoggingOut event) {
         STRUCTURES.clear();
         REQUESTED.clear();
+        SchematicTransfer.clear();
         CraftorioSchematicRenderer.clear();
     }
 }

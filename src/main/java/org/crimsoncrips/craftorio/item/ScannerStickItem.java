@@ -18,6 +18,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.event.entity.player.PlayerInteractEvent;
+import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.registries.CraftorioDataComponents;
 import org.crimsoncrips.craftorio.server.devtools.CraftorioDevTools;
@@ -29,7 +30,9 @@ import java.util.TreeMap;
 
 public class ScannerStickItem extends Item {
 
-    public static final long MAX_VOLUME = 262144L;
+    public static long maxVolume() {
+        return Craftorio.SERVER_CONFIG.SELECTION_MAX_VOLUME.get();
+    }
 
     public ScannerStickItem(Properties properties) {
         super(properties);
@@ -103,8 +106,8 @@ public class ScannerStickItem extends Item {
                 Math.max(pos1.getZ(), pos2.getZ()));
 
         long volume = (long) (max.getX() - min.getX() + 1) * (max.getY() - min.getY() + 1) * (max.getZ() - min.getZ() + 1);
-        if (volume > MAX_VOLUME) {
-            player.sendSystemMessage(Component.translatable("misc.craftorio.scan_area_large_warning", volume, MAX_VOLUME).withStyle(ChatFormatting.YELLOW));
+        if (volume > maxVolume()) {
+            player.sendSystemMessage(Component.translatable("misc.craftorio.scan_area_large_warning", volume, maxVolume()).withStyle(ChatFormatting.YELLOW));
         }
 
         Level level = player.level();

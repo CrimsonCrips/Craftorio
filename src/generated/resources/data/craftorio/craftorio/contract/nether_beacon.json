@@ -1,0 +1,58 @@
+{
+  "basePointValue": "700000000000000000000000000000000000000000000000000000000000000000000000000000000",
+  "description": "registry.nether_beacon.description",
+  "goal": {
+    "type": "building",
+    "structure": "craftorio:contracts/netherite_beacon"
+  },
+  "itemBounty": [],
+  "itemRewards": [
+    {
+      "amountGiving": 9,
+      "randomEffectCount": 6,
+      "rewardingItem": {
+        "count": 1,
+        "id": "craftorio:effect_rune"
+      }
+    },
+    {
+      "amountGiving": 5,
+      "randomEffectCount": 6,
+      "rewardingItem": {
+        "count": 1,
+        "id": "craftorio:effect_rune"
+      }
+    },
+    {
+      "amountGiving": 4,
+      "rewardingItem": {
+        "count": 1,
+        "id": "minecraft:bedrock"
+      }
+    },
+    {
+      "amountGiving": 9,
+      "randomEffectCount": 6,
+      "rewardingItem": {
+        "count": 1,
+        "id": "craftorio:mystery_effect_rune"
+      }
+    },
+    {
+      "amountGiving": 6,
+      "randomEffectCount": 6,
+      "rewardingItem": {
+        "count": 1,
+        "id": "craftorio:mystery_effect_rune"
+      }
+    }
+  ],
+  "min_point_threshold": "100000000000000000000000000000000000000000000000000",
+  "name": "registry.nether_beacon.title",
+  "point_threshold": "27000000000000000000000000000000000000000000000000000000000000",
+  "seconds": 360000,
+  "text_colors": {
+    "title": "#FFFF55"
+  },
+  "weight": 1
+}

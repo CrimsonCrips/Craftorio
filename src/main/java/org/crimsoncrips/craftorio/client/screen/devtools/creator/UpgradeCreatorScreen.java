@@ -9,6 +9,8 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.crimsoncrips.craftorio.client.screen.devtools.DevToolsTagPicker;
+import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 import org.crimsoncrips.craftorio.client.screen.devtools.DevToolsDropdown;
@@ -33,7 +35,7 @@ public class UpgradeCreatorScreen extends Screen implements ScrollableScreen {
             "MULTIPLIER", "ITEM_BASE_VALUE", "ITEM_TAG_BASE_VALUE", "CONTRACT_REFRESH_SPEED", "EFFECT_TIMER_SPEED",
             "PUNISHMENT_DURATION", "EFFECT_DURATION", "EXPANSION_COST",
             "RARER_CONTRACT_CHANCE", "RARER_EFFECT_CHANCE", "SHOP_COST", "CONTRACT_REFRESH_COST",
-            "LOST_BET_REFUND", "MULT_PER_CONTRACT_DONE", "BET_ODDS", "BET_BONUS", "MANUAL_SINK_VALUE"
+            "LOST_BET_REFUND", "MULT_PER_CONTRACT_DONE", "BET_ODDS", "BET_BONUS", "MANUAL_SINK_VALUE", "BUILD_BLITZ_COOLDOWN", "BUILD_BLITZ_COVERAGE"
     };
     private static final String[] ATTRIBUTE_TARGETS = {
             "HEALTH", "SPEED", "DEFENSE", "DAMAGE", "BLOCK_REACH", "JUMP_HEIGHT", "XP_GAIN", "RESISTANCE"
@@ -71,6 +73,7 @@ public class UpgradeCreatorScreen extends Screen implements ScrollableScreen {
     private EditBox parentBox;
     private EditBox valueBox;
     private EditBox itemTagBox;
+    private Button selectTagButton;
     private boolean includeLang = false;
     private Button includeLangButton;
     private EditBox nameBox;
@@ -171,9 +174,15 @@ public class UpgradeCreatorScreen extends Screen implements ScrollableScreen {
         this.addRenderableWidget(this.valueBox);
         y += rowHeight;
 
-        this.itemTagBox = new EditBox(this.font, fieldX, y, fieldWidth, 16, Component.literal("item tag"));
+        this.itemTagBox = new EditBox(this.font, fieldX, y, fieldWidth - 64, 16, Component.literal("item tag"));
         this.itemTagBox.setMaxLength(256);
         this.addRenderableWidget(this.itemTagBox);
+        this.selectTagButton = Button.builder(Component.translatable("misc.craftorio.dev_tools_select_tag"), b -> {
+            captureFields();
+            DevToolsTagPicker.open(this.minecraft, this, tag -> this.prefillItemTag = tag);
+        })
+                .bounds(fieldX + fieldWidth - 60, y, 60, 16).build();
+        this.addRenderableWidget(this.selectTagButton);
         updateItemTagVisibility();
         y += rowHeight;
 
@@ -191,7 +200,7 @@ public class UpgradeCreatorScreen extends Screen implements ScrollableScreen {
         y += rowHeight + 8;
 
         this.idBox.setValue(prefillId);
-        this.modIdBox.setValue(prefillModId);
+        this.modIdBox.setValue(prefillModId.isBlank() ? Craftorio.CLIENT_CONFIG.devToolsModId() : prefillModId);
         this.descriptionBox.setValue(prefillDescription);
         this.costBox.setValue(prefillCost);
         this.parentBox.setValue(prefillParent);
@@ -267,11 +276,7 @@ public class UpgradeCreatorScreen extends Screen implements ScrollableScreen {
             this.categoryIndex = 0;
             this.modifierTargetIndex = indexOf(MODIFIER_TARGETS, modifierUpgrade.getTarget().name());
             this.operationIndex = indexOf(OPERATIONS, modifierUpgrade.getOperation().name());
-            double value = modifierUpgrade.getValue();
-            if ((modifierUpgrade.getOperation().name().equals("ADD") || modifierUpgrade.getOperation().name().equals("SUBTRACT")) && isTickDurationTarget()) {
-                value /= CraftorioMisc.SECONDS_TO_TICKS;
-            }
-            this.prefillValue = String.valueOf(value);
+            this.prefillValue = String.valueOf(modifierUpgrade.getValue());
             this.prefillItemTag = modifierUpgrade.getItemTag().map(tag -> tag.location().toString()).orElse("");
         } else if (upgrade instanceof CraftorioAttributeUpgrade attributeUpgrade) {
             this.categoryIndex = 1;
@@ -337,7 +342,7 @@ public class UpgradeCreatorScreen extends Screen implements ScrollableScreen {
         if (!isModifierCategory()) return false;
         String target = MODIFIER_TARGETS[modifierTargetIndex];
         return target.equals("CONTRACT_REFRESH_SPEED") || target.equals("EFFECT_TIMER_SPEED")
-                || target.equals("PUNISHMENT_DURATION") || target.equals("EFFECT_DURATION");
+                || target.equals("PUNISHMENT_DURATION") || target.equals("EFFECT_DURATION") || target.equals("BUILD_BLITZ_COOLDOWN");
     }
 
     private String valueHint() {
@@ -350,10 +355,25 @@ public class UpgradeCreatorScreen extends Screen implements ScrollableScreen {
         return "e.g. 0.1";
     }
 
+    private void captureFields() {
+        this.prefillId = this.idBox.getValue();
+        this.prefillModId = this.modIdBox.getValue();
+        this.prefillDescription = this.descriptionBox.getValue();
+        this.prefillCost = this.costBox.getValue();
+        this.prefillMaxPurchases = this.maxPurchasesBox.getValue();
+        this.prefillParent = this.parentBox.getValue();
+        this.prefillChance = this.chanceBox.getValue();
+        this.prefillValue = this.valueBox.getValue();
+        this.prefillItemTag = this.itemTagBox.getValue();
+        this.prefillName = this.nameBox.getValue();
+    }
+
     private void updateItemTagVisibility() {
         boolean uses = usesItemTag();
         this.itemTagBox.visible = uses;
         this.itemTagBox.active = uses;
+        this.selectTagButton.visible = this.itemTagBox.visible;
+        this.selectTagButton.active = this.itemTagBox.active;
     }
 
     private void refreshLangVisibility() {

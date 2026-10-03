@@ -45,6 +45,11 @@ public class CraftorioServerConfig {
     public final ModConfigSpec.IntValue EFFECT_RUNE_PRICE_MULTIPLIER;
     public final ModConfigSpec.IntValue EFFECT_RUNE_MAX_EFFECTS;
 
+    public final ModConfigSpec.IntValue SELECTION_MAX_VOLUME;
+
+    public final ModConfigSpec.DoubleValue BUILD_BLITZ_PERCENT;
+    public final ModConfigSpec.IntValue BUILD_BLITZ_COOLDOWN_MINUTES;
+
 
     public CraftorioServerConfig(final ModConfigSpec.Builder builder) {
 
@@ -116,6 +121,15 @@ public class CraftorioServerConfig {
         this.EFFECT_RUNE_BASE_PRICE = buildString(builder, "EFFECT_RUNE_BASE_PRICE", "1e18", "Price of an Effect Rune with 1 random effect (exponents work like 1e18 = 1 Qn), each extra effect multiplies the price by EFFECT_RUNE_PRICE_MULTIPLIER");
         this.EFFECT_RUNE_PRICE_MULTIPLIER = buildInt(builder, "EFFECT_RUNE_PRICE_MULTIPLIER", 1000, 2, Integer.MAX_VALUE, "Price multiplier applied per extra effect on an Effect Rune");
         this.EFFECT_RUNE_MAX_EFFECTS = buildInt(builder, "EFFECT_RUNE_MAX_EFFECTS", 10, 1, 100, "Maximum number of random effects that can be put on a single Effect Rune");
+        builder.pop();
+
+        builder.push("Build Blitz");
+        this.BUILD_BLITZ_PERCENT = buildDouble(builder, "BUILD_BLITZ_PERCENT", 20.0, 0.0, 100.0, "Percent of a schematic's missing blocks the Build Blitz (sacrifice upgrade) fires at once, using blocks from the player's inventory");
+        this.BUILD_BLITZ_COOLDOWN_MINUTES = buildInt(builder, "BUILD_BLITZ_COOLDOWN_MINUTES", 120, 0, Integer.MAX_VALUE, "Minutes the Build Blitz takes to recharge after firing, before upgrades. Blocks that fail to be placed refund their share of this time");
+        builder.pop();
+
+        builder.push("Dev Tools");
+        this.SELECTION_MAX_VOLUME = buildInt(builder, "SELECTION_MAX_VOLUME", 262144, 1, Integer.MAX_VALUE, "Maximum number of blocks the Scanner Stick (warns), Chronosphere Stick and Structure Wand can select at once");
         builder.pop();
 
     }

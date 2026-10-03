@@ -10,7 +10,6 @@ import net.minecraft.network.codec.StreamCodec;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 
 import java.util.Optional;
@@ -29,10 +28,12 @@ public class TagMultiplierEffect extends CraftorioEffects {
                     ResourceLocation.CODEC.optionalFieldOf("icon").forGetter(effect -> Optional.ofNullable(effect.getIcon())),
                     Codec.INT.optionalFieldOf("weight", 1).forGetter(TagMultiplierEffect::getWeight),
                     Codec.BOOL.optionalFieldOf("unobtainable", false).forGetter(TagMultiplierEffect::isUnobtainable),
-                    Codec.BOOL.optionalFieldOf("loan_marked", false).forGetter(TagMultiplierEffect::isLoanMarked)
-            ).apply(instance, (multiplier, name, itemTag, seconds, icon, weight, unobtainable, loanMarked) -> {
+                    Codec.BOOL.optionalFieldOf("loan_marked", false).forGetter(TagMultiplierEffect::isLoanMarked),
+                    EffectOperation.CODEC.optionalFieldOf("operation", EffectOperation.ADD).forGetter(TagMultiplierEffect::getOperation)
+            ).apply(instance, (multiplier, name, itemTag, seconds, icon, weight, unobtainable, loanMarked, operation) -> {
                     TagMultiplierEffect effect = new TagMultiplierEffect(multiplier, name, itemTag, seconds, icon.orElse(null), weight, unobtainable);
                     effect.setLoanMarked(loanMarked);
+                    effect.setOperation(operation);
                     return effect;
             })
     );
@@ -41,6 +42,7 @@ public class TagMultiplierEffect extends CraftorioEffects {
             ByteBufCodecs.INT, WeightUnobtainable::weight,
             ByteBufCodecs.BOOL, WeightUnobtainable::unobtainable,
             ByteBufCodecs.BOOL, WeightUnobtainable::loanMarked,
+            EffectOperation.STREAM_CODEC, WeightUnobtainable::operation,
             WeightUnobtainable::new
     );
 
@@ -50,16 +52,17 @@ public class TagMultiplierEffect extends CraftorioEffects {
             ByteBufCodecs.fromCodec(TagKey.hashedCodec(Registries.ITEM)), TagMultiplierEffect::getItemTag,
             ByteBufCodecs.INT, TagMultiplierEffect::getTime,
             ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC), effect -> Optional.ofNullable(effect.getIcon()),
-            WEIGHT_UNOBTAINABLE_STREAM, effect -> new WeightUnobtainable(effect.getWeight(), effect.isUnobtainable(), effect.isLoanMarked()),
+            WEIGHT_UNOBTAINABLE_STREAM, effect -> new WeightUnobtainable(effect.getWeight(), effect.isUnobtainable(), effect.isLoanMarked(), effect.getOperation()),
             (multiplier, name, itemTag, time, icon, weightUnobtainable) -> {
                 TagMultiplierEffect effect = new TagMultiplierEffect(multiplier, name, itemTag, time / CraftorioMisc.SECONDS_TO_TICKS, icon.orElse(null), weightUnobtainable.weight(), weightUnobtainable.unobtainable());
                 effect.setTime(time);
                 effect.setLoanMarked(weightUnobtainable.loanMarked());
+                effect.setOperation(weightUnobtainable.operation());
                 return effect;
             }
     );
 
-    private record WeightUnobtainable(int weight, boolean unobtainable, boolean loanMarked) {}
+    private record WeightUnobtainable(int weight, boolean unobtainable, boolean loanMarked, EffectOperation operation) {}
 
     public TagMultiplierEffect(float multiplier, String key, TagKey<Item> itemTag, int seconds, ResourceLocation icon, int weight, boolean unobtainable){
         super(key, seconds * CraftorioMisc.SECONDS_TO_TICKS, icon, weight, unobtainable);
@@ -69,10 +72,6 @@ public class TagMultiplierEffect extends CraftorioEffects {
 
     public float getMultiplier(){
         return multiplier;
-    }
-
-    public float getTagMultiplier(ItemStack item) {
-        return item.is(itemTag) ? getMultiplier() : 0F;
     }
 
     public TagKey<Item> getItemTag() {
@@ -89,6 +88,7 @@ public class TagMultiplierEffect extends CraftorioEffects {
         TagMultiplierEffect copy = new TagMultiplierEffect(getMultiplier(), getNameKey(), getItemTag(), getTime() / CraftorioMisc.SECONDS_TO_TICKS, getIcon(), getWeight(), isUnobtainable());
         copy.setTime(getTime());
         copy.setLoanMarked(isLoanMarked());
+        copy.setOperation(getOperation());
         return copy;
     }
 }

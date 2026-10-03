@@ -4,13 +4,17 @@ import com.mojang.math.Axis;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.Button;
+import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.networking.skill_tree.UnlockUpgradePacket;
+import org.crimsoncrips.craftorio.skill_tree.UpgradeTree;
+import org.crimsoncrips.craftorio.networking.skill_tree.PurchaseAllUpgradesPacket;
+import net.neoforged.neoforge.network.PacketDistributor;
 import net.minecraft.client.gui.components.Tooltip;
 import net.minecraft.client.gui.narration.NarrationElementOutput;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
 import net.minecraft.util.Mth;
 import net.minecraft.world.entity.player.Player;
@@ -20,7 +24,6 @@ import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.client.render.CraftorioSkillTreeBackground;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
 
-import java.math.BigInteger;
 import java.util.*;
 
 @OnlyIn(Dist.CLIENT)
@@ -57,19 +60,19 @@ public abstract class CraftorioSkillTreeScreenBase extends Screen {
         super(title);
     }
 
-    protected abstract ResourceKey<Registry<CraftorioUpgrade>> registryKey();
+    protected abstract UpgradeTree tree();
 
-    protected abstract boolean hasUnlocked(Player player, ResourceLocation id);
+    private boolean hasUnlocked(Player player, ResourceLocation id) {
+        return CraftorioMisc.hasUnlockedUpgrade(player, tree(), id);
+    }
 
-    protected abstract int getPurchaseCount(Player player, ResourceLocation id);
+    private int getPurchaseCount(Player player, ResourceLocation id) {
+        return CraftorioMisc.getUpgradeCount(player, tree(), id);
+    }
 
-    protected abstract Set<ResourceLocation> getUnlockedSnapshot(Player player);
-
-    protected abstract BigInteger getCurrentCurrency(Player player);
-
-    protected abstract String formatCost(BigInteger cost);
-
-    protected abstract void sendUnlockPacket(ResourceLocation id);
+    private Set<ResourceLocation> getUnlockedSnapshot(Player player) {
+        return CraftorioMisc.getUpgradePurchaseCounts(player, tree()).keySet();
+    }
 
     protected abstract void renderHud(GuiGraphics graphics, Player player);
 
@@ -93,7 +96,7 @@ public abstract class CraftorioSkillTreeScreenBase extends Screen {
 
         this.lastUnlockedSnapshot = new HashSet<>(getUnlockedSnapshot(player));
 
-        Registry<CraftorioUpgrade> registry = this.minecraft.level.registryAccess().registryOrThrow(registryKey());
+        Registry<CraftorioUpgrade> registry = this.minecraft.level.registryAccess().registryOrThrow(tree().registryKey());
 
         Map<ResourceLocation, List<ResourceLocation>> children = new HashMap<>();
         List<ResourceLocation> roots = new ArrayList<>();
@@ -156,6 +159,10 @@ public abstract class CraftorioSkillTreeScreenBase extends Screen {
 
         this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.done"), b -> this.onClose())
                 .bounds(this.width / 2 - 50, this.height - 28, 100, 20).build());
+
+        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.purchase_all"), b -> PacketDistributor.sendToServer(new PurchaseAllUpgradesPacket(tree())))
+                .bounds(this.width - 108, this.height - 28, 100, 20)
+                .tooltip(Tooltip.create(Component.translatable("misc.craftorio.purchase_all_tooltip"))).build());
     }
 
     @Override
@@ -372,7 +379,7 @@ public abstract class CraftorioSkillTreeScreenBase extends Screen {
 
         private void updateTooltip(int purchaseCount) {
             this.lastTooltipPurchaseCount = purchaseCount;
-            String costText = formatCost(upgrade.getCost());
+            String costText = CraftorioMisc.bigIntFormat(upgrade.getCost());
             Component tooltip = Component.literal(upgrade.getActualName())
                     .append("\n").append(upgrade.getActualDescription())
                     .append("\n").append(Component.translatable("misc.craftorio.upgrade_cost_tooltip", costText))
@@ -382,7 +389,7 @@ public abstract class CraftorioSkillTreeScreenBase extends Screen {
 
         @Override
         public void onPress() {
-            sendUnlockPacket(id);
+            PacketDistributor.sendToServer(new UnlockUpgradePacket(tree(), id));
         }
 
         @Override
@@ -395,7 +402,7 @@ public abstract class CraftorioSkillTreeScreenBase extends Screen {
 
             boolean parentUnlocked = upgrade.getParent().isEmpty() || (player != null && hasUnlocked(player, upgrade.getParent().get()));
             boolean maxed = purchaseCount >= upgrade.getMaxPurchases();
-            boolean affordable = player != null && getCurrentCurrency(player).compareTo(upgrade.getCost()) >= 0;
+            boolean affordable = player != null && CraftorioMisc.getCurrency(player, tree()).compareTo(upgrade.getCost()) >= 0;
 
             int borderColor;
             if (maxed) {

@@ -7,10 +7,8 @@ import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
-import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.networking.shop.ShopPurchasePacket;
-import org.crimsoncrips.craftorio.registries.effect.ShopMultiplierEffect;
 import org.crimsoncrips.craftorio.server.shop.CraftorioShop;
 import org.crimsoncrips.craftorio.server.shop.CraftorioShopCatalog.CatalogEntry;
 
@@ -58,10 +56,7 @@ public class ShopPurchaseScreen extends QuantityPurchaseScreen {
 
         BigInteger unmodified_price = CraftorioShop.getUnitPrice(player, this.entry.stack(), false);
         BigInteger price = CraftorioShop.getUnitPrice(player, this.entry.stack(), true);
-        double shop_multiplier = Craftorio.SERVER_CONFIG.SHOP_COST_MULTIPLIER.getAsInt();
-        for (ShopMultiplierEffect shopEffect : CraftorioMisc.getShopEffects(player)) {
-            shop_multiplier += shopEffect.getMultiplier();
-        }
+        double shop_multiplier = CraftorioShop.shopCostMultiplier(player);
 
         String pointsEachSuffix = Component.translatable("misc.craftorio.points_each_suffix").getString();
         CraftorioMisc.CraftorioTextEffects.drawCenteredLine(guiGraphics, this.font, centerX, centerY - 20, true, 0xFFAA00,

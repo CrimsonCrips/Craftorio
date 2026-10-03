@@ -14,6 +14,7 @@ import org.crimsoncrips.craftorio.item.schematic.ContractSchematicItem;
 import org.crimsoncrips.craftorio.item.schematic.SchematicData;
 import org.crimsoncrips.craftorio.registries.CraftorioDataComponents;
 import org.crimsoncrips.craftorio.server.schematic.CraftorioSchematics;
+import org.crimsoncrips.craftorio.server.schematic.BuildBlitz;
 
 public record SchematicActionPacket(InteractionHand hand, int action) implements CustomPacketPayload {
 
@@ -21,6 +22,7 @@ public record SchematicActionPacket(InteractionHand hand, int action) implements
     public static final int PICK_UP = 1;
     public static final int SUBMIT = 2;
     public static final int INSTA_COMPLETE = 3;
+    public static final int BUILD_BLITZ = 4;
 
     public static final Type<SchematicActionPacket> TYPE = new Type<>(Craftorio.prefix("schematic_action_packet"));
     public static final StreamCodec<RegistryFriendlyByteBuf, SchematicActionPacket> STREAM_CODEC = StreamCodec.composite(
@@ -47,6 +49,7 @@ public record SchematicActionPacket(InteractionHand hand, int action) implements
                 case PICK_UP -> CraftorioSchematics.pickUp(player, stack, data);
                 case SUBMIT -> CraftorioSchematics.submit(player, stack, data);
                 case INSTA_COMPLETE -> CraftorioSchematics.instaComplete(player, data);
+                case BUILD_BLITZ -> BuildBlitz.fire(player, data);
                 default -> {
                 }
             }

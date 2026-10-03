@@ -8,7 +8,6 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 
-import java.util.List;
 
 public record ClearEffectsPacket() implements CustomPacketPayload {
 
@@ -25,9 +24,7 @@ public record ClearEffectsPacket() implements CustomPacketPayload {
             if (!(ctx.player() instanceof ServerPlayer player)) return;
             if (!player.isCreative()) return;
 
-            CraftorioMisc.setGeneralEffects(player, List.of());
-            CraftorioMisc.setTagEffects(player, List.of());
-            CraftorioMisc.setShopEffects(player, List.of());
+            CraftorioMisc.removeEffectsIf(player, effect -> true);
         });
     }
 }

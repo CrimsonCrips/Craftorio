@@ -30,10 +30,12 @@ public final class SchematicStructure {
 
     private final Vec3i size;
     private final List<Entry> entries;
+    private final List<BlockPos> air;
 
-    private SchematicStructure(Vec3i size, List<Entry> entries) {
+    private SchematicStructure(Vec3i size, List<Entry> entries, List<BlockPos> air) {
         this.size = size;
         this.entries = entries;
+        this.air = air;
     }
 
     public Vec3i size() {
@@ -57,6 +59,7 @@ public final class SchematicStructure {
         }
 
         List<Entry> entries = new ArrayList<>();
+        List<BlockPos> air = new ArrayList<>();
         ListTag blockList = tag.getList("blocks", Tag.TAG_COMPOUND);
         for (int i = 0; i < blockList.size(); i++) {
             CompoundTag blockTag = blockList.getCompound(i);
@@ -67,13 +70,18 @@ public final class SchematicStructure {
             if (state.is(Blocks.JIGSAW)) {
                 state = jigsawFinalState(blockTag, blocks);
             }
-            if (state == null || state.isAir() || state.is(Blocks.STRUCTURE_VOID) || state.is(Blocks.STRUCTURE_BLOCK)) continue;
+            if (state == null || state.is(Blocks.STRUCTURE_VOID) || state.is(Blocks.STRUCTURE_BLOCK)) continue;
 
             ListTag posTag = blockTag.getList("pos", Tag.TAG_INT);
             if (posTag.size() != 3) continue;
-            entries.add(new Entry(new BlockPos(posTag.getInt(0), posTag.getInt(1), posTag.getInt(2)), state));
+            BlockPos pos = new BlockPos(posTag.getInt(0), posTag.getInt(1), posTag.getInt(2));
+            if (state.isAir()) {
+                air.add(pos);
+            } else {
+                entries.add(new Entry(pos, state));
+            }
         }
-        return new SchematicStructure(size, List.copyOf(entries));
+        return new SchematicStructure(size, List.copyOf(entries), List.copyOf(air));
     }
 
     private static BlockState jigsawFinalState(CompoundTag blockTag, HolderLookup<Block> blocks) {
@@ -133,6 +141,15 @@ public final class SchematicStructure {
         for (Entry entry : entries) {
             BlockPos world = origin.offset(StructureTemplate.calculateRelativePosition(settings, entry.pos()));
             placed.add(new Placed(world, entry.state().rotate(rotation)));
+        }
+        return placed;
+    }
+
+    public List<BlockPos> airIn(BlockPos origin, Rotation rotation) {
+        StructurePlaceSettings settings = new StructurePlaceSettings().setRotation(rotation);
+        List<BlockPos> placed = new ArrayList<>(air.size());
+        for (BlockPos pos : air) {
+            placed.add(origin.offset(StructureTemplate.calculateRelativePosition(settings, pos)));
         }
         return placed;
     }

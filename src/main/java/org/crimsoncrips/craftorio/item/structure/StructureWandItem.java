@@ -24,7 +24,7 @@ public class StructureWandItem extends ScannerStickItem {
 
         StructureWandSettings settings = stack.getOrDefault(CraftorioDataComponents.STRUCTURE_WAND.get(), StructureWandSettings.DEFAULT);
         if (!settings.name().isEmpty()) {
-            tooltip.add(Component.translatable(settings.loadMode() ? "structure_block.hover.load" : "structure_block.hover.save", settings.name()).withStyle(ChatFormatting.GOLD));
+            tooltip.add(Component.translatable("structure_block.hover.save", settings.name()).withStyle(ChatFormatting.GOLD));
         }
 
         BlockPos pos1 = stack.get(CraftorioDataComponents.SCAN_POS_1.get());

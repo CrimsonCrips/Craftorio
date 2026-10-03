@@ -4,13 +4,9 @@ import net.minecraft.ChatFormatting;
 import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.networking.schematic.ChronospherePacket;
-import net.minecraft.world.level.block.state.BlockState;
-import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.world.damagesource.DamageSource;
-import org.crimsoncrips.craftorio.registries.CraftorioDamageTypes;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.core.GlobalPos;
@@ -125,11 +121,6 @@ public final class CraftorioSchematics {
         Optional<ResourceLocation> structureId = contract.getGoal().structure();
         if (contract.getType() != ContractType.BUILDING || structureId.isEmpty() || contract.getProgress().submitted()) return;
 
-        if (hasSchematicFor(player, instance)) {
-            player.displayClientMessage(Component.translatable("misc.craftorio.schematic_copy_already_have").withStyle(ChatFormatting.YELLOW), true);
-            return;
-        }
-
         ResourceLocation contractId = player.registryAccess().registryOrThrow(CraftorioContract.REGISTRY_KEY).entrySet().stream()
                 .filter(entry -> entry.getValue().getName().equals(contract.getName())
                         && entry.getValue().getGoal().structure().equals(structureId))
@@ -145,16 +136,6 @@ public final class CraftorioSchematics {
             player.drop(stack, false);
         }
         player.displayClientMessage(Component.translatable("misc.craftorio.schematic_copy_given").withStyle(ChatFormatting.AQUA), true);
-    }
-
-    private static boolean hasSchematicFor(ServerPlayer player, UUID instance) {
-        for (ItemStack stack : player.getInventory().items) {
-            if (isSchematicFor(stack, instance)) return true;
-        }
-        for (ItemStack stack : player.getInventory().offhand) {
-            if (isSchematicFor(stack, instance)) return true;
-        }
-        return isSchematicFor(player.containerMenu.getCarried(), instance);
     }
 
     public static Optional<CraftorioContract> findContract(Player player, UUID instance) {
@@ -227,7 +208,9 @@ public final class CraftorioSchematics {
             return;
         }
 
-        beginRemoval(player, level, structure.get(), placement.get(), data.instance());
+        contract.setProgress(contract.getProgress().withBuild(check.total(), check.total()).withSubmitted(true));
+        CraftorioMisc.refreshContracts(player);
+        beginRemoval(level, structure.get(), placement.get(), data.instance());
         level.playSound(null, player.blockPosition(), SoundEvents.ENDER_EYE_DEATH, SoundSource.PLAYERS, 1.0F, 0.8F);
         player.displayClientMessage(Component.translatable("misc.craftorio.schematic_submit_success").withStyle(ChatFormatting.GREEN), true);
     }
@@ -247,13 +230,37 @@ public final class CraftorioSchematics {
         ServerLevel level = player.server.getLevel(placement.get().origin().dimension());
         if (structure.isEmpty() || level == null) return;
 
-        for (SchematicStructure.Placed entry : structure.get().placedIn(placement.get().origin().pos(), placement.get().rotation())) {
-            level.setBlock(entry.pos(), entry.state(), Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE);
-        }
+        placeWithoutUpdates(level, structure.get().placedIn(placement.get().origin().pos(), placement.get().rotation()));
 
         updateProgress(player.server, contract);
         player.displayClientMessage(Component.translatable("misc.craftorio.schematic_insta_complete_success").withStyle(ChatFormatting.AQUA), true);
         CraftorioMisc.refreshContracts(player);
+    }
+
+    private record Placement(BlockPos pos, BlockState previous, BlockState placed) {}
+
+    private static void placeWithoutUpdates(ServerLevel level, List<SchematicStructure.Placed> entries) {
+        List<Placement> changed = new ArrayList<>();
+        boolean wasCapturing = level.captureBlockSnapshots;
+        int capturedBefore = level.capturedBlockSnapshots.size();
+        level.captureBlockSnapshots = true;
+        try {
+            for (SchematicStructure.Placed entry : entries) {
+                BlockState previous = level.getBlockState(entry.pos());
+                if (previous == entry.state()) continue;
+                if (level.setBlock(entry.pos(), entry.state(), Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE)) {
+                    changed.add(new Placement(entry.pos(), previous, entry.state()));
+                }
+            }
+        } finally {
+            level.captureBlockSnapshots = wasCapturing;
+            level.capturedBlockSnapshots.subList(capturedBefore, level.capturedBlockSnapshots.size()).clear();
+        }
+
+        for (Placement placement : changed) {
+            level.sendBlockUpdated(placement.pos(), placement.previous(), placement.placed(), Block.UPDATE_CLIENTS);
+            level.onBlockStateChange(placement.pos(), placement.previous(), placement.placed());
+        }
     }
 
     private static boolean isRemovalPending(UUID instance) {
@@ -263,19 +270,28 @@ public final class CraftorioSchematics {
         return false;
     }
 
-    private static void beginRemoval(ServerPlayer player, ServerLevel level, SchematicStructure structure, BuildPlacement placement, UUID instance) {
+    private static void beginRemoval(ServerLevel level, SchematicStructure structure, BuildPlacement placement, UUID instance) {
         AABB bounds = structure.worldBounds(placement.origin().pos(), placement.rotation());
-        PacketDistributor.sendToPlayersInDimension(level, ChronospherePacket.around(bounds));
-        UUID playerId = player.getUUID();
+        List<BlockPos> positions = new ArrayList<>();
+        for (SchematicStructure.Placed entry : structure.placedIn(placement.origin().pos(), placement.rotation())) {
+            positions.add(entry.pos());
+        }
+        int removalTicks = ChronosphereRemoval.removalTicks(positions.size());
+        PacketDistributor.sendToPlayersInDimension(level, ChronospherePacket.around(bounds, removalTicks));
         PENDING.add(new PendingRemoval(instance, level, ChronospherePacket.APPEAR_TICKS + ChronospherePacket.HOLD_TICKS,
-                server -> finishRemoval(server, level, structure, placement, playerId, instance)));
+                server -> ChronosphereRemoval.start(level, bounds, positions, removalTicks)));
     }
 
     public static void removeArea(ServerLevel level, BlockPos min, BlockPos max) {
         AABB bounds = new AABB(min.getX(), min.getY(), min.getZ(), max.getX() + 1, max.getY() + 1, max.getZ() + 1);
-        PacketDistributor.sendToPlayersInDimension(level, ChronospherePacket.around(bounds));
+        int solid = 0;
+        for (BlockPos pos : BlockPos.betweenClosed(min, max)) {
+            if (!level.getBlockState(pos).isAir()) solid++;
+        }
+        int removalTicks = ChronosphereRemoval.removalTicks(solid);
+        PacketDistributor.sendToPlayersInDimension(level, ChronospherePacket.around(bounds, removalTicks));
         PENDING.add(new PendingRemoval(null, level, ChronospherePacket.APPEAR_TICKS + ChronospherePacket.HOLD_TICKS,
-                server -> consumeBlocks(level, bounds, BlockPos.betweenClosed(min, max))));
+                server -> ChronosphereRemoval.start(level, bounds, BlockPos.betweenClosed(min, max), removalTicks)));
     }
 
     private static void tickRemovals(MinecraftServer server) {
@@ -290,49 +306,6 @@ public final class CraftorioSchematics {
 
             iterator.remove();
             pending.finish.accept(server);
-        }
-    }
-
-    private static void finishRemoval(MinecraftServer server, ServerLevel level, SchematicStructure structure, BuildPlacement placement, UUID playerId, UUID instance) {
-        ServerPlayer player = server.getPlayerList().getPlayer(playerId);
-        if (player == null) return;
-
-        Optional<CraftorioContract> found = findContract(player, instance);
-        if (found.isEmpty() || found.get().getProgress().submitted()) return;
-
-        SchematicStructure.Check check = structure.check(level, placement);
-        if (check.placed() < check.total()) {
-            player.displayClientMessage(Component.translatable("misc.craftorio.schematic_submit_incomplete", check.total() - check.placed(), check.wrong()).withStyle(ChatFormatting.RED), true);
-            return;
-        }
-
-        consumeBuild(level, structure, placement);
-        found.get().setProgress(found.get().getProgress().withBuild(check.total(), check.total()).withSubmitted(true));
-        CraftorioMisc.refreshContracts(player);
-    }
-
-    private static void consumeBuild(ServerLevel level, SchematicStructure structure, BuildPlacement placement) {
-        List<BlockPos> positions = new ArrayList<>();
-        for (SchematicStructure.Placed entry : structure.placedIn(placement.origin().pos(), placement.rotation())) {
-            positions.add(entry.pos());
-        }
-        consumeBlocks(level, structure.worldBounds(placement.origin().pos(), placement.rotation()), positions);
-    }
-
-    private static void consumeBlocks(ServerLevel level, AABB bounds, Iterable<BlockPos> positions) {
-        DamageSource wipe = new DamageSource(level.registryAccess().registryOrThrow(Registries.DAMAGE_TYPE).getHolderOrThrow(CraftorioDamageTypes.CHRONOSPHERE));
-        for (ServerPlayer inside : new ArrayList<>(level.players())) {
-            if (inside.getBoundingBox().intersects(bounds)) {
-                inside.hurt(wipe, Float.MAX_VALUE);
-            }
-        }
-
-        BlockState air = Blocks.AIR.defaultBlockState();
-        for (BlockPos pos : positions) {
-            BlockState old = level.getBlockState(pos);
-            if (old.isAir()) continue;
-
-            level.setBlock(pos, air, Block.UPDATE_CLIENTS | Block.UPDATE_KNOWN_SHAPE | Block.UPDATE_SUPPRESS_DROPS);
         }
     }
 
@@ -357,6 +330,8 @@ public final class CraftorioSchematics {
 
     public static void tick(MinecraftServer server) {
         tickRemovals(server);
+        ChronosphereRemoval.tick(server);
+        BuildBlitz.tick(server);
         if (server.getTickCount() % CHECK_INTERVAL_TICKS != 0) return;
 
         Set<List<CraftorioContract>> checked = Collections.newSetFromMap(new IdentityHashMap<>());

@@ -2,8 +2,9 @@
   "type": "craftorio:tag_multiplier",
   "icon": "craftorio:textures/gui/default_icon.png",
   "item_tag": "#craftorio:valuables",
-  "multiplier": -10.0,
+  "multiplier": 10.0,
   "name": "registry.inflated_valuables",
+  "operation": "subtract",
   "seconds": 2400,
   "weight": 6
 }

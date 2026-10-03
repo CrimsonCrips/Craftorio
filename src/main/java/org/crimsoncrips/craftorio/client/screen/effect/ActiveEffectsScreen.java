@@ -1,5 +1,6 @@
 package org.crimsoncrips.craftorio.client.screen.effect;
 
+import org.crimsoncrips.craftorio.skill_tree.UpgradeTree;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -82,6 +83,9 @@ public class ActiveEffectsScreen extends Screen implements ScrollableScreen {
 
             this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.back"), b -> this.onClose())
                     .bounds(centerX + 10, buttonY, 100, 20).build());
+
+            this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.view_all_effects_button"), b -> this.minecraft.setScreen(new AllEffectsScreen(this)))
+                    .bounds(this.width - 130, 6, 120, 16).build());
         } else {
             this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.back"), b -> this.onClose())
                     .bounds(centerX - 50, buttonY, 100, 20).build());
@@ -95,7 +99,7 @@ public class ActiveEffectsScreen extends Screen implements ScrollableScreen {
         graphics.drawCenteredString(this.font, this.getTitle(), this.width / 2, 12, 0xFFFFFF);
 
         Player player = this.minecraft.player;
-        if (player != null && ClientEvents.isEffectTimerKnown() && CraftorioMisc.hasUnlockedUpgrade(player, EffectTimerDisplayUnlockUpgrade.ID)) {
+        if (player != null && ClientEvents.isEffectTimerKnown() && CraftorioMisc.hasUnlockedUpgrade(player, UpgradeTree.BASIC, EffectTimerDisplayUnlockUpgrade.ID)) {
             Component timer = Component.translatable("misc.craftorio.next_effect_in")
                     .append(CraftorioMisc.ticksToTimeString(ClientEvents.effectTimerTicksNow()));
             graphics.drawCenteredString(this.font, timer, this.width / 2, 22, 0xAAAAAA);

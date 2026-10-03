@@ -1,5 +1,6 @@
 package org.crimsoncrips.craftorio.server.shop;
 
+import org.crimsoncrips.craftorio.skill_tree.UpgradeTree;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -23,7 +24,7 @@ public final class CraftorioEffectRuneShop {
     private CraftorioEffectRuneShop() {}
 
     public static boolean isUnlocked(Player player) {
-        return CraftorioMisc.hasUnlockedUpgrade(player, UNLOCK_UPGRADE);
+        return CraftorioMisc.hasUnlockedUpgrade(player, UpgradeTree.BASIC, UNLOCK_UPGRADE);
     }
 
     public static int maxEffectCount() {

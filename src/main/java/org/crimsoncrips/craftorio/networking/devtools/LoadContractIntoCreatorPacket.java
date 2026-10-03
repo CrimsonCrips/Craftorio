@@ -43,18 +43,14 @@ public record LoadContractIntoCreatorPacket(ResourceLocation contractId) impleme
             Container container = menu.getContainer();
             container.clearContent();
 
-            int tagEntries = 0;
             int overflow = 0;
 
             int bountyIndex = 0;
             for (CraftorioContractItem item : contract.getItemBounty()) {
-                ItemStack stack = item.getStackNeeded().map(s -> new ItemStack(s.getItem()))
+                ItemStack stack = item.getStackNeeded().map(s -> s.copyWithCount(1))
                         .or(() -> item.getItemNeeded().map(ItemStack::new))
                         .orElse(ItemStack.EMPTY);
-                if (stack.isEmpty()) {
-                    tagEntries++;
-                    continue;
-                }
+                if (stack.isEmpty()) continue;
                 if (bountyIndex >= ContractCreatorMenu.BOUNTY_SLOTS) {
                     overflow++;
                     continue;
@@ -72,8 +68,11 @@ public record LoadContractIntoCreatorPacket(ResourceLocation contractId) impleme
                 container.setItem(ContractCreatorMenu.BOUNTY_SLOTS + rewardIndex++, reward.getRewardingStack().copyWithCount(reward.getAmountGiving()));
             }
 
-            if (tagEntries > 0 || overflow > 0) {
-                serverPlayer.sendSystemMessage(Component.translatable("misc.craftorio.dev_tools_contract_load_partial", tagEntries, overflow).withStyle(ChatFormatting.YELLOW));
+            if (ContractCreatorMenu.hasComponentItems(container)) {
+                ContractCreatorMenu.warnComponentItems(serverPlayer);
+            }
+            if (overflow > 0) {
+                serverPlayer.sendSystemMessage(Component.translatable("misc.craftorio.dev_tools_contract_load_partial", overflow).withStyle(ChatFormatting.YELLOW));
             }
         });
     }

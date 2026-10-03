@@ -1,0 +1,11 @@
+{
+  "type": "craftorio:tag_multiplier",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "item_tag": "#craftorio:potions",
+  "multiplier": 0.7,
+  "name": "registry.witch_curse",
+  "operation": "multiply",
+  "seconds": 500,
+  "unobtainable": true,
+  "weight": 10
+}

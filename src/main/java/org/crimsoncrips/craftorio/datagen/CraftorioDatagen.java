@@ -17,9 +17,9 @@ import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioDamageTypeB
 import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioDefaultContractTextureBootstrap;
 import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioEffectBootstrap;
 import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioHavenDimensionBootstrap;
-import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioRebirthUpgradeBootstrap;
-import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioSacrificeUpgradeBootstrap;
-import org.crimsoncrips.craftorio.datagen.custom_bootstraps.CraftorioUpgradeBootstrap;
+import org.crimsoncrips.craftorio.datagen.custom_bootstraps.upgrade.CraftorioRebirthUpgradeBootstrap;
+import org.crimsoncrips.craftorio.datagen.custom_bootstraps.upgrade.CraftorioSacrificeUpgradeBootstrap;
+import org.crimsoncrips.craftorio.datagen.custom_bootstraps.upgrade.CraftorioUpgradeBootstrap;
 import org.crimsoncrips.craftorio.datagen.language.CraftLangGen;
 import org.crimsoncrips.craftorio.datagen.loot.CraftorioLootModifierProvider;
 import org.crimsoncrips.craftorio.datagen.maps.points.CraftorioPointsDeterminer;
@@ -28,7 +28,7 @@ import org.crimsoncrips.craftorio.datagen.tags.CraftorioBlockTagGen;
 import org.crimsoncrips.craftorio.datagen.tags.CraftorioDamageTypeTagGen;
 import org.crimsoncrips.craftorio.datagen.tags.CraftorioItemTagGen;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
-import org.crimsoncrips.craftorio.registries.contract.CraftorioContractTexture;
+import org.crimsoncrips.craftorio.registries.contract.CraftorioDefaultContractTexture;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
 
@@ -61,7 +61,7 @@ public class CraftorioDatagen {
                     CraftorioEffectBootstrap.debuffBootstrap(context);
                 })
                 .add(CraftorioContract.REGISTRY_KEY, CraftorioContractBootstrap::bootstrap)
-                .add(CraftorioContractTexture.REGISTRY_KEY, CraftorioDefaultContractTextureBootstrap::bootstrap)
+                .add(CraftorioDefaultContractTexture.REGISTRY_KEY, CraftorioDefaultContractTextureBootstrap::bootstrap)
                 .add(CraftorioUpgrade.REGISTRY_KEY, CraftorioUpgradeBootstrap::bootstrap)
                 .add(CraftorioUpgrade.REBIRTH_REGISTRY_KEY, CraftorioRebirthUpgradeBootstrap::bootstrap)
                 .add(CraftorioUpgrade.SACRIFICE_REGISTRY_KEY, CraftorioSacrificeUpgradeBootstrap::bootstrap)

@@ -1,5 +1,6 @@
 package org.crimsoncrips.craftorio.server.shop;
 
+import org.crimsoncrips.craftorio.server.data.CraftorioDataAttachments;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
@@ -14,12 +15,23 @@ import org.crimsoncrips.craftorio.skill_tree.target.ModifierTarget;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
+import java.math.RoundingMode;
 
 
 public class CraftorioShop {
 
     public static boolean isEnabled() {
         return Craftorio.SERVER_CONFIG.SHOP_MODE.get() != CraftorioShopMode.DISABLED;
+    }
+
+    public static double shopCostMultiplier(Player player) {
+        double additive = Craftorio.SERVER_CONFIG.SHOP_COST_MULTIPLIER.getAsInt();
+        double factor = 1;
+        for (ShopMultiplierEffect shopEffect : CraftorioMisc.getEffects(player, CraftorioDataAttachments.SHOP_MULTIPLIER_EFFECTS)) {
+            additive += shopEffect.additiveContribution();
+            factor *= shopEffect.factorContribution();
+        }
+        return additive * factor;
     }
 
     public static BigInteger getUnitPrice(Player player, Item item, boolean applyCostIncrease) {
@@ -29,15 +41,10 @@ public class CraftorioShop {
     public static BigInteger getUnitPrice(Player player, ItemStack template, boolean applyCostIncrease) {
         BigInteger bigInteger = CraftorioMisc.checkValue(template, player, false);
 
-        BigDecimal result = new BigDecimal(BigInteger.valueOf(Craftorio.SERVER_CONFIG.SHOP_COST_MULTIPLIER.getAsInt()));
-
-        for (ShopMultiplierEffect shopEffect : CraftorioMisc.getShopEffects(player)) {
-            result = result.add(BigDecimal.valueOf(shopEffect.getMultiplier()));
-        }
-
         if (!applyCostIncrease) return bigInteger;
 
-        BigInteger multiplied = bigInteger.multiply(result.toBigInteger());
+        BigInteger multiplied = new BigDecimal(bigInteger).multiply(BigDecimal.valueOf(shopCostMultiplier(player)))
+                .setScale(0, RoundingMode.HALF_UP).toBigInteger();
         return CraftorioMisc.applyUpgradeModifier(player, ModifierTarget.SHOP_COST, multiplied);
     }
 

@@ -94,7 +94,7 @@ public final class CraftorioLoanShark {
         CraftorioMisc.setLoanOwed(BigInteger.ZERO, player);
         CraftorioMisc.setLoanBorrowed(BigInteger.ZERO, player);
         CraftorioMisc.setLoanSacrificed(false, player);
-        CraftorioMisc.removeLoanMarkedEffects(player);
+        CraftorioMisc.removeEffectsIf(player, CraftorioEffects::isLoanMarked);
     }
 
     public static void sync(ServerPlayer player) {
@@ -110,7 +110,7 @@ public final class CraftorioLoanShark {
         List<CraftorioEffects> effects = CraftorioLoanEffects.pick(player.level().registryAccess(), player.getRandom(), 1);
         if (effects.isEmpty()) return;
 
-        CraftorioMisc.grantLoanEffect(player, effects.get(0));
+        CraftorioMisc.grantEffect(player, effects.get(0), false, true);
     }
 
     public static void onSacrifice(ServerPlayer player) {

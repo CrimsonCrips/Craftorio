@@ -14,6 +14,8 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.level.Level;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
+import org.crimsoncrips.craftorio.server.skill_tree.SkillTreeReveal;
+import org.crimsoncrips.craftorio.skill_tree.UpgradeTree;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.events.ServerEvents;
 import org.crimsoncrips.craftorio.networking.contract.ContractOfferStatusPacket;
@@ -151,9 +153,7 @@ public class CraftorioRebirth {
 
         CraftorioMisc.setPoints(CraftorioMisc.startingValue(), player);
         clearUpgrades(player);
-        CraftorioMisc.setGeneralEffects(player, List.of());
-        CraftorioMisc.setTagEffects(player, List.of());
-        CraftorioMisc.setShopEffects(player, List.of());
+        CraftorioMisc.removeEffectsIf(player, effect -> true);
         CraftorioMisc.setCraftorioContracts(player, List.of());
         resetContractOffer(player);
         clearItemsSinked(player);
@@ -172,6 +172,7 @@ public class CraftorioRebirth {
             }
         }
 
+        SkillTreeReveal.unlock(player, UpgradeTree.REBIRTH);
         ServerEvents.syncUniversalState(player);
 
     }
@@ -203,7 +204,7 @@ public class CraftorioRebirth {
         RegistryAccess registryAccess = player.level().registryAccess();
         Registry<CraftorioUpgrade> registry = registryAccess.registryOrThrow(CraftorioUpgrade.REGISTRY_KEY);
 
-        for (ResourceLocation id : CraftorioMisc.getUnlockedUpgrades(player)) {
+        for (ResourceLocation id : CraftorioMisc.getUpgradePurchaseCounts(player, UpgradeTree.BASIC).keySet()) {
             CraftorioUpgrade upgrade = registry.get(id);
             if (!(upgrade instanceof CraftorioAttributeUpgrade attributeUpgrade)) continue;
 

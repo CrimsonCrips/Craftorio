@@ -10,6 +10,8 @@ public class CraftorioClientConfig {
     public final ModConfigSpec.IntValue WELCOME_TOAST_SECONDS;
     public final ModConfigSpec.BooleanValue SKILL_TREE_EFFECTS;
     public final ModConfigSpec.BooleanValue PHOTOSENSITIVE_MODE;
+    public final ModConfigSpec.BooleanValue WARNING_ENABLED;
+    public final ModConfigSpec.ConfigValue<String> DEV_TOOLS_MOD_ID;
 
     public CraftorioClientConfig(final ModConfigSpec.Builder builder) {
 
@@ -22,11 +24,20 @@ public class CraftorioClientConfig {
 
         builder.pop();
 
+        builder.push("Dev Tools");
+        this.DEV_TOOLS_MOD_ID = builder.comment("Mod id filled in automatically by the dev tools (leave empty for none)").translation("DEV_TOOLS_MOD_ID").define("DEV_TOOLS_MOD_ID", "");
+        builder.pop();
+
         builder.push("Accessibility");
         this.PHOTOSENSITIVE_MODE = buildBoolean(builder, "PHOTOSENSITIVE_MODE", false, "Photosensitivity warning: replaces the flashing static, glitch bars and eye shader behind the sacrifice screen shatter with solid black");
+        this.WARNING_ENABLED = buildBoolean(builder, "WARNING_ENABLED", true, "Shows a photosensitivity warning toast when joining a world");
         builder.pop();
     }
 
+
+    public String devToolsModId() {
+        return DEV_TOOLS_MOD_ID.get().trim();
+    }
 
     private static ModConfigSpec.IntValue buildInt(ModConfigSpec.Builder builder, String name, int defaultValue, int min, int max, String comment){
         return builder.comment(comment).translation(name).defineInRange(name, defaultValue, min, max);

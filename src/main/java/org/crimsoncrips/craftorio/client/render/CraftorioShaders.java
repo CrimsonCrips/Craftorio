@@ -13,7 +13,8 @@ import java.io.UncheckedIOException;
 @OnlyIn(Dist.CLIENT)
 public final class CraftorioShaders {
 
-    private static ShaderInstance skillTreeStarfield;
+    private static ShaderInstance skillTreeNebula;
+    private static ShaderInstance skillTreeStars;
     private static ShaderInstance shatterEye;
     private static ShaderInstance chronosphere;
     private static ShaderInstance loanSharkAura;
@@ -25,27 +26,33 @@ public final class CraftorioShaders {
 
     public static void register(RegisterShadersEvent event) {
         try {
-            event.registerShader(new ShaderInstance(event.getResourceProvider(), Craftorio.prefix("skill_tree_starfield"), DefaultVertexFormat.POSITION),
-                    shader -> skillTreeStarfield = shader);
-            event.registerShader(new ShaderInstance(event.getResourceProvider(), Craftorio.prefix("shatter_eye"), DefaultVertexFormat.POSITION),
+            event.registerShader(new ShaderInstance(event.getResourceProvider(), Craftorio.prefix("skill_tree/skill_tree_nebula"), DefaultVertexFormat.POSITION),
+                    shader -> skillTreeNebula = shader);
+            event.registerShader(new ShaderInstance(event.getResourceProvider(), Craftorio.prefix("skill_tree/skill_tree_stars"), DefaultVertexFormat.POSITION),
+                    shader -> skillTreeStars = shader);
+            event.registerShader(new ShaderInstance(event.getResourceProvider(), Craftorio.prefix("shatter_eye/shatter_eye"), DefaultVertexFormat.POSITION),
                     shader -> shatterEye = shader);
-            event.registerShader(new ShaderInstance(event.getResourceProvider(), Craftorio.prefix("chronosphere"), DefaultVertexFormat.POSITION),
+            event.registerShader(new ShaderInstance(event.getResourceProvider(), Craftorio.prefix("chronosphere/chronosphere"), DefaultVertexFormat.POSITION),
                     shader -> chronosphere = shader);
-            event.registerShader(new ShaderInstance(event.getResourceProvider(), Craftorio.prefix("loan_shark_aura"), DefaultVertexFormat.POSITION_TEX),
+            event.registerShader(new ShaderInstance(event.getResourceProvider(), Craftorio.prefix("loan_shark/loan_shark_aura"), DefaultVertexFormat.POSITION_TEX),
                     shader -> loanSharkAura = shader);
-            event.registerShader(new ShaderInstance(event.getResourceProvider(), Craftorio.prefix("sacrifice_glow"), DefaultVertexFormat.POSITION_TEX),
+            event.registerShader(new ShaderInstance(event.getResourceProvider(), Craftorio.prefix("sacrifice/sacrifice_glow"), DefaultVertexFormat.POSITION_TEX),
                     shader -> sacrificeGlow = shader);
-            event.registerShader(new ShaderInstance(event.getResourceProvider(), Craftorio.prefix("sacrifice_electric"), DefaultVertexFormat.POSITION_TEX),
+            event.registerShader(new ShaderInstance(event.getResourceProvider(), Craftorio.prefix("sacrifice/sacrifice_electric"), DefaultVertexFormat.POSITION_TEX),
                     shader -> sacrificeElectric = shader);
-            event.registerShader(new ShaderInstance(event.getResourceProvider(), Craftorio.prefix("sacrifice_pulse"), DefaultVertexFormat.POSITION_TEX),
+            event.registerShader(new ShaderInstance(event.getResourceProvider(), Craftorio.prefix("sacrifice/sacrifice_pulse"), DefaultVertexFormat.POSITION_TEX),
                     shader -> sacrificePulse = shader);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
 
-    public static ShaderInstance skillTreeStarfield() {
-        return skillTreeStarfield;
+    public static ShaderInstance skillTreeNebula() {
+        return skillTreeNebula;
+    }
+
+    public static ShaderInstance skillTreeStars() {
+        return skillTreeStars;
     }
 
     public static ShaderInstance shatterEye() {

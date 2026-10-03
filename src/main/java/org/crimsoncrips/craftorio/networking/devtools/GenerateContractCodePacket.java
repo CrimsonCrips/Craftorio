@@ -1,6 +1,10 @@
 package org.crimsoncrips.craftorio.networking.devtools;
 
 import com.mojang.serialization.JsonOps;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.tags.TagKey;
+import net.minecraft.core.component.DataComponentPatch;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -18,13 +22,13 @@ import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.inventory.ContractCreatorMenu;
 import org.crimsoncrips.craftorio.item.rune.EffectRune;
+import org.crimsoncrips.craftorio.item.rune.EffectRune;
 import org.crimsoncrips.craftorio.registries.contract.ContractGoal;
 import org.crimsoncrips.craftorio.registries.contract.ContractTextColors;
 import org.crimsoncrips.craftorio.registries.contract.ContractType;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContractItem;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContractItemReward;
-import org.crimsoncrips.craftorio.registries.contract.CraftorioContractTexture;
 import org.crimsoncrips.craftorio.server.devtools.CraftorioDevTools;
 import net.minecraft.resources.ResourceKey;
 
@@ -41,7 +45,7 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
                                           boolean includeLang, String title, String description, String cardTexture,
                                           boolean jsonExport, String titleColor, String timeColor,
                                           String descriptionColor, String punishmentColor,
-                                          String contractType, String structure) implements CustomPacketPayload {
+                                          String contractType, String structure, String tagBounty) implements CustomPacketPayload {
 
     public static final Type<GenerateContractCodePacket> TYPE = new Type<>(Craftorio.prefix("generate_contract_code_packet"));
     public static final StreamCodec<RegistryFriendlyByteBuf, GenerateContractCodePacket> STREAM_CODEC = StreamCodec.of(
@@ -68,6 +72,7 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
                 ByteBufCodecs.STRING_UTF8.encode(buffer, message.punishmentColor());
                 ByteBufCodecs.STRING_UTF8.encode(buffer, message.contractType());
                 ByteBufCodecs.STRING_UTF8.encode(buffer, message.structure());
+                ByteBufCodecs.STRING_UTF8.encode(buffer, message.tagBounty());
             },
             buffer -> new GenerateContractCodePacket(
                     ByteBufCodecs.STRING_UTF8.decode(buffer),
@@ -86,6 +91,7 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
                     ByteBufCodecs.STRING_UTF8.decode(buffer),
                     ByteBufCodecs.STRING_UTF8.decode(buffer),
                     ByteBufCodecs.BOOL.decode(buffer),
+                    ByteBufCodecs.STRING_UTF8.decode(buffer),
                     ByteBufCodecs.STRING_UTF8.decode(buffer),
                     ByteBufCodecs.STRING_UTF8.decode(buffer),
                     ByteBufCodecs.STRING_UTF8.decode(buffer),
@@ -147,20 +153,25 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
                 for (int i = 0; goal.type() == ContractType.SINK && i < ContractCreatorMenu.BOUNTY_SLOTS; i++) {
                     ItemStack stack = container.getItem(i);
                     if (stack.isEmpty()) continue;
-                    bountyItems.add(new CraftorioContractItem(stack.getCount(), stack.getItem()));
+                    bountyItems.add(stack.getComponentsPatch().isEmpty()
+                            ? new CraftorioContractItem(stack.getCount(), stack.getItem())
+                            : new CraftorioContractItem(stack.getCount(), stack.copyWithCount(1)));
+                }
+
+                if (goal.type() == ContractType.SINK) {
+                    for (Map.Entry<ResourceLocation, Integer> tagEntry : parseTagBounty(message.tagBounty()).entrySet()) {
+                        bountyItems.add(new CraftorioContractItem(tagEntry.getValue(), TagKey.create(Registries.ITEM, tagEntry.getKey())));
+                    }
                 }
 
                 List<CraftorioContractItemReward> rewardItems = new ArrayList<>();
-                for (int i = 0; i < ContractCreatorMenu.REWARD_SLOTS; i++) {
-                    ItemStack stack = container.getItem(ContractCreatorMenu.BOUNTY_SLOTS + i);
-                    if (stack.isEmpty()) continue;
-                    rewardItems.add(new CraftorioContractItemReward(stack.getCount(), stack.getItem(), randomEffectCount));
+                for (ItemStack stack : mergedRewards(container)) {
+                    rewardItems.add(new CraftorioContractItemReward(stack.getCount(), stack.copyWithCount(1), stack.getItem() instanceof EffectRune ? randomEffectCount : 0));
                 }
 
                 Optional<ResourceLocation> punishmentLoc = punishment.isEmpty() ? Optional.empty() : Optional.of(ResourceLocation.parse(punishment));
                 Optional<String> requiredModOpt = requiredModId.isEmpty() ? Optional.empty() : Optional.of(requiredModId);
-                Optional<ResourceKey<CraftorioContractTexture>> cardTextureKey = cardTexture.isEmpty() ? Optional.empty()
-                        : Optional.of(ResourceKey.create(CraftorioContractTexture.REGISTRY_KEY, ResourceLocation.parse(cardTexture)));
+                Optional<ResourceLocation> cardTextureLoc = Optional.ofNullable(cardTexture.isEmpty() ? null : ResourceLocation.tryParse(cardTexture));
 
                 BigInteger basePoints = CraftorioMisc.scientificToInt(basePointValue);
                 BigInteger claim = CraftorioMisc.scientificToInt(claimThreshold);
@@ -168,9 +179,9 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
                 BigInteger max = CraftorioMisc.scientificToInt(maxThreshold);
 
                 CraftorioContract contract = new CraftorioContract(bountyItems, id, seconds, basePoints, rewardItems,
-                        punishmentLoc, weight, claim, min, max, requiredModOpt, cardTextureKey, textColors).withGoal(goal);
+                        punishmentLoc, weight, claim, min, max, requiredModOpt, cardTextureLoc, textColors).withGoal(goal);
 
-                CraftorioContract.CODEC.encodeStart(JsonOps.INSTANCE, contract).resultOrPartial(Craftorio.LOGGER::error)
+                CraftorioContract.CODEC.encodeStart(RegistryOps.create(JsonOps.INSTANCE, serverPlayer.registryAccess()), contract).resultOrPartial(Craftorio.LOGGER::error)
                         .ifPresentOrElse(
                                 json -> {
                                     if (langEntries.isEmpty()) {
@@ -178,7 +189,7 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
                                     } else {
                                         Map<String, String> bundle = new LinkedHashMap<>();
                                         bundle.put("contract_" + id + ".json", CraftorioDevTools.toPrettyJson(json));
-                                        bundle.put("lang_en_us.json", CraftorioDevTools.buildLangJson(langEntries));
+                                        bundle.put("en_us.json", CraftorioDevTools.buildLangJson(langEntries));
                                         CraftorioDevTools.writeBundle(serverPlayer, "contract_" + id, bundle);
                                     }
                                 },
@@ -187,12 +198,21 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
                 return;
             }
 
+            if (ContractCreatorMenu.hasComponentItems(container)) {
+                ContractCreatorMenu.warnComponentItems(serverPlayer);
+            }
+
             StringBuilder bounty = new StringBuilder();
             for (int i = 0; goal.type() == ContractType.SINK && i < ContractCreatorMenu.BOUNTY_SLOTS; i++) {
                 ItemStack stack = container.getItem(i);
                 if (stack.isEmpty()) continue;
+                appendComponentNote(bounty, stack, serverPlayer);
                 bounty.append("                        new CraftorioContractItem(").append(stack.getCount())
                         .append(", ").append(itemReferenceExpr(stack.getItem())).append("),\n");
+            }
+            for (Map.Entry<ResourceLocation, Integer> tagEntry : goal.type() == ContractType.SINK ? parseTagBounty(message.tagBounty()).entrySet() : Map.<ResourceLocation, Integer>of().entrySet()) {
+                bounty.append("                        new CraftorioContractItem(").append(tagEntry.getValue())
+                        .append(", TagKey.create(Registries.ITEM, ResourceLocation.parse(\"").append(tagEntry.getKey()).append("\"))),\n");
             }
             if (bounty.isEmpty()) {
                 bounty.append("                        // no bounty items were placed in the creator's slots\n");
@@ -202,12 +222,11 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
             }
 
             StringBuilder rewards = new StringBuilder();
-            for (int i = 0; i < ContractCreatorMenu.REWARD_SLOTS; i++) {
-                ItemStack stack = container.getItem(ContractCreatorMenu.BOUNTY_SLOTS + i);
-                if (stack.isEmpty()) continue;
+            for (ItemStack stack : mergedRewards(container)) {
+                appendComponentNote(rewards, stack, serverPlayer);
                 rewards.append("                        new CraftorioContractItemReward(").append(stack.getCount())
                         .append(", ").append(itemReferenceExpr(stack.getItem()));
-                if (randomEffectCount > 0) {
+                if (randomEffectCount > 0 && stack.getItem() instanceof EffectRune) {
                     rewards.append(", ").append(randomEffectCount);
                 }
                 rewards.append("),\n");
@@ -222,7 +241,7 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
             String punishmentExpr = punishment.isEmpty() ? "Optional.empty()" : "Optional.of(ResourceLocation.parse(\"" + punishment + "\"))";
             String requiredModIdExpr = requiredModId.isEmpty() ? "Optional.empty()" : "Optional.of(\"" + requiredModId + "\")";
             String cardTextureExpr = cardTexture.isEmpty() ? "Optional.empty()"
-                    : "Optional.of(ResourceKey.create(CraftorioContractTexture.REGISTRY_KEY, ResourceLocation.parse(\"" + cardTexture + "\")))";
+                    : "Optional.of(ResourceLocation.parse(\"" + cardTexture + "\"))";
 
             StringBuilder code = new StringBuilder();
             code.append("context.register(\n");
@@ -249,7 +268,6 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
             code.append(");\n");
             code.append("\n// Requires: import static org.crimsoncrips.craftorio.CraftorioMisc.scientificToInt;\n");
             code.append("// Requires: import static org.crimsoncrips.craftorio.CraftorioMisc.toItem;\n");
-            code.append("// Requires: import org.crimsoncrips.craftorio.registries.contract.CraftorioContractTexture;\n");
             if (!textColors.isEmpty()) {
                 code.append("// Requires: import org.crimsoncrips.craftorio.registries.contract.ContractTextColors;\n");
             }
@@ -258,10 +276,10 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
             }
 
             if (!langEntries.isEmpty()) {
-                code.append("\n// Add to your LanguageProvider's addTranslations(...):\n");
-                for (Map.Entry<String, String> entry : langEntries.entrySet()) {
-                    code.append("this.add(\"").append(entry.getKey()).append("\", \"").append(entry.getValue()).append("\");\n");
-                }
+                code.append("\n// Add to CraftorioRegistryLang.addContracts(...):\n");
+                String langTitle = langEntries.getOrDefault("registry." + id + ".title", "");
+                String langDescription = langEntries.getOrDefault("registry." + id + ".description", "");
+                code.append("lang.addContractLang(\"").append(id).append("\", \"").append(langTitle).append("\", \"").append(langDescription).append("\");\n");
             }
 
             CraftorioDevTools.writeCodeFile(serverPlayer, "contract_" + id, code.toString());
@@ -295,6 +313,28 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
         return color.map(value -> "Optional.of(0x" + ContractTextColors.toHex(value).substring(1) + ")").orElse("Optional.empty()");
     }
 
+    private static void appendComponentNote(StringBuilder code, ItemStack stack, ServerPlayer player) {
+        if (stack.getComponentsPatch().isEmpty()) return;
+        String components = DataComponentPatch.CODEC.encodeStart(RegistryOps.create(JsonOps.INSTANCE, player.registryAccess()), stack.getComponentsPatch())
+                .result().map(Object::toString).orElse("?");
+        code.append("                        // ").append(BuiltInRegistries.ITEM.getKey(stack.getItem()))
+                .append(" has data components that Java export can't include, use JSON export to keep them: ").append(components).append("\n");
+    }
+
+    private static Map<ResourceLocation, Integer> parseTagBounty(String encoded) {
+        Map<ResourceLocation, Integer> tags = new LinkedHashMap<>();
+        for (String part : sanitize(encoded).split(";")) {
+            int split = part.indexOf('=');
+            if (split <= 0) continue;
+            ResourceLocation tag = ResourceLocation.tryParse(part.substring(split + 1).trim());
+            int amount = parseInt(part.substring(0, split), 0);
+            if (tag != null && amount > 0) {
+                tags.merge(tag, amount, Integer::sum);
+            }
+        }
+        return tags;
+    }
+
     private static String itemReferenceExpr(Item item) {
         ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(item);
         if (item instanceof EffectRune) {
@@ -313,5 +353,27 @@ public record GenerateContractCodePacket(String id, String modId, String seconds
         } catch (Exception e) {
             return fallback;
         }
+    }
+
+    private static List<ItemStack> mergedRewards(Container container) {
+        List<ItemStack> merged = new ArrayList<>();
+        for (int i = 0; i < ContractCreatorMenu.REWARD_SLOTS; i++) {
+            ItemStack stack = container.getItem(ContractCreatorMenu.BOUNTY_SLOTS + i);
+            if (stack.isEmpty()) continue;
+
+            ItemStack existing = null;
+            for (ItemStack candidate : merged) {
+                if (ItemStack.isSameItemSameComponents(candidate, stack)) {
+                    existing = candidate;
+                    break;
+                }
+            }
+            if (existing != null) {
+                existing.setCount(existing.getCount() + stack.getCount());
+            } else {
+                merged.add(stack.copy());
+            }
+        }
+        return merged;
     }
 }

@@ -11,6 +11,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.crimsoncrips.craftorio.registries.effect.EffectOperation;
+import org.crimsoncrips.craftorio.client.screen.devtools.DevToolsTagPicker;
+import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 import org.crimsoncrips.craftorio.client.screen.devtools.DevToolsDropdown;
@@ -38,9 +41,10 @@ public class EffectCreatorScreen extends Screen implements ScrollableScreen {
     private int panelLeft;
     private int panelTop;
     private final int panelWidth = 260;
-    private final int panelHeight = 344;
+    private final int panelHeight = 366;
 
     private int typeIndex = 0;
+    private int operationIndex = 0;
     private DevToolsDropdown typeDropdown;
     private final List<DevToolsDropdown> dropdowns = new ArrayList<>();
 
@@ -50,6 +54,7 @@ public class EffectCreatorScreen extends Screen implements ScrollableScreen {
     private EditBox secondsBox;
     private EditBox weightBox;
     private EditBox itemTagBox;
+    private Button selectTagButton;
     private boolean unobtainable = false;
     private Button unobtainableButton;
     private boolean includeLang = false;
@@ -86,7 +91,10 @@ public class EffectCreatorScreen extends Screen implements ScrollableScreen {
         for (String type : TYPES) {
             typeLabels.add(Component.literal(type));
         }
-        this.typeDropdown = new DevToolsDropdown(this.font, fieldX, y, fieldWidth, 16, typeLabels, typeIndex, index -> typeIndex = index);
+        this.typeDropdown = new DevToolsDropdown(this.font, fieldX, y, fieldWidth, 16, typeLabels, typeIndex, index -> {
+            typeIndex = index;
+            refreshItemTagVisibility();
+        });
         this.dropdowns.add(this.typeDropdown);
         this.addRenderableWidget(this.typeDropdown);
         y += rowHeight;
@@ -99,6 +107,15 @@ public class EffectCreatorScreen extends Screen implements ScrollableScreen {
         this.modIdBox = new EditBox(this.font, fieldX, y, fieldWidth, 16, Component.literal("mod id"));
         this.modIdBox.setMaxLength(256);
         this.addRenderableWidget(this.modIdBox);
+        y += rowHeight;
+
+        List<Component> operationLabels = new ArrayList<>();
+        for (EffectOperation operation : EffectOperation.values()) {
+            operationLabels.add(Component.translatable("misc.craftorio.dev_tools_operation_" + operation.getSerializedName()));
+        }
+        DevToolsDropdown operationDropdown = new DevToolsDropdown(this.font, fieldX, y, fieldWidth, 16, operationLabels, operationIndex, index -> operationIndex = index);
+        this.dropdowns.add(operationDropdown);
+        this.addRenderableWidget(operationDropdown);
         y += rowHeight;
 
         this.multiplierBox = new EditBox(this.font, fieldX, y, fieldWidth, 16, Component.literal("multiplier"));
@@ -116,21 +133,28 @@ public class EffectCreatorScreen extends Screen implements ScrollableScreen {
             this.addRenderableWidget(widget);
         }
 
+        this.unobtainableButton = Button.builder(Component.literal(String.valueOf(unobtainable)), b -> {
+            unobtainable = !unobtainable;
+            unobtainableButton.setMessage(Component.literal(String.valueOf(unobtainable)));
+            refreshWeightVisibility();
+        }).bounds(fieldX, y, fieldWidth, 16).build();
+        this.addRenderableWidget(this.unobtainableButton);
+        y += rowHeight;
+
         this.weightBox = new EditBox(this.font, fieldX, y, fieldWidth, 16, Component.literal("weight"));
         this.weightBox.setMaxLength(256);
         this.addRenderableWidget(this.weightBox);
         y += rowHeight;
 
-        this.unobtainableButton = Button.builder(Component.literal(String.valueOf(unobtainable)), b -> {
-            unobtainable = !unobtainable;
-            unobtainableButton.setMessage(Component.literal(String.valueOf(unobtainable)));
-        }).bounds(fieldX, y, fieldWidth, 16).build();
-        this.addRenderableWidget(this.unobtainableButton);
-        y += rowHeight;
-
-        this.itemTagBox = new EditBox(this.font, fieldX, y, fieldWidth, 16, Component.literal("item tag"));
+        this.itemTagBox = new EditBox(this.font, fieldX, y, fieldWidth - 64, 16, Component.literal("item tag"));
         this.itemTagBox.setMaxLength(256);
         this.addRenderableWidget(this.itemTagBox);
+        this.selectTagButton = Button.builder(Component.translatable("misc.craftorio.dev_tools_select_tag"), b -> {
+            captureFields();
+            DevToolsTagPicker.open(this.minecraft, this, tag -> this.prefillItemTag = tag);
+        })
+                .bounds(fieldX + fieldWidth - 60, y, 60, 16).build();
+        this.addRenderableWidget(this.selectTagButton);
         y += rowHeight;
 
         this.includeLangButton = Button.builder(Component.literal(String.valueOf(includeLang)), b -> {
@@ -147,7 +171,7 @@ public class EffectCreatorScreen extends Screen implements ScrollableScreen {
         y += rowHeight + 8;
 
         this.idBox.setValue(prefillId);
-        this.modIdBox.setValue(prefillModId);
+        this.modIdBox.setValue(prefillModId.isBlank() ? Craftorio.CLIENT_CONFIG.devToolsModId() : prefillModId);
         this.multiplierBox.setValue(prefillMultiplier);
         this.secondsBox.setValue(prefillSeconds);
         this.weightBox.setValue(prefillWeight);
@@ -155,6 +179,8 @@ public class EffectCreatorScreen extends Screen implements ScrollableScreen {
         this.nameBox.setValue(prefillName);
 
         refreshLangVisibility();
+        refreshItemTagVisibility();
+        refreshWeightVisibility();
 
         this.exportButton = Button.builder(exportLabel(), b -> {
             jsonExport = !jsonExport;
@@ -175,6 +201,16 @@ public class EffectCreatorScreen extends Screen implements ScrollableScreen {
 
         this.addRenderableWidget(this.helpPanel.createButton(this.width, 6, this.timeConverterPanel::closeIfOpen));
         this.addRenderableWidget(this.timeConverterPanel.createToggleButton(this.width, 30, this.helpPanel::closeIfOpen));
+    }
+
+    private void captureFields() {
+        this.prefillId = this.idBox.getValue();
+        this.prefillModId = this.modIdBox.getValue();
+        this.prefillMultiplier = this.multiplierBox.getValue();
+        this.prefillSeconds = this.secondsBox.getValue();
+        this.prefillWeight = this.weightBox.getValue();
+        this.prefillItemTag = this.itemTagBox.getValue();
+        this.prefillName = this.nameBox.getValue();
     }
 
     private void openEditPicker() {
@@ -200,6 +236,7 @@ public class EffectCreatorScreen extends Screen implements ScrollableScreen {
         this.prefillSeconds = String.valueOf(effect.getTime() / CraftorioMisc.SECONDS_TO_TICKS);
         this.prefillWeight = String.valueOf(effect.getWeight());
         this.unobtainable = effect.isUnobtainable();
+        this.operationIndex = effect.getOperation().ordinal();
         this.prefillItemTag = "";
 
         if (effect instanceof TagMultiplierEffect tagEffect) {
@@ -224,6 +261,23 @@ public class EffectCreatorScreen extends Screen implements ScrollableScreen {
         return Component.translatable(jsonExport ? "misc.craftorio.dev_tools_export_json" : "misc.craftorio.dev_tools_export_code");
     }
 
+    private boolean usesItemTag() {
+        return TYPES[typeIndex].equals("tag");
+    }
+
+    private void refreshItemTagVisibility() {
+        boolean uses = usesItemTag();
+        this.itemTagBox.visible = uses;
+        this.itemTagBox.active = uses;
+        this.selectTagButton.visible = uses;
+        this.selectTagButton.active = uses;
+    }
+
+    private void refreshWeightVisibility() {
+        this.weightBox.visible = !unobtainable;
+        this.weightBox.active = !unobtainable;
+    }
+
     private void refreshLangVisibility() {
         this.nameBox.visible = includeLang;
         this.nameBox.active = includeLang;
@@ -241,7 +295,8 @@ public class EffectCreatorScreen extends Screen implements ScrollableScreen {
                 itemTagBox.getValue(),
                 includeLang,
                 nameBox.getValue(),
-                jsonExport
+                jsonExport,
+                EffectOperation.values()[operationIndex].name()
         ));
     }
 
@@ -266,11 +321,18 @@ public class EffectCreatorScreen extends Screen implements ScrollableScreen {
         int y = panelTop + 24;
         int rowHeight = 22;
         String[] labelKeys = {
-                "dev_tools_label_type", "dev_tools_label_id", "dev_tools_label_mod_id", "dev_tools_label_multiplier", "dev_tools_label_seconds",
-                "dev_tools_label_weight", "dev_tools_label_unobtainable", "dev_tools_label_item_tag", "dev_tools_label_include_lang"
+                "dev_tools_label_type", "dev_tools_label_id", "dev_tools_label_mod_id", "dev_tools_label_operation", "dev_tools_label_value_" + EffectOperation.values()[operationIndex].getSerializedName(), "dev_tools_label_seconds",
+                "dev_tools_label_unobtainable", "dev_tools_label_weight", "dev_tools_label_item_tag", "dev_tools_label_include_lang"
         };
         for (String key : labelKeys) {
-            guiGraphics.drawString(this.font, Component.translatable("misc.craftorio." + key), labelX, y + 4, 0xAAAAAA, false);
+            boolean show = switch (key) {
+                case "dev_tools_label_item_tag" -> usesItemTag();
+                case "dev_tools_label_weight" -> !unobtainable;
+                default -> true;
+            };
+            if (show) {
+                guiGraphics.drawString(this.font, Component.translatable("misc.craftorio." + key), labelX, y + 4, 0xAAAAAA, false);
+            }
             y += rowHeight;
         }
         if (includeLang) {
@@ -287,8 +349,12 @@ public class EffectCreatorScreen extends Screen implements ScrollableScreen {
         CraftorioMisc.CraftorioTextEffects.drawEditBoxHint(guiGraphics, this.font, this.modIdBox, "e.g. yourmodid");
         CraftorioMisc.CraftorioTextEffects.drawEditBoxHint(guiGraphics, this.font, this.multiplierBox, "e.g. 2.0");
         CraftorioMisc.CraftorioTextEffects.drawEditBoxHint(guiGraphics, this.font, this.secondsBox, "e.g. 60");
-        CraftorioMisc.CraftorioTextEffects.drawEditBoxHint(guiGraphics, this.font, this.weightBox, "e.g. 10");
-        CraftorioMisc.CraftorioTextEffects.drawEditBoxHint(guiGraphics, this.font, this.itemTagBox, "e.g. craftorio:copper");
+        if (!unobtainable) {
+            CraftorioMisc.CraftorioTextEffects.drawEditBoxHint(guiGraphics, this.font, this.weightBox, "e.g. 10");
+        }
+        if (usesItemTag()) {
+            CraftorioMisc.CraftorioTextEffects.drawEditBoxHint(guiGraphics, this.font, this.itemTagBox, "e.g. craftorio:copper");
+        }
         if (includeLang) {
             CraftorioMisc.CraftorioTextEffects.drawEditBoxHint(guiGraphics, this.font, this.nameBox, "e.g. My Effect");
         }

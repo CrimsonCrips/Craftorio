@@ -1,6 +1,5 @@
 package org.crimsoncrips.craftorio.client.screen.hub;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
 import net.minecraft.client.gui.GuiGraphics;
@@ -18,12 +17,14 @@ import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
-import org.crimsoncrips.craftorio.client.screen.contract.OwnedContractsScreen;
 import org.crimsoncrips.craftorio.client.screen.devtools.DevToolsScreen;
 import org.crimsoncrips.craftorio.client.screen.effect.ActiveEffectsScreen;
 import org.crimsoncrips.craftorio.client.screen.purchase.BorderExpandScreen;
 import org.crimsoncrips.craftorio.client.screen.purchase.ClaimItemPurchaseScreen;
 import org.crimsoncrips.craftorio.client.screen.purchase.EffectRuneShopScreen;
+import org.crimsoncrips.craftorio.skill_tree.UpgradeTree;
+import org.crimsoncrips.craftorio.server.skill_tree.SkillTreeReveal;
+import org.crimsoncrips.craftorio.networking.skill_tree.RevealSkillTreePacket;
 import org.crimsoncrips.craftorio.client.screen.skill_tree.CraftorioBasicSkillTreeScreen;
 import org.crimsoncrips.craftorio.client.screen.skill_tree.CraftorioRebirthSkillTreeScreen;
 import org.crimsoncrips.craftorio.client.screen.consent.ClientConsentState;
@@ -46,7 +47,6 @@ import org.crimsoncrips.craftorio.server.shop.CraftorioShopMode;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 @OnlyIn(Dist.CLIENT)
 public class CraftorioHubScreen extends Screen implements ScrollableScreen {
@@ -64,21 +64,25 @@ public class CraftorioHubScreen extends Screen implements ScrollableScreen {
     private static final int SACRIFICE_HEIGHT = Math.round(BUTTON_HEIGHT * SACRIFICE_SIZE_SCALE);
     private static final int SACRIFICE_SCREEN_MARGIN = 8;
     private static final int SACRIFICE_SLOT_SHIFT = SACRIFICE_HEIGHT + (BUTTON_STRIDE - BUTTON_HEIGHT) + DONE_EXTRA_GAP;
-    private static final long INTRO_ZOOM_IN_MS = 900L;
     private static final long INTRO_SHIFT_MS = 1400L;
     private static final long INTRO_SHARDS_MS = 1800L;
     private static final long INTRO_HOLD_MS = 500L;
-    private static final long INTRO_ZOOM_OUT_MS = 900L;
-    private static final long INTRO_ZOOM_OUT_START_MS = INTRO_ZOOM_IN_MS + INTRO_SHIFT_MS + INTRO_SHARDS_MS + INTRO_HOLD_MS;
-    private static final long INTRO_TOTAL_MS = INTRO_ZOOM_OUT_START_MS + INTRO_ZOOM_OUT_MS;
-    private static final float INTRO_ZOOM = 1.6f;
+    private static final long INTRO_TOTAL_MS = INTRO_SHIFT_MS + INTRO_SHARDS_MS + INTRO_HOLD_MS;
     private static final long SKILL_TREE_PANEL_ANIM_MS = 250L;
     private static final int SKILL_TREE_PANEL_WIDTH = 150;
     private static final int SKILL_TREE_PANEL_PADDING = 6;
     private static final int SKILL_TREE_PANEL_TITLE_HEIGHT = 12;
     private static final int SKILL_TREE_PANEL_MARGIN = 8;
 
+    private static final long TREE_REVEAL_DELAY_MS = 150L;
+    private static final long TREE_REVEAL_MS = 450L;
+    private static final long TREE_REVEAL_STAGGER_MS = 200L;
+
     private final List<Button> skillTreeButtons = new ArrayList<>();
+    private final List<Button> revealingTreeButtons = new ArrayList<>();
+    private final List<UpgradeTree> revealingTrees = new ArrayList<>();
+    private long treeRevealStartMillis = -1L;
+    private boolean treeRevealSent;
     private boolean skillTreeAnimOpening;
     private long skillTreeAnimStartMillis;
     private float skillTreeAnimFrom;
@@ -192,11 +196,13 @@ public class CraftorioHubScreen extends Screen implements ScrollableScreen {
                 .bounds(statsX + statsSize + 4, statsY, 90, statsSize).build());
 
         this.skillTreeButtons.clear();
+        this.revealingTreeButtons.clear();
+        this.revealingTrees.clear();
         this.skillTreeButtons.add(Button.builder(Component.translatable("misc.craftorio.skill_tree_title"),
                 b -> this.minecraft.setScreen(new CraftorioBasicSkillTreeScreen("misc.craftorio.skill_tree_title"))).build());
-        this.skillTreeButtons.add(Button.builder(Component.translatable("misc.craftorio.rebirth_skill_tree_title"),
+        addTreeButton(UpgradeTree.REBIRTH, Button.builder(Component.translatable("misc.craftorio.rebirth_skill_tree_title"),
                 b -> this.minecraft.setScreen(new CraftorioRebirthSkillTreeScreen())).build());
-        this.skillTreeButtons.add(Button.builder(Component.translatable("misc.craftorio.sacrifice_skill_tree_title"),
+        addTreeButton(UpgradeTree.SACRIFICE, Button.builder(Component.translatable("misc.craftorio.sacrifice_skill_tree_title"),
                 b -> this.minecraft.setScreen(new CraftorioSacrificeSkillTreeScreen())).build());
 
         this.skillTreePanelHeight = SKILL_TREE_PANEL_PADDING * 2 + SKILL_TREE_PANEL_TITLE_HEIGHT
@@ -262,8 +268,8 @@ public class CraftorioHubScreen extends Screen implements ScrollableScreen {
         float shift;
         float appear;
         if (this.introPlaying) {
-            shift = easeInOutCubic(introPhase(INTRO_ZOOM_IN_MS, INTRO_SHIFT_MS));
-            appear = introPhase(INTRO_ZOOM_IN_MS + INTRO_SHIFT_MS, INTRO_SHARDS_MS);
+            shift = easeInOutCubic(introPhase(0L, INTRO_SHIFT_MS));
+            appear = introPhase(INTRO_SHIFT_MS, INTRO_SHARDS_MS);
         } else {
             shift = this.sacrificeButton.visible ? 1f : 0f;
             appear = 1f;
@@ -274,12 +280,6 @@ public class CraftorioHubScreen extends Screen implements ScrollableScreen {
             this.columnWidgets.get(i).setY(this.columnBaseY.get(i) + offset);
         }
         this.sacrificeButton.setAppearProgress(appear);
-    }
-
-    private float introZoom() {
-        float zoomIn = easeInOutCubic(introPhase(0L, INTRO_ZOOM_IN_MS));
-        float zoomOut = easeInOutCubic(introPhase(INTRO_ZOOM_OUT_START_MS, INTRO_ZOOM_OUT_MS));
-        return 1f + (INTRO_ZOOM - 1f) * zoomIn * (1f - zoomOut);
     }
 
     @Override
@@ -358,6 +358,51 @@ public class CraftorioHubScreen extends Screen implements ScrollableScreen {
         }
     }
 
+    private void addTreeButton(UpgradeTree tree, Button button) {
+        Player player = this.minecraft.player;
+        int state = player == null ? SkillTreeReveal.HIDDEN : SkillTreeReveal.state(player, tree);
+        if (state == SkillTreeReveal.HIDDEN) return;
+
+        this.skillTreeButtons.add(button);
+        if (state == SkillTreeReveal.PENDING && !this.treeRevealSent) {
+            this.revealingTreeButtons.add(button);
+            this.revealingTrees.add(tree);
+        }
+    }
+
+    private void layoutRevealingTrees(float progress, int left) {
+        if (this.revealingTreeButtons.isEmpty()) return;
+
+        long now = Util.getMillis();
+        boolean done = true;
+        if (progress >= 1f) {
+            if (this.treeRevealStartMillis < 0L) {
+                this.treeRevealStartMillis = now + TREE_REVEAL_DELAY_MS;
+            }
+        }
+
+        for (int i = 0; i < this.revealingTreeButtons.size(); i++) {
+            Button button = this.revealingTreeButtons.get(i);
+            float t = this.treeRevealStartMillis < 0L ? 0f
+                    : Mth.clamp((now - this.treeRevealStartMillis - i * TREE_REVEAL_STAGGER_MS) / (float) TREE_REVEAL_MS, 0f, 1f);
+            float eased = 1f - (1f - t) * (1f - t) * (1f - t);
+            button.setX(Math.round(Mth.lerp(eased, -button.getWidth() - 10f, left + SKILL_TREE_PANEL_PADDING)));
+            button.visible = progress > 0f && t > 0f;
+            button.active = progress >= 0.99f && t >= 1f;
+            if (t < 1f) done = false;
+        }
+
+        if (!done && !this.skillTreeAnimOpening) {
+            this.treeRevealStartMillis = -1L;
+        }
+        if (done && !this.treeRevealSent) {
+            this.treeRevealSent = true;
+            for (UpgradeTree tree : this.revealingTrees) {
+                PacketDistributor.sendToServer(new RevealSkillTreePacket(tree));
+            }
+        }
+    }
+
     private void toggleSkillTreePanel() {
         this.skillTreeAnimFrom = skillTreePanelProgress();
         this.skillTreeAnimOpening = !this.skillTreeAnimOpening;
@@ -384,6 +429,7 @@ public class CraftorioHubScreen extends Screen implements ScrollableScreen {
             button.visible = progress > 0f;
             button.active = progress >= 0.99f;
         }
+        layoutRevealingTrees(progress, left);
     }
 
     @Override
@@ -411,24 +457,13 @@ public class CraftorioHubScreen extends Screen implements ScrollableScreen {
         layoutSkillTreePanel();
         layoutSacrificeSlot();
 
-        float zoom = this.introPlaying ? introZoom() : 1f;
         int contentMouseX = this.introPlaying ? -1000 : mouseX;
         int contentMouseY = this.introPlaying ? -1000 : mouseY;
-        PoseStack pose = guiGraphics.pose();
-        pose.pushPose();
-        if (zoom != 1f && this.sacrificeButton != null) {
-            float focusX = this.sacrificeButton.getX() + this.sacrificeButton.getWidth() / 2f;
-            float focusY = this.sacrificeButton.getY() + this.sacrificeButton.getHeight() / 2f;
-            pose.translate(focusX, focusY, 0f);
-            pose.scale(zoom, zoom, 1f);
-            pose.translate(-focusX, -focusY, 0f);
-        }
         super.render(guiGraphics, contentMouseX, contentMouseY, partialTick);
         if (this.sacrificeButton != null && this.sacrificeButton.visible) {
             this.sacrificeButton.renderAura(guiGraphics);
         }
         guiGraphics.flush();
-        pose.popPose();
 
         Player player = this.minecraft.player;
         if (player == null || this.minecraft.level == null) return;

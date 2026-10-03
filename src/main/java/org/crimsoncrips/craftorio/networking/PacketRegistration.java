@@ -5,6 +5,7 @@ import net.neoforged.neoforge.network.event.RegisterPayloadHandlersEvent;
 import net.neoforged.neoforge.network.registration.PayloadRegistrar;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.networking.schematic.ChronospherePacket;
+import org.crimsoncrips.craftorio.networking.schematic.BuildBlitzPacket;
 import org.crimsoncrips.craftorio.networking.schematic.SchematicStructurePacket;
 import org.crimsoncrips.craftorio.networking.loan.LoanSharkActionPacket;
 import org.crimsoncrips.craftorio.networking.loan.LoanStateSyncPacket;
@@ -30,12 +31,17 @@ import org.crimsoncrips.craftorio.networking.devtools.GenerateContractCodePacket
 import org.crimsoncrips.craftorio.networking.devtools.GenerateEffectCodePacket;
 import org.crimsoncrips.craftorio.networking.devtools.GenerateSkillTreeCodePacket;
 import org.crimsoncrips.craftorio.networking.devtools.GenerateUpgradeCodePacket;
+import org.crimsoncrips.craftorio.networking.devtools.AdvancementListPacket;
+import org.crimsoncrips.craftorio.networking.devtools.PointDataMapsPacket;
+import org.crimsoncrips.craftorio.networking.devtools.RequestAdvancementListPacket;
+import org.crimsoncrips.craftorio.networking.devtools.RequestPointDataMapsPacket;
 import org.crimsoncrips.craftorio.networking.devtools.GiveScannerStickPacket;
 import org.crimsoncrips.craftorio.networking.devtools.GiveChronosphereStickPacket;
 import org.crimsoncrips.craftorio.networking.devtools.GiveStructureWandPacket;
 import org.crimsoncrips.craftorio.networking.devtools.LoadContractIntoCreatorPacket;
 import org.crimsoncrips.craftorio.networking.devtools.OpenContractCreatorPacket;
 import org.crimsoncrips.craftorio.networking.devtools.PrintScanPacket;
+import org.crimsoncrips.craftorio.networking.devtools.DevClaimEntryPacket;
 import org.crimsoncrips.craftorio.networking.devtools.StructureWandActionPacket;
 import org.crimsoncrips.craftorio.networking.devtools.SetContractCreatorViewPacket;
 import org.crimsoncrips.craftorio.networking.devtools.SkillTreeGenerateResultPacket;
@@ -69,10 +75,10 @@ import org.crimsoncrips.craftorio.networking.sacrifice.SacrificeAnswerPacket;
 import org.crimsoncrips.craftorio.networking.sacrifice.SacrificeShatterPacket;
 import org.crimsoncrips.craftorio.networking.skill_tree.RequestRebirthPacket;
 import org.crimsoncrips.craftorio.networking.skill_tree.SetAutoConsentPacket;
-import org.crimsoncrips.craftorio.networking.skill_tree.UnlockSacrificeUpgradePacket;
-import org.crimsoncrips.craftorio.networking.skill_tree.UnlockRebirthUpgradePacket;
 import org.crimsoncrips.craftorio.networking.skill_tree.UnlockUpgradeFailedPacket;
 import org.crimsoncrips.craftorio.networking.skill_tree.UnlockUpgradePacket;
+import org.crimsoncrips.craftorio.networking.skill_tree.PurchaseAllUpgradesPacket;
+import org.crimsoncrips.craftorio.networking.skill_tree.RevealSkillTreePacket;
 import org.crimsoncrips.craftorio.networking.sync.UniversalStateSyncPacket;
 import org.crimsoncrips.craftorio.networking.sync.WelcomeToastPacket;
 
@@ -101,9 +107,12 @@ public class PacketRegistration {
         registrar.playToServer(ForceContractRefreshPacket.TYPE, ForceContractRefreshPacket.STREAM_CODEC, ForceContractRefreshPacket::handle);
         registrar.playToServer(RefreshContractOfferPacket.TYPE, RefreshContractOfferPacket.STREAM_CODEC, RefreshContractOfferPacket::handle);
         registrar.playToServer(UnlockUpgradePacket.TYPE, UnlockUpgradePacket.STREAM_CODEC, UnlockUpgradePacket::handle);
+        registrar.playToServer(PurchaseAllUpgradesPacket.TYPE, PurchaseAllUpgradesPacket.STREAM_CODEC, PurchaseAllUpgradesPacket::handle);
+        registrar.playToServer(RevealSkillTreePacket.TYPE, RevealSkillTreePacket.STREAM_CODEC, RevealSkillTreePacket::handle);
         registrar.playToServer(SetAutoSinkerThresholdPacket.TYPE, SetAutoSinkerThresholdPacket.STREAM_CODEC, SetAutoSinkerThresholdPacket::handle);
         registrar.playToServer(SetAutoSinkerOwnerPacket.TYPE, SetAutoSinkerOwnerPacket.STREAM_CODEC, SetAutoSinkerOwnerPacket::handle);
         registrar.playToServer(PrintScanPacket.TYPE, PrintScanPacket.STREAM_CODEC, PrintScanPacket::handle);
+        registrar.playToServer(DevClaimEntryPacket.TYPE, DevClaimEntryPacket.STREAM_CODEC, DevClaimEntryPacket::handle);
         registrar.playToServer(StructureWandActionPacket.TYPE, StructureWandActionPacket.STREAM_CODEC, StructureWandActionPacket::handle);
         registrar.playToServer(CondenseValuePacket.TYPE, CondenseValuePacket.STREAM_CODEC, CondenseValuePacket::handle);
         registrar.playToServer(RequestOpenValueBrowserPacket.TYPE, RequestOpenValueBrowserPacket.STREAM_CODEC, RequestOpenValueBrowserPacket::handle);
@@ -113,6 +122,8 @@ public class PacketRegistration {
         registrar.playToServer(OpenContractCreatorPacket.TYPE, OpenContractCreatorPacket.STREAM_CODEC, OpenContractCreatorPacket::handle);
         registrar.playToServer(GenerateContractCodePacket.TYPE, GenerateContractCodePacket.STREAM_CODEC, GenerateContractCodePacket::handle);
         registrar.playToServer(GenerateEffectCodePacket.TYPE, GenerateEffectCodePacket.STREAM_CODEC, GenerateEffectCodePacket::handle);
+        registrar.playToServer(RequestPointDataMapsPacket.TYPE, RequestPointDataMapsPacket.STREAM_CODEC, RequestPointDataMapsPacket::handle);
+        registrar.playToServer(RequestAdvancementListPacket.TYPE, RequestAdvancementListPacket.STREAM_CODEC, RequestAdvancementListPacket::handle);
         registrar.playToServer(GenerateUpgradeCodePacket.TYPE, GenerateUpgradeCodePacket.STREAM_CODEC, GenerateUpgradeCodePacket::handle);
         registrar.playToServer(GenerateSkillTreeCodePacket.TYPE, GenerateSkillTreeCodePacket.STREAM_CODEC, GenerateSkillTreeCodePacket::handle);
         registrar.playToServer(CopyInventoryToContractCreatorPacket.TYPE, CopyInventoryToContractCreatorPacket.STREAM_CODEC, CopyInventoryToContractCreatorPacket::handle);
@@ -122,9 +133,7 @@ public class PacketRegistration {
         registrar.playToServer(LoadContractIntoCreatorPacket.TYPE, LoadContractIntoCreatorPacket.STREAM_CODEC, LoadContractIntoCreatorPacket::handle);
         registrar.playToServer(ClearEffectsPacket.TYPE, ClearEffectsPacket.STREAM_CODEC, ClearEffectsPacket::handle);
         registrar.playToServer(RequestRebirthPacket.TYPE, RequestRebirthPacket.STREAM_CODEC, RequestRebirthPacket::handle);
-        registrar.playToServer(UnlockSacrificeUpgradePacket.TYPE, UnlockSacrificeUpgradePacket.STREAM_CODEC, UnlockSacrificeUpgradePacket::handle);
         registrar.playToServer(SetAutoConsentPacket.TYPE, SetAutoConsentPacket.STREAM_CODEC, SetAutoConsentPacket::handle);
-        registrar.playToServer(UnlockRebirthUpgradePacket.TYPE, UnlockRebirthUpgradePacket.STREAM_CODEC, UnlockRebirthUpgradePacket::handle);
 
         registrar.playToClient(OpenShopScreenPacket.TYPE, OpenShopScreenPacket.STREAM_CODEC, OpenShopScreenPacket::handle);
         registrar.playToClient(OpenValueBrowserScreenPacket.TYPE, OpenValueBrowserScreenPacket.STREAM_CODEC, OpenValueBrowserScreenPacket::handle);
@@ -137,6 +146,8 @@ public class PacketRegistration {
         registrar.playToClient(UniversalStateSyncPacket.TYPE, UniversalStateSyncPacket.STREAM_CODEC, UniversalStateSyncPacket::handle);
         registrar.playToClient(DoubleOrNothingResultPacket.TYPE, DoubleOrNothingResultPacket.STREAM_CODEC, DoubleOrNothingResultPacket::handle);
         registrar.playToClient(SkillTreeGenerateResultPacket.TYPE, SkillTreeGenerateResultPacket.STREAM_CODEC, SkillTreeGenerateResultPacket::handle);
+        registrar.playToClient(PointDataMapsPacket.TYPE, PointDataMapsPacket.STREAM_CODEC, PointDataMapsPacket::handle);
+        registrar.playToClient(AdvancementListPacket.TYPE, AdvancementListPacket.STREAM_CODEC, AdvancementListPacket::handle);
         registrar.playToClient(UnlockUpgradeFailedPacket.TYPE, UnlockUpgradeFailedPacket.STREAM_CODEC, UnlockUpgradeFailedPacket::handle);
         registrar.playToClient(ConsentStatusPacket.TYPE, ConsentStatusPacket.STREAM_CODEC, ConsentStatusPacket::handle);
         registrar.playToClient(HavenTransitionPacket.TYPE, HavenTransitionPacket.STREAM_CODEC, HavenTransitionPacket::handle);
@@ -151,6 +162,7 @@ public class PacketRegistration {
         registrar.playToClient(LoanStateSyncPacket.TYPE, LoanStateSyncPacket.STREAM_CODEC, LoanStateSyncPacket::handle);
         registrar.playToClient(SchematicStructurePacket.TYPE, SchematicStructurePacket.STREAM_CODEC, SchematicStructurePacket::handle);
         registrar.playToClient(ChronospherePacket.TYPE, ChronospherePacket.STREAM_CODEC, ChronospherePacket::handle);
+        registrar.playToClient(BuildBlitzPacket.TYPE, BuildBlitzPacket.STREAM_CODEC, BuildBlitzPacket::handle);
         registrar.playToClient(SaveCreateSchematicPacket.TYPE, SaveCreateSchematicPacket.STREAM_CODEC, SaveCreateSchematicPacket::handle);
     }
 }

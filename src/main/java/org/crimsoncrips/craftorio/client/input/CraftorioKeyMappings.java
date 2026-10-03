@@ -22,6 +22,9 @@ import org.crimsoncrips.craftorio.item.schematic.ContractSchematicItem;
 import org.crimsoncrips.craftorio.item.structure.StructureWandItem;
 import org.crimsoncrips.craftorio.item.structure.StructureWandSettings;
 import org.crimsoncrips.craftorio.networking.devtools.PrintScanPacket;
+import org.crimsoncrips.craftorio.networking.schematic.SchematicActionPacket;
+import org.crimsoncrips.craftorio.server.schematic.BuildBlitz;
+import org.crimsoncrips.craftorio.client.schematic.BuildBlitzEffect;
 import org.crimsoncrips.craftorio.registries.CraftorioDataComponents;
 import org.crimsoncrips.craftorio.client.screen.consent.ClientConsentState;
 import org.crimsoncrips.craftorio.client.screen.consent.CraftorioConsentWaitScreen;
@@ -46,9 +49,44 @@ public class CraftorioKeyMappings {
             "key.categories.craftorio"
     );
 
+    public static final KeyMapping BUILD_BLITZ = new KeyMapping(
+            "key.craftorio.build_blitz",
+            KeyConflictContext.IN_GAME,
+            InputConstants.Type.KEYSYM,
+            InputConstants.KEY_N,
+            "key.categories.craftorio"
+    );
+
     public static void register(RegisterKeyMappingsEvent event) {
         event.register(OPEN_HUB);
         event.register(PRINT_SCAN);
+        event.register(BUILD_BLITZ);
+    }
+
+    private static void fireBuildBlitz(Minecraft minecraft) {
+        if (minecraft.player == null || minecraft.screen != null) return;
+
+        for (InteractionHand hand : InteractionHand.values()) {
+            ItemStack stack = minecraft.player.getItemInHand(hand);
+            if (!(stack.getItem() instanceof ContractSchematicItem)) continue;
+            SchematicData data = stack.get(CraftorioDataComponents.SCHEMATIC.get());
+            if (data == null || !CraftorioSchematics.isLinked(minecraft.player, data)) continue;
+
+            if (!BuildBlitz.isUnlocked(minecraft.player)) {
+                minecraft.player.displayClientMessage(Component.translatable("misc.craftorio.build_blitz_locked").withStyle(ChatFormatting.RED), true);
+                return;
+            }
+            if (data.origin().isEmpty()) {
+                minecraft.player.displayClientMessage(Component.translatable("misc.craftorio.schematic_not_placed_yet").withStyle(ChatFormatting.RED), true);
+                return;
+            }
+            if (BuildBlitzEffect.isLocalBlitzActive()) {
+                minecraft.player.displayClientMessage(Component.translatable("misc.craftorio.build_blitz_active").withStyle(ChatFormatting.RED), true);
+                return;
+            }
+            PacketDistributor.sendToServer(new SchematicActionPacket(hand, SchematicActionPacket.BUILD_BLITZ));
+            return;
+        }
     }
 
     private static boolean openHeldToolScreen(Minecraft minecraft) {
@@ -82,6 +120,10 @@ public class CraftorioKeyMappings {
         }
 
         Minecraft minecraft = Minecraft.getInstance();
+        while (BUILD_BLITZ.consumeClick()) {
+            fireBuildBlitz(minecraft);
+        }
+
         boolean inHaven = minecraft.level != null && CraftorioMisc.isInHavenDimension(minecraft.level);
 
         while (OPEN_HUB.consumeClick()) {

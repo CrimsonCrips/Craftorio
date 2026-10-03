@@ -1,0 +1,181 @@
+{
+  "basePointValue": "800000",
+  "card_texture": "craftorio:textures/gui/contract_textures/custom/reim.png",
+  "description": "registry.wasted_reimains.description",
+  "itemBounty": [
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    },
+    {
+      "amountRequired": 1,
+      "contract_item": "minecraft:netherite_hoe"
+    }
+  ],
+  "max_point_threshold": "1000000000",
+  "min_point_threshold": "100000",
+  "name": "registry.wasted_reimains.title",
+  "point_threshold": "2700000",
+  "punishment": "craftorio:reiminder",
+  "seconds": 36000,
+  "text_colors": {
+    "title": "#55FFFF"
+  },
+  "weight": 7
+}

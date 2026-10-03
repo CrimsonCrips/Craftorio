@@ -16,14 +16,15 @@ public abstract class CraftorioJadeOverlayMixin {
 
     @Inject(method = "updateExpectedRect", at = @At("TAIL"))
     private void craftorio$updateExpectedRect(TooltipRect rect, CallbackInfo ci) {
+        Rect2i expected = rect.expectedRect;
         Rect2i pointsBarRect = ClientEvents.getPointsBarScreenRect();
-        if (pointsBarRect == null) {
-            return;
+        if (pointsBarRect != null && overlaps(expected, pointsBarRect)) {
+            expected.setY(pointsBarRect.getY() + pointsBarRect.getHeight() + PUSH_DOWN_PADDING);
         }
 
-        Rect2i expected = rect.expectedRect;
-        if (overlaps(expected, pointsBarRect)) {
-            expected.setY(pointsBarRect.getY() + pointsBarRect.getHeight() + PUSH_DOWN_PADDING);
+        int introOffset = Math.round(ClientEvents.hudIntroOffset());
+        if (introOffset != 0) {
+            expected.setY(expected.getY() + introOffset);
         }
     }
 

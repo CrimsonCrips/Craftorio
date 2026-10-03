@@ -1,5 +1,7 @@
 package org.crimsoncrips.craftorio.client.screen.contract;
 
+import org.crimsoncrips.craftorio.networking.devtools.DevClaimEntryPacket;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -9,7 +11,6 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 import net.neoforged.neoforge.network.PacketDistributor;
@@ -33,6 +34,7 @@ public class ContractDetailsScreen extends Screen implements ScrollableScreen {
 
     private final Screen parent;
     private final CraftorioContract contract;
+    private final ResourceLocation claimId;
 
     private int bountyScroll = 0;
     private int rewardScroll = 0;
@@ -46,15 +48,27 @@ public class ContractDetailsScreen extends Screen implements ScrollableScreen {
     private Button remainingToggleButton;
 
     public ContractDetailsScreen(Screen parent, CraftorioContract contract) {
+        this(parent, contract, null);
+    }
+
+    public ContractDetailsScreen(Screen parent, CraftorioContract contract, ResourceLocation claimId) {
         super(Component.literal(contract.getActualName()));
         this.parent = parent;
         this.contract = contract;
+        this.claimId = claimId;
     }
 
     @Override
     protected void init() {
-        this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.back"), b -> this.onClose())
-                .bounds(this.width / 2 - 50, this.height - 30, 100, 20).build());
+        if (this.claimId != null) {
+            this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.back"), b -> this.onClose())
+                    .bounds(this.width / 2 - 105, this.height - 30, 100, 20).build());
+            this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.dev_claim_button"), b -> PacketDistributor.sendToServer(new DevClaimEntryPacket(false, this.claimId)))
+                    .bounds(this.width / 2 + 5, this.height - 30, 100, 20).build());
+        } else {
+            this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.back"), b -> this.onClose())
+                    .bounds(this.width / 2 - 50, this.height - 30, 100, 20).build());
+        }
 
         if (showsBounty()) {
             this.remainingToggleButton = this.addRenderableWidget(Button.builder(remainingToggleLabel(), b -> toggleRemainingOnly())

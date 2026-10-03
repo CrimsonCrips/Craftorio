@@ -1,5 +1,8 @@
 package org.crimsoncrips.craftorio.inventory;
 
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.network.chat.Component;
+import net.minecraft.ChatFormatting;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -136,6 +139,17 @@ public class ContractCreatorMenu extends AbstractContainerMenu {
         return player;
     }
 
+    public static boolean hasComponentItems(Container container) {
+        for (int i = 0; i < TOTAL_SLOTS && i < container.getContainerSize(); i++) {
+            if (!container.getItem(i).isEmpty() && !container.getItem(i).getComponentsPatch().isEmpty()) return true;
+        }
+        return false;
+    }
+
+    public static void warnComponentItems(ServerPlayer player) {
+        player.sendSystemMessage(Component.translatable("misc.craftorio.dev_tools_contract_components_warning").withStyle(ChatFormatting.GOLD));
+    }
+
     public Container getContainer() {
         return container;
     }
@@ -249,8 +263,13 @@ public class ContractCreatorMenu extends AbstractContainerMenu {
 
         @Override
         public void set(ItemStack stack) {
+            ItemStack previous = this.container.getItem(index());
             this.container.setItem(index(), stack);
             this.setChanged();
+            if (player instanceof ServerPlayer serverPlayer && !stack.isEmpty() && !stack.getComponentsPatch().isEmpty()
+                    && !ItemStack.isSameItemSameComponents(previous, stack)) {
+                warnComponentItems(serverPlayer);
+            }
         }
 
         @Override

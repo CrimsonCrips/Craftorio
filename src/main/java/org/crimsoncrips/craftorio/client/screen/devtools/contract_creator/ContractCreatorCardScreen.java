@@ -26,12 +26,11 @@ import org.crimsoncrips.craftorio.inventory.ContractCreatorMenu;
 import org.crimsoncrips.craftorio.networking.devtools.LoadContractIntoCreatorPacket;
 import org.crimsoncrips.craftorio.registries.contract.ContractTextColors;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
-import org.crimsoncrips.craftorio.registries.contract.CraftorioContractTexture;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.lwjgl.glfw.GLFW;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.IdentityHashMap;
 import java.util.List;
@@ -157,7 +156,7 @@ public class ContractCreatorCardScreen extends Screen implements MenuAccess<Cont
         buildTextPanel(Region.TITLE, ContractCreatorDraft.TITLE, "dev_tools_label_title", "e.g. My Contract");
         buildTimePanel();
         buildTextPanel(Region.DESCRIPTION, ContractCreatorDraft.DESCRIPTION, "dev_tools_label_description", "e.g. Turn in some items.");
-        buildTextPanel(Region.PUNISHMENT, ContractCreatorDraft.PUNISHMENT, "dev_tools_label_punishment", "e.g. craftorio:general/some_punishment");
+        buildPunishmentPanel();
         for (List<AbstractWidget> widgets : this.panelWidgets.values()) {
             for (AbstractWidget widget : widgets) {
                 this.offsets.put(widget, widget.getX());
@@ -221,6 +220,41 @@ public class ContractCreatorCardScreen extends Screen implements MenuAccess<Cont
         y += ROW + 4;
         buildColorSection(region, widgets, y);
         this.panelWidgets.put(region, widgets);
+    }
+
+    private void buildPunishmentPanel() {
+        Region region = Region.PUNISHMENT;
+        List<AbstractWidget> widgets = new ArrayList<>();
+        int y = 18;
+        this.panelLabels.add(new PanelLabel(region, "dev_tools_label_punishment", y));
+        y += 11;
+        widgets.add(panelBox(region, ContractCreatorDraft.PUNISHMENT, y, PANEL_WIDTH - PANEL_PADDING * 2, "e.g. craftorio:general/some_punishment"));
+        y += ROW - 2;
+        Component selectLabel = Component.translatable("misc.craftorio.dev_tools_select_punishment");
+        widgets.add(Button.builder(selectLabel, b -> openPunishmentPicker()).bounds(0, y, fitWidth(selectLabel), 16).build());
+        y += ROW + 4;
+        buildColorSection(region, widgets, y);
+        this.panelWidgets.put(region, widgets);
+    }
+
+    private void openPunishmentPicker() {
+        if (this.minecraft.level == null) return;
+
+        Registry<CraftorioEffects> registry = this.minecraft.level.registryAccess().registryOrThrow(CraftorioEffects.REGISTRY_KEY);
+        List<DevToolsPickerScreen.Option> options = new ArrayList<>();
+        options.add(new DevToolsPickerScreen.Option(Component.translatable("misc.craftorio.dev_tools_contract_no_punishment"), "", 0, true, () -> {
+            ContractCreatorDraft.set(ContractCreatorDraft.PUNISHMENT, "");
+            this.minecraft.setScreen(this);
+        }));
+        for (Holder.Reference<CraftorioEffects> holder : registry.holders().sorted(Comparator.comparing(h -> h.key().location().toString())).toList()) {
+            ResourceLocation id = holder.key().location();
+            options.add(new DevToolsPickerScreen.Option(Component.literal(holder.value().getActualName()), id.toString(), 0, true, () -> {
+                ContractCreatorDraft.set(ContractCreatorDraft.PUNISHMENT, id.toString());
+                this.minecraft.setScreen(this);
+            }));
+        }
+
+        this.minecraft.setScreen(new DevToolsPickerScreen(Component.translatable("misc.craftorio.dev_tools_pick_punishment"), this, options));
     }
 
     private void buildTimePanel() {
@@ -347,7 +381,9 @@ public class ContractCreatorCardScreen extends Screen implements MenuAccess<Cont
     }
 
     private int panelHeight() {
-        return this.shownRegion == Region.TIME ? 180 : 118;
+        if (this.shownRegion == Region.TIME) return 180;
+        if (this.shownRegion == Region.PUNISHMENT) return 118 + ROW + 2;
+        return 118;
     }
 
     private void updatePanelWidgets() {
@@ -585,13 +621,12 @@ public class ContractCreatorCardScreen extends Screen implements MenuAccess<Cont
     }
 
     private ResourceLocation cardTexture() {
-        ResourceLocation fallback = Craftorio.getGuiTexture("contract_textures/default_contract.png");
-        ResourceLocation id = ResourceLocation.tryParse(ContractCreatorDraft.get(ContractCreatorDraft.CARD_TEXTURE).trim());
-        if (id == null || this.minecraft.level == null) return fallback;
-        return this.minecraft.level.registryAccess().registry(CraftorioContractTexture.REGISTRY_KEY)
-                .flatMap(registry -> registry.getOptional(id))
-                .map(CraftorioContractTexture::texture)
-                .orElse(fallback);
+        String path = ContractCreatorDraft.get(ContractCreatorDraft.CARD_TEXTURE).trim();
+        ResourceLocation texture = path.isEmpty() ? null : ResourceLocation.tryParse(path);
+        if (texture != null && texture.getPath().endsWith(".png")) return texture;
+        if (this.minecraft.level == null) return Craftorio.getGuiTexture("contract_textures/default_contract.png");
+        return CraftorioContract.defaultCardTexture(this.minecraft.level.registryAccess(),
+                "registry." + ContractCreatorDraft.get(ContractCreatorDraft.ID).trim() + ".title");
     }
 
     private void renderCard(GuiGraphics graphics, int mouseX, int mouseY) {

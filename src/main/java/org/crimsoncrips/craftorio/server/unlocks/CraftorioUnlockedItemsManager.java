@@ -17,6 +17,7 @@ import net.minecraft.world.level.storage.LevelResource;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import net.neoforged.neoforge.event.server.ServerAboutToStartEvent;
+import net.neoforged.neoforge.event.server.ServerStoppedEvent;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
@@ -60,7 +61,13 @@ public class CraftorioUnlockedItemsManager {
 
     @SubscribeEvent
     public void serverAboutToStart(ServerAboutToStartEvent event) {
+        this.cache.clear();
         getUnlocksDir(event.getServer()).toFile().mkdirs();
+    }
+
+    @SubscribeEvent
+    public void serverStopped(ServerStoppedEvent event) {
+        this.cache.clear();
     }
 
     @SubscribeEvent

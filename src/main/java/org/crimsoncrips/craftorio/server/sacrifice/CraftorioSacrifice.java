@@ -27,6 +27,8 @@ import net.minecraft.world.level.levelgen.WorldOptions;
 import net.neoforged.neoforge.attachment.IAttachmentHolder;
 import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.Craftorio;
+import org.crimsoncrips.craftorio.server.skill_tree.SkillTreeReveal;
+import org.crimsoncrips.craftorio.skill_tree.UpgradeTree;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.events.ServerEvents;
 import org.crimsoncrips.craftorio.networking.sacrifice.OpenSacrificeSkillTreeScreenPacket;
@@ -558,6 +560,9 @@ public class CraftorioSacrifice {
             if (!universal && awardPoints) {
                 participant.setData(CraftorioDataAttachments.SACRIFICE_POINTS, participant.getData(CraftorioDataAttachments.SACRIFICE_POINTS).add(SACRIFICE_POINTS_PER_SACRIFICE));
             }
+            if (awardPoints) {
+                SkillTreeReveal.unlock(participant, UpgradeTree.SACRIFICE);
+            }
             participant.setData(CraftorioDataAttachments.SACRIFICE_PENDING, false);
             participant.setData(CraftorioDataAttachments.SACRIFICE_DEADLINE, 0L);
             setHavenRespawn(participant);
@@ -965,6 +970,7 @@ public class CraftorioSacrifice {
         player.setData(CraftorioDataAttachments.SACRIFICE_PENDING, false);
         player.setData(CraftorioDataAttachments.SACRIFICE_DEADLINE, 0L);
         player.setData(CraftorioDataAttachments.SACRIFICE_TREE_PENDING, true);
+        player.setData(CraftorioDataAttachments.BUILD_BLITZ_READY_AT,0L);
 
         resetProgress(player);
         player.setData(CraftorioDataAttachments.GIVEN, false);

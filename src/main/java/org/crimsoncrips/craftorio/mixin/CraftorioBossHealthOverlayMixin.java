@@ -17,8 +17,9 @@ public abstract class CraftorioBossHealthOverlayMixin {
     @WrapMethod(method = "render")
     private void craftorio$render(GuiGraphics guiGraphics, Operation<Void> original) {
         Rect2i pointsBarRect = ClientEvents.getPointsBarScreenRect();
-        int shift = pointsBarRect == null ? 0 : pointsBarRect.getY() + pointsBarRect.getHeight() + PUSH_DOWN_PADDING - VANILLA_TOP;
-        if (shift <= 0) {
+        float shift = Math.max(0, pointsBarRect == null ? 0 : pointsBarRect.getY() + pointsBarRect.getHeight() + PUSH_DOWN_PADDING - VANILLA_TOP)
+                + ClientEvents.hudIntroOffset();
+        if (shift == 0f) {
             original.call(guiGraphics);
             return;
         }

@@ -35,16 +35,43 @@ public class CraftorioDevTools {
         return toPrettyJson(object);
     }
 
+    public static void appendUpgradeLang(StringBuilder code, Map<String, String> langEntries) {
+        for (Map.Entry<String, String> entry : langEntries.entrySet()) {
+            String key = entry.getKey();
+            int upgrade = key.indexOf(".upgrade_");
+            if (!key.startsWith("misc.") || upgrade < 0) {
+                code.append("lang.add(\"").append(key).append("\", \"").append(entry.getValue()).append("\");\n");
+                continue;
+            }
+            String modId = key.substring("misc.".length(), upgrade);
+            String base = key.endsWith("_description") ? key.substring(0, key.length() - "_description".length()) : key;
+            if (key.endsWith("_description") && langEntries.containsKey(base)) continue;
+
+            String id = base.substring(upgrade + ".upgrade_".length());
+            String name = langEntries.getOrDefault(base, "");
+            String description = langEntries.getOrDefault(base + "_description", "");
+            code.append("lang.addUpgradeLang(");
+            if (!modId.equals(Craftorio.MODID)) {
+                code.append("\"").append(modId).append("\", ");
+            }
+            code.append("\"").append(id).append("\", \"").append(name).append("\", \"").append(description).append("\");\n");
+        }
+    }
+
     public static void writeCodeFile(ServerPlayer player, String fileNamePrefix, String code) {
         writeFile(player, fileNamePrefix, code, "txt");
     }
 
+    public static String writeFile(Path dir, String fileNamePrefix, String content, String extension) throws IOException {
+        Files.createDirectories(dir);
+        String fileName = fileNamePrefix + "_" + System.currentTimeMillis() + "." + extension;
+        Files.writeString(dir.resolve(fileName), content, StandardCharsets.UTF_8);
+        return fileName;
+    }
+
     public static void writeFile(ServerPlayer player, String fileNamePrefix, String content, String extension) {
         try {
-            Path dir = directory(player.getServer());
-            Files.createDirectories(dir);
-            String fileName = fileNamePrefix + "_" + System.currentTimeMillis() + "." + extension;
-            Files.writeString(dir.resolve(fileName), content, StandardCharsets.UTF_8);
+            String fileName = writeFile(directory(player.getServer()), fileNamePrefix, content, extension);
 
             player.sendSystemMessage(Component.translatable("misc.craftorio.dev_tools_generate_success", DEV_TOOLS_DIR_NAME + "/" + fileName).withStyle(ChatFormatting.GREEN));
         } catch (IOException e) {

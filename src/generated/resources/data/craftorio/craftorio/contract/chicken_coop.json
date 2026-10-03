@@ -1,18 +1,25 @@
 {
   "basePointValue": "384",
   "description": "registry.chicken_coop.description",
-  "itemBounty": [
+  "goal": {
+    "type": "building",
+    "structure": "craftorio:contracts/chicken_coop"
+  },
+  "itemBounty": [],
+  "itemRewards": [
     {
-      "amountRequired": 16,
-      "contract_item": "minecraft:egg"
+      "amountGiving": 8,
+      "rewardingItem": {
+        "count": 1,
+        "id": "minecraft:egg"
+      }
     },
     {
-      "amountRequired": 32,
-      "contract_item": "minecraft:oak_log"
-    },
-    {
-      "amountRequired": 64,
-      "contract_item": "minecraft:wheat_seeds"
+      "amountGiving": 32,
+      "rewardingItem": {
+        "count": 1,
+        "id": "minecraft:wheat_seeds"
+      }
     }
   ],
   "max_point_threshold": "400000",

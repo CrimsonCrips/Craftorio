@@ -1,5 +1,6 @@
 package org.crimsoncrips.craftorio.client.screen.machine;
 
+import org.crimsoncrips.craftorio.skill_tree.UpgradeTree;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.math.Axis;
 import net.minecraft.client.gui.GuiGraphics;
@@ -260,7 +261,7 @@ public class SinkScreen extends AbstractContainerScreen<SinkerMenu> implements S
 		boolean lost = this.state == GambleState.LOST;
 		boolean creative = this.minecraft.player != null && this.minecraft.player.isCreative();
 		boolean gambleUnlocked = this.minecraft.player != null
-				&& CraftorioMisc.hasUnlockedUpgrade(this.minecraft.player, Craftorio.prefix("double_or_nothing_unlock"));
+				&& CraftorioMisc.hasUnlockedUpgrade(this.minecraft.player, UpgradeTree.BASIC, Craftorio.prefix("double_or_nothing_unlock"));
 
 		this.doubleOrNothingButton.visible = (idle || won) && gambleUnlocked;
 		this.sinkButton.visible = idle || won;

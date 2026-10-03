@@ -1,8 +1,9 @@
 {
   "type": "craftorio:general_multiplier",
   "icon": "craftorio:textures/gui/default_icon.png",
-  "multiplier": -10000.0,
+  "multiplier": 10000.0,
   "name": "registry.trazyns_curse",
+  "operation": "subtract",
   "seconds": 18000,
   "unobtainable": true,
   "weight": 10

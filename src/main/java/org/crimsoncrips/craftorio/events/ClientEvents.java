@@ -5,6 +5,7 @@ import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.blaze3d.vertex.*;
 import net.minecraft.ChatFormatting;
 import net.minecraft.Util;
+import net.neoforged.neoforge.client.event.ClientPlayerNetworkEvent;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.core.BlockPos;
 import net.minecraft.client.Camera;
@@ -56,6 +57,7 @@ import org.crimsoncrips.craftorio.client.screen.widget.SheetIconButton;
 import org.crimsoncrips.craftorio.client.screen.contract.ContractRevealScreen;
 import org.crimsoncrips.craftorio.client.screen.devtools.contract_creator.ContractCreatorCardScreen;
 import org.crimsoncrips.craftorio.client.screen.devtools.creator.SkillTreeCreatorScreen;
+import org.crimsoncrips.craftorio.client.screen.devtools.PointsDeterminerScreen;
 import org.crimsoncrips.craftorio.client.screen.hub.CraftorioStatisticsScreen;
 import org.crimsoncrips.craftorio.client.screen.machine.AutoSinkerScreen;
 import org.crimsoncrips.craftorio.client.screen.machine.AutoValueCondenserScreen;
@@ -71,6 +73,8 @@ import org.crimsoncrips.craftorio.client.state.ClientLoanState;
 import org.crimsoncrips.craftorio.item.ScannerStickItem;
 import org.crimsoncrips.craftorio.networking.contract.OpenContractOfferScreenPacket;
 import org.crimsoncrips.craftorio.networking.devtools.SkillTreeGenerateResultPacket;
+import org.crimsoncrips.craftorio.networking.devtools.AdvancementListPacket;
+import org.crimsoncrips.craftorio.networking.devtools.PointDataMapsPacket;
 import org.crimsoncrips.craftorio.networking.shop.OpenShopScreenPacket;
 import org.crimsoncrips.craftorio.networking.shop.OpenValueBrowserScreenPacket;
 import org.crimsoncrips.craftorio.networking.skill_tree.UnlockUpgradeFailedPacket;
@@ -79,9 +83,6 @@ import org.crimsoncrips.craftorio.registries.CraftorioDimensions;
 import org.crimsoncrips.craftorio.registries.CraftorioMenuTypes;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
-import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
-import org.crimsoncrips.craftorio.registries.effect.ShopMultiplierEffect;
-import org.crimsoncrips.craftorio.registries.effect.TagMultiplierEffect;
 import org.crimsoncrips.craftorio.server.border.CraftorioBorder;
 
 
@@ -138,6 +139,18 @@ public class ClientEvents {
 	public static void handleSkillTreeGenerateResult(SkillTreeGenerateResultPacket message) {
 		if (Minecraft.getInstance().screen instanceof SkillTreeCreatorScreen screen) {
 			screen.showGenerateResult(message.success(), Component.translatable("misc.craftorio." + message.messageKey(), message.arg()));
+		}
+	}
+
+	public static void handleAdvancementList(AdvancementListPacket message) {
+		if (Minecraft.getInstance().screen instanceof PointsDeterminerScreen screen) {
+			screen.setAdvancements(message.advancements());
+		}
+	}
+
+	public static void handlePointDataMaps(PointDataMapsPacket message) {
+		if (Minecraft.getInstance().screen instanceof PointsDeterminerScreen screen) {
+			screen.showSources(message);
 		}
 	}
 
@@ -498,6 +511,29 @@ public class ClientEvents {
 	private static final int BADGE_TOP = 5;
 	private static final int BADGE_ROW_WIDTH = BADGE_WIDTH * 3 + BADGE_GAP * 2;
 
+	private static final long HUD_INTRO_MS = 900L;
+	private static final int HUD_INTRO_DISTANCE = 120;
+	private static boolean hudIntroPending = false;
+	private static long hudIntroStart = -1L;
+
+	public static void onLoggingInHudIntro(ClientPlayerNetworkEvent.LoggingIn event) {
+		hudIntroPending = true;
+		hudIntroStart = -1L;
+	}
+
+	public static float hudIntroOffset() {
+		if (hudIntroPending) return -HUD_INTRO_DISTANCE;
+		if (hudIntroStart < 0L) return 0f;
+
+		float progress = Mth.clamp((Util.getMillis() - hudIntroStart) / (float) HUD_INTRO_MS, 0f, 1f);
+		if (progress >= 1f) {
+			hudIntroStart = -1L;
+			return 0f;
+		}
+		float eased = 1f - (float) Math.pow(1f - progress, 3);
+		return -HUD_INTRO_DISTANCE * (1f - eased);
+	}
+
 	private static void drawBadge(GuiGraphics graphics, ResourceLocation fillTexture, ResourceLocation borderTexture, int x, int y) {
 		RenderSystem.enableBlend();
 		RenderSystem.defaultBlendFunc();
@@ -518,6 +554,9 @@ public class ClientEvents {
 			return;
 		if (CraftorioMisc.isInHavenDimension(minecraft.level))
 			return;
+
+		graphics.pose().pushPose();
+		graphics.pose().translate(0f, hudIntroOffset(), 0f);
 
 		Font font = minecraft.font;
 		BigInteger actualPoints = CraftorioMisc.getPoints(minecraft.player);
@@ -594,6 +633,8 @@ public class ClientEvents {
 		PointsPopup.render(graphics, font, pivotX, pivotY);
 		InfinityBurst.render(graphics, font, pivotX, pivotY);
 		ItemDiscoveredPopup.render(graphics, pivotX, pivotY);
+
+		graphics.pose().popPose();
 	}
 
 	public static void drawMaxPointsAtMeterPosition(GuiGraphics graphics) {
@@ -631,6 +672,11 @@ public class ClientEvents {
 		Minecraft minecraft = Minecraft.getInstance();
 		if (minecraft.player == null || minecraft.level == null) return;
 
+		if (hudIntroPending && (minecraft.screen == null || minecraft.screen instanceof ChatScreen)) {
+			hudIntroPending = false;
+			hudIntroStart = Util.getMillis();
+		}
+
 		for (CraftorioEffects effect : CraftorioMisc.getCraftorioEffects(minecraft.player)) {
 			if (!effect.isLoanMarked() && effect.getTime() > 0) {
 				effect.setTime(effect.getTime() - 1);
@@ -645,9 +691,7 @@ public class ClientEvents {
 	}
 
 	public static int activeEffectColor(CraftorioEffects effect) {
-		boolean negative = (effect instanceof TagMultiplierEffect tagEffect && tagEffect.getMultiplier() < 0)
-				|| (effect instanceof GeneralMultiplierEffect generalEffect && generalEffect.getMultiplier() < 0)
-				|| (effect instanceof ShopMultiplierEffect shopEffect && shopEffect.getMultiplier() < 0);
+		boolean negative = effect.isNegativeEffect();
 		Integer color = (negative ? ChatFormatting.RED : ChatFormatting.BLUE).getColor();
 		return color != null ? color : 0xFFFFFF;
 	}

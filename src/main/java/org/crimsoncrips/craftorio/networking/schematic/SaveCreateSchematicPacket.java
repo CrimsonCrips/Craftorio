@@ -9,12 +9,18 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.client.schematic.ClientSchematics;
 
-public record SaveCreateSchematicPacket(String fileName, CompoundTag data) implements CustomPacketPayload {
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+public record SaveCreateSchematicPacket(String fileName, int index, int total, byte[] part) implements CustomPacketPayload {
 
     public static final Type<SaveCreateSchematicPacket> TYPE = new Type<>(Craftorio.prefix("save_create_schematic_packet"));
     public static final StreamCodec<RegistryFriendlyByteBuf, SaveCreateSchematicPacket> STREAM_CODEC = StreamCodec.composite(
             ByteBufCodecs.STRING_UTF8, SaveCreateSchematicPacket::fileName,
-            ByteBufCodecs.COMPOUND_TAG, SaveCreateSchematicPacket::data,
+            ByteBufCodecs.VAR_INT, SaveCreateSchematicPacket::index,
+            ByteBufCodecs.VAR_INT, SaveCreateSchematicPacket::total,
+            ByteBufCodecs.BYTE_ARRAY, SaveCreateSchematicPacket::part,
             SaveCreateSchematicPacket::new
     );
 
@@ -23,7 +29,25 @@ public record SaveCreateSchematicPacket(String fileName, CompoundTag data) imple
         return TYPE;
     }
 
+    public static List<SaveCreateSchematicPacket> create(String fileName, CompoundTag data) throws IOException {
+        List<byte[]> chunks = SchematicTransfer.split(data);
+        List<SaveCreateSchematicPacket> packets = new ArrayList<>(chunks.size());
+        for (int i = 0; i < chunks.size(); i++) {
+            packets.add(new SaveCreateSchematicPacket(fileName, i, chunks.size(), chunks.get(i)));
+        }
+        return packets;
+    }
+
     public static void handle(SaveCreateSchematicPacket message, IPayloadContext ctx) {
-        ctx.enqueueWork(() -> ClientSchematics.saveSchematic(message.fileName(), message.data()));
+        ctx.enqueueWork(() -> {
+            try {
+                CompoundTag tag = SchematicTransfer.accept("create:" + message.fileName(), message.index(), message.total(), message.part());
+                if (tag != null) {
+                    ClientSchematics.saveSchematic(message.fileName(), tag);
+                }
+            } catch (IOException | RuntimeException e) {
+                Craftorio.LOGGER.error("Failed to receive the Create schematic {}", message.fileName(), e);
+            }
+        });
     }
 }

@@ -5,6 +5,7 @@
 
 package org.crimsoncrips.craftorio.inventory;
 
+import org.crimsoncrips.craftorio.skill_tree.UpgradeTree;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -147,8 +148,12 @@ public class SinkerMenu extends AbstractContainerMenu {
 		}
 		CraftorioMisc.setPoints(CraftorioMisc.getPoints(player).add(pointsToGive),player);
 
+		List<ItemStack> contractItems = new ArrayList<>();
+		for (ItemStack sinked : sinkedItems) {
+			contractItems.add(sinked.copy());
+		}
 		for (CraftorioContract contract : new ArrayList<>(CraftorioMisc.getCraftorioContracts(player))){
-			contract.addSinkedListValue(sinkedItems,player);
+			contract.addSinkedListValue(contractItems, player);
 		}
 		CraftorioMisc.refreshContracts(player);
 	}
@@ -190,7 +195,7 @@ public class SinkerMenu extends AbstractContainerMenu {
 
 	public Boolean flipDoubleOrNothing(boolean forceHeads) {
 		if (!gambling) {
-			if (!CraftorioMisc.hasUnlockedUpgrade(player, Craftorio.prefix("double_or_nothing_unlock"))) return null;
+			if (!CraftorioMisc.hasUnlockedUpgrade(player, UpgradeTree.BASIC, Craftorio.prefix("double_or_nothing_unlock"))) return null;
 
 			BigInteger value = computeContainerValue();
 			if (value.signum() == 0) return null;

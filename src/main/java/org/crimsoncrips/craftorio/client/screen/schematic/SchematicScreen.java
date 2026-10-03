@@ -14,6 +14,8 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.crimsoncrips.craftorio.client.schematic.CraftorioSchematicRenderer;
+import org.crimsoncrips.craftorio.client.schematic.SchematicVerifier;
 import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 import org.crimsoncrips.craftorio.item.schematic.SchematicData;
 import org.crimsoncrips.craftorio.networking.schematic.SchematicActionPacket;
@@ -22,6 +24,7 @@ import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
 import org.crimsoncrips.craftorio.server.schematic.CraftorioSchematics;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 
 @OnlyIn(Dist.CLIENT)
@@ -31,7 +34,7 @@ public class SchematicScreen extends Screen implements ScrollableScreen {
     private static final int PADDING = 10;
     private static final int STATUS_TOP = 26;
     private static final int STATUS_LINE_HEIGHT = 12;
-    private static final int STATUS_LINES = 3;
+    private static final int STATUS_LINES = 4;
     private static final int BUTTONS_TOP = STATUS_TOP + STATUS_LINES * STATUS_LINE_HEIGHT + 10;
     private static final int BUTTON_HEIGHT = 20;
     private static final int BUTTON_ROW_GAP = 8;
@@ -45,6 +48,7 @@ public class SchematicScreen extends Screen implements ScrollableScreen {
     private Button rotateButton;
     private Button moveButton;
     private Button submitButton;
+    private Button issuesButton;
     private Button instaCompleteButton;
 
     public SchematicScreen(InteractionHand hand) {
@@ -73,7 +77,7 @@ public class SchematicScreen extends Screen implements ScrollableScreen {
         boolean creative = isCreative();
         List<FormattedCharSequence> warning = this.font.split(Component.translatable("misc.craftorio.schematic_menu_warning").withStyle(ChatFormatting.RED), PANEL_WIDTH - PADDING * 2);
 
-        int rowsBelowSubmit = creative ? 2 : 1;
+        int rowsBelowSubmit = creative ? 3 : 2;
         int buttonsBottom = BUTTONS_TOP + BUTTON_HEIGHT + rowsBelowSubmit * (BUTTON_ROW_GAP + BUTTON_HEIGHT);
         this.panelHeight = buttonsBottom + WARNING_GAP + warning.size() * this.font.lineHeight + BOTTOM_PADDING;
 
@@ -89,6 +93,12 @@ public class SchematicScreen extends Screen implements ScrollableScreen {
         this.moveButton = this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.schematic_menu_move"), b -> send(SchematicActionPacket.PICK_UP))
                 .bounds(left + width / 2 + 2, y, width / 2 - 2, BUTTON_HEIGHT)
                 .tooltip(Tooltip.create(Component.translatable("misc.craftorio.schematic_menu_move_tooltip"))).build());
+        y += BUTTON_HEIGHT + BUTTON_ROW_GAP;
+
+        this.issuesButton = this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.schematic_menu_issues"), b ->
+                        this.minecraft.setScreen(new SchematicIssuesScreen(this, this.hand)))
+                .bounds(left, y, width, BUTTON_HEIGHT)
+                .tooltip(Tooltip.create(Component.translatable("misc.craftorio.schematic_menu_issues_tooltip"))).build());
         y += BUTTON_HEIGHT + BUTTON_ROW_GAP;
 
         this.submitButton = this.addRenderableWidget(Button.builder(Component.translatable("misc.craftorio.schematic_menu_submit").withStyle(ChatFormatting.GREEN), b -> {
@@ -130,6 +140,7 @@ public class SchematicScreen extends Screen implements ScrollableScreen {
         this.rotateButton.active = !settled;
         this.moveButton.active = placed && !settled;
         this.submitButton.active = placed && !settled;
+        this.issuesButton.active = placed && !settled;
         if (this.instaCompleteButton != null) {
             this.instaCompleteButton.active = placed && !settled;
         }
@@ -162,6 +173,17 @@ public class SchematicScreen extends Screen implements ScrollableScreen {
                         total > 0 && placed >= total ? 0x55FF55 : 0xFFAA00, false);
             } else {
                 graphics.drawString(this.font, Component.translatable("misc.craftorio.schematic_inactive"), left, y, 0xFF5555, false);
+            }
+            y += STATUS_LINE_HEIGHT;
+
+            Optional<SchematicVerifier.Result> result = CraftorioSchematicRenderer.result(data);
+            if (result.isPresent()) {
+                int x = left;
+                for (SchematicVerifier.Kind kind : SchematicVerifier.Kind.values()) {
+                    String text = Component.translatable("misc.craftorio.schematic_count_" + kind.name().toLowerCase(Locale.ROOT), result.get().count(kind)).getString();
+                    graphics.drawString(this.font, text, x, y, kind.color(), false);
+                    x += this.font.width(text) + 8;
+                }
             }
         }
 

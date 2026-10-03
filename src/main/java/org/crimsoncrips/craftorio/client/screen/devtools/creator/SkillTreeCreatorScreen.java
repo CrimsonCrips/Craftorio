@@ -14,6 +14,7 @@ import net.minecraft.util.Mth;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
 import net.neoforged.neoforge.network.PacketDistributor;
+import org.crimsoncrips.craftorio.client.screen.devtools.DevToolsTagPicker;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.client.render.CraftorioStarfield;
@@ -25,7 +26,6 @@ import org.crimsoncrips.craftorio.networking.devtools.SkillTreeNodeData;
 import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.UpgradeTree;
 import org.crimsoncrips.craftorio.skill_tree.target.ActionEffectValue;
-import org.crimsoncrips.craftorio.skill_tree.target.PlayerActionTarget;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioActionEffectUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioAttributeUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.upgrade_types.datagen.CraftorioModifierUpgrade;
@@ -48,7 +48,7 @@ public class SkillTreeCreatorScreen extends Screen {
             "MULTIPLIER", "ITEM_BASE_VALUE", "ITEM_TAG_BASE_VALUE", "CONTRACT_REFRESH_SPEED", "EFFECT_TIMER_SPEED",
             "PUNISHMENT_DURATION", "EFFECT_DURATION", "EXPANSION_COST",
             "RARER_CONTRACT_CHANCE", "RARER_EFFECT_CHANCE", "SHOP_COST", "CONTRACT_REFRESH_COST",
-            "LOST_BET_REFUND", "MULT_PER_CONTRACT_DONE", "BET_ODDS", "BET_BONUS", "MANUAL_SINK_VALUE"
+            "LOST_BET_REFUND", "MULT_PER_CONTRACT_DONE", "BET_ODDS", "BET_BONUS", "MANUAL_SINK_VALUE", "BUILD_BLITZ_COOLDOWN", "BUILD_BLITZ_COVERAGE"
     };
     private static final String[] ATTRIBUTE_TARGETS = {
             "HEALTH", "SPEED", "DEFENSE", "DAMAGE", "BLOCK_REACH", "JUMP_HEIGHT", "XP_GAIN", "RESISTANCE"
@@ -71,7 +71,7 @@ public class SkillTreeCreatorScreen extends Screen {
     private boolean jsonExport = false;
     private boolean includeLang = false;
     private UpgradeTree tree = UpgradeTree.BASIC;
-    private String savedModId = "yourmodid";
+    private String savedModId = Craftorio.CLIENT_CONFIG.devToolsModId().isBlank() ? "yourmodid" : Craftorio.CLIENT_CONFIG.devToolsModId();
     private double panX = 0, panY = 0;
     private double zoom = 1.0;
 
@@ -116,6 +116,7 @@ public class SkillTreeCreatorScreen extends Screen {
     private EditBox maxPurchasesBox;
     private EditBox valueBox;
     private EditBox itemTagBox;
+    private Button selectTagButton;
     private EditBox externalParentBox;
     private EditBox nameBox;
 
@@ -177,11 +178,7 @@ public class SkillTreeCreatorScreen extends Screen {
                 node.category = "modifier";
                 node.modifierTargetIndex = indexOf(MODIFIER_TARGETS, modifierUpgrade.getTarget().name());
                 node.operationIndex = indexOf(OPERATIONS, modifierUpgrade.getOperation().name());
-                double value = modifierUpgrade.getValue();
-                if ((modifierUpgrade.getOperation().name().equals("ADD") || modifierUpgrade.getOperation().name().equals("SUBTRACT")) && isTickDurationTarget(node)) {
-                    value /= CraftorioMisc.SECONDS_TO_TICKS;
-                }
-                node.value = String.valueOf(value);
+                node.value = String.valueOf(modifierUpgrade.getValue());
                 node.itemTag = modifierUpgrade.getItemTag().map(tag -> tag.location().toString()).orElse("");
             } else if (upgrade instanceof CraftorioAttributeUpgrade attributeUpgrade) {
                 node.category = "attribute";
@@ -432,10 +429,16 @@ public class SkillTreeCreatorScreen extends Screen {
         this.addRenderableWidget(this.valueBox);
         y += rowHeight;
 
-        this.itemTagBox = new EditBox(this.font, fieldX, y, fieldWidth, 16, Component.literal("item tag"));
+        this.itemTagBox = new EditBox(this.font, fieldX, y, fieldWidth - 64, 16, Component.literal("item tag"));
         this.itemTagBox.setMaxLength(256);
         this.itemTagBox.setResponder(s -> { if (selected != null) selected.itemTag = s; });
         this.addRenderableWidget(this.itemTagBox);
+        this.selectTagButton = Button.builder(Component.translatable("misc.craftorio.dev_tools_select_tag"), b -> {
+            DraftNode target = this.selected;
+            DevToolsTagPicker.open(this.minecraft, this, tag -> { if (target != null) target.itemTag = tag; });
+        })
+                .bounds(fieldX + fieldWidth - 60, y, 60, 16).build();
+        this.addRenderableWidget(this.selectTagButton);
         y += rowHeight;
 
         this.nameBox = new EditBox(this.font, fieldX, y, fieldWidth, 16, Component.literal("name"));
@@ -584,6 +587,8 @@ public class SkillTreeCreatorScreen extends Screen {
             this.playerActionTargetDropdown.active = false;
             this.itemTagBox.visible = false;
             this.itemTagBox.active = false;
+            this.selectTagButton.visible = this.itemTagBox.visible;
+            this.selectTagButton.active = this.itemTagBox.active;
             this.nameBox.visible = false;
             this.nameBox.active = false;
             this.descriptionBox.visible = false;
@@ -636,6 +641,8 @@ public class SkillTreeCreatorScreen extends Screen {
             this.playerActionTargetDropdown.active = false;
             this.itemTagBox.visible = false;
             this.itemTagBox.active = false;
+            this.selectTagButton.visible = this.itemTagBox.visible;
+            this.selectTagButton.active = this.itemTagBox.active;
             return;
         }
 
@@ -667,6 +674,8 @@ public class SkillTreeCreatorScreen extends Screen {
         boolean usesTag = isModifier && MODIFIER_TARGETS[selected.modifierTargetIndex].equals("ITEM_TAG_BASE_VALUE");
         this.itemTagBox.visible = usesTag;
         this.itemTagBox.active = usesTag;
+        this.selectTagButton.visible = this.itemTagBox.visible;
+        this.selectTagButton.active = this.itemTagBox.active;
         this.itemTagBox.setValue(selected.itemTag);
     }
 
@@ -787,7 +796,7 @@ public class SkillTreeCreatorScreen extends Screen {
         if (!node.category.equals("modifier")) return false;
         String target = MODIFIER_TARGETS[node.modifierTargetIndex];
         return target.equals("CONTRACT_REFRESH_SPEED") || target.equals("EFFECT_TIMER_SPEED")
-                || target.equals("PUNISHMENT_DURATION") || target.equals("EFFECT_DURATION");
+                || target.equals("PUNISHMENT_DURATION") || target.equals("EFFECT_DURATION") || target.equals("BUILD_BLITZ_COOLDOWN");
     }
 
     private String valueHint(DraftNode node) {

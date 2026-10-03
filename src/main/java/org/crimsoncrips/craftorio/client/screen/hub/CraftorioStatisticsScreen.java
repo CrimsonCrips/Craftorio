@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import static org.crimsoncrips.craftorio.CraftorioMisc.getHighestPoints;
+import static org.crimsoncrips.craftorio.CraftorioMisc.*;
 
 @OnlyIn(Dist.CLIENT)
 public class CraftorioStatisticsScreen extends Screen implements ScrollableScreen {
@@ -120,7 +120,7 @@ public class CraftorioStatisticsScreen extends Screen implements ScrollableScree
                 .copy().append(CraftorioMisc.bigIntFormat(getHighestPoints(this.minecraft.player)));
         if (hasRebirthed) {
             highestPointsLine = highestPointsLine.copy().append(Component.translatable("misc.craftorio.highest_points_overall_suffix",
-                    CraftorioMisc.getOverallHighestPoints(this.minecraft.player).toString()));
+                    bigIntFormat(CraftorioMisc.getOverallHighestPoints(this.minecraft.player))));
         }
         guiGraphics.drawString(this.font, highestPointsLine, labelX, y, 0xFFFFFF, false);
         y += lineHeight;

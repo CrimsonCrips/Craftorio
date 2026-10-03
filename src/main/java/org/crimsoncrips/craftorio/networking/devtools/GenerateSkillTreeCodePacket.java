@@ -2,6 +2,7 @@ package org.crimsoncrips.craftorio.networking.devtools;
 
 import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -97,7 +98,7 @@ public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean
                         continue;
                     }
                     CraftorioUpgrade upgrade = buildUpgrade(node, byLocalId);
-                    CraftorioUpgrade.dispatchCodec().encodeStart(JsonOps.INSTANCE, upgrade).resultOrPartial(Craftorio.LOGGER::error)
+                    CraftorioUpgrade.dispatchCodec().encodeStart(RegistryOps.create(JsonOps.INSTANCE, serverPlayer.registryAccess()), upgrade).resultOrPartial(Craftorio.LOGGER::error)
                             .ifPresent(json -> bundle.put("upgrade_" + sanitize(node.id()) + ".json", CraftorioDevTools.toPrettyJson(json)));
                 }
                 if (langEntries.isEmpty()) {
@@ -105,7 +106,7 @@ public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean
                         CraftorioDevTools.writeFile(serverPlayer, entry.getKey().replace(".json", ""), entry.getValue(), "json");
                     }
                 } else {
-                    bundle.put("lang_en_us.json", CraftorioDevTools.buildLangJson(langEntries));
+                    bundle.put("en_us.json", CraftorioDevTools.buildLangJson(langEntries));
                     CraftorioDevTools.writeBundle(serverPlayer, "skill_tree", bundle);
                 }
                 PacketDistributor.sendToPlayer(serverPlayer, new SkillTreeGenerateResultPacket(true, "dev_tools_skill_tree_generated_json", String.valueOf(order.size())));
@@ -126,10 +127,8 @@ public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean
             code.append("\n// Requires: import net.minecraft.core.Holder; import static org.crimsoncrips.craftorio.CraftorioMisc.scientificToInt;\n");
 
             if (!langEntries.isEmpty()) {
-                code.append("\n// Add to your LanguageProvider's addTranslations(...):\n");
-                for (Map.Entry<String, String> entry : langEntries.entrySet()) {
-                    code.append("this.add(\"").append(entry.getKey()).append("\", \"").append(entry.getValue()).append("\");\n");
-                }
+                code.append("\n// Add to CraftorioRegistryLang.addUpgrades(...):\n");
+                CraftorioDevTools.appendUpgradeLang(code, langEntries);
             }
 
             CraftorioDevTools.writeCodeFile(serverPlayer, "skill_tree", code.toString().replace(".save(context,", "." + message.tree().saveMethod() + "(context,"));
@@ -169,9 +168,6 @@ public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean
         String cost = sanitize(node.cost()).isEmpty() ? "1000" : sanitize(node.cost());
         int maxPurchases = Math.max(1, parseInt(node.maxPurchases(), 1));
         double value = parseDouble(node.value(), 0.1);
-        if ((node.operation().equals("ADD") || node.operation().equals("SUBTRACT")) && isTickDurationTarget(node.category(), node.target())) {
-            value *= CraftorioMisc.SECONDS_TO_TICKS;
-        }
         ResourceLocation ownLocation = ResourceLocation.fromNamespaceAndPath(modId, id);
         Optional<ResourceLocation> parentLocation = resolveParentLocation(node, byLocalId, ownLocation);
         UpgradeOperation operationEnum = UpgradeOperation.valueOf(node.operation());
@@ -278,9 +274,6 @@ public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean
         String cost = sanitize(node.cost()).isEmpty() ? "1000" : sanitize(node.cost());
         int maxPurchases = Math.max(1, parseInt(node.maxPurchases(), 1));
         double value = parseDouble(node.value(), 0.1);
-        if ((node.operation().equals("ADD") || node.operation().equals("SUBTRACT")) && isTickDurationTarget(node.category(), node.target())) {
-            value *= CraftorioMisc.SECONDS_TO_TICKS;
-        }
         String varName = toCamelCase(id) + "Upgrade";
         ResourceLocation ownLocation = ResourceLocation.fromNamespaceAndPath(modId, id);
 
@@ -333,11 +326,6 @@ public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean
             code.append("                b -> CraftorioAttributeUpgrade.of(b, AttributeTarget.").append(node.target()).append(", UpgradeOperation.").append(node.operation()).append(", ").append(value).append("));\n");
         }
         code.append("\n");
-    }
-
-    private static boolean isTickDurationTarget(String category, String target) {
-        return category.equals("modifier") && (target.equals("CONTRACT_REFRESH_SPEED") || target.equals("EFFECT_TIMER_SPEED")
-                || target.equals("PUNISHMENT_DURATION") || target.equals("EFFECT_DURATION"));
     }
 
     private static String sanitize(String input) {

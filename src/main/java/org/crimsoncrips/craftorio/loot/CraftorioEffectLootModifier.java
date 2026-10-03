@@ -14,6 +14,7 @@ import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.item.CraftorioItems;
 import org.crimsoncrips.craftorio.registries.CraftorioDataComponents;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
+import org.crimsoncrips.craftorio.registries.effect.StoredEffects;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -53,7 +54,7 @@ public class CraftorioEffectLootModifier extends LootModifier {
         }
 
         ItemStack stack = new ItemStack(random.nextBoolean() ? CraftorioItems.EFFECT_RUNE.get() : CraftorioItems.MYSTERY_EFFECT_RUNE);
-        stack.set(CraftorioDataComponents.EFFECTS_STORED.get(), chosen);
+        stack.set(CraftorioDataComponents.EFFECTS_STORED.get(), new StoredEffects(chosen));
         generatedLoot.add(stack);
 
         return generatedLoot;

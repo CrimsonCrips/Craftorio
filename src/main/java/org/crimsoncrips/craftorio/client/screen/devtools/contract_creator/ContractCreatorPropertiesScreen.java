@@ -7,6 +7,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.network.chat.Component;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
+import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.client.screen.ScrollableScreen;
 import org.crimsoncrips.craftorio.inventory.ContractCreatorMenu;
@@ -77,9 +78,12 @@ public class ContractCreatorPropertiesScreen extends Screen implements Scrollabl
         y += rowHeight;
         newBox(fieldX, y, fieldWidth, ContractCreatorDraft.ID, "e.g. my_contract");
         y += rowHeight;
+        if (ContractCreatorDraft.get(ContractCreatorDraft.MOD_ID).isBlank()) {
+            ContractCreatorDraft.set(ContractCreatorDraft.MOD_ID, Craftorio.CLIENT_CONFIG.devToolsModId());
+        }
         newBox(fieldX, y, fieldWidth, ContractCreatorDraft.MOD_ID, "e.g. yourmodid");
         y += rowHeight;
-        newBox(fieldX, y, fieldWidth, ContractCreatorDraft.CARD_TEXTURE, "e.g. craftorio:default");
+        newBox(fieldX, y, fieldWidth, ContractCreatorDraft.CARD_TEXTURE, "e.g. mymod:textures/gui/card.png");
         y += rowHeight;
 
         this.typeButton = Button.builder(typeLabel(), b -> {

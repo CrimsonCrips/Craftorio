@@ -30,6 +30,7 @@ public final class CraftorioSkillTreeBackground {
 
     private static final float RESOLUTION_SCALE = 1.0f;
     private static final float INTENSITY = 1.0f;
+    private static final float NEBULA_OPACITY = 0.22f;
     private static final long TIME_WRAP_MS = 3_600_000L;
     private static final int NOISE_SIZE = 256;
     private static final long NOISE_SEED = 918273645L;
@@ -41,8 +42,9 @@ public final class CraftorioSkillTreeBackground {
     private CraftorioSkillTreeBackground() {}
 
     public static void render(GuiGraphics graphics, int width, int height, double panX, double panY, double zoom) {
-        ShaderInstance shader = CraftorioShaders.skillTreeStarfield();
-        if (shader == null) return;
+        ShaderInstance nebula = CraftorioShaders.skillTreeNebula();
+        ShaderInstance stars = CraftorioShaders.skillTreeStars();
+        if (nebula == null || stars == null) return;
 
         Minecraft minecraft = Minecraft.getInstance();
         int targetWidth = Math.max(1, Math.round(minecraft.getWindow().getWidth() * RESOLUTION_SCALE));
@@ -67,20 +69,15 @@ public final class CraftorioSkillTreeBackground {
         RenderSystem.disableDepthTest();
 
         target.bindWrite(true);
-        shader.safeGetUniform("iResolution").set((float) targetWidth, (float) targetHeight);
-        shader.safeGetUniform("iTime").set(time);
-        shader.safeGetUniform("Pan").set((float) (panX / width), (float) (panY / width));
-        shader.safeGetUniform("Zoom").set((float) zoom);
-        shader.safeGetUniform("Intensity").set(INTENSITY);
+        nebula.safeGetUniform("Opacity").set(NEBULA_OPACITY);
+        drawPass(nebula, targetWidth, targetHeight, time, panX / width, panY / width, zoom);
 
-        BufferBuilder quad = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
-        quad.addVertex(-1f, -1f, 0f);
-        quad.addVertex(1f, -1f, 0f);
-        quad.addVertex(1f, 1f, 0f);
-        quad.addVertex(-1f, 1f, 0f);
-        RenderSystem.setShader(() -> shader);
-        RenderSystem.setShaderTexture(0, noiseTexture());
-        BufferUploader.drawWithShader(quad.buildOrThrow());
+        RenderSystem.enableBlend();
+        RenderSystem.blendFuncSeparate(GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA,
+                GlStateManager.SourceFactor.ONE, GlStateManager.DestFactor.ONE_MINUS_SRC_ALPHA);
+        drawPass(stars, targetWidth, targetHeight, time, panX / width, panY / width, zoom);
+        RenderSystem.defaultBlendFunc();
+        RenderSystem.disableBlend();
 
         minecraft.getMainRenderTarget().bindWrite(true);
 
@@ -95,6 +92,23 @@ public final class CraftorioSkillTreeBackground {
         BufferUploader.drawWithShader(screen.buildOrThrow());
 
         RenderSystem.enableDepthTest();
+    }
+
+    private static void drawPass(ShaderInstance shader, int targetWidth, int targetHeight, float time, double panX, double panY, double zoom) {
+        shader.safeGetUniform("iResolution").set((float) targetWidth, (float) targetHeight);
+        shader.safeGetUniform("iTime").set(time);
+        shader.safeGetUniform("Pan").set((float) panX, (float) panY);
+        shader.safeGetUniform("Zoom").set((float) zoom);
+        shader.safeGetUniform("Intensity").set(INTENSITY);
+
+        BufferBuilder quad = Tesselator.getInstance().begin(VertexFormat.Mode.QUADS, DefaultVertexFormat.POSITION);
+        quad.addVertex(-1f, -1f, 0f);
+        quad.addVertex(1f, -1f, 0f);
+        quad.addVertex(1f, 1f, 0f);
+        quad.addVertex(-1f, 1f, 0f);
+        RenderSystem.setShader(() -> shader);
+        RenderSystem.setShaderTexture(0, noiseTexture());
+        BufferUploader.drawWithShader(quad.buildOrThrow());
     }
 
     private static int noiseTexture() {

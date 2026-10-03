@@ -249,6 +249,22 @@ public class CraftorioDataAttachments {
                     .copyOnDeath()
                     .build());
 
+    public static final Supplier<AttachmentType<Integer>> REBIRTH_TREE_REVEAL = ATTACHMENT_TYPES.register(
+            "rebirth_tree_reveal", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().sync(ByteBufCodecs.VAR_INT).build()
+    );
+
+    public static final Supplier<AttachmentType<Integer>> SACRIFICE_TREE_REVEAL = ATTACHMENT_TYPES.register(
+            "sacrifice_tree_reveal", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).copyOnDeath().sync(ByteBufCodecs.VAR_INT).build()
+    );
+
+    public static final Supplier<AttachmentType<Boolean>> WORLD_REBIRTH_TREE_UNLOCKED = ATTACHMENT_TYPES.register(
+            "world_rebirth_tree_unlocked", () -> AttachmentType.builder(() -> false).serialize(Codec.BOOL).build()
+    );
+
+    public static final Supplier<AttachmentType<Boolean>> WORLD_SACRIFICE_TREE_UNLOCKED = ATTACHMENT_TYPES.register(
+            "world_sacrifice_tree_unlocked", () -> AttachmentType.builder(() -> false).serialize(Codec.BOOL).build()
+    );
+
     public static final Supplier<AttachmentType<Integer>> SACRIFICE_COUNT = ATTACHMENT_TYPES.register(
             "sacrifice_count", () -> AttachmentType.builder(() -> 0).serialize(Codec.INT).build()
     );
@@ -280,6 +296,10 @@ public class CraftorioDataAttachments {
 
     public static final Supplier<AttachmentType<Long>> SACRIFICE_DEADLINE = ATTACHMENT_TYPES.register(
             "sacrifice_deadline", () -> AttachmentType.builder(() -> 0L).serialize(Codec.LONG).copyOnDeath().build()
+    );
+
+    public static final Supplier<AttachmentType<Long>> BUILD_BLITZ_READY_AT = ATTACHMENT_TYPES.register(
+            "build_blitz_ready_at", () -> AttachmentType.builder(() -> 0L).serialize(Codec.LONG).copyOnDeath().sync(ByteBufCodecs.VAR_LONG).build()
     );
 
     public static final Supplier<AttachmentType<Long>> SACRIFICE_COOLDOWN_UNTIL = ATTACHMENT_TYPES.register(

@@ -1,0 +1,7 @@
+{
+  "type": "craftorio:build_blitz_unlock",
+  "cost": "1",
+  "description": "misc.craftorio.upgrade_build_blitz_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "name": "misc.craftorio.upgrade_build_blitz"
+}

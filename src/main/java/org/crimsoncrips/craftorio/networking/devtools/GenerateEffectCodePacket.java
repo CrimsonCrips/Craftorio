@@ -1,6 +1,7 @@
 package org.crimsoncrips.craftorio.networking.devtools;
 
 import com.mojang.serialization.JsonOps;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -13,6 +14,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
 import net.neoforged.neoforge.network.handling.IPayloadContext;
+import org.crimsoncrips.craftorio.registries.effect.EffectOperation;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.crimsoncrips.craftorio.registries.effect.GeneralMultiplierEffect;
@@ -24,7 +26,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public record GenerateEffectCodePacket(String effectType, String id, String modId, String multiplier, String seconds, String weight,
-                                        boolean unobtainable, String itemTag, boolean includeLang, String name, boolean jsonExport) implements CustomPacketPayload {
+                                        boolean unobtainable, String itemTag, boolean includeLang, String name, boolean jsonExport, String operation) implements CustomPacketPayload {
 
     private static final ResourceLocation DEFAULT_ICON = Craftorio.getGuiTexture("default_icon.png");
 
@@ -42,6 +44,7 @@ public record GenerateEffectCodePacket(String effectType, String id, String modI
                 ByteBufCodecs.BOOL.encode(buffer, message.includeLang());
                 ByteBufCodecs.STRING_UTF8.encode(buffer, message.name());
                 ByteBufCodecs.BOOL.encode(buffer, message.jsonExport());
+                ByteBufCodecs.STRING_UTF8.encode(buffer, message.operation());
             },
             buffer -> new GenerateEffectCodePacket(
                     ByteBufCodecs.STRING_UTF8.decode(buffer),
@@ -54,7 +57,8 @@ public record GenerateEffectCodePacket(String effectType, String id, String modI
                     ByteBufCodecs.STRING_UTF8.decode(buffer),
                     ByteBufCodecs.BOOL.decode(buffer),
                     ByteBufCodecs.STRING_UTF8.decode(buffer),
-                    ByteBufCodecs.BOOL.decode(buffer)
+                    ByteBufCodecs.BOOL.decode(buffer),
+                    ByteBufCodecs.STRING_UTF8.decode(buffer)
             )
     );
 
@@ -89,6 +93,7 @@ public record GenerateEffectCodePacket(String effectType, String id, String modI
             int seconds = parseInt(message.seconds(), 60);
             int weight = parseInt(message.weight(), 10);
             String nameKey = "registry." + id;
+            EffectOperation operation = parseOperation(message.operation());
             String modId = sanitize(message.modId()).isEmpty() ? "yourmodid" : sanitize(message.modId());
 
             Map<String, String> langEntries = new LinkedHashMap<>();
@@ -105,8 +110,9 @@ public record GenerateEffectCodePacket(String effectType, String id, String modI
                     }
                     default -> new GeneralMultiplierEffect(multiplier, nameKey, seconds, DEFAULT_ICON, weight, message.unobtainable());
                 };
+                effect.setOperation(operation);
 
-                CraftorioEffects.dispatchCodec().encodeStart(JsonOps.INSTANCE, effect).resultOrPartial(Craftorio.LOGGER::error)
+                CraftorioEffects.dispatchCodec().encodeStart(RegistryOps.create(JsonOps.INSTANCE, serverPlayer.registryAccess()), effect).resultOrPartial(Craftorio.LOGGER::error)
                         .ifPresentOrElse(
                                 json -> {
                                     if (langEntries.isEmpty()) {
@@ -114,7 +120,7 @@ public record GenerateEffectCodePacket(String effectType, String id, String modI
                                     } else {
                                         Map<String, String> bundle = new LinkedHashMap<>();
                                         bundle.put("effect_" + id + ".json", CraftorioDevTools.toPrettyJson(json));
-                                        bundle.put("lang_en_us.json", CraftorioDevTools.buildLangJson(langEntries));
+                                        bundle.put("en_us.json", CraftorioDevTools.buildLangJson(langEntries));
                                         CraftorioDevTools.writeBundle(serverPlayer, "effect_" + id, bundle);
                                     }
                                 },
@@ -134,22 +140,27 @@ public record GenerateEffectCodePacket(String effectType, String id, String modI
             code.append("        ResourceKey.create(CraftorioEffects.REGISTRY_KEY, ResourceLocation.fromNamespaceAndPath(\"").append(modId).append("\", \"").append(id).append("\")),\n");
 
             if (message.effectType().equals("tag")) {
-                code.append("        new ").append(constructorClass).append("(").append(multiplier).append("F, \"registry.").append(id).append("\", TagKey.create(Registries.ITEM, ResourceLocation.parse(\"").append(sanitize(message.itemTag())).append("\")), ").append(seconds).append(", DEFAULT_ICON, ").append(weight).append(", ").append(message.unobtainable()).append(")\n");
+                code.append("        new ").append(constructorClass).append("(").append(multiplier).append("F, \"registry.").append(id).append("\", TagKey.create(Registries.ITEM, ResourceLocation.parse(\"").append(sanitize(message.itemTag())).append("\")), ").append(seconds).append(", DEFAULT_ICON, ").append(weight).append(", ").append(message.unobtainable()).append(").withOperation(EffectOperation.").append(operation.name()).append(")\n");
             } else {
-                code.append("        new ").append(constructorClass).append("(").append(multiplier).append("F, \"registry.").append(id).append("\", ").append(seconds).append(", DEFAULT_ICON, ").append(weight).append(", ").append(message.unobtainable()).append(")\n");
+                code.append("        new ").append(constructorClass).append("(").append(multiplier).append("F, \"registry.").append(id).append("\", ").append(seconds).append(", DEFAULT_ICON, ").append(weight).append(", ").append(message.unobtainable()).append(").withOperation(EffectOperation.").append(operation.name()).append(")\n");
             }
 
             code.append(");\n");
 
             if (!langEntries.isEmpty()) {
-                code.append("\n// Add to your LanguageProvider's addTranslations(...):\n");
-                for (Map.Entry<String, String> entry : langEntries.entrySet()) {
-                    code.append("this.add(\"").append(entry.getKey()).append("\", \"").append(entry.getValue()).append("\");\n");
-                }
+                code.append("\n// Add to CraftorioRegistryLang.addEffects(...):\n");
+                code.append("lang.addRegistryName(\"").append(id).append("\", \"").append(langEntries.get(nameKey)).append("\");\n");
             }
 
             CraftorioDevTools.writeCodeFile(serverPlayer, "effect_" + id, code.toString());
         });
+    }
+
+    private static EffectOperation parseOperation(String value) {
+        for (EffectOperation operation : EffectOperation.values()) {
+            if (operation.name().equalsIgnoreCase(sanitize(value))) return operation;
+        }
+        return EffectOperation.ADD;
     }
 
     private static String sanitize(String input) {

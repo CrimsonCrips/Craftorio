@@ -18,5 +18,12 @@ public enum ModifierTarget {
     BET_ODDS,
     BET_BONUS,
     MANUAL_SINK_VALUE,
-    VALUE_CONDENSER_CAP
+    VALUE_CONDENSER_CAP,
+    BUILD_BLITZ_COOLDOWN,
+    BUILD_BLITZ_COVERAGE;
+
+    public boolean isDuration() {
+        return this == CONTRACT_REFRESH_SPEED || this == EFFECT_TIMER_SPEED || this == PUNISHMENT_DURATION
+                || this == EFFECT_DURATION || this == BUILD_BLITZ_COOLDOWN;
+    }
 }

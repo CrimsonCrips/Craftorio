@@ -5,7 +5,6 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.Style;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import org.crimsoncrips.craftorio.CraftorioMisc;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 
 import java.util.List;
@@ -13,7 +12,7 @@ import java.util.List;
 public class MysteryEffectRune extends EffectRune {
 
     public MysteryEffectRune(Properties properties) {
-        super(properties.stacksTo(1));
+        super(properties.stacksTo(64));
     }
 
     @Override

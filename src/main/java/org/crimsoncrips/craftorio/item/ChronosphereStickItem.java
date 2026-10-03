@@ -49,8 +49,8 @@ public class ChronosphereStickItem extends ScannerStickItem {
         BlockPos max = new BlockPos(Math.max(pos1.getX(), pos2.getX()), Math.max(pos1.getY(), pos2.getY()), Math.max(pos1.getZ(), pos2.getZ()));
 
         long volume = (long) (max.getX() - min.getX() + 1) * (max.getY() - min.getY() + 1) * (max.getZ() - min.getZ() + 1);
-        if (volume > MAX_VOLUME) {
-            player.sendSystemMessage(Component.translatable("misc.craftorio.scan_area_large_warning", volume, MAX_VOLUME).withStyle(ChatFormatting.RED));
+        if (volume > maxVolume()) {
+            player.sendSystemMessage(Component.translatable("misc.craftorio.scan_area_large_warning", volume, maxVolume()).withStyle(ChatFormatting.RED));
             return;
         }
 

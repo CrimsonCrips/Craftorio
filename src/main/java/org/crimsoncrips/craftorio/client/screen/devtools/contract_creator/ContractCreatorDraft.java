@@ -1,5 +1,8 @@
 package org.crimsoncrips.craftorio.client.screen.devtools.contract_creator;
 
+import org.crimsoncrips.craftorio.registries.contract.CraftorioContractItem;
+import java.util.List;
+import java.util.ArrayList;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
 import net.neoforged.api.distmarker.Dist;
@@ -38,6 +41,34 @@ public final class ContractCreatorDraft {
     public static final String PUNISHMENT_COLOR = "contract_punishment_color";
     public static final String TYPE = "contract_type";
     public static final String STRUCTURE = "contract_structure";
+    public static final String TAG_BOUNTY = "contract_tag_bounty";
+
+    public record TagEntry(String tag, int amount) {}
+
+    public static List<TagEntry> tagEntries() {
+        List<TagEntry> entries = new ArrayList<>();
+        for (String part : get(TAG_BOUNTY).split(";")) {
+            int split = part.indexOf('=');
+            if (split <= 0) continue;
+            int amount;
+            try {
+                amount = Integer.parseInt(part.substring(0, split).trim());
+            } catch (NumberFormatException e) {
+                amount = 1;
+            }
+            entries.add(new TagEntry(part.substring(split + 1).trim(), amount));
+        }
+        return entries;
+    }
+
+    public static void setTagEntries(List<TagEntry> entries) {
+        StringBuilder encoded = new StringBuilder();
+        for (TagEntry entry : entries) {
+            if (!encoded.isEmpty()) encoded.append(';');
+            encoded.append(entry.amount()).append('=').append(entry.tag());
+        }
+        set(TAG_BOUNTY, encoded.toString());
+    }
 
     private ContractCreatorDraft() {}
 
@@ -71,7 +102,7 @@ public final class ContractCreatorDraft {
         set(MAX_THRESHOLD, CraftorioMisc.toScientificString(contract.getMaxPointThreshold()));
         set(PUNISHMENT, contract.getPunishment() != null ? contract.getPunishment().toString() : "");
         set(REQUIRED_MOD, contract.getRequiredModId() != null ? contract.getRequiredModId() : "");
-        set(CARD_TEXTURE, contract.getCardTexture() != null ? contract.getCardTexture().location().toString() : "");
+        set(CARD_TEXTURE, contract.getCardTexture() != null ? contract.getCardTexture().toString() : "");
 
         String translatedTitle = Component.translatable(contract.getName()).getString();
         String translatedDescription = Component.translatable(contract.getDescription()).getString();
@@ -87,6 +118,12 @@ public final class ContractCreatorDraft {
 
         set(TYPE, contract.getType().getSerializedName());
         set(STRUCTURE, contract.getGoal().structure().map(ResourceLocation::toString).orElse(""));
+
+        List<TagEntry> tags = new ArrayList<>();
+        for (CraftorioContractItem item : contract.getItemBounty()) {
+            item.getItemTag().ifPresent(tag -> tags.add(new TagEntry(tag.location().toString(), item.getAmountRequired())));
+        }
+        setTagEntries(tags);
 
         int rolls = contract.getRewards().stream().mapToInt(CraftorioContractItemReward::getRandomEffectCount).max().orElse(0);
         ContractCreatorRewardScreen.setRewardRollsValue(String.valueOf(rolls));
@@ -120,7 +157,8 @@ public final class ContractCreatorDraft {
                 get(DESCRIPTION_COLOR),
                 get(PUNISHMENT_COLOR),
                 type().name(),
-                get(STRUCTURE)
+                get(STRUCTURE),
+                get(TAG_BOUNTY)
         ));
     }
 }

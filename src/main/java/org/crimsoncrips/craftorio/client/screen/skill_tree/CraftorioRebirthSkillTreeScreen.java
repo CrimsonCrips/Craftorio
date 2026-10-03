@@ -1,20 +1,13 @@
 package org.crimsoncrips.craftorio.client.screen.skill_tree;
 
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.core.Registry;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Player;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.api.distmarker.OnlyIn;
-import net.neoforged.neoforge.network.PacketDistributor;
 import org.crimsoncrips.craftorio.CraftorioMisc;
-import org.crimsoncrips.craftorio.networking.skill_tree.UnlockRebirthUpgradePacket;
-import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
+import org.crimsoncrips.craftorio.skill_tree.UpgradeTree;
 
-import java.math.BigInteger;
-import java.util.Set;
 
 @OnlyIn(Dist.CLIENT)
 public class CraftorioRebirthSkillTreeScreen extends CraftorioSkillTreeScreenBase {
@@ -24,38 +17,8 @@ public class CraftorioRebirthSkillTreeScreen extends CraftorioSkillTreeScreenBas
     }
 
     @Override
-    protected ResourceKey<Registry<CraftorioUpgrade>> registryKey() {
-        return CraftorioUpgrade.REBIRTH_REGISTRY_KEY;
-    }
-
-    @Override
-    protected boolean hasUnlocked(Player player, ResourceLocation id) {
-        return CraftorioMisc.hasUnlockedRebirthUpgrade(player, id);
-    }
-
-    @Override
-    protected int getPurchaseCount(Player player, ResourceLocation id) {
-        return CraftorioMisc.getRebirthUpgradeCount(player, id);
-    }
-
-    @Override
-    protected Set<ResourceLocation> getUnlockedSnapshot(Player player) {
-        return CraftorioMisc.getRebirthUpgradePurchaseCounts(player).keySet();
-    }
-
-    @Override
-    protected BigInteger getCurrentCurrency(Player player) {
-        return CraftorioMisc.getLifePoints(player);
-    }
-
-    @Override
-    protected String formatCost(BigInteger cost) {
-        return cost.toString();
-    }
-
-    @Override
-    protected void sendUnlockPacket(ResourceLocation id) {
-        PacketDistributor.sendToServer(new UnlockRebirthUpgradePacket(id));
+    protected UpgradeTree tree() {
+        return UpgradeTree.REBIRTH;
     }
 
     @Override

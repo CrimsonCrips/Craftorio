@@ -1,13 +1,7 @@
 package org.crimsoncrips.craftorio.item;
 
-import net.minecraft.core.Direction;
-import net.minecraft.core.HolderSet;
-import net.minecraft.core.component.DataComponents;
-import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTabs;
 import net.minecraft.world.item.Item;
-import net.minecraft.world.item.Rarity;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
 import net.neoforged.neoforge.registries.DeferredHolder;
 import net.neoforged.neoforge.registries.DeferredItem;
@@ -18,11 +12,6 @@ import org.crimsoncrips.craftorio.item.rune.EffectRune;
 import org.crimsoncrips.craftorio.item.rune.MysteryEffectRune;
 import org.crimsoncrips.craftorio.item.structure.StructureWandItem;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.function.Function;
-import java.util.function.Supplier;
 
 public class CraftorioItems {
 
@@ -40,7 +29,7 @@ public class CraftorioItems {
     public static void addCreative(BuildCreativeModeTabContentsEvent event) {
         if (event.getTabKey() == CreativeModeTabs.TOOLS_AND_UTILITIES) {
             for (DeferredHolder<Item, ? extends Item> item : ITEMS.getEntries()) {
-                if (item == SCHEMATIC) continue;
+                if (item == SCHEMATIC || item == SCANNER_STICK || item == CHRONOSPHERE_STICK) continue;
                 event.accept(item.get());
             }
         }

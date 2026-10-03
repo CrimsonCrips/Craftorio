@@ -6,10 +6,10 @@
     "structure": "minecraft:end_city/ship"
   },
   "itemBounty": [],
-  "max_point_threshold": "10000000000",
-  "min_point_threshold": "100000",
+  "max_point_threshold": "100000000",
+  "min_point_threshold": "10000",
   "name": "registry.end_ship.title",
-  "point_threshold": "1000000",
+  "point_threshold": "100000",
   "seconds": 10800,
-  "weight": 5
+  "weight": 7
 }

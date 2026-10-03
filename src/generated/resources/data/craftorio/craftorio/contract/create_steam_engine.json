@@ -1,0 +1,39 @@
+{
+  "basePointValue": "76000",
+  "description": "registry.create_steam_engine.description",
+  "goal": {
+    "type": "building",
+    "structure": "craftorio:contracts/simple_steam_engine"
+  },
+  "itemBounty": [],
+  "itemRewards": [
+    {
+      "amountGiving": 4,
+      "rewardingItem": {
+        "count": 1,
+        "id": "create:blaze_cake"
+      }
+    },
+    {
+      "amountGiving": 16,
+      "rewardingItem": {
+        "count": 1,
+        "id": "create:brass_ingot"
+      }
+    },
+    {
+      "amountGiving": 4,
+      "rewardingItem": {
+        "count": 1,
+        "id": "create:andesite_alloy_block"
+      }
+    }
+  ],
+  "max_point_threshold": "1000000000000",
+  "min_point_threshold": "40000",
+  "name": "registry.create_steam_engine.title",
+  "point_threshold": "120000",
+  "required_mod_id": "create",
+  "seconds": 1800,
+  "weight": 7
+}

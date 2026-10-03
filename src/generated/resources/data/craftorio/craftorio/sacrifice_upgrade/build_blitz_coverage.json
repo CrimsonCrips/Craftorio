@@ -1,0 +1,14 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:build_blitz",
+  "cost": "1",
+  "description": "misc.craftorio.upgrade_build_blitz_coverage_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "max_purchases": 4,
+  "name": "misc.craftorio.upgrade_build_blitz_coverage",
+  "operation": "ADD",
+  "target": "BUILD_BLITZ_COVERAGE",
+  "value": 10.0,
+  "x": 80.0,
+  "y": 60.0
+}

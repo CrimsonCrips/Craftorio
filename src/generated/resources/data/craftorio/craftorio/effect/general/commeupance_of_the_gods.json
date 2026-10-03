@@ -1,8 +1,9 @@
 {
   "type": "craftorio:general_multiplier",
   "icon": "craftorio:textures/gui/default_icon.png",
-  "multiplier": -5000.0,
+  "multiplier": 5000.0,
   "name": "registry.commeupance_of_the_gods",
+  "operation": "subtract",
   "seconds": 14400,
   "unobtainable": true,
   "weight": 10

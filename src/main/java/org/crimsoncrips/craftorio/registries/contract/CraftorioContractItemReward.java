@@ -11,8 +11,10 @@ import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import org.crimsoncrips.craftorio.CraftorioMisc;
+import org.crimsoncrips.craftorio.item.rune.EffectRune;
 import org.crimsoncrips.craftorio.registries.CraftorioDataComponents;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
+import org.crimsoncrips.craftorio.registries.effect.StoredEffects;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -56,24 +58,31 @@ public class CraftorioContractItemReward {
         this(amountGiving, new ItemStack(rewardingItem), randomEffectCount);
     }
 
+    public boolean rollsEffects() {
+        return randomEffectCount > 0 && rewardingStack.getItem() instanceof EffectRune;
+    }
+
     public void giveItems(Player player){
-        if (randomEffectCount > 0) {
+        if (rollsEffects()) {
             RandomSource random = player instanceof ServerPlayer serverPlayer ? serverPlayer.getRandom() : RandomSource.create();
 
-            for (int i = 0; i < amountGiving; i++) {
+            int remaining = amountGiving;
+            while (remaining > 0) {
                 ItemStack stack = rewardingStack.copy();
+                int amount = Math.min(remaining, stack.getMaxStackSize());
 
                 List<CraftorioEffects> rolled = new ArrayList<>();
                 for (int j = 0; j < randomEffectCount; j++) {
                     rolled.add(CraftorioMisc.getRandomEffect(player.registryAccess(), random));
                 }
-                stack.set(CraftorioDataComponents.EFFECTS_STORED.get(), rolled);
+                stack.set(CraftorioDataComponents.EFFECTS_STORED.get(), new StoredEffects(rolled));
 
                 if (player instanceof ServerPlayer serverPlayer) {
-                    CraftorioMisc.giveItemsSplitByStack(serverPlayer, stack, 1);
+                    CraftorioMisc.giveItemsSplitByStack(serverPlayer, stack, amount);
                 } else {
-                    player.addItem(stack);
+                    player.addItem(stack.copyWithCount(amount));
                 }
+                remaining -= amount;
             }
         } else {
             ItemStack stack = rewardingStack.copy();

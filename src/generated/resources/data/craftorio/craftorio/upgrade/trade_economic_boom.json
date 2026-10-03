@@ -1,6 +1,6 @@
 {
   "type": "craftorio:action_effect",
-  "parent": "craftorio:action_effect_unlock",
+  "parent": "craftorio:manual_sink_value_1",
   "chance": 0.2,
   "cost": "30000000000000000",
   "description": "misc.craftorio.upgrade_trade_economic_boom_description",

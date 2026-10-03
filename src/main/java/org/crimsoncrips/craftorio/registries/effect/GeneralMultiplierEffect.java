@@ -23,20 +23,23 @@ public class GeneralMultiplierEffect extends CraftorioEffects {
                     ResourceLocation.CODEC.optionalFieldOf("icon").forGetter(effect -> Optional.ofNullable(effect.getIcon())),
                     Codec.INT.optionalFieldOf("weight", 1).forGetter(GeneralMultiplierEffect::getWeight),
                     Codec.BOOL.optionalFieldOf("unobtainable", false).forGetter(GeneralMultiplierEffect::isUnobtainable),
-                    Codec.BOOL.optionalFieldOf("loan_marked", false).forGetter(GeneralMultiplierEffect::isLoanMarked)
-            ).apply(instance, (multiplier, name, seconds, icon, weight, unobtainable, loanMarked) -> {
+                    Codec.BOOL.optionalFieldOf("loan_marked", false).forGetter(GeneralMultiplierEffect::isLoanMarked),
+                    EffectOperation.CODEC.optionalFieldOf("operation", EffectOperation.ADD).forGetter(GeneralMultiplierEffect::getOperation)
+            ).apply(instance, (multiplier, name, seconds, icon, weight, unobtainable, loanMarked, operation) -> {
                     GeneralMultiplierEffect effect = new GeneralMultiplierEffect(multiplier, name, seconds, icon.orElse(null), weight, unobtainable);
                     effect.setLoanMarked(loanMarked);
+                    effect.setOperation(operation);
                     return effect;
             })
     );
 
-    private record WeightFlags(int weight, boolean unobtainable, boolean loanMarked) {}
+    private record WeightFlags(int weight, boolean unobtainable, boolean loanMarked, EffectOperation operation) {}
 
     private static final StreamCodec<ByteBuf, WeightFlags> WEIGHT_FLAGS_STREAM = StreamCodec.composite(
             ByteBufCodecs.INT, WeightFlags::weight,
             ByteBufCodecs.BOOL, WeightFlags::unobtainable,
             ByteBufCodecs.BOOL, WeightFlags::loanMarked,
+            EffectOperation.STREAM_CODEC, WeightFlags::operation,
             WeightFlags::new
     );
 
@@ -45,11 +48,12 @@ public class GeneralMultiplierEffect extends CraftorioEffects {
             ByteBufCodecs.STRING_UTF8, GeneralMultiplierEffect::getNameKey,
             ByteBufCodecs.INT, GeneralMultiplierEffect::getTime,
             ByteBufCodecs.optional(ResourceLocation.STREAM_CODEC), effect -> Optional.ofNullable(effect.getIcon()),
-            WEIGHT_FLAGS_STREAM, effect -> new WeightFlags(effect.getWeight(), effect.isUnobtainable(), effect.isLoanMarked()),
+            WEIGHT_FLAGS_STREAM, effect -> new WeightFlags(effect.getWeight(), effect.isUnobtainable(), effect.isLoanMarked(), effect.getOperation()),
             (multiplier, name, time, icon, flags) -> {
                 GeneralMultiplierEffect effect = new GeneralMultiplierEffect(multiplier, name, time / CraftorioMisc.SECONDS_TO_TICKS, icon.orElse(null), flags.weight(), flags.unobtainable());
                 effect.setTime(time);
                 effect.setLoanMarked(flags.loanMarked());
+                effect.setOperation(flags.operation());
                 return effect;
             }
     );
@@ -73,6 +77,7 @@ public class GeneralMultiplierEffect extends CraftorioEffects {
         GeneralMultiplierEffect copy = new GeneralMultiplierEffect(getMultiplier(), getNameKey(), getTime() / CraftorioMisc.SECONDS_TO_TICKS, getIcon(), getWeight(), isUnobtainable());
         copy.setTime(getTime());
         copy.setLoanMarked(isLoanMarked());
+        copy.setOperation(getOperation());
         return copy;
     }
 

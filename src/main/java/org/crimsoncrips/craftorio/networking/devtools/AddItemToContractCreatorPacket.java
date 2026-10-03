@@ -35,6 +35,9 @@ public record AddItemToContractCreatorPacket(ItemStack stack) implements CustomP
             if (slotIndex < 0) return;
 
             menu.getContainer().setItem(slotIndex, stack.copyWithCount(1));
+            if (!stack.getComponentsPatch().isEmpty()) {
+                ContractCreatorMenu.warnComponentItems(serverPlayer);
+            }
         });
     }
 }

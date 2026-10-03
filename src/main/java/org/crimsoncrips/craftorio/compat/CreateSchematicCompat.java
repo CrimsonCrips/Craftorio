@@ -19,6 +19,7 @@ import org.crimsoncrips.craftorio.server.schematic.CraftorioSchematics;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Optional;
 
 public final class CreateSchematicCompat {
@@ -63,11 +64,19 @@ public final class CreateSchematicCompat {
         marked.set(CraftorioDataComponents.SCHEMATIC.get(), data.withConverted(true));
         table.inventory.setStackInSlot(0, marked);
 
-        SaveCreateSchematicPacket packet = new SaveCreateSchematicPacket(fileName, structure.get());
+        List<SaveCreateSchematicPacket> packets;
+        try {
+            packets = SaveCreateSchematicPacket.create(fileName, structure.get());
+        } catch (IOException e) {
+            Craftorio.LOGGER.error("Failed to send the Create schematic {}", fileName, e);
+            return;
+        }
         for (ServerPlayer player : server.getPlayerList().getPlayers()) {
             boolean nearby = player.level() == level && player.distanceToSqr(table.getBlockPos().getCenter()) <= SHARE_DISTANCE_SQUARED;
             if (nearby || player.getGameProfile().getName().equals(owner)) {
-                PacketDistributor.sendToPlayer(player, packet);
+                for (SaveCreateSchematicPacket packet : packets) {
+                    PacketDistributor.sendToPlayer(player, packet);
+                }
             }
         }
     }

@@ -26,9 +26,13 @@ public class CraftorioEffectTypes {
                             Codec.INT.fieldOf("seconds").forGetter(effect -> effect.getTime() / CraftorioMisc.SECONDS_TO_TICKS),
                             ResourceLocation.CODEC.optionalFieldOf("icon").forGetter(effect -> Optional.ofNullable(effect.getIcon())),
                             Codec.INT.optionalFieldOf("weight", 1).forGetter(GeneralMultiplierEffect::getWeight),
-                            Codec.BOOL.optionalFieldOf("unobtainable", false).forGetter(GeneralMultiplierEffect::isUnobtainable)
-                    ).apply(instance, (multiplier, name, seconds, icon, weight, unobtainable) ->
-                            new GeneralMultiplierEffect(multiplier, name, seconds, icon.orElse(null), weight, unobtainable))
+                            Codec.BOOL.optionalFieldOf("unobtainable", false).forGetter(GeneralMultiplierEffect::isUnobtainable),
+                            EffectOperation.CODEC.optionalFieldOf("operation", EffectOperation.ADD).forGetter(GeneralMultiplierEffect::getOperation)
+                    ).apply(instance, (multiplier, name, seconds, icon, weight, unobtainable, operation) -> {
+                            GeneralMultiplierEffect effect = new GeneralMultiplierEffect(multiplier, name, seconds, icon.orElse(null), weight, unobtainable);
+                            effect.setOperation(operation);
+                            return effect;
+                    })
             ));
 
     public static final Supplier<MapCodec<TagMultiplierEffect>> TAG_MULTIPLIER =
@@ -40,9 +44,13 @@ public class CraftorioEffectTypes {
                             Codec.INT.fieldOf("seconds").forGetter(effect -> effect.getTime() / CraftorioMisc.SECONDS_TO_TICKS),
                             ResourceLocation.CODEC.optionalFieldOf("icon").forGetter(effect -> Optional.ofNullable(effect.getIcon())),
                             Codec.INT.optionalFieldOf("weight", 1).forGetter(TagMultiplierEffect::getWeight),
-                            Codec.BOOL.optionalFieldOf("unobtainable", false).forGetter(TagMultiplierEffect::isUnobtainable)
-                    ).apply(instance, (multiplier, name, itemTag, seconds, icon, weight, unobtainable) ->
-                            new TagMultiplierEffect(multiplier, name, itemTag, seconds, icon.orElse(null), weight, unobtainable))
+                            Codec.BOOL.optionalFieldOf("unobtainable", false).forGetter(TagMultiplierEffect::isUnobtainable),
+                            EffectOperation.CODEC.optionalFieldOf("operation", EffectOperation.ADD).forGetter(TagMultiplierEffect::getOperation)
+                    ).apply(instance, (multiplier, name, itemTag, seconds, icon, weight, unobtainable, operation) -> {
+                            TagMultiplierEffect effect = new TagMultiplierEffect(multiplier, name, itemTag, seconds, icon.orElse(null), weight, unobtainable);
+                            effect.setOperation(operation);
+                            return effect;
+                    })
             ));
 
     public static final Supplier<MapCodec<ShopMultiplierEffect>> SHOP_MULTIPLIER =
@@ -53,8 +61,12 @@ public class CraftorioEffectTypes {
                             Codec.INT.fieldOf("seconds").forGetter(effect -> effect.getTime() / CraftorioMisc.SECONDS_TO_TICKS),
                             ResourceLocation.CODEC.optionalFieldOf("icon").forGetter(effect -> Optional.ofNullable(effect.getIcon())),
                             Codec.INT.optionalFieldOf("weight", 1).forGetter(ShopMultiplierEffect::getWeight),
-                            Codec.BOOL.optionalFieldOf("unobtainable", false).forGetter(ShopMultiplierEffect::isUnobtainable)
-                    ).apply(instance, (multiplier, name, seconds, icon, weight, unobtainable) ->
-                            new ShopMultiplierEffect(multiplier, name, seconds, icon.orElse(null), weight, unobtainable))
+                            Codec.BOOL.optionalFieldOf("unobtainable", false).forGetter(ShopMultiplierEffect::isUnobtainable),
+                            EffectOperation.CODEC.optionalFieldOf("operation", EffectOperation.ADD).forGetter(ShopMultiplierEffect::getOperation)
+                    ).apply(instance, (multiplier, name, seconds, icon, weight, unobtainable, operation) -> {
+                            ShopMultiplierEffect effect = new ShopMultiplierEffect(multiplier, name, seconds, icon.orElse(null), weight, unobtainable);
+                            effect.setOperation(operation);
+                            return effect;
+                    })
             ));
 }

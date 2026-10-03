@@ -91,8 +91,12 @@ public class AutoSinkerBlockEntity extends BlockEntity implements Container, Men
 
         CraftorioMisc.setPoints(CraftorioMisc.getPoints(owner).add(pointsToGive), owner);
 
+        List<ItemStack> contractItems = new ArrayList<>();
+        for (ItemStack sinked : sinkedItems) {
+            contractItems.add(sinked.copy());
+        }
         for (CraftorioContract contract : new ArrayList<>(CraftorioMisc.getCraftorioContracts(owner))) {
-            contract.addSinkedListValue(sinkedItems, owner);
+            contract.addSinkedListValue(contractItems, owner);
         }
         CraftorioMisc.refreshContracts(owner);
     }

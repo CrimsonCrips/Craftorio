@@ -10,7 +10,7 @@ import net.neoforged.neoforge.network.handling.IPayloadContext;
 import org.crimsoncrips.craftorio.Craftorio;
 import org.crimsoncrips.craftorio.client.schematic.CraftorioChronosphere;
 
-public record ChronospherePacket(double x, double y, double z, float radius) implements CustomPacketPayload {
+public record ChronospherePacket(double x, double y, double z, float radius, int removalTicks) implements CustomPacketPayload {
 
     public static final float MARGIN = 1.5F;
     public static final int APPEAR_TICKS = 30;
@@ -23,13 +23,14 @@ public record ChronospherePacket(double x, double y, double z, float radius) imp
             ByteBufCodecs.DOUBLE, ChronospherePacket::y,
             ByteBufCodecs.DOUBLE, ChronospherePacket::z,
             ByteBufCodecs.FLOAT, ChronospherePacket::radius,
+            ByteBufCodecs.VAR_INT, ChronospherePacket::removalTicks,
             ChronospherePacket::new
     );
 
-    public static ChronospherePacket around(AABB bounds) {
+    public static ChronospherePacket around(AABB bounds, int removalTicks) {
         Vec3 center = bounds.getCenter();
         double radius = 0.5 * Math.sqrt(bounds.getXsize() * bounds.getXsize() + bounds.getYsize() * bounds.getYsize() + bounds.getZsize() * bounds.getZsize());
-        return new ChronospherePacket(center.x, center.y, center.z, (float) radius + MARGIN);
+        return new ChronospherePacket(center.x, center.y, center.z, (float) radius + MARGIN, removalTicks);
     }
 
     @Override
@@ -38,6 +39,6 @@ public record ChronospherePacket(double x, double y, double z, float radius) imp
     }
 
     public static void handle(ChronospherePacket message, IPayloadContext ctx) {
-        ctx.enqueueWork(() -> CraftorioChronosphere.add(message.x(), message.y(), message.z(), message.radius()));
+        ctx.enqueueWork(() -> CraftorioChronosphere.add(message.x(), message.y(), message.z(), message.radius(), message.removalTicks()));
     }
 }

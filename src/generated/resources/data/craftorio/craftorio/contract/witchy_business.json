@@ -1,0 +1,16 @@
+{
+  "basePointValue": "4500",
+  "description": "registry.witchy_business.description",
+  "goal": {
+    "type": "building",
+    "structure": "craftorio:contracts/witch_hut"
+  },
+  "itemBounty": [],
+  "max_point_threshold": "20000",
+  "min_point_threshold": "1000",
+  "name": "registry.witchy_business.title",
+  "point_threshold": "4500",
+  "punishment": "craftorio:witch_curse",
+  "seconds": 600,
+  "weight": 9
+}

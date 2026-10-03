@@ -67,8 +67,18 @@ public class AssemblingButton extends Button {
     private static final float PULSE_OPACITY = 0.9f;
     private static final float PULSE_EXTRA_REACH = 10f;
     private static final float PULSE_RING_WIDTH = 2f;
+    private static final float CURSOR_RADIUS = 3f;
+    private static final float PUSH_IMPULSE = 0.012f;
+    private static final float CURSOR_VELOCITY_TRANSFER = 0.15f;
+    private static final float SPIN_TRANSFER = 0.0008f;
+    private static final float RETURN_SPRING = 0.00004f;
+    private static final float DAMPING_PER_16MS = 0.9f;
+    private static final float SPIN_DAMPING_PER_16MS = 0.94f;
+    private static final float MAX_PHYSICS_STEP_MS = 50f;
+    private static final float MIN_COLLISION_DECAY = 0.05f;
+    private static final float MAX_CURSOR_SPEED = 3f;
 
-    private record Shard(float[] xs, float[] ys, float centerX, float centerY,
+    private record Shard(float[] xs, float[] ys, float centerX, float centerY, float radius,
                          float orbitRadiusX, float orbitRadiusY, float orbitPhase, float orbitSpeed,
                          float spinPhase, float spinSpeed, float revealOrder) {}
 
@@ -95,6 +105,14 @@ public class AssemblingButton extends Button {
     private float captureOriginY;
     private float orbitCenterY;
     private Shard[] shards = new Shard[0];
+    private float[] offsetX = new float[0];
+    private float[] offsetY = new float[0];
+    private float[] velocityX = new float[0];
+    private float[] velocityY = new float[0];
+    private float[] extraRotation = new float[0];
+    private float[] spinVelocity = new float[0];
+    private float lastMouseX = Float.NaN;
+    private float lastMouseY = Float.NaN;
     private float revealFraction = 1f;
     private float appearProgress = 1f;
 
@@ -172,6 +190,7 @@ public class AssemblingButton extends Button {
         } else {
             float decay = 1f - this.eased;
             float textBlend = Mth.clamp(this.eased, 0f, 1f);
+            updateShardPhysics(mouseX, mouseY, dt, elapsed, decay);
             drawShards(guiGraphics, this.buttonCapture, decay, elapsed);
             drawGlow(guiGraphics, elapsed, this.glowAmount);
             pose.pushPose();
@@ -391,8 +410,12 @@ public class AssemblingButton extends Button {
                     }
                     float shardX = (xs[0] + xs[1] + xs[2]) / 3f;
                     float shardY = (ys[0] + ys[1] + ys[2]) / 3f;
+                    float shardRadius = 0f;
+                    for (int k = 0; k < 3; k++) {
+                        shardRadius = Math.max(shardRadius, (float) Math.hypot(xs[k] - shardX, ys[k] - shardY));
+                    }
                     float orbitScale = ORBIT_MIN + this.random.nextFloat() * (ORBIT_MAX - ORBIT_MIN);
-                    built[index++] = new Shard(xs, ys, shardX, shardY,
+                    built[index++] = new Shard(xs, ys, shardX, shardY, shardRadius * 0.6f,
                             halfWidth * orbitScale, halfHeight * orbitScale,
                             this.random.nextFloat() * (float) TWO_PI,
                             ORBIT_SPEED_MIN + this.random.nextFloat() * (ORBIT_SPEED_MAX - ORBIT_SPEED_MIN),
@@ -403,6 +426,76 @@ public class AssemblingButton extends Button {
             }
         }
         this.shards = built;
+        this.offsetX = new float[built.length];
+        this.offsetY = new float[built.length];
+        this.velocityX = new float[built.length];
+        this.velocityY = new float[built.length];
+        this.extraRotation = new float[built.length];
+        this.spinVelocity = new float[built.length];
+    }
+
+    private float baseX(Shard shard, long elapsed, float eased) {
+        double orbitAngle = shard.orbitPhase() + elapsed * (double) shard.orbitSpeed();
+        float orbitX = this.orbitCenterX + (float) Math.cos(orbitAngle) * shard.orbitRadiusX();
+        return orbitX + (shard.centerX() - orbitX) * eased;
+    }
+
+    private float baseY(Shard shard, long elapsed, float eased) {
+        double orbitAngle = shard.orbitPhase() + elapsed * (double) shard.orbitSpeed();
+        float orbitY = this.orbitCenterY + (float) Math.sin(orbitAngle) * shard.orbitRadiusY();
+        return orbitY + (shard.centerY() - orbitY) * eased;
+    }
+
+    private void updateShardPhysics(int mouseX, int mouseY, float dt, long elapsed, float decay) {
+        float step = Math.min(dt, MAX_PHYSICS_STEP_MS);
+        if (step <= 0f) return;
+
+        boolean hasLast = !Float.isNaN(this.lastMouseX);
+        float mouseVelocityX = hasLast ? (mouseX - this.lastMouseX) / step : 0f;
+        float mouseVelocityY = hasLast ? (mouseY - this.lastMouseY) / step : 0f;
+        this.lastMouseX = mouseX;
+        this.lastMouseY = mouseY;
+        float mouseSpeed = (float) Math.sqrt(mouseVelocityX * mouseVelocityX + mouseVelocityY * mouseVelocityY);
+        if (mouseSpeed > MAX_CURSOR_SPEED) {
+            mouseVelocityX = 0f;
+            mouseVelocityY = 0f;
+        }
+
+        float eased = 1f - decay;
+        float damping = (float) Math.pow(DAMPING_PER_16MS, step / 16f);
+        float spinDamping = (float) Math.pow(SPIN_DAMPING_PER_16MS, step / 16f);
+        boolean collide = decay > MIN_COLLISION_DECAY;
+
+        for (int i = 0; i < this.shards.length; i++) {
+            Shard shard = this.shards[i];
+            float appearScale = shard.revealOrder() < this.revealFraction ? shardAppearScale(shard) : 0f;
+
+            if (collide && appearScale > 0f) {
+                float x = baseX(shard, elapsed, eased) + this.offsetX[i] * decay;
+                float y = baseY(shard, elapsed, eased) + this.offsetY[i] * decay;
+                float dx = x - mouseX;
+                float dy = y - mouseY;
+                float distance = (float) Math.sqrt(dx * dx + dy * dy);
+                float reach = shard.radius() * appearScale + CURSOR_RADIUS;
+                if (distance < reach) {
+                    float normalX = distance > 0.0001f ? dx / distance : 1f;
+                    float normalY = distance > 0.0001f ? dy / distance : 0f;
+                    float penetration = reach - distance;
+                    this.offsetX[i] += normalX * penetration / decay;
+                    this.offsetY[i] += normalY * penetration / decay;
+                    this.velocityX[i] += normalX * penetration * PUSH_IMPULSE + mouseVelocityX * CURSOR_VELOCITY_TRANSFER;
+                    this.velocityY[i] += normalY * penetration * PUSH_IMPULSE + mouseVelocityY * CURSOR_VELOCITY_TRANSFER;
+                    this.spinVelocity[i] += (normalX * mouseVelocityY - normalY * mouseVelocityX) * SPIN_TRANSFER;
+                }
+            }
+
+            this.velocityX[i] = (this.velocityX[i] - this.offsetX[i] * RETURN_SPRING * step) * damping;
+            this.velocityY[i] = (this.velocityY[i] - this.offsetY[i] * RETURN_SPRING * step) * damping;
+            this.offsetX[i] += this.velocityX[i] * step;
+            this.offsetY[i] += this.velocityY[i] * step;
+            this.spinVelocity[i] *= spinDamping;
+            this.extraRotation[i] = (float) Math.IEEEremainder(this.extraRotation[i] + this.spinVelocity[i] * step, TWO_PI);
+        }
     }
 
     public void renderAura(GuiGraphics guiGraphics) {
@@ -474,17 +567,15 @@ public class AssemblingButton extends Button {
         Matrix4f matrix = guiGraphics.pose().last().pose();
 
         BufferBuilder builder = Tesselator.getInstance().begin(VertexFormat.Mode.TRIANGLES, DefaultVertexFormat.POSITION_TEX);
-        for (Shard shard : this.shards) {
+        for (int i = 0; i < this.shards.length; i++) {
+            Shard shard = this.shards[i];
             if (shard.revealOrder() >= this.revealFraction) continue;
             float appearScale = shardAppearScale(shard);
             if (appearScale <= 0f) continue;
 
-            double orbitAngle = shard.orbitPhase() + elapsed * (double) shard.orbitSpeed();
-            float orbitX = this.orbitCenterX + (float) Math.cos(orbitAngle) * shard.orbitRadiusX();
-            float orbitY = this.orbitCenterY + (float) Math.sin(orbitAngle) * shard.orbitRadiusY();
-            float positionX = orbitX + (shard.centerX() - orbitX) * eased;
-            float positionY = orbitY + (shard.centerY() - orbitY) * eased;
-            float rotation = (float) Math.IEEEremainder(shard.spinPhase() + elapsed * (double) shard.spinSpeed(), TWO_PI) * decay;
+            float positionX = baseX(shard, elapsed, eased) + this.offsetX[i] * decay;
+            float positionY = baseY(shard, elapsed, eased) + this.offsetY[i] * decay;
+            float rotation = ((float) Math.IEEEremainder(shard.spinPhase() + elapsed * (double) shard.spinSpeed(), TWO_PI) + this.extraRotation[i]) * decay;
 
             float cos = (float) Math.cos(rotation);
             float sin = (float) Math.sin(rotation);

@@ -1,0 +1,48 @@
+{
+  "basePointValue": "7000000000000000000000",
+  "description": "registry.matterial_calculation.description",
+  "goal": {
+    "type": "building",
+    "structure": "craftorio:contracts/matt_calculator"
+  },
+  "itemBounty": [],
+  "itemRewards": [
+    {
+      "amountGiving": 5,
+      "randomEffectCount": 2,
+      "rewardingItem": {
+        "count": 1,
+        "id": "craftorio:effect_rune"
+      }
+    },
+    {
+      "amountGiving": 6,
+      "randomEffectCount": 2,
+      "rewardingItem": {
+        "count": 1,
+        "id": "craftorio:effect_rune"
+      }
+    },
+    {
+      "amountGiving": 3,
+      "randomEffectCount": 2,
+      "rewardingItem": {
+        "count": 1,
+        "id": "craftorio:mystery_effect_rune"
+      }
+    },
+    {
+      "amountGiving": 4,
+      "randomEffectCount": 2,
+      "rewardingItem": {
+        "count": 1,
+        "id": "craftorio:mystery_effect_rune"
+      }
+    }
+  ],
+  "min_point_threshold": "1000000000",
+  "name": "registry.matterial_calculation.title",
+  "point_threshold": "5000000000",
+  "seconds": 43800,
+  "weight": 3
+}

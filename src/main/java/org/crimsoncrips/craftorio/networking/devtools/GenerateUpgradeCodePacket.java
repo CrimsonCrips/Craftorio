@@ -1,6 +1,7 @@
 package org.crimsoncrips.craftorio.networking.devtools;
 
 import com.mojang.serialization.JsonOps;
+import net.minecraft.resources.RegistryOps;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.RegistryFriendlyByteBuf;
@@ -96,9 +97,6 @@ public record GenerateUpgradeCodePacket(String category, String id, String modId
             int maxPurchases = Math.max(1, parseInt(message.maxPurchases(), 1));
             String parent = sanitize(message.parent()).isEmpty() ? "craftorio:root" : sanitize(message.parent());
             double value = parseDouble(message.value(), 0.1);
-            if ((message.operation().equals("ADD") || message.operation().equals("SUBTRACT")) && isTickDurationTarget(message.category(), message.target())) {
-                value *= CraftorioMisc.SECONDS_TO_TICKS;
-            }
             String modId = sanitize(message.modId()).isEmpty() ? "yourmodid" : sanitize(message.modId());
             UpgradeOperation operationEnum = UpgradeOperation.valueOf(message.operation());
 
@@ -140,7 +138,7 @@ public record GenerateUpgradeCodePacket(String category, String id, String modId
                     upgrade = CraftorioAttributeUpgrade.of(builder, targetEnum, operationEnum, value);
                 }
 
-                CraftorioUpgrade.dispatchCodec().encodeStart(JsonOps.INSTANCE, upgrade).resultOrPartial(Craftorio.LOGGER::error)
+                CraftorioUpgrade.dispatchCodec().encodeStart(RegistryOps.create(JsonOps.INSTANCE, serverPlayer.registryAccess()), upgrade).resultOrPartial(Craftorio.LOGGER::error)
                         .ifPresentOrElse(
                                 json -> {
                                     if (langEntries.isEmpty()) {
@@ -148,7 +146,7 @@ public record GenerateUpgradeCodePacket(String category, String id, String modId
                                     } else {
                                         Map<String, String> bundle = new LinkedHashMap<>();
                                         bundle.put("upgrade_" + id + ".json", CraftorioDevTools.toPrettyJson(json));
-                                        bundle.put("lang_en_us.json", CraftorioDevTools.buildLangJson(langEntries));
+                                        bundle.put("en_us.json", CraftorioDevTools.buildLangJson(langEntries));
                                         CraftorioDevTools.writeBundle(serverPlayer, "upgrade_" + id, bundle);
                                     }
                                 },
@@ -190,19 +188,12 @@ public record GenerateUpgradeCodePacket(String category, String id, String modId
             code.append("// Requires: import net.minecraft.core.Holder; import static org.crimsoncrips.craftorio.CraftorioMisc.scientificToInt;\n");
 
             if (!langEntries.isEmpty()) {
-                code.append("\n// Add to your LanguageProvider's addTranslations(...):\n");
-                for (Map.Entry<String, String> entry : langEntries.entrySet()) {
-                    code.append("this.add(\"").append(entry.getKey()).append("\", \"").append(entry.getValue()).append("\");\n");
-                }
+                code.append("\n// Add to CraftorioRegistryLang.addUpgrades(...):\n");
+                CraftorioDevTools.appendUpgradeLang(code, langEntries);
             }
 
             CraftorioDevTools.writeCodeFile(serverPlayer, "upgrade_" + id, code.toString().replace(".save(context,", "." + message.tree().saveMethod() + "(context,"));
         });
-    }
-
-    private static boolean isTickDurationTarget(String category, String target) {
-        return category.equals("modifier") && (target.equals("CONTRACT_REFRESH_SPEED") || target.equals("EFFECT_TIMER_SPEED")
-                || target.equals("PUNISHMENT_DURATION") || target.equals("EFFECT_DURATION"));
     }
 
     private static String sanitize(String input) {

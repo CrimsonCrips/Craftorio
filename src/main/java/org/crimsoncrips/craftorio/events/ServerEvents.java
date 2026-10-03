@@ -1,5 +1,6 @@
 package org.crimsoncrips.craftorio.events;
 
+import org.crimsoncrips.craftorio.skill_tree.UpgradeTree;
 import com.google.common.collect.ImmutableList;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.world.level.GameRules;
@@ -51,6 +52,7 @@ import org.crimsoncrips.craftorio.networking.sync.UniversalStateSyncPacket;
 import org.crimsoncrips.craftorio.networking.sync.WelcomeToastPacket;
 import org.crimsoncrips.craftorio.registries.CraftorioDimensions;
 import org.crimsoncrips.craftorio.registries.contract.CraftorioContract;
+import org.crimsoncrips.craftorio.server.skill_tree.SkillTreeReveal;
 import org.crimsoncrips.craftorio.registries.effect.CraftorioEffects;
 import org.crimsoncrips.craftorio.server.advancement.CraftorioAdvancementMultipliers;
 import org.crimsoncrips.craftorio.server.advancement.CraftorioAdvancementPoints;
@@ -68,7 +70,6 @@ import org.crimsoncrips.craftorio.server.rebirth.CraftorioRebirthConsent;
 import org.crimsoncrips.craftorio.server.sacrifice.CraftorioSacrifice;
 import org.crimsoncrips.craftorio.server.sacrifice.CraftorioWipeAreas;
 import org.crimsoncrips.craftorio.server.sacrifice.CraftorioWorldWipe;
-import org.crimsoncrips.craftorio.skill_tree.CraftorioUpgrade;
 import org.crimsoncrips.craftorio.skill_tree.target.ModifierTarget;
 import org.crimsoncrips.craftorio.skill_tree.target.PlayerActionTarget;
 import org.crimsoncrips.craftorio.skill_tree.target.UpgradeOperation;
@@ -82,6 +83,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -381,6 +383,7 @@ public class ServerEvents {
     public void playerLogin(PlayerEvent.PlayerLoggedInEvent event) {
         if (event.getEntity() instanceof ServerPlayer loggingIn) {
             CraftorioSacrifice.onLogin(loggingIn);
+            SkillTreeReveal.onLogin(loggingIn);
             if (!CraftorioMisc.universalBased(loggingIn.level())) {
                 CraftorioMisc.recordSpawnOrigin(loggingIn.getServer(), loggingIn.getStringUUID(), loggingIn.getData(SPAWN_ORIGIN.get()));
                 if (!CraftorioMisc.chunkBased(loggingIn.level())) {
@@ -397,27 +400,13 @@ public class ServerEvents {
         }
 
         if (player instanceof ServerPlayer serverPlayer) {
-            var registry = player.level().registryAccess().registryOrThrow(CraftorioUpgrade.REGISTRY_KEY);
-            for (Map.Entry<ResourceLocation, Integer> entry : CraftorioMisc.getUpgradePurchaseCounts(player).entrySet()) {
-                var upgrade = registry.get(entry.getKey());
-                if (upgrade instanceof CraftorioAttributeUpgrade) {
-                    upgrade.onUnlock(serverPlayer, entry.getKey(), entry.getValue());
-                }
-            }
-
-            var rebirthRegistry = player.level().registryAccess().registryOrThrow(CraftorioUpgrade.REBIRTH_REGISTRY_KEY);
-            for (Map.Entry<ResourceLocation, Integer> entry : CraftorioMisc.getRebirthUpgradePurchaseCounts(player).entrySet()) {
-                var upgrade = rebirthRegistry.get(entry.getKey());
-                if (upgrade instanceof CraftorioAttributeUpgrade) {
-                    upgrade.onUnlock(serverPlayer, entry.getKey(), entry.getValue());
-                }
-            }
-
-            var sacrificeRegistry = player.level().registryAccess().registryOrThrow(CraftorioUpgrade.SACRIFICE_REGISTRY_KEY);
-            for (Map.Entry<ResourceLocation, Integer> entry : CraftorioMisc.getSacrificeUpgradePurchaseCounts(player).entrySet()) {
-                var upgrade = sacrificeRegistry.get(entry.getKey());
-                if (upgrade instanceof CraftorioAttributeUpgrade) {
-                    upgrade.onUnlock(serverPlayer, entry.getKey(), entry.getValue());
+            for (UpgradeTree tree : UpgradeTree.values()) {
+                var registry = player.level().registryAccess().registryOrThrow(tree.registryKey());
+                for (Map.Entry<ResourceLocation, Integer> entry : CraftorioMisc.getUpgradePurchaseCounts(player, tree).entrySet()) {
+                    var upgrade = registry.get(entry.getKey());
+                    if (upgrade instanceof CraftorioAttributeUpgrade) {
+                        upgrade.onUnlock(serverPlayer, entry.getKey(), entry.getValue());
+                    }
                 }
             }
 
@@ -445,10 +434,10 @@ public class ServerEvents {
                 CraftorioMisc.getHighestPoints(player),
                 CraftorioMisc.getTempPoints(player),
                 CraftorioMisc.getLandAmount(player),
-                CraftorioMisc.getUpgradePurchaseCounts(player),
-                CraftorioMisc.getGeneralEffects(player),
-                CraftorioMisc.getTagEffects(player),
-                CraftorioMisc.getShopEffects(player),
+                CraftorioMisc.getUpgradePurchaseCounts(player, UpgradeTree.BASIC),
+                CraftorioMisc.getEffects(player, CraftorioDataAttachments.GENERAL_MULTIPLIER_EFFECTS),
+                CraftorioMisc.getEffects(player, CraftorioDataAttachments.TAG_MULTIPLIER_EFFECTS),
+                CraftorioMisc.getEffects(player, CraftorioDataAttachments.SHOP_MULTIPLIER_EFFECTS),
                 CraftorioMisc.getAdvancementMultiplierBonus(player),
                 CraftorioMisc.getCraftorioContracts(player),
                 CraftorioMisc.getCraftorioBorders(player),
@@ -456,8 +445,8 @@ public class ServerEvents {
                 CraftorioMisc.getHighestMultiplier(player),
                 CraftorioMisc.getLife(player),
                 CraftorioMisc.getLifePoints(player),
-                CraftorioMisc.getRebirthUpgradePurchaseCounts(player),
-                CraftorioMisc.getSacrificeUpgradePurchaseCounts(player),
+                CraftorioMisc.getUpgradePurchaseCounts(player, UpgradeTree.REBIRTH),
+                CraftorioMisc.getUpgradePurchaseCounts(player, UpgradeTree.SACRIFICE),
                 CraftorioMisc.getSacrificePoints(player),
                 CraftorioMisc.getOverallHighestPoints(player),
                 CraftorioMisc.getOverallContractsCompleted(player),
@@ -553,7 +542,7 @@ public class ServerEvents {
             CraftorioMisc.setPoints(pointsOwned.add(value),player);
         }
 
-        if (CraftorioMisc.hasUnlockedUpgrade(player, Craftorio.prefix("advancement_multiplier"))) {
+        if (CraftorioMisc.hasUnlockedUpgrade(player, UpgradeTree.BASIC, Craftorio.prefix("advancement_multiplier"))) {
             double multiplierBonus = CraftorioAdvancementMultipliers.getMultiplier(id.toString());
             CraftorioMisc.addAdvancementMultiplierBonus(player, multiplierBonus);
         }
@@ -607,21 +596,27 @@ public class ServerEvents {
         }
     }
 
-    public static void grantActionEffects(ServerPlayer player, PlayerActionTarget actionTarget) {
-        if (!CraftorioMisc.hasUnlockedUpgrade(player, Craftorio.prefix("action_effect_unlock"))) return;
+    private static final double BASE_ACTION_EFFECT_CHANCE = 0.1;
 
-        grantActionEffects(player, actionTarget, CraftorioUpgrade.REGISTRY_KEY, CraftorioMisc.getUpgradePurchaseCounts(player));
-        grantActionEffects(player, actionTarget, CraftorioUpgrade.REBIRTH_REGISTRY_KEY, CraftorioMisc.getRebirthUpgradePurchaseCounts(player));
-        grantActionEffects(player, actionTarget, CraftorioUpgrade.SACRIFICE_REGISTRY_KEY, CraftorioMisc.getSacrificeUpgradePurchaseCounts(player));
+    public static void grantActionEffects(ServerPlayer player, PlayerActionTarget actionTarget) {
+        Map<ResourceLocation, Double> chances = new LinkedHashMap<>();
+        chances.put(actionTarget.baseEffect(), BASE_ACTION_EFFECT_CHANCE);
+        for (UpgradeTree tree : UpgradeTree.values()) {
+            addActionEffectChances(player, actionTarget, tree, chances);
+        }
+
+        Registry<CraftorioEffects> effects = player.level().registryAccess().registryOrThrow(CraftorioEffects.REGISTRY_KEY);
+        for (Map.Entry<ResourceLocation, Double> entry : chances.entrySet()) {
+            if (player.getRandom().nextDouble() >= Math.min(1.0, entry.getValue())) continue;
+            effects.getOptional(entry.getKey()).ifPresent(effect -> CraftorioMisc.grantEffect(player, effect.copy()));
+        }
     }
 
-    private static void grantActionEffects(ServerPlayer player, PlayerActionTarget actionTarget, ResourceKey<Registry<CraftorioUpgrade>> registryKey, Map<ResourceLocation, Integer> purchases) {
-        var registry = player.level().registryAccess().registryOrThrow(registryKey);
-        for (Map.Entry<ResourceLocation, Integer> entry : purchases.entrySet()) {
-            CraftorioUpgrade upgrade = registry.get(entry.getKey());
-            if (upgrade instanceof CraftorioActionEffectUpgrade actionEffectUpgrade && actionEffectUpgrade.getTarget() == actionTarget
-                    && player.getRandom().nextDouble() < actionEffectUpgrade.chanceFor(entry.getValue())) {
-                CraftorioMisc.grantEffect(player, actionEffectUpgrade.getEffect());
+    private static void addActionEffectChances(ServerPlayer player, PlayerActionTarget actionTarget, UpgradeTree tree, Map<ResourceLocation, Double> chances) {
+        var registry = player.level().registryAccess().registryOrThrow(tree.registryKey());
+        for (Map.Entry<ResourceLocation, Integer> entry : CraftorioMisc.getUpgradePurchaseCounts(player, tree).entrySet()) {
+            if (registry.get(entry.getKey()) instanceof CraftorioActionEffectUpgrade actionEffectUpgrade && actionEffectUpgrade.getTarget() == actionTarget) {
+                chances.merge(actionEffectUpgrade.getEffect(), actionEffectUpgrade.chanceFor(entry.getValue()), Double::sum);
             }
         }
     }
@@ -685,7 +680,7 @@ public class ServerEvents {
     }
 
     private static boolean canSeeEffectTimer(ServerPlayer player) {
-        return CraftorioMisc.hasUnlockedUpgrade(player, EffectTimerDisplayUnlockUpgrade.ID);
+        return CraftorioMisc.hasUnlockedUpgrade(player, UpgradeTree.BASIC, EffectTimerDisplayUnlockUpgrade.ID);
     }
 
     @SubscribeEvent
