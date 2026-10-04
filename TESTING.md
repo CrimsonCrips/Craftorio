@@ -71,6 +71,7 @@ Tick a box by changing `- [ ]` to `- [x]`.
 - [x] Sacrifice animation related stuff works
 - [x] Player sacrifice only affects the player's area and not other areas for No Borders and chunk based
 - [x] Player sacrifice only affects the player's area and not other areas for No Borders and non chunk based
+- [x] Joining while a reset is happening sends the player to the Haven, and they are handled correctly once it completes
 
 ## Non-universal separation
 

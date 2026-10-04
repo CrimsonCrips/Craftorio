@@ -111,6 +111,17 @@ public class Craftorio {
             modEventBus.addListener(new ClientEvents()::registerScreens);
             modEventBus.addListener(ClientEvents::showPoints);
             modEventBus.addListener(CraftorioShaders::register);
+            modEventBus.addListener(CraftorioShatterEffect::registerLayer);
+            NeoForge.EVENT_BUS.addListener(CraftorioShatterEffect::renderOverScreen);
+            NeoForge.EVENT_BUS.addListener(CraftorioShatterEffect::onLoggingOut);
+            NeoForge.EVENT_BUS.addListener(CraftorioShatterEffect::onLoggingIn);
+            NeoForge.EVENT_BUS.addListener(CraftorioShatterEffect::onScreenOpening);
+            NeoForge.EVENT_BUS.addListener(CraftorioScreenScroll::onScreenInit);
+            NeoForge.EVENT_BUS.addListener(CraftorioScreenScroll::onMouseScrolled);
+            modEventBus.addListener(CraftorioRebirthHealthEffect::registerLayer);
+            NeoForge.EVENT_BUS.addListener(CraftorioRebirthHealthEffect::renderOverScreen);
+            NeoForge.EVENT_BUS.addListener(CraftorioRebirthHealthEffect::hideVanillaHearts);
+            NeoForge.EVENT_BUS.addListener(CraftorioRebirthHealthEffect::onLoggingOut);
             modEventBus.addListener(CraftorioScreenFade::registerLayer);
             modEventBus.addListener(CraftorioAbilityHud::registerLayer);
             NeoForge.EVENT_BUS.addListener(CraftorioScreenFade::renderOverScreen);
