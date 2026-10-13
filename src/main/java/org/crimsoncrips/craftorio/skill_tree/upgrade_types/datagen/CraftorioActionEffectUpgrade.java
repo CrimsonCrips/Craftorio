@@ -31,11 +31,13 @@ public class CraftorioActionEffectUpgrade extends CraftorioUpgrade {
                     ResourceLocation.CODEC.fieldOf("effect").forGetter(CraftorioActionEffectUpgrade::getEffect),
                     Codec.DOUBLE.optionalFieldOf("chance", 1.0).forGetter(CraftorioActionEffectUpgrade::getChancePerPurchase),
                     Codec.INT.optionalFieldOf("max_purchases", 1).forGetter(CraftorioActionEffectUpgrade::getMaxPurchases),
+                    CraftorioUpgrade.<CraftorioActionEffectUpgrade>levelCostsField(),
                     Codec.DOUBLE.optionalFieldOf("x", 0.0).forGetter(CraftorioActionEffectUpgrade::getX),
                     Codec.DOUBLE.optionalFieldOf("y", 0.0).forGetter(CraftorioActionEffectUpgrade::getY)
-            ).apply(instance, (name, icon, parent, description, cost, target, effect, chance, maxPurchases, x, y) -> {
+            ).apply(instance, (name, icon, parent, description, cost, target, effect, chance, maxPurchases, levelCosts, x, y) -> {
                     CraftorioActionEffectUpgrade upgrade = new CraftorioActionEffectUpgrade(name, icon, parent.orElse(null), description, cost, target, effect, chance, maxPurchases);
                     upgrade.setPosition(x, y);
+                    upgrade.setLevelCosts(levelCosts);
                     return upgrade;
             })
     );

@@ -4,11 +4,17 @@
   "cost": "1000000",
   "description": "misc.craftorio.upgrade_contract_refresh_1_description",
   "icon": "craftorio:textures/gui/default_icon.png",
-  "max_purchases": 1,
+  "level_costs": [
+    "1000000",
+    "5000000",
+    "25000000",
+    "100000000",
+    "500000000"
+  ],
+  "max_purchases": 5,
   "name": "misc.craftorio.upgrade_contract_refresh_1",
-  "operation": "MULTIPLY",
+  "operation": "ADD",
   "target": "CONTRACT_REFRESH_SPEED",
-  "value": 1.1,
-  "x": 16.364435808510795,
-  "y": 101.89011241455968
+  "value": 60.0,
+  "y": -64.0
 }

@@ -1,0 +1,13 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:contract_completion_scaling",
+  "cost": "2",
+  "description": "misc.craftorio.upgrade_renown_boost_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "max_purchases": 1,
+  "name": "misc.craftorio.upgrade_renown_boost",
+  "operation": "ADD",
+  "target": "MULT_PER_CONTRACT_DONE",
+  "value": 0.01,
+  "y": -128.0
+}

@@ -1,6 +1,5 @@
 package org.crimsoncrips.craftorio.server.schematic;
 
-import org.crimsoncrips.craftorio.skill_tree.UpgradeTree;
 import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
@@ -83,7 +82,7 @@ public final class BuildBlitz {
     private BuildBlitz() {}
 
     public static boolean isUnlocked(Player player) {
-        return CraftorioMisc.hasUnlockedUpgrade(player, UpgradeTree.SACRIFICE, UPGRADE);
+        return CraftorioMisc.hasUnlockedUpgrade(player, UPGRADE);
     }
 
     public static long cooldownTicks(Player player) {

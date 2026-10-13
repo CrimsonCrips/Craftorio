@@ -1,14 +1,19 @@
 {
   "type": "craftorio:action_effect",
-  "parent": "craftorio:manual_sink_value_1",
+  "parent": "craftorio:wake_up_productive",
   "chance": 0.2,
-  "cost": "30000000000000000",
+  "cost": "1000000000000",
   "description": "misc.craftorio.upgrade_trade_economic_boom_description",
   "effect": "craftorio:economic_boom",
   "icon": "craftorio:textures/gui/default_icon.png",
-  "max_purchases": 5,
+  "level_costs": [
+    "1000000000000",
+    "100000000000000",
+    "10000000000000000"
+  ],
+  "max_purchases": 3,
   "name": "misc.craftorio.upgrade_trade_economic_boom",
   "target": "TRADE",
-  "x": -36.0,
-  "y": -930.0
+  "x": -256.0,
+  "y": 64.0
 }

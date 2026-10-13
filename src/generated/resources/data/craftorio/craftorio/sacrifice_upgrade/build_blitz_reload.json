@@ -4,10 +4,14 @@
   "cost": "1",
   "description": "misc.craftorio.upgrade_build_blitz_reload_description",
   "icon": "craftorio:textures/gui/default_icon.png",
-  "max_purchases": 4,
+  "level_costs": [
+    "1",
+    "2"
+  ],
+  "max_purchases": 2,
   "name": "misc.craftorio.upgrade_build_blitz_reload",
   "operation": "SUBTRACT",
   "target": "BUILD_BLITZ_COOLDOWN",
-  "value": 300.0,
-  "x": 80.0
+  "value": 1800.0,
+  "x": 64.0
 }

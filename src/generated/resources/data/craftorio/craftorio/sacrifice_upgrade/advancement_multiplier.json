@@ -1,0 +1,9 @@
+{
+  "type": "craftorio:advancement_multiplier",
+  "parent": "craftorio:build_blitz",
+  "cost": "2",
+  "description": "misc.craftorio.upgrade_advancement_multiplier_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "name": "misc.craftorio.upgrade_advancement_multiplier",
+  "x": -64.0
+}

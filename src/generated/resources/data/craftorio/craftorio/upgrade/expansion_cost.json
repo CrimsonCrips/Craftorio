@@ -1,0 +1,19 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:root",
+  "cost": "100000",
+  "description": "misc.craftorio.upgrade_expansion_cost_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "level_costs": [
+    "100000",
+    "100000000",
+    "1000000000000",
+    "10000000000000000"
+  ],
+  "max_purchases": 4,
+  "name": "misc.craftorio.upgrade_expansion_cost",
+  "operation": "DIVIDE",
+  "target": "EXPANSION_COST",
+  "value": 0.25,
+  "y": 64.0
+}

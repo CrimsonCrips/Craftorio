@@ -1,5 +1,7 @@
 package org.crimsoncrips.craftorio.networking.devtools;
 
+import java.math.BigInteger;
+
 import com.google.gson.JsonObject;
 import com.mojang.serialization.JsonOps;
 import net.minecraft.resources.RegistryOps;
@@ -178,6 +180,7 @@ public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean
                 .description("misc." + modId + ".upgrade_" + id + "_description")
                 .cost(CraftorioMisc.scientificToInt(cost))
                 .maxPurchases(maxPurchases)
+                .levelCosts(resolveLevelCosts(CraftorioMisc.scientificToInt(cost), node.levelCosts(), maxPurchases))
                 .position(parentLocation.isPresent() ? node.x() : 0.0, parentLocation.isPresent() ? node.y() : 0.0);
         parentLocation.ifPresent(builder::parent);
 
@@ -185,20 +188,43 @@ public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean
             ModifierTarget targetEnum = ModifierTarget.valueOf(node.target());
             if (targetEnum == ModifierTarget.ITEM_TAG_BASE_VALUE) {
                 String tagId = sanitize(node.itemTag()).isEmpty() ? "craftorio:copper" : sanitize(node.itemTag());
-                return CraftorioModifierUpgrade.of(builder, targetEnum, operationEnum, value,
-                        TagKey.create(Registries.ITEM, ResourceLocation.parse(tagId)));
+                return finishUpgrade(builder, CraftorioModifierUpgrade.of(builder, targetEnum, operationEnum, value,
+                        TagKey.create(Registries.ITEM, ResourceLocation.parse(tagId))));
             }
-            return CraftorioModifierUpgrade.of(builder, targetEnum, operationEnum, value);
+            return finishUpgrade(builder, CraftorioModifierUpgrade.of(builder, targetEnum, operationEnum, value));
         }
 
         if (node.category().equals("action_effect")) {
             PlayerActionTarget targetEnum = PlayerActionTarget.valueOf(node.target());
             ActionEffectValue actionValue = ActionEffectValue.parse(node.value());
-            return CraftorioActionEffectUpgrade.of(builder, targetEnum, ResourceLocation.parse(actionValue.effect()), actionValue.chance());
+            return finishUpgrade(builder, CraftorioActionEffectUpgrade.of(builder, targetEnum, ResourceLocation.parse(actionValue.effect()), actionValue.chance()));
         }
 
         AttributeTarget targetEnum = AttributeTarget.valueOf(node.target());
-        return CraftorioAttributeUpgrade.of(builder, targetEnum, operationEnum, value);
+        return finishUpgrade(builder, CraftorioAttributeUpgrade.of(builder, targetEnum, operationEnum, value));
+    }
+
+    private static CraftorioUpgrade finishUpgrade(CraftorioUpgrade.Builder builder, CraftorioUpgrade upgrade) {
+        upgrade.setPosition(builder.getX(), builder.getY());
+        upgrade.setLevelCosts(builder.getLevelCosts());
+        return upgrade;
+    }
+
+    private static List<BigInteger> resolveLevelCosts(BigInteger baseCost, List<String> rawCosts, int maxPurchases) {
+        List<BigInteger> costs = new ArrayList<>();
+        BigInteger previous = baseCost;
+        costs.add(baseCost);
+        for (int level = 1; level < maxPurchases; level++) {
+            String raw = level - 1 < rawCosts.size() ? sanitize(rawCosts.get(level - 1)) : "";
+            if (!raw.isEmpty()) {
+                try {
+                    previous = CraftorioMisc.scientificToInt(raw);
+                } catch (NumberFormatException ignored) {
+                }
+            }
+            costs.add(previous);
+        }
+        return costs.stream().allMatch(baseCost::equals) ? List.of() : costs;
     }
 
     private static String buildManualReferenceJson(SkillTreeNodeData node, Map<Integer, SkillTreeNodeData> byLocalId) {
@@ -306,6 +332,15 @@ public record GenerateSkillTreeCodePacket(List<SkillTreeNodeData> nodes, boolean
         code.append("        .description(\"misc.").append(modId).append(".upgrade_").append(id).append("_description\")\n");
         code.append("        .cost(scientificToInt(\"").append(cost).append("\"))\n");
         code.append("        .maxPurchases(").append(maxPurchases).append(")\n");
+        List<BigInteger> levelCosts = resolveLevelCosts(CraftorioMisc.scientificToInt(cost), node.levelCosts(), maxPurchases);
+        if (!levelCosts.isEmpty()) {
+            code.append("        .levelCosts(");
+            for (int i = 0; i < levelCosts.size(); i++) {
+                if (i > 0) code.append(", ");
+                code.append("scientificToInt(\"").append(CraftorioMisc.toScientificString(levelCosts.get(i))).append("\")");
+            }
+            code.append(")\n");
+        }
         code.append("        .position(").append(posX).append(", ").append(posY).append(")\n");
 
         if (node.category().equals("modifier")) {

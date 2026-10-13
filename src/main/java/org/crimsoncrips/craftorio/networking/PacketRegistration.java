@@ -30,7 +30,6 @@ import org.crimsoncrips.craftorio.networking.devtools.CopyInventoryToContractCre
 import org.crimsoncrips.craftorio.networking.devtools.GenerateContractCodePacket;
 import org.crimsoncrips.craftorio.networking.devtools.GenerateEffectCodePacket;
 import org.crimsoncrips.craftorio.networking.devtools.GenerateSkillTreeCodePacket;
-import org.crimsoncrips.craftorio.networking.devtools.GenerateUpgradeCodePacket;
 import org.crimsoncrips.craftorio.networking.devtools.AdvancementListPacket;
 import org.crimsoncrips.craftorio.networking.devtools.PointDataMapsPacket;
 import org.crimsoncrips.craftorio.networking.devtools.RequestAdvancementListPacket;
@@ -124,7 +123,6 @@ public class PacketRegistration {
         registrar.playToServer(GenerateEffectCodePacket.TYPE, GenerateEffectCodePacket.STREAM_CODEC, GenerateEffectCodePacket::handle);
         registrar.playToServer(RequestPointDataMapsPacket.TYPE, RequestPointDataMapsPacket.STREAM_CODEC, RequestPointDataMapsPacket::handle);
         registrar.playToServer(RequestAdvancementListPacket.TYPE, RequestAdvancementListPacket.STREAM_CODEC, RequestAdvancementListPacket::handle);
-        registrar.playToServer(GenerateUpgradeCodePacket.TYPE, GenerateUpgradeCodePacket.STREAM_CODEC, GenerateUpgradeCodePacket::handle);
         registrar.playToServer(GenerateSkillTreeCodePacket.TYPE, GenerateSkillTreeCodePacket.STREAM_CODEC, GenerateSkillTreeCodePacket::handle);
         registrar.playToServer(CopyInventoryToContractCreatorPacket.TYPE, CopyInventoryToContractCreatorPacket.STREAM_CODEC, CopyInventoryToContractCreatorPacket::handle);
         registrar.playToServer(AddItemToContractCreatorPacket.TYPE, AddItemToContractCreatorPacket.STREAM_CODEC, AddItemToContractCreatorPacket::handle);

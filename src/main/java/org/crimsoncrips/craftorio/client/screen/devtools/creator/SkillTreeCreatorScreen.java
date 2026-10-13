@@ -1,5 +1,7 @@
 package org.crimsoncrips.craftorio.client.screen.devtools.creator;
 
+import net.minecraft.client.gui.components.Tooltip;
+
 import com.mojang.math.Axis;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
@@ -63,6 +65,13 @@ public class SkillTreeCreatorScreen extends Screen {
     private static final double TREE_NODE_ARC_MARGIN = 90.0;
     private static final double MIN_ZOOM = 0.2;
     private static final double MAX_ZOOM = 3.5;
+    private static final double GRID_SIZE = 16.0;
+    private static final int GRID_MAJOR_EVERY = 4;
+    private static final double GRID_MIN_SPACING = 6.0;
+    private static final int LEVEL_PANEL_ROWS = 8;
+    private static final int LEVEL_ROW_HEIGHT = 18;
+    private static final int LEVEL_LABEL_WIDTH = 34;
+    private static final int MAX_LEVELS = 1000;
 
     private final List<DraftNode> nodes = new ArrayList<>();
     private int nextLocalId = 0;
@@ -74,6 +83,7 @@ public class SkillTreeCreatorScreen extends Screen {
     private String savedModId = Craftorio.CLIENT_CONFIG.devToolsModId().isBlank() ? "yourmodid" : Craftorio.CLIENT_CONFIG.devToolsModId();
     private double panX = 0, panY = 0;
     private double zoom = 1.0;
+    private boolean gridMode = false;
 
     private final Screen parent;
     private final DevToolsHelpPanel helpPanel = new DevToolsHelpPanel();
@@ -107,6 +117,14 @@ public class SkillTreeCreatorScreen extends Screen {
     private Button unlinkButton;
     private Button exportButton;
     private Button includeLangButton;
+    private Button gridButton;
+    private Button levelCostsButton;
+    private final List<EditBox> levelCostBoxes = new ArrayList<>();
+    private final int[] levelCostBoxLevels = new int[LEVEL_PANEL_ROWS];
+    private boolean levelCostsOpen;
+    private boolean populatingLevelCosts;
+    private int levelCostsScroll;
+    private int levelPanelX, levelPanelY, levelPanelWidth, levelPanelHeight;
 
     private EditBox globalModIdBox;
     private EditBox idBox;
@@ -164,6 +182,13 @@ public class SkillTreeCreatorScreen extends Screen {
             node.location = id;
 
             node.cost = upgrade.getCost().toString();
+            List<BigInteger> levelCosts = upgrade.getLevelCosts();
+            for (int level = 1; level < levelCosts.size(); level++) {
+                node.levelCosts.add(levelCosts.get(level).toString());
+            }
+            if (!levelCosts.isEmpty()) {
+                node.cost = levelCosts.get(0).toString();
+            }
             node.maxPurchases = String.valueOf(upgrade.getMaxPurchases());
             node.name = Component.translatable(upgrade.getNameKey()).getString();
             node.description = Component.translatable(upgrade.getDescriptionKey()).getString();
@@ -389,10 +414,25 @@ public class SkillTreeCreatorScreen extends Screen {
         this.addRenderableWidget(this.costScientificButton);
         y += rowHeight;
 
-        this.maxPurchasesBox = new EditBox(this.font, fieldX, y, fieldWidth, 16, Component.literal("max purchases"));
+        this.maxPurchasesBox = new EditBox(this.font, fieldX, y, fieldWidth - 24, 16, Component.literal("max purchases"));
         this.maxPurchasesBox.setMaxLength(256);
-        this.maxPurchasesBox.setResponder(s -> { if (selected != null) selected.maxPurchases = s; });
+        this.maxPurchasesBox.setResponder(s -> {
+            if (selected == null) return;
+            selected.maxPurchases = s;
+            layoutLevelCostPanel();
+        });
         this.addRenderableWidget(this.maxPurchasesBox);
+
+        this.levelCostsButton = Button.builder(Component.literal("\u25BE"), b -> {
+            this.levelCostsOpen = !this.levelCostsOpen;
+            this.levelCostsScroll = 0;
+            layoutLevelCostPanel();
+        }).bounds(fieldX + fieldWidth - 22, y, 22, 16).build();
+        this.levelCostsButton.setTooltip(Tooltip.create(Component.translatable("misc.craftorio.dev_tools_skill_tree_level_costs")));
+        this.addRenderableWidget(this.levelCostsButton);
+        this.levelPanelX = fieldX - LEVEL_LABEL_WIDTH;
+        this.levelPanelY = y + 18;
+        this.levelPanelWidth = fieldWidth + LEVEL_LABEL_WIDTH;
         y += rowHeight;
 
         this.modifierTargetDropdown = dropdown(fieldX, y, fieldWidth, literals(MODIFIER_TARGETS), index -> {
@@ -495,7 +535,23 @@ public class SkillTreeCreatorScreen extends Screen {
                         }))
                 .bounds(this.width - 108, this.height - 28, 100, 20).build());
 
+        this.gridButton = Button.builder(gridLabel(), b -> {
+            gridMode = !gridMode;
+            gridButton.setMessage(gridLabel());
+        }).bounds(8, this.height - 28, 100, 20).build();
+        this.addRenderableWidget(this.gridButton);
+
         this.addRenderableWidget(this.helpPanel.createButton(this.width, 6, true, () -> {}));
+
+        this.levelCostBoxes.clear();
+        for (int i = 0; i < LEVEL_PANEL_ROWS; i++) {
+            int row = i;
+            EditBox box = new EditBox(this.font, levelPanelX + LEVEL_LABEL_WIDTH, levelPanelY + 3 + i * LEVEL_ROW_HEIGHT, fieldWidth - 4, 16, Component.literal("level cost"));
+            box.setMaxLength(256);
+            box.setResponder(value -> setLevelCost(this.levelCostBoxLevels[row], value));
+            this.levelCostBoxes.add(box);
+            this.addWidget(box);
+        }
 
         refreshSidebarFromSelection();
     }
@@ -597,6 +653,7 @@ public class SkillTreeCreatorScreen extends Screen {
             this.externalParentBox.active = false;
             this.unlinkButton.visible = false;
             this.unlinkButton.active = false;
+            layoutLevelCostPanel();
             return;
         }
 
@@ -643,6 +700,7 @@ public class SkillTreeCreatorScreen extends Screen {
             this.itemTagBox.active = false;
             this.selectTagButton.visible = this.itemTagBox.visible;
             this.selectTagButton.active = this.itemTagBox.active;
+            layoutLevelCostPanel();
             return;
         }
 
@@ -677,6 +735,7 @@ public class SkillTreeCreatorScreen extends Screen {
         this.selectTagButton.visible = this.itemTagBox.visible;
         this.selectTagButton.active = this.itemTagBox.active;
         this.itemTagBox.setValue(selected.itemTag);
+        layoutLevelCostPanel();
     }
 
     private void selectNode(DraftNode node) {
@@ -699,6 +758,98 @@ public class SkillTreeCreatorScreen extends Screen {
         refreshSidebarFromSelection();
     }
 
+    private int levelCount() {
+        if (selected == null || selected.manual) return 1;
+        try {
+            return Mth.clamp(Integer.parseInt(selected.maxPurchases.trim()), 1, MAX_LEVELS);
+        } catch (NumberFormatException e) {
+            return 1;
+        }
+    }
+
+    private String levelCostValue(int level) {
+        if (level == 0) return selected.cost;
+        return level - 1 < selected.levelCosts.size() ? selected.levelCosts.get(level - 1) : "";
+    }
+
+    private void setLevelCost(int level, String value) {
+        if (populatingLevelCosts || selected == null) return;
+        if (level == 0) {
+            selected.cost = value;
+            this.costBox.setValue(value);
+            return;
+        }
+        while (selected.levelCosts.size() < level) {
+            selected.levelCosts.add("");
+        }
+        selected.levelCosts.set(level - 1, value);
+    }
+
+    private void layoutLevelCostPanel() {
+        if (this.levelCostBoxes.isEmpty() || this.levelCostsButton == null) return;
+        int levels = levelCount();
+        boolean available = selected != null && !selected.manual && levels > 1;
+        this.levelCostsButton.visible = selected != null && !selected.manual;
+        this.levelCostsButton.active = available;
+        if (!available) {
+            this.levelCostsOpen = false;
+        }
+
+        int rows = this.levelCostsOpen ? Math.min(LEVEL_PANEL_ROWS, levels) : 0;
+        this.levelCostsScroll = Mth.clamp(this.levelCostsScroll, 0, Math.max(0, levels - rows));
+        this.levelPanelHeight = rows * LEVEL_ROW_HEIGHT + 4;
+
+        this.populatingLevelCosts = true;
+        for (int i = 0; i < LEVEL_PANEL_ROWS; i++) {
+            EditBox box = this.levelCostBoxes.get(i);
+            boolean shown = i < rows;
+            box.visible = shown;
+            box.active = shown;
+            if (!shown) {
+                box.setFocused(false);
+                continue;
+            }
+            int level = this.levelCostsScroll + i;
+            this.levelCostBoxLevels[i] = level;
+            box.setValue(levelCostValue(level));
+        }
+        this.populatingLevelCosts = false;
+    }
+
+    private boolean isOverLevelPanel(double mouseX, double mouseY) {
+        return this.levelCostsOpen && mouseX >= levelPanelX && mouseX < levelPanelX + levelPanelWidth
+                && mouseY >= levelPanelY && mouseY < levelPanelY + levelPanelHeight;
+    }
+
+    private void renderLevelCostPanel(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+        if (!this.levelCostsOpen) return;
+        graphics.fill(levelPanelX, levelPanelY, levelPanelX + levelPanelWidth, levelPanelY + levelPanelHeight, 0xF0101010);
+        graphics.renderOutline(levelPanelX, levelPanelY, levelPanelWidth, levelPanelHeight, 0xFF808080);
+        int levels = levelCount();
+        for (int i = 0; i < LEVEL_PANEL_ROWS; i++) {
+            EditBox box = this.levelCostBoxes.get(i);
+            if (!box.visible) continue;
+            int level = this.levelCostBoxLevels[i];
+            box.render(graphics, mouseX, mouseY, partialTick);
+            graphics.drawString(this.font, "Lv " + (level + 1), levelPanelX + 4, box.getY() + 4, 0xAAAAAA, false);
+            if (level > 0) {
+                CraftorioMisc.CraftorioTextEffects.drawEditBoxHint(graphics, this.font, box, "= Lv " + level);
+            }
+        }
+        if (levels > LEVEL_PANEL_ROWS) {
+            String range = (this.levelCostsScroll + 1) + "-" + (this.levelCostsScroll + LEVEL_PANEL_ROWS) + "/" + levels;
+            graphics.drawString(this.font, range, levelPanelX + levelPanelWidth - this.font.width(range) - 4, levelPanelY + levelPanelHeight + 2, 0xAAAAAA, false);
+        }
+    }
+
+    private Component gridLabel() {
+        return Component.translatable(gridMode ? "misc.craftorio.dev_tools_skill_tree_grid_on" : "misc.craftorio.dev_tools_skill_tree_grid_off");
+    }
+
+    private static double snapToGrid(double value) {
+        return Math.round(value / GRID_SIZE) * GRID_SIZE;
+    }
+
     private void beginDrag(double mouseX, double mouseY) {
         this.dragStartMouseX = mouseX;
         this.dragStartMouseY = mouseY;
@@ -712,6 +863,10 @@ public class SkillTreeCreatorScreen extends Screen {
         DraftNode node = new DraftNode(nextLocalId++, "node_" + (nextNodeNumber++));
         node.x = (nodeCascade % 5) * 90 - 180;
         node.y = (nodeCascade / 5) * 60 - 60;
+        if (gridMode) {
+            node.x = snapToGrid(node.x);
+            node.y = snapToGrid(node.y);
+        }
         nodeCascade++;
         nodes.add(node);
         selectNode(node);
@@ -720,8 +875,8 @@ public class SkillTreeCreatorScreen extends Screen {
     private void duplicateSelected() {
         if (selected == null || selected.manual) return;
         DraftNode copy = new DraftNode(nextLocalId++, selected.id + "_copy");
-        copy.x = selected.x + 20;
-        copy.y = selected.y + 20;
+        copy.x = gridMode ? snapToGrid(selected.x) + GRID_SIZE * 2 : selected.x + 20;
+        copy.y = gridMode ? snapToGrid(selected.y) + GRID_SIZE * 2 : selected.y + 20;
         copy.parentId = selected.parentId;
         copy.externalParent = selected.externalParent;
         copy.category = selected.category;
@@ -731,6 +886,7 @@ public class SkillTreeCreatorScreen extends Screen {
         copy.operationIndex = selected.operationIndex;
         copy.description = selected.description;
         copy.cost = selected.cost;
+        copy.levelCosts.addAll(selected.levelCosts);
         copy.maxPurchases = selected.maxPurchases;
         copy.value = selected.value;
         copy.itemTag = selected.itemTag;
@@ -786,7 +942,8 @@ public class SkillTreeCreatorScreen extends Screen {
                     node.name,
                     node.manual,
                     node.x,
-                    node.y
+                    node.y,
+                    List.copyOf(node.levelCosts)
             ));
         }
         PacketDistributor.sendToServer(new GenerateSkillTreeCodePacket(data, includeLang, jsonExport, tree));
@@ -896,6 +1053,22 @@ public class SkillTreeCreatorScreen extends Screen {
 
     @Override
     public boolean mouseClicked(double mouseX, double mouseY, int button) {
+        if (this.levelCostsOpen) {
+            if (isOverLevelPanel(mouseX, mouseY)) {
+                for (EditBox box : this.levelCostBoxes) {
+                    if (box.visible && box.isMouseOver(mouseX, mouseY)) {
+                        this.setFocused(box);
+                        box.mouseClicked(mouseX, mouseY, button);
+                        return true;
+                    }
+                }
+                return true;
+            }
+            if (!this.levelCostsButton.isMouseOver(mouseX, mouseY)) {
+                this.levelCostsOpen = false;
+                layoutLevelCostPanel();
+            }
+        }
         if (DevToolsDropdown.handleClicks(this.dropdowns, mouseX, mouseY)) return true;
         if (super.mouseClicked(mouseX, mouseY, button)) return true;
         if (!isInCanvas(mouseX, mouseY)) return false;
@@ -957,6 +1130,11 @@ public class SkillTreeCreatorScreen extends Screen {
         if (!this.dragStartPositions.isEmpty()) {
             double dx = (mouseX - dragStartMouseX) / zoom;
             double dy = (mouseY - dragStartMouseY) / zoom;
+            if (gridMode) {
+                double[] anchor = this.dragStartPositions.getOrDefault(this.selected, this.dragStartPositions.values().iterator().next());
+                dx = snapToGrid(anchor[0] + dx) - anchor[0];
+                dy = snapToGrid(anchor[1] + dy) - anchor[1];
+            }
             for (Map.Entry<DraftNode, double[]> entry : this.dragStartPositions.entrySet()) {
                 DraftNode node = entry.getKey();
                 if (node.lockedRoot) continue;
@@ -997,6 +1175,13 @@ public class SkillTreeCreatorScreen extends Screen {
 
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double scrollX, double scrollY) {
+        if (isOverLevelPanel(mouseX, mouseY)) {
+            if (scrollY != 0) {
+                this.levelCostsScroll += scrollY > 0 ? -1 : 1;
+                layoutLevelCostPanel();
+            }
+            return true;
+        }
         if (isInCanvas(mouseX, mouseY) && scrollY != 0) {
             double factor = scrollY > 0 ? 1.1 : (1.0 / 1.1);
             this.zoom = Mth.clamp(this.zoom * factor, MIN_ZOOM, MAX_ZOOM);
@@ -1072,6 +1257,32 @@ public class SkillTreeCreatorScreen extends Screen {
         graphics.pose().popPose();
     }
 
+    private void drawGrid(GuiGraphics graphics) {
+        double spacing = GRID_SIZE * zoom;
+        int stride = spacing < GRID_MIN_SPACING ? GRID_MAJOR_EVERY : 1;
+        double step = spacing * stride;
+        double originX = canvasCenterX() + panX;
+        double originY = canvasCenterY() + panY;
+        int right = canvasLeft + canvasWidth;
+        int bottom = canvasTop + canvasHeight;
+
+        long firstColumn = (long) Math.ceil((canvasLeft - originX) / step);
+        for (long i = firstColumn; originX + i * step <= right; i++) {
+            int x = (int) Math.round(originX + i * step);
+            graphics.fill(x, canvasTop, x + 1, bottom, gridColor(i * stride));
+        }
+        long firstRow = (long) Math.ceil((canvasTop - originY) / step);
+        for (long j = firstRow; originY + j * step <= bottom; j++) {
+            int y = (int) Math.round(originY + j * step);
+            graphics.fill(canvasLeft, y, right, y + 1, gridColor(j * stride));
+        }
+    }
+
+    private static int gridColor(long line) {
+        if (line == 0) return 0x60FFFFFF;
+        return line % GRID_MAJOR_EVERY == 0 ? 0x30FFFFFF : 0x14FFFFFF;
+    }
+
     @Override
     protected void renderBlurredBackground(float partialTick) {
     }
@@ -1106,6 +1317,9 @@ public class SkillTreeCreatorScreen extends Screen {
         graphics.renderOutline(canvasLeft, canvasTop, canvasWidth, canvasHeight, 0xFF808080);
 
         graphics.enableScissor(canvasLeft, canvasTop, canvasLeft + canvasWidth, canvasTop + canvasHeight);
+        if (gridMode && !isPicking()) {
+            drawGrid(graphics);
+        }
         for (DraftNode node : nodes) {
             if (node.parentId != null) {
                 DraftNode parentNode = findByLocalId(node.parentId);
@@ -1249,12 +1463,15 @@ public class SkillTreeCreatorScreen extends Screen {
         }
 
         DevToolsDropdown.renderAll(this.dropdowns, graphics, mouseX, mouseY, this.width, this.height);
+        renderLevelCostPanel(graphics, mouseX, mouseY, partialTick);
 
         this.helpPanel.render(graphics, this.font, this.width, 30, true, List.of(
                 Component.translatable("misc.craftorio.dev_tools_skill_tree_help_1"),
                 Component.translatable("misc.craftorio.dev_tools_skill_tree_help_2"),
                 Component.translatable("misc.craftorio.dev_tools_skill_tree_help_3"),
-                Component.translatable("misc.craftorio.dev_tools_skill_tree_help_4")
+                Component.translatable("misc.craftorio.dev_tools_skill_tree_help_4"),
+                Component.translatable("misc.craftorio.dev_tools_skill_tree_help_5"),
+                Component.translatable("misc.craftorio.dev_tools_skill_tree_help_6")
         ));
     }
 
@@ -1276,6 +1493,7 @@ public class SkillTreeCreatorScreen extends Screen {
         String description = "";
         String cost = "1000";
         String maxPurchases = "1";
+        final List<String> levelCosts = new ArrayList<>();
         String value = "0.1";
         String itemTag = "";
         String name = "";

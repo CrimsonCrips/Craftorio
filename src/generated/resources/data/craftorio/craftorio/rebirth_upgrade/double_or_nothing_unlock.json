@@ -1,0 +1,9 @@
+{
+  "type": "craftorio:double_or_nothing_unlock",
+  "parent": "craftorio:rebirth_root",
+  "cost": "30",
+  "description": "misc.craftorio.upgrade_double_or_nothing_unlock_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "name": "misc.craftorio.upgrade_double_or_nothing_unlock",
+  "x": 64.0
+}

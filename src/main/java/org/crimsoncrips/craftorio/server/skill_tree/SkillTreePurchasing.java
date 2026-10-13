@@ -29,7 +29,7 @@ public final class SkillTreePurchasing {
         if (CraftorioMisc.getUpgradeCount(player, tree, id) >= upgrade.getMaxPurchases()) return Result.MAXED;
         if (upgrade.getParent().isPresent() && !CraftorioMisc.hasUnlockedUpgrade(player, tree, upgrade.getParent().get())) return Result.LOCKED;
 
-        BigInteger cost = upgrade.getCost();
+        BigInteger cost = upgrade.getCost(CraftorioMisc.getUpgradeCount(player, tree, id));
         BigInteger currency = CraftorioMisc.getCurrency(player, tree);
         if (currency.compareTo(cost) < 0) return Result.TOO_EXPENSIVE;
 
@@ -70,9 +70,10 @@ public final class SkillTreePurchasing {
         for (Holder.Reference<CraftorioUpgrade> holder : registry.holders().toList()) {
             ResourceLocation id = holder.key().location();
             CraftorioUpgrade upgrade = holder.value();
-            if (CraftorioMisc.getUpgradeCount(player, tree, id) >= upgrade.getMaxPurchases()) continue;
+            int count = CraftorioMisc.getUpgradeCount(player, tree, id);
+            if (count >= upgrade.getMaxPurchases()) continue;
             if (upgrade.getParent().isPresent() && !CraftorioMisc.hasUnlockedUpgrade(player, tree, upgrade.getParent().get())) continue;
-            if (currency.compareTo(upgrade.getCost()) < 0) continue;
+            if (currency.compareTo(upgrade.getCost(count)) < 0) continue;
             candidates.add(id);
         }
         return candidates;

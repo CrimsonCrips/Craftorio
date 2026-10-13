@@ -1,0 +1,20 @@
+{
+  "type": "craftorio:attribute",
+  "parent": "craftorio:swiftness",
+  "cost": "40",
+  "description": "misc.craftorio.upgrade_long_reach_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "level_costs": [
+    "40",
+    "80",
+    "160",
+    "320"
+  ],
+  "max_purchases": 4,
+  "name": "misc.craftorio.upgrade_long_reach",
+  "operation": "ADD",
+  "target": "BLOCK_REACH",
+  "value": 0.5,
+  "x": 192.0,
+  "y": 128.0
+}

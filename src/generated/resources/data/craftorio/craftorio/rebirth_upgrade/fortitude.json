@@ -1,0 +1,19 @@
+{
+  "type": "craftorio:attribute",
+  "parent": "craftorio:vitality",
+  "cost": "60",
+  "description": "misc.craftorio.upgrade_fortitude_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "level_costs": [
+    "60",
+    "120",
+    "240"
+  ],
+  "max_purchases": 3,
+  "name": "misc.craftorio.upgrade_fortitude",
+  "operation": "ADD",
+  "target": "DEFENSE",
+  "value": 2.0,
+  "x": 64.0,
+  "y": 128.0
+}

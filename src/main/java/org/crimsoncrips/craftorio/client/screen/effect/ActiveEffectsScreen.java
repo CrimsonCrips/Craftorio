@@ -1,6 +1,5 @@
 package org.crimsoncrips.craftorio.client.screen.effect;
 
-import org.crimsoncrips.craftorio.skill_tree.UpgradeTree;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.screens.Screen;
@@ -99,7 +98,7 @@ public class ActiveEffectsScreen extends Screen implements ScrollableScreen {
         graphics.drawCenteredString(this.font, this.getTitle(), this.width / 2, 12, 0xFFFFFF);
 
         Player player = this.minecraft.player;
-        if (player != null && ClientEvents.isEffectTimerKnown() && CraftorioMisc.hasUnlockedUpgrade(player, UpgradeTree.BASIC, EffectTimerDisplayUnlockUpgrade.ID)) {
+        if (player != null && ClientEvents.isEffectTimerKnown() && CraftorioMisc.hasUnlockedUpgrade(player, EffectTimerDisplayUnlockUpgrade.ID)) {
             Component timer = Component.translatable("misc.craftorio.next_effect_in")
                     .append(CraftorioMisc.ticksToTimeString(ClientEvents.effectTimerTicksNow()));
             graphics.drawCenteredString(this.font, timer, this.width / 2, 22, 0xAAAAAA);

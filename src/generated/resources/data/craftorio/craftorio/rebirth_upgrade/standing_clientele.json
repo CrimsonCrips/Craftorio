@@ -1,0 +1,13 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:rebirth_root",
+  "cost": "250",
+  "description": "misc.craftorio.upgrade_standing_clientele_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "max_purchases": 1,
+  "name": "misc.craftorio.upgrade_standing_clientele",
+  "operation": "MULTIPLY",
+  "target": "CONTRACT_REFRESH_SPEED",
+  "value": 0.5,
+  "x": -64.0
+}

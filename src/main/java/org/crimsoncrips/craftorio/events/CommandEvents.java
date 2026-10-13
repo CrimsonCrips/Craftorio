@@ -19,6 +19,8 @@ import org.crimsoncrips.craftorio.networking.skill_tree.OpenRebirthSkillTreeScre
 import org.crimsoncrips.craftorio.server.rebirth.CraftorioRebirth;
 import org.crimsoncrips.craftorio.server.sacrifice.CraftorioSacrifice;
 
+import org.crimsoncrips.craftorio.skill_tree.UpgradeTree;
+
 import java.math.BigInteger;
 import java.util.List;
 
@@ -41,6 +43,10 @@ public class CommandEvents {
                         .then(Commands.argument("seconds", IntegerArgumentType.integer(0)).executes(CommandEvents::runSetContractRefreshTime)))
                 .then(Commands.literal("life").requires(cs -> cs.hasPermission(3))
                         .then(Commands.argument("amount", IntegerArgumentType.integer(0)).executes(CommandEvents::runSetLife)))
+                .then(Commands.literal("crystals").requires(cs -> cs.hasPermission(3))
+                        .then(Commands.argument("amount", StringArgumentType.string()).executes(context -> runSetCurrency(context, UpgradeTree.REBIRTH, "command_crystals_set"))))
+                .then(Commands.literal("essence").requires(cs -> cs.hasPermission(3))
+                        .then(Commands.argument("amount", StringArgumentType.string()).executes(context -> runSetCurrency(context, UpgradeTree.SACRIFICE, "command_essence_set"))))
                 .then(Commands.literal("effect_timer_time").requires(cs -> cs.hasPermission(3))
                         .then(Commands.argument("seconds", IntegerArgumentType.integer(0)).executes(CommandEvents::runSetEffectTimerTime)))
                 .then(Commands.literal("sacrifice").requires(cs -> cs.hasPermission(4)).executes(context -> runSacrifice(context, null))
@@ -59,6 +65,23 @@ public class CommandEvents {
         return 1;
     }
 
+
+    private static int runSetCurrency(CommandContext<CommandSourceStack> context, UpgradeTree tree, String messageKey) {
+        ServerPlayer player = context.getSource().getPlayer();
+        if (player == null) return 0;
+
+        BigInteger amount;
+        try {
+            amount = CraftorioMisc.toBigInteger(StringArgumentType.getString(context, "amount")).max(BigInteger.ZERO);
+        } catch (IllegalArgumentException e) {
+            context.getSource().sendFailure(Component.translatable("misc.craftorio.enter_valid_quantity"));
+            return 0;
+        }
+
+        CraftorioMisc.setCurrency(player, tree, amount);
+        context.getSource().sendSuccess(() -> Component.translatable("misc.craftorio." + messageKey, amount.toString()), true);
+        return 1;
+    }
 
     private enum PointsOp { ADD, SET, SUBTRACT }
 

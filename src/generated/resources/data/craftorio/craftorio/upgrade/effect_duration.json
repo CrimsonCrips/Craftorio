@@ -1,0 +1,19 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:effect_timer_2",
+  "cost": "10000000000000",
+  "description": "misc.craftorio.upgrade_effect_duration_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "level_costs": [
+    "10000000000000",
+    "10000000000000000",
+    "10000000000000000000",
+    "10000000000000000000000"
+  ],
+  "max_purchases": 4,
+  "name": "misc.craftorio.upgrade_effect_duration",
+  "operation": "MULTIPLY",
+  "target": "EFFECT_DURATION",
+  "value": 0.25,
+  "x": -192.0
+}

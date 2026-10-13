@@ -1,14 +1,18 @@
 {
   "type": "craftorio:action_effect",
-  "parent": "craftorio:trade_economic_boom",
-  "chance": 0.25,
-  "cost": "50000000000000000",
+  "parent": "craftorio:contract_refresh_2",
+  "chance": 0.2,
+  "cost": "10000000000",
   "description": "misc.craftorio.upgrade_contract_momentum_description",
   "effect": "craftorio:contract_momentum",
   "icon": "craftorio:textures/gui/default_icon.png",
-  "max_purchases": 4,
+  "level_costs": [
+    "10000000000",
+    "10000000000000",
+    "10000000000000000"
+  ],
+  "max_purchases": 3,
   "name": "misc.craftorio.upgrade_contract_momentum",
   "target": "CONTRACT_COMPLETE",
-  "x": -36.0,
-  "y": -1000.0
+  "y": -192.0
 }

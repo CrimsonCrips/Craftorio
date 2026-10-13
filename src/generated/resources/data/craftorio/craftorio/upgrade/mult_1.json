@@ -8,7 +8,6 @@
   "name": "misc.craftorio.upgrade_mult_1",
   "operation": "ADD",
   "target": "MULTIPLIER",
-  "value": 0.2,
-  "x": 0.5355809456095741,
-  "y": -105.12537387183875
+  "value": 0.25,
+  "x": 64.0
 }

@@ -1,0 +1,19 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:rebirth_root",
+  "cost": "100",
+  "description": "misc.craftorio.upgrade_echoes_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "level_costs": [
+    "100",
+    "300",
+    "900",
+    "2700"
+  ],
+  "max_purchases": 4,
+  "name": "misc.craftorio.upgrade_echoes",
+  "operation": "MULTIPLY",
+  "target": "MULTIPLIER",
+  "value": 0.25,
+  "y": 64.0
+}

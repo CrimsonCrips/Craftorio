@@ -1,0 +1,13 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:build_blitz",
+  "cost": "3",
+  "description": "misc.craftorio.upgrade_sacred_appraisal_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "max_purchases": 1,
+  "name": "misc.craftorio.upgrade_sacred_appraisal",
+  "operation": "MULTIPLY",
+  "target": "ITEM_BASE_VALUE",
+  "value": 2.0,
+  "y": 64.0
+}

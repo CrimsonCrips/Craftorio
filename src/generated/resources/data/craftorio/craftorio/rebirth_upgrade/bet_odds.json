@@ -1,0 +1,18 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:double_or_nothing_unlock",
+  "cost": "60",
+  "description": "misc.craftorio.upgrade_bet_odds_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "level_costs": [
+    "60",
+    "120",
+    "240"
+  ],
+  "max_purchases": 3,
+  "name": "misc.craftorio.upgrade_bet_odds",
+  "operation": "ADD",
+  "target": "BET_ODDS",
+  "value": 0.03,
+  "x": 128.0
+}

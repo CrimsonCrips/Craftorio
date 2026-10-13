@@ -1,0 +1,9 @@
+{
+  "type": "craftorio:contract_completion_scaling",
+  "parent": "craftorio:build_blitz",
+  "cost": "2",
+  "description": "misc.craftorio.upgrade_contract_completion_scaling_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "name": "misc.craftorio.upgrade_contract_completion_scaling",
+  "y": -64.0
+}

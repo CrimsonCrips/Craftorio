@@ -173,7 +173,6 @@ public final class CraftorioGeneralLang {
 		lang.addMisc("dev_tools_title", "Dev Tools");
 		lang.addMisc("dev_tools_create_contract", "Create Contract");
 		lang.addMisc("dev_tools_create_effect", "Create Effect");
-		lang.addMisc("dev_tools_create_upgrade", "Create Upgrade");
 		lang.addMisc("dev_tools_create_skill_tree", "Create Skill Tree");
 		lang.addMisc("dev_tools_points_determiner", "Points Determiner");
 		lang.addMisc("points_determiner_title", "Points Determiner");
@@ -256,10 +255,8 @@ public final class CraftorioGeneralLang {
 		lang.addMisc("dev_tools_label_description", "Description (Opt)");
 		lang.addMisc("dev_tools_label_cost", "Cost (Opt)");
 		lang.addMisc("dev_tools_label_max_purchases", "Max Purchases");
-		lang.addMisc("dev_tools_label_tree", "Skill Tree");
 		lang.addMisc("dev_tools_edit_effects", "Edit Effects");
 		lang.addMisc("dev_tools_edit_contracts", "Edit Contracts");
-		lang.addMisc("dev_tools_edit_upgrade", "Edit Upgrade");
 		lang.addMisc("dev_tools_pick_effect", "Select an Effect to Edit");
 		lang.addMisc("dev_tools_pick_contract", "Select a Contract to Edit");
 		lang.addMisc("dev_tools_select_punishment", "Select Effect");
@@ -313,6 +310,11 @@ public final class CraftorioGeneralLang {
 		lang.addMisc("dev_tools_skill_tree_help_2", "Right-click drag empty space to pan the canvas. Use New Node/Duplicate/Delete below the canvas, then Generate to export.");
 		lang.addMisc("dev_tools_skill_tree_help_3", "Scroll the mouse wheel over the canvas to zoom in and out. A node with no parent link (shown in blue, marked R) is a root.");
 		lang.addMisc("dev_tools_skill_tree_help_4", "Manual upgrades export as placeholders only: swap the code's TODO factory for your real class, or the JSON's TODO type for your upgrade's registered type, before use.");
+		lang.addMisc("dev_tools_skill_tree_help_5", "Turn on Grid at the bottom left to snap nodes to a grid while moving them. Dragging several nodes keeps their spacing.");
+		lang.addMisc("dev_tools_skill_tree_help_6", "When an upgrade can be bought more than once, the arrow next to Max Purchases sets the cost of each level. Lv 1 is the Cost field, and an empty level costs the same as the one before it.");
+		lang.addMisc("dev_tools_skill_tree_level_costs", "Cost per level");
+		lang.addMisc("dev_tools_skill_tree_grid_on", "Grid: On");
+		lang.addMisc("dev_tools_skill_tree_grid_off", "Grid: Off");
 		lang.addMisc("dev_tools_skill_tree_generated_json", "Generated %s JSON file(s).");
 		lang.addMisc("dev_tools_skill_tree_generated_code", "Generated Java code with %s node(s).");
 		lang.addMisc("dev_tools_skill_tree_multiple_roots", "Warning: %s root nodes detected - most trees should have exactly one.");
@@ -322,7 +324,6 @@ public final class CraftorioGeneralLang {
 		lang.addMisc("dev_tools_skill_tree_manual_upgrade_3", "Export needs manual intervention: swap the TODO factory/type for the real one.");
 		lang.addMisc("contract_creator_title", "Contract Creator");
 		lang.addMisc("effect_creator_title", "Effect Creator");
-		lang.addMisc("upgrade_creator_title", "Upgrade Creator");
 		lang.addMisc("reveal_contract_button", "Available Contracts");
 		lang.addMisc("owned_contracts_button", "My Contracts");
 
@@ -388,6 +389,8 @@ public final class CraftorioGeneralLang {
 		lang.addMisc("command_sacrifice_started", "Sent %s to the Haven to sacrifice, the life requirement is waived.");
 		lang.addMisc("command_sacrifice_failed", "Could not send the player to the Haven: they are already there, a sacrifice is running, or they are on cooldown.");
 		lang.addMisc("command_rebirth_done", "%s has been reborn (no rebirth crystals were granted).");
+		lang.addMisc("command_crystals_set", "Set rebirth crystals to %s");
+		lang.addMisc("command_essence_set", "Set sacrificed essence to %s");
 		lang.addMisc("contract_goal_building", "Blocks placed: %s / %s");
 		lang.addMisc("contract_goal_building_unplaced", "Build the structure %s (use the schematic)");
 		lang.addMisc("contract_bounty_building", "Also Sink");

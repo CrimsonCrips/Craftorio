@@ -1,0 +1,21 @@
+{
+  "type": "craftorio:attribute",
+  "parent": "craftorio:rebirth_root",
+  "cost": "20",
+  "description": "misc.craftorio.upgrade_vitality_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "level_costs": [
+    "20",
+    "40",
+    "80",
+    "160",
+    "320"
+  ],
+  "max_purchases": 5,
+  "name": "misc.craftorio.upgrade_vitality",
+  "operation": "ADD",
+  "target": "HEALTH",
+  "value": 2.0,
+  "x": 64.0,
+  "y": 64.0
+}

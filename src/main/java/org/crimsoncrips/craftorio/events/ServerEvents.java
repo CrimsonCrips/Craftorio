@@ -542,7 +542,7 @@ public class ServerEvents {
             CraftorioMisc.setPoints(pointsOwned.add(value),player);
         }
 
-        if (CraftorioMisc.hasUnlockedUpgrade(player, UpgradeTree.BASIC, Craftorio.prefix("advancement_multiplier"))) {
+        if (CraftorioMisc.hasUnlockedUpgrade(player, Craftorio.prefix("advancement_multiplier"))) {
             double multiplierBonus = CraftorioAdvancementMultipliers.getMultiplier(id.toString());
             CraftorioMisc.addAdvancementMultiplierBonus(player, multiplierBonus);
         }
@@ -680,7 +680,7 @@ public class ServerEvents {
     }
 
     private static boolean canSeeEffectTimer(ServerPlayer player) {
-        return CraftorioMisc.hasUnlockedUpgrade(player, UpgradeTree.BASIC, EffectTimerDisplayUnlockUpgrade.ID);
+        return CraftorioMisc.hasUnlockedUpgrade(player, EffectTimerDisplayUnlockUpgrade.ID);
     }
 
     @SubscribeEvent

@@ -4,11 +4,15 @@
   "cost": "10000",
   "description": "misc.craftorio.upgrade_mult_2_description",
   "icon": "craftorio:textures/gui/default_icon.png",
-  "max_purchases": 1,
+  "level_costs": [
+    "10000",
+    "50000",
+    "250000"
+  ],
+  "max_purchases": 3,
   "name": "misc.craftorio.upgrade_mult_2",
   "operation": "ADD",
   "target": "MULTIPLIER",
   "value": 0.5,
-  "x": 1.7159830427900415,
-  "y": -188.12249064686955
+  "x": 128.0
 }

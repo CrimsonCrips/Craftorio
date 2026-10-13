@@ -1,14 +1,17 @@
 {
   "type": "craftorio:modifier",
   "parent": "craftorio:effect_timer_1",
-  "cost": "100000000000",
+  "cost": "10000000000000000",
   "description": "misc.craftorio.upgrade_effect_timer_2_description",
   "icon": "craftorio:textures/gui/default_icon.png",
-  "max_purchases": 1,
+  "level_costs": [
+    "10000000000000000",
+    "1000000000000000000000"
+  ],
+  "max_purchases": 2,
   "name": "misc.craftorio.upgrade_effect_timer_2",
-  "operation": "ADD",
+  "operation": "MULTIPLY",
   "target": "EFFECT_TIMER_SPEED",
-  "value": 1.4000000000000001,
-  "x": -275.57756633203513,
-  "y": -66.07740217816789
+  "value": 0.25,
+  "x": -128.0
 }

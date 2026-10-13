@@ -1,0 +1,13 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:mult_amplifier_1",
+  "cost": "100000000000000000000000000",
+  "description": "misc.craftorio.upgrade_mult_amplifier_2_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "max_purchases": 1,
+  "name": "misc.craftorio.upgrade_mult_amplifier_2",
+  "operation": "MULTIPLY",
+  "target": "MULTIPLIER",
+  "value": 1.0,
+  "x": 384.0
+}

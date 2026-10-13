@@ -1,0 +1,9 @@
+{
+  "type": "craftorio:effect_rune_shop_unlock",
+  "parent": "craftorio:rebirth_root",
+  "cost": "120",
+  "description": "misc.craftorio.upgrade_effect_rune_shop_unlock_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "name": "misc.craftorio.upgrade_effect_rune_shop_unlock",
+  "y": -64.0
+}

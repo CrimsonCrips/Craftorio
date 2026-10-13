@@ -1,0 +1,11 @@
+{
+  "type": "craftorio:modifier",
+  "cost": "5",
+  "description": "misc.craftorio.upgrade_rebirth_root_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "max_purchases": 1,
+  "name": "misc.craftorio.upgrade_rebirth_root",
+  "operation": "ADD",
+  "target": "MULTIPLIER",
+  "value": 1.0
+}

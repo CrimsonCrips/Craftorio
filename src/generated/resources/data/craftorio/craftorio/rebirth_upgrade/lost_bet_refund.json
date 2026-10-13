@@ -1,0 +1,18 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:bet_odds",
+  "cost": "80",
+  "description": "misc.craftorio.upgrade_lost_bet_refund_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "level_costs": [
+    "80",
+    "160",
+    "320"
+  ],
+  "max_purchases": 3,
+  "name": "misc.craftorio.upgrade_lost_bet_refund",
+  "operation": "ADD",
+  "target": "LOST_BET_REFUND",
+  "value": 0.1,
+  "x": 192.0
+}

@@ -1,0 +1,13 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:advancement_multiplier",
+  "cost": "3",
+  "description": "misc.craftorio.upgrade_eternal_flame_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "max_purchases": 1,
+  "name": "misc.craftorio.upgrade_eternal_flame",
+  "operation": "MULTIPLY",
+  "target": "MULTIPLIER",
+  "value": 2.0,
+  "x": -128.0
+}

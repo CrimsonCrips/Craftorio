@@ -4,11 +4,17 @@
   "cost": "1000000000",
   "description": "misc.craftorio.upgrade_effect_timer_1_description",
   "icon": "craftorio:textures/gui/default_icon.png",
-  "max_purchases": 1,
+  "level_costs": [
+    "1000000000",
+    "5000000000",
+    "25000000000",
+    "100000000000",
+    "500000000000"
+  ],
+  "max_purchases": 5,
   "name": "misc.craftorio.upgrade_effect_timer_1",
   "operation": "ADD",
   "target": "EFFECT_TIMER_SPEED",
-  "value": 1.0,
-  "x": -143.6797028147919,
-  "y": -13.54766696385628
+  "value": 60.0,
+  "x": -64.0
 }

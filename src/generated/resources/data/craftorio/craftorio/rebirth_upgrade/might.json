@@ -1,0 +1,19 @@
+{
+  "type": "craftorio:attribute",
+  "parent": "craftorio:fortitude",
+  "cost": "60",
+  "description": "misc.craftorio.upgrade_might_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "level_costs": [
+    "60",
+    "120",
+    "240"
+  ],
+  "max_purchases": 3,
+  "name": "misc.craftorio.upgrade_might",
+  "operation": "ADD",
+  "target": "DAMAGE",
+  "value": 1.0,
+  "x": 64.0,
+  "y": 192.0
+}

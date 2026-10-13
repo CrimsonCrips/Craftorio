@@ -1,0 +1,18 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:refresh_cost",
+  "cost": "1000000000000000",
+  "description": "misc.craftorio.upgrade_punishment_duration_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "level_costs": [
+    "1000000000000000",
+    "1000000000000000000000"
+  ],
+  "max_purchases": 2,
+  "name": "misc.craftorio.upgrade_punishment_duration",
+  "operation": "DIVIDE",
+  "target": "PUNISHMENT_DURATION",
+  "value": 0.5,
+  "x": -64.0,
+  "y": -192.0
+}

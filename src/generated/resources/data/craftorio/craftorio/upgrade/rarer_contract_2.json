@@ -1,14 +1,18 @@
 {
   "type": "craftorio:modifier",
-  "parent": "craftorio:contract_refresh_1",
-  "cost": "3000000000",
+  "parent": "craftorio:rarer_contract_1",
+  "cost": "10000000000000000000",
   "description": "misc.craftorio.upgrade_rarer_contract_2_description",
   "icon": "craftorio:textures/gui/default_icon.png",
-  "max_purchases": 1,
+  "level_costs": [
+    "10000000000000000000",
+    "1000000000000000000000000"
+  ],
+  "max_purchases": 2,
   "name": "misc.craftorio.upgrade_rarer_contract_2",
   "operation": "ADD",
   "target": "RARER_CONTRACT_CHANCE",
-  "value": 0.05,
-  "x": -78.23974604370696,
-  "y": 206.34503263096445
+  "value": 0.5,
+  "x": 64.0,
+  "y": -192.0
 }

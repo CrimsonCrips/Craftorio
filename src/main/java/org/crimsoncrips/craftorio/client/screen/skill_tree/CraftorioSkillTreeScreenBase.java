@@ -379,7 +379,7 @@ public abstract class CraftorioSkillTreeScreenBase extends Screen {
 
         private void updateTooltip(int purchaseCount) {
             this.lastTooltipPurchaseCount = purchaseCount;
-            String costText = CraftorioMisc.bigIntFormat(upgrade.getCost());
+            String costText = CraftorioMisc.bigIntFormat(upgrade.getCost(purchaseCount));
             Component tooltip = Component.literal(upgrade.getActualName())
                     .append("\n").append(upgrade.getActualDescription())
                     .append("\n").append(Component.translatable("misc.craftorio.upgrade_cost_tooltip", costText))
@@ -402,7 +402,7 @@ public abstract class CraftorioSkillTreeScreenBase extends Screen {
 
             boolean parentUnlocked = upgrade.getParent().isEmpty() || (player != null && hasUnlocked(player, upgrade.getParent().get()));
             boolean maxed = purchaseCount >= upgrade.getMaxPurchases();
-            boolean affordable = player != null && CraftorioMisc.getCurrency(player, tree()).compareTo(upgrade.getCost()) >= 0;
+            boolean affordable = player != null && CraftorioMisc.getCurrency(player, tree()).compareTo(upgrade.getCost(purchaseCount)) >= 0;
 
             int borderColor;
             if (maxed) {

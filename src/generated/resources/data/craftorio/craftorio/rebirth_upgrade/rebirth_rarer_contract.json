@@ -1,0 +1,17 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:standing_clientele",
+  "cost": "200",
+  "description": "misc.craftorio.upgrade_rebirth_rarer_contract_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "level_costs": [
+    "200",
+    "800"
+  ],
+  "max_purchases": 2,
+  "name": "misc.craftorio.upgrade_rebirth_rarer_contract",
+  "operation": "ADD",
+  "target": "RARER_CONTRACT_CHANCE",
+  "value": 0.25,
+  "x": -128.0
+}

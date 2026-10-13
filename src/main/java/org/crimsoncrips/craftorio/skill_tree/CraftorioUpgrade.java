@@ -1,5 +1,12 @@
 package org.crimsoncrips.craftorio.skill_tree;
 
+import java.util.Arrays;
+import java.util.List;
+
+import org.crimsoncrips.craftorio.CraftorioMisc;
+
+import com.mojang.serialization.codecs.RecordCodecBuilder;
+
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.Holder;
@@ -26,6 +33,7 @@ public abstract class CraftorioUpgrade {
     private final int maxPurchases;
     private double x = 0.0;
     private double y = 0.0;
+    private List<BigInteger> levelCosts = List.of();
 
     public static final ResourceKey<Registry<MapCodec<? extends CraftorioUpgrade>>> TYPE_REGISTRY_KEY =
             ResourceKey.createRegistryKey(ResourceLocation.fromNamespaceAndPath(Craftorio.MODID, "craftorio_upgrade_type"));
@@ -50,6 +58,10 @@ public abstract class CraftorioUpgrade {
     }
 
     public abstract MapCodec<? extends CraftorioUpgrade> codec();
+
+    public static <T extends CraftorioUpgrade> RecordCodecBuilder<T, List<BigInteger>> levelCostsField() {
+        return CraftorioMisc.SCIENTIFIC_BIGINT_CODEC().listOf().optionalFieldOf("level_costs", List.of()).forGetter(CraftorioUpgrade::getLevelCosts);
+    }
 
     protected CraftorioUpgrade(String name, ResourceLocation icon, ResourceLocation parent, String description, BigInteger cost, int maxPurchases) {
         this.name = name;
@@ -88,6 +100,19 @@ public abstract class CraftorioUpgrade {
         return cost;
     }
 
+    public BigInteger getCost(int purchased) {
+        if (levelCosts.isEmpty()) return cost;
+        return levelCosts.get(Math.min(Math.max(purchased, 0), levelCosts.size() - 1));
+    }
+
+    public List<BigInteger> getLevelCosts() {
+        return levelCosts;
+    }
+
+    public void setLevelCosts(List<BigInteger> levelCosts) {
+        this.levelCosts = List.copyOf(levelCosts);
+    }
+
     public int getMaxPurchases() {
         return maxPurchases;
     }
@@ -119,6 +144,7 @@ public abstract class CraftorioUpgrade {
         private String description;
         private BigInteger cost = BigInteger.ZERO;
         private int maxPurchases = 1;
+        private List<BigInteger> levelCosts = List.of();
         private double x = 0.0;
         private double y = 0.0;
 
@@ -149,6 +175,21 @@ public abstract class CraftorioUpgrade {
 
         public Builder maxPurchases(int maxPurchases) {
             this.maxPurchases = maxPurchases;
+            return this;
+        }
+
+        public Builder levelCosts(BigInteger... levelCosts) {
+            this.levelCosts = List.of(levelCosts);
+            return this;
+        }
+
+        public Builder levelCosts(long... levelCosts) {
+            this.levelCosts = Arrays.stream(levelCosts).mapToObj(BigInteger::valueOf).toList();
+            return this;
+        }
+
+        public Builder levelCosts(List<BigInteger> levelCosts) {
+            this.levelCosts = List.copyOf(levelCosts);
             return this;
         }
 
@@ -192,6 +233,10 @@ public abstract class CraftorioUpgrade {
             return maxPurchases;
         }
 
+        public List<BigInteger> getLevelCosts() {
+            return levelCosts;
+        }
+
         public double getX() {
             return x;
         }
@@ -216,6 +261,7 @@ public abstract class CraftorioUpgrade {
             ResourceKey<CraftorioUpgrade> key = ResourceKey.create(registryKey, id);
             CraftorioUpgrade upgrade = factory.apply(this);
             upgrade.setPosition(this.x, this.y);
+            upgrade.setLevelCosts(this.levelCosts);
             return context.register(key, upgrade);
         }
     }

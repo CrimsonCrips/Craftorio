@@ -1,0 +1,18 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:echoes",
+  "cost": "100",
+  "description": "misc.craftorio.upgrade_land_grant_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "level_costs": [
+    "100",
+    "400"
+  ],
+  "max_purchases": 2,
+  "name": "misc.craftorio.upgrade_land_grant",
+  "operation": "DIVIDE",
+  "target": "EXPANSION_COST",
+  "value": 1.0,
+  "x": -64.0,
+  "y": 128.0
+}

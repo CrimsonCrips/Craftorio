@@ -1,0 +1,13 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:effect_rune_shop_unlock",
+  "cost": "250",
+  "description": "misc.craftorio.upgrade_lucky_star_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "max_purchases": 1,
+  "name": "misc.craftorio.upgrade_lucky_star",
+  "operation": "MULTIPLY",
+  "target": "EFFECT_TIMER_SPEED",
+  "value": 0.5,
+  "y": -128.0
+}

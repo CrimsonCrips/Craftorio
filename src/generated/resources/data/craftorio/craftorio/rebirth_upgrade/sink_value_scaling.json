@@ -1,0 +1,9 @@
+{
+  "type": "craftorio:sink_value_scaling",
+  "parent": "craftorio:inherited_appraisal",
+  "cost": "300",
+  "description": "misc.craftorio.upgrade_sink_value_scaling_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "name": "misc.craftorio.upgrade_sink_value_scaling",
+  "y": 192.0
+}

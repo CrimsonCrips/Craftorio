@@ -1,0 +1,18 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:echoes",
+  "cost": "150",
+  "description": "misc.craftorio.upgrade_inherited_appraisal_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "level_costs": [
+    "150",
+    "600",
+    "2400"
+  ],
+  "max_purchases": 3,
+  "name": "misc.craftorio.upgrade_inherited_appraisal",
+  "operation": "MULTIPLY",
+  "target": "ITEM_BASE_VALUE",
+  "value": 0.5,
+  "y": 128.0
+}

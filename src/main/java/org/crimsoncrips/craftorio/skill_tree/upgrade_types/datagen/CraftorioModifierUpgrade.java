@@ -41,11 +41,13 @@ public class CraftorioModifierUpgrade extends CraftorioUpgrade {
                     Codec.DOUBLE.fieldOf("value").forGetter(CraftorioModifierUpgrade::getValue),
                     TagKey.hashedCodec(Registries.ITEM).optionalFieldOf("item_tag").forGetter(CraftorioModifierUpgrade::getItemTag),
                     Codec.INT.fieldOf("max_purchases").forGetter(CraftorioModifierUpgrade::getMaxPurchases),
+                    CraftorioUpgrade.<CraftorioModifierUpgrade>levelCostsField(),
                     Codec.DOUBLE.optionalFieldOf("x", 0.0).forGetter(CraftorioModifierUpgrade::getX),
                     Codec.DOUBLE.optionalFieldOf("y", 0.0).forGetter(CraftorioModifierUpgrade::getY)
-            ).apply(instance, (name, icon, parent, description, cost, target, operation, value, itemTag, maxPurchases, x, y) -> {
+            ).apply(instance, (name, icon, parent, description, cost, target, operation, value, itemTag, maxPurchases, levelCosts, x, y) -> {
                     CraftorioModifierUpgrade upgrade = new CraftorioModifierUpgrade(name, icon, parent.orElse(null), description, cost, target, operation, value, itemTag.orElse(null), maxPurchases);
                     upgrade.setPosition(x, y);
+                    upgrade.setLevelCosts(levelCosts);
                     return upgrade;
             })
     );

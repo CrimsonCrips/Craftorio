@@ -1,0 +1,19 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:contract_refresh_1",
+  "cost": "1000000000000",
+  "description": "misc.craftorio.upgrade_refresh_cost_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "level_costs": [
+    "1000000000000",
+    "10000000000000000",
+    "100000000000000000000"
+  ],
+  "max_purchases": 3,
+  "name": "misc.craftorio.upgrade_refresh_cost",
+  "operation": "DIVIDE",
+  "target": "CONTRACT_REFRESH_COST",
+  "value": 0.25,
+  "x": -64.0,
+  "y": -128.0
+}

@@ -1,14 +1,19 @@
 {
   "type": "craftorio:modifier",
   "parent": "craftorio:base_value_1",
-  "cost": "180000",
+  "cost": "100000000",
   "description": "misc.craftorio.upgrade_base_value_2_description",
   "icon": "craftorio:textures/gui/default_icon.png",
-  "max_purchases": 1,
+  "level_costs": [
+    "100000000",
+    "1000000000",
+    "10000000000"
+  ],
+  "max_purchases": 3,
   "name": "misc.craftorio.upgrade_base_value_2",
   "operation": "ADD",
   "target": "ITEM_BASE_VALUE",
-  "value": 20.0,
-  "x": -180.5076838621648,
-  "y": -295.2842295883677
+  "value": 100.0,
+  "x": 128.0,
+  "y": 128.0
 }

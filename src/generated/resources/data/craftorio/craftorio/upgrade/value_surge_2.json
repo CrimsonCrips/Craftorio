@@ -1,0 +1,14 @@
+{
+  "type": "craftorio:modifier",
+  "parent": "craftorio:base_value_3",
+  "cost": "10000000000000000000000",
+  "description": "misc.craftorio.upgrade_value_surge_2_description",
+  "icon": "craftorio:textures/gui/default_icon.png",
+  "max_purchases": 1,
+  "name": "misc.craftorio.upgrade_value_surge_2",
+  "operation": "MULTIPLY",
+  "target": "ITEM_BASE_VALUE",
+  "value": 1.0,
+  "x": 256.0,
+  "y": 192.0
+}

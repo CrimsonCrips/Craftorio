@@ -36,11 +36,13 @@ public class CraftorioDifficultyUpgrade extends CraftorioUpgrade {
                     Codec.DOUBLE.optionalFieldOf("normal", 0.0).forGetter(upgrade -> upgrade.normal),
                     Codec.DOUBLE.optionalFieldOf("hard", 0.0).forGetter(upgrade -> upgrade.hard),
                     Codec.INT.optionalFieldOf("max_purchases", 1).forGetter(CraftorioDifficultyUpgrade::getMaxPurchases),
+                    CraftorioUpgrade.<CraftorioDifficultyUpgrade>levelCostsField(),
                     Codec.DOUBLE.optionalFieldOf("x", 0.0).forGetter(CraftorioDifficultyUpgrade::getX),
                     Codec.DOUBLE.optionalFieldOf("y", 0.0).forGetter(CraftorioDifficultyUpgrade::getY)
-            ).apply(instance, (name, icon, parent, description, cost, target, operation, peaceful, easy, normal, hard, maxPurchases, x, y) -> {
+            ).apply(instance, (name, icon, parent, description, cost, target, operation, peaceful, easy, normal, hard, maxPurchases, levelCosts, x, y) -> {
                     CraftorioDifficultyUpgrade upgrade = new CraftorioDifficultyUpgrade(name, icon, parent.orElse(null), description, cost, target, operation, peaceful, easy, normal, hard, maxPurchases);
                     upgrade.setPosition(x, y);
+                    upgrade.setLevelCosts(levelCosts);
                     return upgrade;
             })
     );

@@ -308,7 +308,7 @@ public class CraftorioMisc {
     }
 
     public static BigInteger getSinkValueBonus(Player player, ItemStack itemStack) {
-        if (!hasUnlockedUpgrade(player, UpgradeTree.BASIC, Craftorio.prefix("sink_value_scaling"))) return BigInteger.ZERO;
+        if (!hasUnlockedUpgrade(player, Craftorio.prefix("sink_value_scaling"))) return BigInteger.ZERO;
 
         ResourceLocation itemId = BuiltInRegistries.ITEM.getKey(itemStack.getItem());
         long sinkCount = getItemsSinked(player).getOrDefault(itemId, 0L);
@@ -362,7 +362,7 @@ public class CraftorioMisc {
     }
 
     public static double getContractCompletionMultiplierBonus(Player player){
-        if (!hasUnlockedUpgrade(player, UpgradeTree.BASIC, Craftorio.prefix("contract_completion_scaling"))) return 0;
+        if (!hasUnlockedUpgrade(player, Craftorio.prefix("contract_completion_scaling"))) return 0;
 
         int contractsCompleted = getContractsCompleted(player);
         if (contractsCompleted <= 0) return 0;
@@ -422,6 +422,13 @@ public class CraftorioMisc {
 
     public static boolean hasUnlockedUpgrade(Player player, UpgradeTree tree, ResourceLocation id){
         return getUpgradeCount(player, tree, id) > 0;
+    }
+
+    public static boolean hasUnlockedUpgrade(Player player, ResourceLocation id){
+        for (UpgradeTree tree : UpgradeTree.values()) {
+            if (hasUnlockedUpgrade(player, tree, id)) return true;
+        }
+        return false;
     }
 
     public static int getUpgradeCount(Player player, UpgradeTree tree, ResourceLocation id){
