@@ -1,5 +1,6 @@
 package org.crimsoncrips.craftorio.server.data;
 
+import org.crimsoncrips.craftorio.server.shop.CraftorioPurchaseLedger;
 import com.mojang.serialization.Codec;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.BlockPos;
@@ -186,6 +187,15 @@ public class CraftorioDataAttachments {
                     .serialize(ITEMS_SINKED_CODEC)
                     .copyOnDeath()
                     .sync(ByteBufCodecs.fromCodec(ITEMS_SINKED_CODEC))
+                    .build());
+
+    private static final Codec<Map<ResourceLocation, CraftorioPurchaseLedger.Purchase>> PURCHASED_ITEMS_CODEC = Codec.unboundedMap(ResourceLocation.CODEC, CraftorioPurchaseLedger.Purchase.CODEC);
+
+    public static final Supplier<AttachmentType<Map<ResourceLocation, CraftorioPurchaseLedger.Purchase>>> PURCHASED_ITEMS = ATTACHMENT_TYPES.register(
+            "purchased_items", () -> AttachmentType.<Map<ResourceLocation, CraftorioPurchaseLedger.Purchase>>builder((holder) -> new HashMap<>())
+                    .serialize(PURCHASED_ITEMS_CODEC)
+                    .copyOnDeath()
+                    .sync(ByteBufCodecs.fromCodec(PURCHASED_ITEMS_CODEC))
                     .build());
 
     private static final Codec<Map<ResourceLocation, Integer>> UNLOCKED_UPGRADES_CODEC = Codec.unboundedMap(ResourceLocation.CODEC, Codec.INT);

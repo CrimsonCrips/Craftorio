@@ -1,5 +1,6 @@
 package org.crimsoncrips.craftorio;
 
+import org.crimsoncrips.craftorio.server.shop.CraftorioPurchaseLedger;
 import java.util.function.Predicate;
 import net.neoforged.neoforge.attachment.IAttachmentHolder;
 import net.neoforged.neoforge.attachment.AttachmentType;
@@ -832,14 +833,21 @@ public class CraftorioMisc {
         BigInteger existing = carrier.getOrDefault(CraftorioDataComponents.CONDENSED_VALUE, BigInteger.ZERO);
         BigInteger current = existing;
         boolean capped = false;
+        CraftorioPurchaseLedger.Session ledger = CraftorioPurchaseLedger.open(owner);
 
         for (int i = firstSlot; i < lastSlotExclusive; i++) {
             ItemStack stack = container.getItem(i);
             if (stack.isEmpty()) continue;
 
-            BigInteger total = checkValue(stack, owner, false);
+            int available = stack.getCount() - ledger.reserve(stack);
+            if (available <= 0) continue;
+
+            BigInteger total = checkValue(stack.copyWithCount(available), owner, false);
             if (total.signum() <= 0) {
-                container.setItem(i, ItemStack.EMPTY);
+                stack.shrink(available);
+                if (stack.isEmpty()) {
+                    container.setItem(i, ItemStack.EMPTY);
+                }
                 continue;
             }
 
@@ -851,15 +859,18 @@ public class CraftorioMisc {
 
             if (total.compareTo(remaining) <= 0) {
                 current = current.add(total);
-                container.setItem(i, ItemStack.EMPTY);
+                stack.shrink(available);
+                if (stack.isEmpty()) {
+                    container.setItem(i, ItemStack.EMPTY);
+                }
                 continue;
             }
 
-            BigInteger perItem = total.divide(BigInteger.valueOf(stack.getCount()));
+            BigInteger perItem = total.divide(BigInteger.valueOf(available));
             capped = true;
             if (perItem.signum() <= 0) continue;
 
-            BigInteger fits = remaining.divide(perItem).min(BigInteger.valueOf(stack.getCount()));
+            BigInteger fits = remaining.divide(perItem).min(BigInteger.valueOf(available));
             int amount = fits.intValue();
             if (amount <= 0) continue;
 

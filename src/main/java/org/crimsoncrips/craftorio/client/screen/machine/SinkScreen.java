@@ -1,5 +1,6 @@
 package org.crimsoncrips.craftorio.client.screen.machine;
 
+import org.crimsoncrips.craftorio.server.shop.CraftorioPurchaseLedger;
 import com.mojang.blaze3d.systems.RenderSystem;
 import com.mojang.math.Axis;
 import net.minecraft.client.gui.GuiGraphics;
@@ -126,10 +127,11 @@ public class SinkScreen extends AbstractContainerScreen<SinkerMenu> implements S
 	private BigInteger computeSinkerValue() {
 		BigInteger total = BigInteger.ZERO;
 		Container container = this.menu.getContainer();
+		CraftorioPurchaseLedger.Session ledger = CraftorioPurchaseLedger.open(this.minecraft.player);
 		for (int slot = 0; slot < this.menu.getRowCount() * 9; slot++) {
 			ItemStack stack = container.getItem(slot);
 			if (!stack.isEmpty()) {
-				total = total.add(CraftorioMisc.checkValue(stack, this.minecraft.player, true, true));
+				total = total.add(ledger.sink(stack, true).value());
 			}
 		}
 		return total;

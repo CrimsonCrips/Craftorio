@@ -1,5 +1,6 @@
 package org.crimsoncrips.craftorio.server.rebirth;
 
+import org.crimsoncrips.craftorio.server.shop.CraftorioPurchaseLedger;
 import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.RegistryAccess;
@@ -157,6 +158,7 @@ public class CraftorioRebirth {
         CraftorioMisc.setCraftorioContracts(player, List.of());
         resetContractOffer(player);
         clearItemsSinked(player);
+        CraftorioPurchaseLedger.clear(player);
         clearContractsCompleted(player);
         clearHighestPoints(player);
 

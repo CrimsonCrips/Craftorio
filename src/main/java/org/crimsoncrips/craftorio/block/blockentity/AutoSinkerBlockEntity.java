@@ -1,5 +1,6 @@
 package org.crimsoncrips.craftorio.block.blockentity;
 
+import org.crimsoncrips.craftorio.server.shop.CraftorioPurchaseLedger;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.NonNullList;
@@ -78,16 +79,22 @@ public class AutoSinkerBlockEntity extends BlockEntity implements Container, Men
 
         BigInteger pointsToGive = BigInteger.ZERO;
         List<ItemStack> sinkedItems = new ArrayList<>();
+        CraftorioPurchaseLedger.Session ledger = CraftorioPurchaseLedger.open(owner);
 
         for (int i = 0; i < items.size(); i++) {
             ItemStack stack = items.get(i);
             if (stack.isEmpty()) continue;
 
-            sinkedItems.add(stack);
-            pointsToGive = pointsToGive.add(CraftorioMisc.checkValue(stack, owner, true));
-            CraftorioMisc.recordItemSinked(owner, stack.getItem(), stack.getCount());
+            CraftorioPurchaseLedger.Sunk sunk = ledger.sink(stack, false);
+            int earned = stack.getCount() - sunk.bought();
+            if (earned > 0) {
+                sinkedItems.add(stack.copyWithCount(earned));
+            }
+            pointsToGive = pointsToGive.add(sunk.value());
+            CraftorioMisc.recordItemSinked(owner, stack.getItem(), earned);
             items.set(i, ItemStack.EMPTY);
         }
+        ledger.commit();
 
         CraftorioMisc.setPoints(CraftorioMisc.getPoints(owner).add(pointsToGive), owner);
 

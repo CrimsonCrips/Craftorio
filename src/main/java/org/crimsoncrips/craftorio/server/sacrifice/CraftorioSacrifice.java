@@ -998,6 +998,7 @@ public class CraftorioSacrifice {
         holder.setData(CraftorioDataAttachments.UNLOCKED_UPGRADES, new HashMap<>());
         holder.setData(CraftorioDataAttachments.REBIRTH_UPGRADES_UNLOCKED, new HashMap<>());
         holder.setData(CraftorioDataAttachments.ITEMS_SINKED, new HashMap<>());
+        holder.setData(CraftorioDataAttachments.PURCHASED_ITEMS, new HashMap<>());
         holder.setData(CraftorioDataAttachments.CONTRACTS_COMPLETED, 0);
         holder.setData(CraftorioDataAttachments.HIGHEST_MULTIPLIER, 0.0F);
         holder.setData(CraftorioDataAttachments.ADVANCEMENT_MULTIPLIER_BONUS, 0.0);

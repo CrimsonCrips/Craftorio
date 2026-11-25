@@ -74,6 +74,7 @@ public class CraftorioShop {
 
         CraftorioMisc.setPoints(points.subtract(totalPrice), player);
         CraftorioMisc.giveItemsSplitByStack(player, template, quantity);
+        CraftorioPurchaseLedger.record(player, template.getItem(), quantity, totalPrice);
 
         player.sendSystemMessage(Component.translatable(
                 "misc.craftorio.purchased_items", quantity, template.getHoverName()

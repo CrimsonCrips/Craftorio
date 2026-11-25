@@ -5,6 +5,7 @@
 
 package org.crimsoncrips.craftorio.inventory;
 
+import org.crimsoncrips.craftorio.server.shop.CraftorioPurchaseLedger;
 import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
@@ -130,6 +131,7 @@ public class SinkerMenu extends AbstractContainerMenu {
 		Level level = player.level();
 
         List<ItemStack> sinkedItems = new ArrayList<>();
+		CraftorioPurchaseLedger.Session ledger = CraftorioPurchaseLedger.open(player);
 		for(int j = 0; j < this.containerRows; ++j) {
 			for(int k = 0; k < 9; ++k) {
 				this.addSlot(new Slot(container, k + j * 9, 8 + k * 18, 18 + j * 18));
@@ -137,14 +139,19 @@ public class SinkerMenu extends AbstractContainerMenu {
 				ItemStack item = slot.getItem();
 
 				if (!item.isEmpty() && !level.isClientSide()){
-					sinkedItems.add(item);
+					CraftorioPurchaseLedger.Sunk sunk = ledger.sink(item, true);
+					int earned = item.getCount() - sunk.bought();
+					if (earned > 0) {
+						sinkedItems.add(item.copyWithCount(earned));
+					}
 
-					pointsToGive = pointsToGive.add(CraftorioMisc.checkValue(item,player,true,true));
-					CraftorioMisc.recordItemSinked(player, item.getItem(), item.getCount());
+					pointsToGive = pointsToGive.add(sunk.value());
+					CraftorioMisc.recordItemSinked(player, item.getItem(), earned);
 					slot.set(ItemStack.EMPTY);
 				}
 			}
 		}
+		ledger.commit();
 		CraftorioMisc.setPoints(CraftorioMisc.getPoints(player).add(pointsToGive),player);
 
 		List<ItemStack> contractItems = new ArrayList<>();
@@ -181,13 +188,17 @@ public class SinkerMenu extends AbstractContainerMenu {
 		return lastLossRefund;
 	}
 
-	public BigInteger computeContainerValue() {
+	public BigInteger computeContainerValue(boolean consumePurchases) {
 		BigInteger total = BigInteger.ZERO;
+		CraftorioPurchaseLedger.Session ledger = CraftorioPurchaseLedger.open(player);
 		for (int slot = 0; slot < this.containerRows * 9; slot++) {
 			ItemStack stack = container.getItem(slot);
 			if (!stack.isEmpty()) {
-				total = total.add(CraftorioMisc.checkValue(stack, player, true, true));
+				total = total.add(ledger.sink(stack, true).value());
 			}
+		}
+		if (consumePurchases) {
+			ledger.commit();
 		}
 		return total;
 	}
@@ -196,8 +207,9 @@ public class SinkerMenu extends AbstractContainerMenu {
 		if (!gambling) {
 			if (!CraftorioMisc.hasUnlockedUpgrade(player, Craftorio.prefix("double_or_nothing_unlock"))) return null;
 
-			BigInteger value = computeContainerValue();
+			BigInteger value = computeContainerValue(false);
 			if (value.signum() == 0) return null;
+			computeContainerValue(true);
 
 			container.clearContent();
 			gambling = true;
