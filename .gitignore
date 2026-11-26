@@ -22,4 +22,4 @@ hs_err_pid*
 run
 run-client2
 
-checkpoints/.snapshot/
+checkpoints/
